@@ -1,3 +1,17 @@
+= 5.2.0 =
+* Added MetForm integration.
+* Added MetForm migration to the Migration Wizard.
+* Added an option to delay the hCaptcha API until the user interacts with a protected form.
+* Added hCaptcha settings shortcuts to the WordPress Command Palette for quick navigation to plugin options.
+* Added validation of hCaptcha keys before making requests to fix the missing keys' scenario.
+* Added support for custom login URLs in Perfmatters 2.5.8 and later.
+* Fixed unbounded growth of the auto-verification form registry transient by limiting its size with LRU eviction.
+* Fixed hCaptcha placement above express payment buttons on WooCommerce cart pages.
+* Fixed hCaptcha signature verification for nested Kadence Advanced Forms and pages with multiple Advanced Forms.
+* Fixed hCaptcha signature verification for Divi Comment Forms when the WordPress Comment Form integration is disabled.
+* Fixed fatal errors on Gravity Forms submissions containing Multi Select fields.
+* Fixed compatibility with Maintenance 4.32.
+
 = 5.1.0 =
 * Added version switching to the What's New popup.
 * Added a Help button on hCaptcha admin pages to generate support reports for GitHub or WordPress.org, with optional System Info included.

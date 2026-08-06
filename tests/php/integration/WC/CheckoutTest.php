@@ -16,6 +16,7 @@ use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use HCaptcha\WC\Checkout;
 use Mockery;
+use ReflectionException;
 use WC_Payment_Gateway;
 use WP_Error;
 use WP_REST_Request;
@@ -100,6 +101,33 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 		$subject->add_captcha();
 
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Test add_captcha() with built-in form interaction.
+	 */
+	public function test_add_captcha_with_form_interaction(): void {
+		$subject = new Checkout();
+		$level   = ob_get_level();
+
+		add_filter( 'hcap_delay_api_event', '__return_true' );
+
+		try {
+			ob_start();
+			$subject->add_captcha();
+			$actual = (string) ob_get_clean();
+		} finally {
+			while ( ob_get_level() > $level ) {
+				ob_end_clean();
+			}
+
+			remove_filter( 'hcap_delay_api_event', '__return_true' );
+		}
+
+		self::assertStringContainsString(
+			'class="h-captcha hcaptcha-api-delayed"',
+			$actual
+		);
 	}
 
 	/**
@@ -336,7 +364,35 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
-	 * Test verify_block() error code mapping.
+	 * Test that an empty payment method does not load available gateways.
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_empty_payment_method_skips_loading_gateways(): void {
+		$gateways_loaded = false;
+		$filter          = static function ( array $gateways ) use ( &$gateways_loaded ): array {
+			$gateways_loaded = true;
+
+			return $gateways;
+		};
+
+		add_filter( 'woocommerce_available_payment_gateways', $filter );
+
+		try {
+			$subject = new Checkout();
+			$method  = $this->set_method_accessibility( $subject, 'is_express_payment_method' );
+
+			self::assertFalse( $method->invoke( $subject, '' ) );
+		} finally {
+			remove_filter( 'woocommerce_available_payment_gateways', $filter );
+		}
+
+		self::assertFalse( $gateways_loaded );
+	}
+
+	/**
+	 * Test verify_block() error code mapping with a nested payment method.
 	 *
 	 * @return void
 	 */
@@ -354,7 +410,14 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 
 		$request = new WP_REST_Request( '', '/wc/store/v1/checkout' );
 		$request->set_method( 'POST' );
-		$request->set_body( wp_json_encode( [ 'payment_data' => [] ] ) );
+		$request->set_body(
+			wp_json_encode(
+				[
+					'payment_method' => [],
+					'payment_data'   => [],
+				]
+			)
+		);
 
 		$this->prepare_verify_request( $hcaptcha_response, false );
 

@@ -101,6 +101,21 @@ class RegisterTest extends HCaptchaWPTestCase {
 		$output = ob_get_clean();
 
 		self::assertSame( $expected, $output );
+
+		add_filter( 'hcap_delay_api_event', '__return_true' );
+
+		ob_start();
+		$subject->before_render( $element );
+
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo $form;
+
+		$subject->add_hcaptcha( $element );
+		$output = ob_get_clean();
+
+		remove_filter( 'hcap_delay_api_event', '__return_true' );
+
+		self::assertStringContainsString( 'class="h-captcha hcaptcha-api-delayed"', $output );
 	}
 
 	/**

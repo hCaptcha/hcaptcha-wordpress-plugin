@@ -243,6 +243,8 @@ abstract class HCaptchaTestCase extends TestCase {
 				[ 'form' ],
 			'memberpress_status'           =>
 				[ 'register' ],
+			'metform_status'               =>
+				[ 'form' ],
 			'ninja_status'                 =>
 				[ 'form' ],
 			'otter_status'                 =>
@@ -1171,6 +1173,16 @@ abstract class HCaptchaTestCase extends TestCase {
 						[
 							'login'    => 'Login Form',
 							'register' => 'Register Form',
+						],
+				],
+			'metform_status'                   =>
+				[
+					'label'   => 'MetForm',
+					'logo'    => 'svg',
+					'type'    => 'checkbox',
+					'options' =>
+						[
+							'form' => 'Form',
 						],
 				],
 			'ninja_status'                     =>

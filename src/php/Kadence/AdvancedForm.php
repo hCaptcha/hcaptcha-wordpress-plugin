@@ -52,6 +52,7 @@ class AdvancedForm extends Base {
 		parent::init_hooks();
 
 		add_filter( 'render_block', [ $this, 'render_block' ], 10, 3 );
+		add_filter( 'render_block_data', [ $this, 'render_block_data' ] );
 
 		if ( Request::is_frontend() || Request::is_post() ) {
 			add_filter(
@@ -133,6 +134,25 @@ class AdvancedForm extends Base {
 		$this->has_captcha = (bool) $count;
 
 		return $block_content;
+	}
+
+	/**
+	 * Store the current advanced form id before rendering its inner blocks.
+	 *
+	 * @param array|mixed $parsed_block The block being rendered.
+	 *
+	 * @return array
+	 */
+	public function render_block_data( $parsed_block ): array {
+		$parsed_block = (array) $parsed_block;
+
+		if ( 'kadence/advanced-form' !== ( $parsed_block['blockName'] ?? '' ) ) {
+			return $parsed_block;
+		}
+
+		BlockParser::$form_id = (int) ( $parsed_block['attrs']['id'] ?? 0 );
+
+		return $parsed_block;
 	}
 
 	/**

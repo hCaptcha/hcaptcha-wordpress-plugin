@@ -43,6 +43,11 @@ class FormSubmitTime {
 	private const TRANSIENT_PREFIX = 'hcap_fst_nonce_';
 
 	/**
+	 * Token ID length.
+	 */
+	private const TOKEN_ID_LENGTH = 32;
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -133,6 +138,7 @@ class FormSubmitTime {
 			'post_id'   => $post_id,
 			'issued_at' => $issued_at,
 			'ttl'       => $ttl,
+			'token_id'  => wp_generate_password( self::TOKEN_ID_LENGTH, false ),
 		];
 		$token     = $this->token_from_payload( $payload );
 		$signature = $this->parse_token( $token )[1];
@@ -247,9 +253,10 @@ class FormSubmitTime {
 			return new WP_Error( 'fst_bad_b64', __( 'Decode error.', 'hcaptcha-for-forms-and-more' ) );
 		}
 
-		$payload = Utils::json_decode_arr( $json );
+		$payload  = Utils::json_decode_arr( $json );
+		$token_id = (string) ( $payload['token_id'] ?? '' );
 
-		if ( ! $payload ) {
+		if ( self::TOKEN_ID_LENGTH !== strlen( $token_id ) ) {
 			return new WP_Error( 'fst_bad_payload', __( 'Invalid payload.', 'hcaptcha-for-forms-and-more' ) );
 		}
 

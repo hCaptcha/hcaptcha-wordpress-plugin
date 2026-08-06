@@ -389,4 +389,16 @@ class UtilsTest extends HCaptchaTestCase {
 	public function test_list_array_with_mixed_value_types(): void {
 		self::assertSame( '1, B and 1', Utils::list_array( [ 1, 'B', true ] ) );
 	}
+
+	/**
+	 * Test json_decode_arr().
+	 *
+	 * @return void
+	 */
+	public function test_json_decode_arr(): void {
+		self::assertSame( [ 'key' => 'value' ], Utils::json_decode_arr( '{"key":"value"}' ) );
+		self::assertSame( [], Utils::json_decode_arr( '"value"' ) );
+		self::assertSame( [], Utils::json_decode_arr( '1' ) );
+		self::assertSame( [], Utils::json_decode_arr( 'invalid' ) );
+	}
 }

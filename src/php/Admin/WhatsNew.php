@@ -677,6 +677,72 @@ class WhatsNew extends NotificationsBase {
 	}
 
 	/**
+	 * What's New 5.1.0 content.
+	 *
+	 * @return void
+	 * @noinspection HtmlUnknownTarget
+	 * @noinspection PhpUnused
+	 */
+	protected function whats_new_5_1_0(): void {
+		$urls = $this->prepare_urls();
+
+		$block_events_dashboard = [
+			'type'    => 'left',
+			'badge'   => __( 'New Feature', 'hcaptcha-for-forms-and-more' ),
+			'title'   => __( 'Events Dashboard', 'hcaptcha-for-forms-and-more' ),
+			'message' => sprintf(
+				'<p>%1$s</p><p>%2$s</p><p>%3$s</p>',
+				__( 'The Events page now includes a dashboard for the selected reporting period.', 'hcaptcha-for-forms-and-more' ),
+				__( 'Switch from the chart to review total events, succeeded and failed rates, risk level, top forms, top errors, peak activity, and risk factors.', 'hcaptcha-for-forms-and-more' ),
+				__( 'Your Chart or Dashboard view preference is remembered in this browser.', 'hcaptcha-for-forms-and-more' )
+			),
+			'button'  => [
+				'url'  => $urls['events'],
+				'text' => __( 'Open Events', 'hcaptcha-for-forms-and-more' ),
+			],
+			'image'   => [
+				'url'      => $urls['events_dashboard_img'],
+				'lightbox' => true,
+			],
+		];
+
+		$this->show_block( $block_events_dashboard );
+	}
+
+	/**
+	 * What's New 5.2.0 content.
+	 *
+	 * @return void
+	 * @noinspection HtmlUnknownTarget
+	 * @noinspection PhpUnused
+	 */
+	protected function whats_new_5_2_0(): void {
+		$urls = $this->prepare_urls();
+
+		$block_command_palette = [
+			'type'    => 'left',
+			'badge'   => __( 'New Feature', 'hcaptcha-for-forms-and-more' ),
+			'title'   => __( 'WordPress Command Palette', 'hcaptcha-for-forms-and-more' ),
+			'message' => sprintf(
+				'<p>%1$s</p><p>%2$s</p><p>%3$s</p>',
+				__( 'hCaptcha settings are now searchable from the WordPress Command Palette.', 'hcaptcha-for-forms-and-more' ),
+				__( 'Press Ctrl+K or Command+K on the hCaptcha settings page and search for hCaptcha for WP or a setting name to jump directly to the right option.', 'hcaptcha-for-forms-and-more' ),
+				__( 'The shortcut opens the matching settings page and highlights the selected option for faster setup.', 'hcaptcha-for-forms-and-more' )
+			),
+			'button'  => [
+				'url'  => $urls['command_palette'],
+				'text' => __( 'Open Settings', 'hcaptcha-for-forms-and-more' ),
+			],
+			'image'   => [
+				'url'      => $urls['command_palette_img'],
+				'lightbox' => false,
+			],
+		];
+
+		$this->show_block( $block_command_palette );
+	}
+
+	/**
 	 * Show block.
 	 *
 	 * @param array $block Block.

@@ -88,7 +88,8 @@ abstract class CommentBase {
 			return $comment_data;
 		}
 
-		$this->result = HCaptcha::check_signature( static::class );
+		$this->form_id = (int) ( $comment_data['comment_post_ID'] ?? 0 );
+		$this->result  = HCaptcha::check_signature( static::class, $this->form_id );
 
 		if ( true === $this->result ) {
 			return $comment_data;

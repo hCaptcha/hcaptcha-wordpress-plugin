@@ -94,6 +94,9 @@ class SurfaceMapping {
 		// Mailpoet Forms.
 		'mailpoet_form'             => [ 'mailpoet_status', 'form', 'Mailpoet' ],
 
+		// MetForm.
+		'metform_form'              => [ 'metform_status', 'form', 'MetForm' ],
+
 		// MemberPress.
 		'memberpress_login'         => [ 'memberpress_status', 'login', 'MemberPress Login' ],
 		'memberpress_register'      => [ 'memberpress_status', 'register', 'MemberPress Register' ],

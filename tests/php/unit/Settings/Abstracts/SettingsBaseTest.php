@@ -900,7 +900,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test admin_enqueue_base_scripts() when not options screen.
+	 * Test admin_enqueue_base_scripts() when not option screen.
 	 */
 	public function test_base_admin_enqueue_scripts_when_not_options_screen(): void {
 		$plugin_url     = 'http://test.test/wp-content/plugins/hcaptcha-for-forms-and-more';
@@ -1776,36 +1776,42 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 */
 	public function test_sanitize_option_callback(): void {
 		$form_fields = [
-			'collect_ip'      => [
+			'collect_ip'       => [
 				'default' => '',
 				'type'    => 'checkbox',
 			],
-			'countries'       => [
+			'countries'        => [
 				'default' => '',
 				'type'    => 'multiple',
 			],
-			'whitelisted_ips' => [
+			'whitelisted_ips'  => [
 				'default' => '',
 				'type'    => 'textarea',
 			],
-			'size'            => [
+			'invalid_textarea' => [
+				'default' => '',
+				'type'    => 'textarea',
+			],
+			'size'             => [
 				'default' => '',
 				'type'    => 'select',
 			],
 		];
 		$value       = [
-			'collect_ip'      => [ 'on' ],
-			'countries'       => [ 'US', 'DE' ],
-			'whitelisted_ips' => "some ips\nline1\nline2",
-			'size'            => 'some size',
-			'foo'             => 'bar',
+			'collect_ip'       => [ 'on' ],
+			'countries'        => [ 'US', 'DE' ],
+			'whitelisted_ips'  => "some ips\nline1\nline2",
+			'invalid_textarea' => [ 'unexpected' ],
+			'size'             => 'some size',
+			'foo'              => 'bar',
 		];
 		$expected    = [
-			'collect_ip'      => [ 'on' ],
-			'countries'       => [ 'US', 'DE' ],
-			'whitelisted_ips' => "some ips\nline1\nline2",
-			'size'            => 'some size',
-			'foo'             => 'bar',
+			'collect_ip'       => [ 'on' ],
+			'countries'        => [ 'US', 'DE' ],
+			'whitelisted_ips'  => "some ips\nline1\nline2",
+			'invalid_textarea' => '',
+			'size'             => 'some size',
+			'foo'              => 'bar',
 		];
 
 		WP_Mock::passthruFunction( 'sanitize_text_field' );
@@ -2005,7 +2011,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Data provider for password field.
+	 * Data provider for the password field.
 	 *
 	 * @return array
 	 */
@@ -2508,7 +2514,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Data provider for button field.
+	 * Data provider for the button field.
 	 *
 	 * @return array
 	 */

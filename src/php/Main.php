@@ -15,6 +15,7 @@ namespace HCaptcha;
 use Automattic\WooCommerce\Utilities\FeaturesUtil;
 use HCaptcha\Abilities\Abilities;
 use HCaptcha\Admin\AdminNotices;
+use HCaptcha\Admin\CommandPalette;
 use HCaptcha\Admin\Events\Events;
 use HCaptcha\Admin\MaxMindDb;
 use HCaptcha\Admin\PluginStats;
@@ -65,6 +66,11 @@ class Main {
 	 * Main script handle.
 	 */
 	public const HANDLE = 'hcaptcha';
+
+	/**
+	 * Built-in form interaction event.
+	 */
+	private const FORM_INTERACTION_EVENT = 'hCaptchaFormInteraction';
 
 	/**
 	 * WP hooks handle.
@@ -233,6 +239,7 @@ class Main {
 		$this->load( Privacy::class );
 		$this->load( SupportModal::class );
 		$this->load( WhatsNew::class );
+		$this->load( CommandPalette::class );
 		$this->load( Abilities::class );
 
 		add_action( 'plugins_loaded', [ $this, 'load_modules' ], self::LOAD_PRIORITY + 10 );
@@ -839,7 +846,9 @@ class Main {
 	 * @return void
 	 */
 	public function print_footer_scripts(): void {
-		$settings = $this->settings();
+		$settings               = $this->settings();
+		$delay_api_event_config = $this->get_delay_api_event_config();
+		$delay_api_event        = $delay_api_event_config['event'];
 
 		if ( $settings ) {
 			$params   = [
@@ -862,9 +871,15 @@ class Main {
 
 			$params = array_merge( $params, $config_params );
 
+			$main_object = [ 'params' => wp_json_encode( $params ) ];
+
+			if ( $delay_api_event_config['form_interaction'] ) {
+				$main_object['formInteractionEvent'] = $delay_api_event;
+			}
+
 			// Output the params object, regardless of whether hCaptcha scripts are enqueued.
 			wp_print_inline_script_tag(
-				'var ' . self::OBJECT . ' = ' . wp_json_encode( [ 'params' => wp_json_encode( $params ) ] ) . ';'
+				'var ' . self::OBJECT . ' = ' . wp_json_encode( $main_object ) . ';'
 			);
 		}
 
@@ -895,8 +910,6 @@ class Main {
 		 */
 		$delay = (int) apply_filters( 'hcap_delay_api', (int) ( $settings->get( 'delay' ) ) );
 
-		$delay_api_event = $this->get_delay_api_event();
-
 		// This delayed script will be waiting for the hCaptchaBeforeAPI event fired by the self::HANDLE script.
 		DelayedScript::launch( [ 'src' => $this->get_api_src() ], $delay, $delay_api_event );
 
@@ -917,15 +930,35 @@ class Main {
 	 * @return string
 	 */
 	public function get_delay_api_event(): string {
+		return $this->get_delay_api_event_config()['event'];
+	}
+
+	/**
+	 * Get the delayed API event configuration.
+	 *
+	 * @return array{event: string, form_interaction: bool}
+	 */
+	private function get_delay_api_event_config(): array {
 		/**
-		 * Filters the custom browser event name used to load the hCaptcha API script.
+		 * Filters event-based loading of the hCaptcha API script.
 		 *
-		 * When non-empty, the delayed loader waits for this event on a document after hCaptchaBeforeAPI and
+		 * Return true to use the built-in trigger for pointer and keyboard interaction with a protected form.
+		 * Return a non-empty string to wait for a custom browser event dispatched by external code.
+		 *
+		 * When enabled, the delayed loader waits for the event on a document after hCaptchaBeforeAPI and
 		 * skips the default timer and user interaction listeners.
 		 *
-		 * @param string $delay_api_event Custom browser event name.
+		 * @param bool|string $delay_api_event Whether to use built-in form interaction or a custom event name.
 		 */
-		return trim( (string) apply_filters( 'hcap_delay_api_event', '' ) );
+		$delay_api_event  = apply_filters( 'hcap_delay_api_event', '' );
+		$form_interaction = true === $delay_api_event;
+
+		return [
+			'event'            => $form_interaction
+				? self::FORM_INTERACTION_EVENT
+				: trim( (string) $delay_api_event ),
+			'form_interaction' => $form_interaction,
+		];
 	}
 
 	/**
@@ -1627,6 +1660,11 @@ class Main {
 				[ 'memberpress_status', 'register' ],
 				'memberpress/memberpress.php',
 				MemberPress\Register::class,
+			],
+			'MetForm'                              => [
+				[ 'metform_status', 'form' ],
+				'metform/metform.php',
+				MetForm\Form::class,
 			],
 			'Ninja Forms'                          => [
 				[ 'ninja_status', 'form' ],

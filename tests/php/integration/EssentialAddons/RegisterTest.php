@@ -89,6 +89,33 @@ class RegisterTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test add_register_hcaptcha() with built-in form interaction.
+	 *
+	 * @return void
+	 */
+	public function test_add_register_hcaptcha_with_form_interaction(): void {
+		$widget  = Mockery::mock( Widget_Base::class );
+		$subject = new Register();
+		$level   = ob_get_level();
+
+		add_filter( 'hcap_delay_api_event', '__return_true' );
+
+		try {
+			ob_start();
+			$subject->add_register_hcaptcha( $widget );
+			$actual = (string) ob_get_clean();
+		} finally {
+			while ( ob_get_level() > $level ) {
+				ob_end_clean();
+			}
+
+			remove_filter( 'hcap_delay_api_event', '__return_true' );
+		}
+
+		self::assertStringContainsString( 'class="h-captcha hcaptcha-api-delayed"', $actual );
+	}
+
+	/**
 	 * Test verify().
 	 *
 	 * @return void

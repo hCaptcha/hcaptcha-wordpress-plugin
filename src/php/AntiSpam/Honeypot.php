@@ -37,6 +37,7 @@ class Honeypot {
 		'mailchimp_status'            => [ 'form' ],
 		'mailpoet_status'             => [ 'form' ],
 		'maintenance_status'          => [ 'login' ],
+		'metform_status'              => [ 'form' ],
 		'ninja_status'                => [ 'form' ],
 		'otter_status'                => [ 'form' ],
 		'paid_memberships_pro_status' => [ 'checkout', 'login' ],

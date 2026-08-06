@@ -62,7 +62,7 @@ class Button {
 	 * @return void
 	 */
 	private function init_hooks(): void {
-		add_action( 'ppcp_end_button_wrapper_ppcp_gateway', [ $this, 'add_captcha' ] );
+		add_action( 'ppcp_start_button_wrapper_ppcp_gateway', [ $this, 'add_captcha' ] );
 		add_action( 'woocommerce_paypal_payments_minicart_button_render', [ $this, 'add_captcha' ] );
 		add_filter( 'render_block_woocommerce/cart-express-payment-block', [ $this, 'add_block_captcha' ] );
 		add_filter( 'render_block_woocommerce/checkout-express-payment-block', [ $this, 'add_checkout_block_captcha' ] );
@@ -81,11 +81,13 @@ class Button {
 	 * Add captcha.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function add_captcha(): void {
-		$is_pay_now = function_exists( 'is_checkout_pay_page' ) && is_checkout_pay_page();
+		$is_pay_now  = function_exists( 'is_checkout_pay_page' ) && is_checkout_pay_page();
+		$is_checkout = ! $is_pay_now && function_exists( 'is_checkout' ) && is_checkout();
 
-		if ( ! $is_pay_now && function_exists( 'is_checkout' ) && is_checkout() ) {
+		if ( $is_checkout && hcaptcha()->settings()->is( 'woocommerce_status', 'checkout' ) ) {
 			$this->captcha_added = true;
 
 			return;
@@ -163,6 +165,10 @@ class Button {
 	public function add_checkout_block_captcha( $block_content ): string {
 		$block_content = (string) $block_content;
 
+		if ( ! hcaptcha()->settings()->is( 'woocommerce_status', 'checkout' ) ) {
+			return $this->add_block_captcha( $block_content );
+		}
+
 		$this->captcha_added = true;
 
 		return $block_content;
@@ -201,17 +207,18 @@ class Button {
 	private function get_verification_entry( array $data ): array {
 		$context = (string) ( $data['context'] ?? '' );
 
-		if ( in_array( $context, [ 'checkout', 'checkout-block' ], true ) ) {
-			if ( ! hcaptcha()->settings()->is( 'woocommerce_status', 'checkout' ) ) {
-				return [];
-			}
-
+		if (
+			in_array( $context, [ 'checkout', 'checkout-block' ], true ) &&
+			hcaptcha()->settings()->is( 'woocommerce_status', 'checkout' )
+		) {
 			return [
 				'nonce'  => Checkout::NONCE,
 				'action' => Checkout::ACTION,
 			];
 		}
 
+		// The context is client-controlled, so it must not select an unverified path.
+		// Fall back to the PayPal captcha when checkout protection is disabled.
 		if ( ! hcaptcha()->settings()->is( 'paypal_payments_status', 'button' ) ) {
 			return [];
 		}

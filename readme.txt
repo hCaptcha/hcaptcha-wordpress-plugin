@@ -2,9 +2,9 @@
 Contributors: hcaptcha, kaggdesign
 Tags: captcha, hcaptcha, recaptcha, antispam, spam
 Requires at least: 6.0
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 5.1.0
+Stable tag: 5.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -723,31 +723,26 @@ add_filter( 'hcap_delay_api_selector', static function ( $delay_api_selector ) {
 
 = How can I delay the hCaptcha API script until a custom event? =
 
-Developers can use the `hcap_delay_api_event` filter to opt into custom event-based API loading for specific integrations.
+Developers can use the `hcap_delay_api_event` filter to opt into event-based API loading.
 
-When the filter returns a non-empty event name, hCaptcha waits for `hCaptchaBeforeAPI`, then listens for that custom event on `document`. The default delay timer and built-in user interaction listeners are skipped. Your integration must dispatch the event when it is ready to load the hCaptcha API.
-
-Scope this filter carefully to only the pages or forms where you also dispatch the event.
+Return `true` to use the built-in trigger. It loads the API after pointer or keyboard interaction with a protected HTML form. Tab navigation into the form is supported, while programmatic focus is ignored. This works with WordPress core login, lost password, and registration forms, Jetpack forms, and other integrations that render hCaptcha inside a form.
 
 `
-/**
- * Filters the custom browser event name used to load the hCaptcha API script.
- *
- * @param string|mixed $delay_api_event Custom browser event name.
- */
+add_filter( 'hcap_delay_api_event', '__return_true' );
+`
+
+Non-empty strings remain custom event names. In that mode, hCaptcha waits for `hCaptchaBeforeAPI`, then listens for the returned event on `document`. The integration is responsible for dispatching the event:
+
+`
 add_filter(
   'hcap_delay_api_event',
-  static function ( $delay_api_event ): string {
-    if ( ! is_singular() || ! has_block( 'jetpack/contact-form', get_queried_object() ) ) {
-      return (string) $delay_api_event;
-    }
-
-    return 'hcap-load-api';
+  static function (): string {
+    return 'my-consent-event';
   }
 );
 
-// Later, when the form is interacted with:
-// document.dispatchEvent( new CustomEvent( 'hcap-load-api' ) );
+// Later:
+// document.dispatchEvent( new CustomEvent( 'my-consent-event' ) );
 `
 
 = How to set hCaptcha language programmatically? =
@@ -970,6 +965,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * MailPoet Form
 * Maintenance Login Form
 * MemberPress Login and Register Forms
+* MetForm
 * Ninja Forms
 * Otter Blocks Forms
 * Paid Memberships Pro Checkout and Login Forms
@@ -1019,6 +1015,20 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 5.2.0 =
+* Added MetForm integration.
+* Added MetForm migration to the Migration Wizard.
+* Added an option to delay the hCaptcha API until the user interacts with a protected form.
+* Added hCaptcha settings shortcuts to the WordPress Command Palette for quick navigation to plugin options.
+* Added validation of hCaptcha keys before making requests to fix the missing keys' scenario.
+* Added support for custom login URLs in Perfmatters 2.5.8 and later.
+* Fixed unbounded growth of the auto-verification form registry transient by limiting its size with LRU eviction.
+* Fixed hCaptcha placement above express payment buttons on WooCommerce cart pages.
+* Fixed hCaptcha signature verification for nested Kadence Advanced Forms and pages with multiple Advanced Forms.
+* Fixed hCaptcha signature verification for Divi Comment Forms when the WordPress Comment Form integration is disabled.
+* Fixed fatal errors on Gravity Forms submissions containing Multi Select fields.
+* Fixed compatibility with Maintenance 4.32.
 
 = 5.1.0 =
 * Added version switching to the What's New popup.

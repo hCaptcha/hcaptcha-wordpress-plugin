@@ -68,7 +68,17 @@ class ProtectContent {
 			return;
 		}
 
-		$this->request_uri = $this->normalize_url( Request::filter_input( INPUT_SERVER, 'REQUEST_URI' ) );
+		// Do not use Request::filter_input() here: sanitize_text_field() strips
+		// percent-encoded octets and can make routed URLs miss the protection list.
+		$request_uri = '';
+
+		if ( isset( $_SERVER['REQUEST_URI'] ) && is_string( $_SERVER['REQUEST_URI'] ) ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			$request_uri = wp_unslash( $_SERVER['REQUEST_URI'] );
+		}
+
+		$this->request_uri = $this->normalize_url( $request_uri );
+		$request_uri       = $this->normalize_url( $request_uri, true );
 
 		$protected_urls = explode( "\n", $settings->get( 'protected_urls' ) );
 		$protected_urls = array_filter( array_map( 'trim', $protected_urls ) );
@@ -77,7 +87,7 @@ class ProtectContent {
 		$found = false;
 
 		foreach ( $protected_urls as $url ) {
-			if ( preg_match( '!' . preg_quote( $url, '!' ) . '!i', $this->request_uri ) ) {
+			if ( preg_match( '!' . preg_quote( $url, '!' ) . '!i', $request_uri ) ) {
 				$found = true;
 
 				break;
@@ -563,11 +573,12 @@ class ProtectContent {
 	/**
 	 * Normalize URL.
 	 *
-	 * @param string $url URL.
+	 * @param string $url         URL.
+	 * @param bool   $decode_path Whether to decode percent-encoded path octets.
 	 *
 	 * @return string
 	 */
-	private function normalize_url( string $url ): string {
+	private function normalize_url( string $url, bool $decode_path = false ): string {
 		$scheme = is_ssl() ? 'https' : 'http';
 		$host   = wp_parse_url( home_url(), PHP_URL_HOST );
 
@@ -583,8 +594,22 @@ class ProtectContent {
 			]
 		);
 
+		// Force the site origin because a protocol-relative REQUEST_URI can otherwise
+		// turn the protection form action into a cross-origin URL.
+		$parts = array_merge(
+			$parts,
+			[
+				'scheme' => $scheme,
+				'host'   => $host,
+			]
+		);
+
+		if ( $decode_path ) {
+			$parts['path'] = rawurldecode( $parts['path'] );
+		}
+
 		// Rebuild the URL.
-		$url = $parts['scheme'] ? $parts['scheme'] . '://' : '';
+		$url = $parts['scheme'] . '://';
 
 		$url .= $parts['host'];
 		$url .= $parts['path'] ?: '';

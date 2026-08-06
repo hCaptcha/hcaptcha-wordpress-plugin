@@ -65,6 +65,14 @@ class Events {
 	public const VERIFY_REQUEST_PRIORITY = -1000;
 
 	/**
+	 * Unknown event ID.
+	 */
+	private const UNKNOWN_ID = [
+		'source'  => [ 'Unknown' ],
+		'form_id' => 'unknown',
+	];
+
+	/**
 	 * Saved flag.
 	 *
 	 * @var bool
@@ -142,9 +150,9 @@ class Events {
 			}
 		}
 
-		$info = HCaptcha::decode_id_info();
+		$event_id = self::get_event_id( $error_info );
 
-		if ( self::should_skip_event( $info ) ) {
+		if ( self::should_skip_event( $event_id ) ) {
 			return $result;
 		}
 
@@ -152,8 +160,8 @@ class Events {
 		$wpdb->insert(
 			$wpdb->prefix . self::TABLE_NAME,
 			[
-				'source'      => (string) wp_json_encode( $info['id']['source'] ),
-				'form_id'     => sanitize_text_field( $info['id']['form_id'] ),
+				'source'      => (string) wp_json_encode( $event_id['source'] ),
+				'form_id'     => sanitize_text_field( $event_id['form_id'] ),
 				'ip'          => $ip,
 				'user_agent'  => $user_agent,
 				'uuid'        => $uuid,
@@ -522,17 +530,32 @@ class Events {
 	}
 
 	/**
+	 * Get event ID.
+	 *
+	 * @param object $error_info Error info.
+	 *
+	 * @return array
+	 */
+	private static function get_event_id( object $error_info ): array {
+		$info        = HCaptcha::decode_id_info();
+		$expected_id = (array) ( $error_info->expected_id ?? [] );
+		$info_id     = $info['valid'] ? $info['id'] : self::UNKNOWN_ID;
+
+		return $expected_id ?: $info_id;
+	}
+
+	/**
 	 * Whether an event should be skipped.
 	 *
-	 * @param array $info Decoded hCaptcha ID info.
+	 * @param array $event_id Event ID.
 	 *
 	 * @return bool
 	 */
-	private static function should_skip_event( array $info ): bool {
+	private static function should_skip_event( array $event_id ): bool {
 		return (
 			(
-				[ General::class ] === $info['id']['source'] &&
-				General::CHECK_CONFIG_FORM_ID === $info['id']['form_id']
+				[ General::class ] === $event_id['source'] &&
+				General::CHECK_CONFIG_FORM_ID === $event_id['form_id']
 			) ||
 			! self::table_exists()
 		);

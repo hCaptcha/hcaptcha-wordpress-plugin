@@ -290,6 +290,8 @@ class SettingsTest extends HCaptchaTestCase {
 	 * Test get_custom_theme_background().
 	 *
 	 * @return void
+	 * @noinspection JSDeprecatedSymbols
+	 * @noinspection PhpArrayIndexImmediatelyRewrittenInspection
 	 */
 	public function test_get_custom_theme_background(): void {
 		$custom_themes     = true;
@@ -340,6 +342,15 @@ class SettingsTest extends HCaptchaTestCase {
 		];
 
 		self::assertSame( $bg, $subject->get_custom_theme_background() );
+
+		$config_params['theme']['component']['checkbox']['main']['fill'] =
+			'red}</style><script>alert(document.domain)</script><style>a{color:red';
+
+		self::assertSame( '', $subject->get_custom_theme_background() );
+
+		$config_params['theme']['component']['checkbox']['main']['fill'] = [ '#fff' ];
+
+		self::assertSame( '', $subject->get_custom_theme_background() );
 	}
 
 	/**

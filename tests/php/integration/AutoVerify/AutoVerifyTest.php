@@ -29,7 +29,13 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	 * Tear down the test.
 	 */
 	public function tearDown(): void {
-		unset( $_SERVER['REQUEST_METHOD'], $GLOBALS['current_screen'] );
+		unset(
+			$_SERVER['REQUEST_METHOD'],
+			$_GET['pagename'],
+			$_GET['page_id'],
+			$_GET['rest_route'],
+			$GLOBALS['current_screen']
+		);
 		delete_transient( AutoVerify::TRANSIENT );
 
 		parent::tearDown();
@@ -70,6 +76,60 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		self::assertFalse( get_transient( $subject::TRANSIENT ) );
 		apply_filters( 'the_content', $content );
 		self::assertSame( $expected, get_transient( $subject::TRANSIENT ) );
+	}
+
+	/**
+	 * Test content_filter() limits the transient size using LRU eviction.
+	 *
+	 * @return void
+	 */
+	public function test_content_filter_limits_transient_size_with_lru_eviction(): void {
+		$content = $this->get_test_content();
+		$subject = new AutoVerify();
+
+		$subject->init();
+
+		$_SERVER['REQUEST_URI'] = '/path-one';
+
+		apply_filters( 'the_content', $content );
+
+		$registered_forms = get_transient( AutoVerify::TRANSIENT );
+		$action_forms     = $registered_forms['/path-one'];
+		$two_paths        = [
+			'/path-one' => $action_forms,
+			'/path-two' => $action_forms,
+		];
+		$max_size         = strlen( maybe_serialize( $two_paths ) );
+		$size_filter      = static function () use ( $max_size ): int {
+			return $max_size;
+		};
+
+		add_filter( 'hcap_auto_verify_transient_max_size', $size_filter );
+
+		try {
+			$_SERVER['REQUEST_URI'] = '/path-two';
+
+			apply_filters( 'the_content', $content );
+
+			$_SERVER['REQUEST_URI'] = '/path-one';
+
+			apply_filters( 'the_content', $content );
+
+			$_SERVER['REQUEST_URI'] = '/path-new';
+
+			apply_filters( 'the_content', $content );
+
+			$expected = [
+				'/path-one' => $action_forms,
+				'/path-new' => $action_forms,
+			];
+			$actual   = get_transient( AutoVerify::TRANSIENT );
+
+			self::assertSame( $expected, $actual );
+			self::assertLessThanOrEqual( $max_size, strlen( maybe_serialize( $actual ) ) );
+		} finally {
+			remove_filter( 'hcap_auto_verify_transient_max_size', $size_filter );
+		}
 	}
 
 	/**
@@ -227,43 +287,90 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test verify_form() when other forms on the same uri are registered.
+	 * Test verify_form() when the widget id is missing.
 	 */
-	public function test_verify_form_when_other_forms_on_the_same_uri_are_registered(): void {
-		$request_uri = $this->get_test_request_uri();
-
-		$_SERVER['REQUEST_METHOD'] = 'POST';
-		$_SERVER['REQUEST_URI']    = $request_uri;
-
-		$registered_forms = $this->get_test_registered_forms();
-
-		$registered_forms[ untrailingslashit( $request_uri ) ][0] = [ 'some_input' ];
-
-		set_transient( AutoVerify::TRANSIENT, $registered_forms );
-
-		$subject = new AutoVerify();
-		$subject->verify();
+	public function test_verify_form_when_widget_id_is_missing(): void {
+		$this->assert_missing_widget_id_is_rejected(
+			$this->get_test_request_uri(),
+			$this->get_test_registered_forms()
+		);
 	}
 
 	/**
-	 * Test verify_form() when verify is not successful.
+	 * Test verify_form() with duplicate leading slashes.
+	 */
+	public function test_verify_form_with_duplicate_leading_slashes(): void {
+		$this->assert_missing_widget_id_is_rejected(
+			'//' . ltrim( $this->get_test_request_uri(), '/' ),
+			$this->get_test_registered_forms()
+		);
+	}
+
+	/**
+	 * Test verify_form() with a query-variable route.
+	 *
+	 * @param string $query_var Query variable.
+	 *
+	 * @dataProvider dp_test_verify_form_with_query_var_route
+	 */
+	public function test_verify_form_with_query_var_route( string $query_var ): void {
+		$page_id = $this->factory()->post->create(
+			[
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'post_name'   => 'hcaptcha-arbitrary-form',
+			]
+		);
+
+		$query_value = 'page_id' === $query_var ? (string) $page_id : 'hcaptcha-arbitrary-form';
+
+		$permalink      = get_permalink( $page_id );
+		$canonical_path = (string) wp_parse_url( $permalink, PHP_URL_PATH );
+		$canonical_path = '/' === $canonical_path ? $canonical_path : untrailingslashit( $canonical_path );
+
+		$registered_forms = $this->get_test_registered_forms();
+		$action_forms     = $registered_forms[ array_key_first( $registered_forms ) ];
+
+		$_GET[ $query_var ] = $query_value;
+
+		$this->assert_missing_widget_id_is_rejected(
+			'/index.php?' . $query_var . '=' . $query_value,
+			[ $canonical_path => $action_forms ]
+		);
+	}
+
+	/**
+	 * Data provider for test_verify_form_with_query_var_route().
+	 *
+	 * @return array
+	 */
+	public function dp_test_verify_form_with_query_var_route(): array {
+		return [
+			'page ID'   => [ 'page_id' ],
+			'page name' => [ 'pagename' ],
+		];
+	}
+
+	/**
+	 * Test verify_form() rejects a request with an omitted registered input.
 	 *
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function test_verify_form_when_no_success(): void {
+	public function test_verify_form_when_registered_input_is_omitted(): void {
 		$request_uri = $this->get_test_request_uri();
 
 		$_SERVER['REQUEST_METHOD'] = 'POST';
 		$_SERVER['REQUEST_URI']    = $request_uri;
+		$_GET['rest_route']        = '/x';
 
-		$_POST['test_input']   = 'some input';
 		$_POST['hcap_hp_test'] = '';
 		$_POST['hcap_hp_sig']  = wp_create_nonce( 'hcap_hp_test' );
 		$this->prepare_widget_id();
 
-		$die_arr  = [];
-		$expected = [
-			'Please complete the hCaptcha.',
+		$die_arr    = [];
+		$error_info = null;
+		$expected   = [
+			'Bad hCaptcha signature!',
 			'hCaptcha',
 			[
 				'back_link' => true,
@@ -281,6 +388,16 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 				};
 			}
 		);
+		add_filter(
+			'hcap_verify_request',
+			static function ( $result, $deprecated, $info ) use ( &$error_info ) {
+				$error_info = $info;
+
+				return $result;
+			},
+			PHP_INT_MAX,
+			3
+		);
 
 		$subject = new AutoVerify();
 		$subject->verify();
@@ -289,6 +406,8 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		self::assertSame( [], $_POST );
 
 		self::assertSame( $expected, $die_arr );
+		self::assertSame( [ 'bad-signature' ], $error_info->codes );
+		self::assertSame( [], $error_info->expected_id );
 	}
 
 	/**
@@ -414,6 +533,48 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Assert that a missing widget ID is rejected.
+	 *
+	 * @param string $request_uri     Request URI.
+	 * @param array  $registered_forms Registered forms.
+	 */
+	private function assert_missing_widget_id_is_rejected( string $request_uri, array $registered_forms ): void {
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$_SERVER['REQUEST_URI']    = $request_uri;
+
+		$_POST['test_input'] = 'some input';
+
+		set_transient( AutoVerify::TRANSIENT, $registered_forms );
+
+		$die_arr  = [];
+		$expected = [
+			'Bad hCaptcha signature!',
+			'hCaptcha',
+			[
+				'back_link' => true,
+				'response'  => 403,
+			],
+		];
+
+		add_filter(
+			'wp_die_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		$subject = new AutoVerify();
+		$subject->verify();
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		self::assertSame( [], $_POST );
+
+		self::assertSame( $expected, $die_arr );
+	}
+
+	/**
 	 * Get test request URI.
 	 *
 	 * @return string
@@ -506,10 +667,11 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 			untrailingslashit( $request_uri ) =>
 				[
 					[
-						'inputs' => [
+						'inputs'    => [
 							'test_input',
 						],
-						'args'   => $args,
+						'args'      => $args,
+						'widget_id' => $this->get_test_widget_id(),
 					],
 				],
 		];

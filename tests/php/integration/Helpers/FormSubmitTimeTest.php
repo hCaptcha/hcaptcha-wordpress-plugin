@@ -103,6 +103,7 @@ class FormSubmitTimeTest extends HCaptchaWPTestCase {
 			'post_id'   => 123,
 			'issued_at' => time(),
 			'ttl'       => 600,
+			'token_id'  => str_repeat( 'a', 32 ),
 		];
 
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
@@ -127,6 +128,7 @@ class FormSubmitTimeTest extends HCaptchaWPTestCase {
 			'post_id'   => 123,
 			'issued_at' => time() - 700,
 			'ttl'       => 600,
+			'token_id'  => str_repeat( 'a', 32 ),
 		];
 
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
@@ -153,6 +155,7 @@ class FormSubmitTimeTest extends HCaptchaWPTestCase {
 			'post_id'   => 123,
 			'issued_at' => time() - 10,
 			'ttl'       => 600,
+			'token_id'  => str_repeat( 'a', 32 ),
 		];
 
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
@@ -189,6 +192,7 @@ class FormSubmitTimeTest extends HCaptchaWPTestCase {
 			'post_id'   => 123,
 			'issued_at' => time() - 10,
 			'ttl'       => 600,
+			'token_id'  => str_repeat( 'a', 32 ),
 		];
 
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
@@ -218,6 +222,7 @@ class FormSubmitTimeTest extends HCaptchaWPTestCase {
 			'post_id'   => 456,
 			'issued_at' => 123456789,
 			'ttl'       => 300,
+			'token_id'  => str_repeat( 'a', 32 ),
 		];
 
 		$token = $token_method->invoke( $this->subject, $payload );
@@ -281,9 +286,28 @@ class FormSubmitTimeTest extends HCaptchaWPTestCase {
 		self::assertInstanceOf( WP_Error::class, $result );
 		self::assertEquals( 'fst_bad_payload', $result->get_error_code() );
 
-		// Also test empty array payload.
+		// Also, test an empty array payload.
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 		$data      = base64_encode( '[]' );
+		$signature = wp_hash( $data );
+		$token     = $data . '-' . $signature;
+
+		$result = $payload_method->invoke( $this->subject, $token );
+
+		self::assertInstanceOf( WP_Error::class, $result );
+		self::assertEquals( 'fst_bad_payload', $result->get_error_code() );
+
+		// A previously valid deterministic payload without a unique token ID must be rejected.
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$data      = base64_encode(
+			wp_json_encode(
+				[
+					'post_id'   => 123,
+					'issued_at' => time(),
+					'ttl'       => 600,
+				]
+			)
+		);
 		$signature = wp_hash( $data );
 		$token     = $data . '-' . $signature;
 
@@ -335,34 +359,55 @@ class FormSubmitTimeTest extends HCaptchaWPTestCase {
 			}
 		);
 
-		ob_start();
+		$tokens         = [];
+		$token_ids      = [];
+		$transient_keys = [];
 
-		try {
-			$this->subject->issue_token();
-		} catch ( Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
-			// Catch die statement.
+		for ( $i = 0; $i < 2; $i++ ) {
+			ob_start();
+
+			try {
+				$this->subject->issue_token();
+			} catch ( Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
+				// Catch die statement.
+			}
+
+			$json     = ob_get_clean();
+			$response = json_decode( $json, true );
+
+			self::assertIsArray( $response, "Output was: '$json'" );
+			self::assertTrue( $response['success'], "Output was: '$json'" );
+			self::assertArrayHasKey( 'token', $response['data'] );
+
+			$token = $response['data']['token'];
+
+			self::assertStringContainsString( '-', $token );
+
+			[ $data, $signature ] = explode( '-', $token, 2 );
+			// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
+			$payload       = json_decode( base64_decode( $data, true ), true );
+			$transient_key = 'hcap_fst_nonce_' . $signature;
+			$transient_val = get_transient( $transient_key );
+
+			self::assertNotFalse( $transient_val );
+			self::assertEquals( '123', $transient_val['post_id'] );
+			self::assertSame( $payload, $transient_val );
+			self::assertMatchesRegularExpression( '/^[A-Za-z0-9]{32}$/', $payload['token_id'] );
+
+			$tokens[]         = $token;
+			$token_ids[]      = $payload['token_id'];
+			$transient_keys[] = $transient_key;
 		}
 
-		$json = ob_get_clean();
+		self::assertNotSame( $tokens[0], $tokens[1] );
+		self::assertNotSame( $token_ids[0], $token_ids[1] );
 
-		$response = json_decode( $json, true );
+		foreach ( $tokens as $i => $token ) {
+			$_POST['hcap_fst_token'] = $token;
 
-		self::assertIsArray( $response, "Output was: '$json'" );
-		self::assertTrue( $response['success'], "Output was: '$json'" );
-		self::assertArrayHasKey( 'token', $response['data'] );
-
-		$token = $response['data']['token'];
-
-		self::assertStringContainsString( '-', $token );
-
-		$signature     = explode( '-', $token )[1];
-		$transient_key = 'hcap_fst_nonce_' . $signature;
-		$transient_val = get_transient( $transient_key );
-
-		self::assertNotFalse( $transient_val );
-		self::assertEquals( '123', $transient_val['post_id'] );
-
-		delete_transient( $transient_key );
+			self::assertTrue( $this->subject->verify_token( 0 ) );
+			self::assertFalse( get_transient( $transient_keys[ $i ] ) );
+		}
 	}
 
 	/**

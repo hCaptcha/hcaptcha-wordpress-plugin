@@ -8,6 +8,7 @@
 namespace HCaptcha\Tests\Unit\MigrationWizard;
 
 use HCaptcha\MigrationWizard\DetectionResult;
+use HCaptcha\MigrationWizard\Detectors\MetFormDetector;
 use HCaptcha\MigrationWizard\Scanner;
 use HCaptcha\MigrationWizard\SourceDetectorInterface;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
@@ -89,6 +90,24 @@ class ScannerTest extends HCaptchaTestCase {
 		self::assertTrue( $result->has_results() );
 		self::assertCount( 1, $result->get_results() );
 		self::assertSame( [ 'Test Plugin' ], $result->get_scanned_sources() );
+	}
+
+	/**
+	 * Test default detectors include MetForm.
+	 *
+	 * @return void
+	 */
+	public function test_default_detectors_include_metform(): void {
+		WP_Mock::userFunction( 'apply_filters' )->andReturnUsing(
+			static function ( $tag, $value ) {
+				return $value;
+			}
+		);
+
+		$scanner   = new Scanner();
+		$detectors = array_map( 'get_class', $scanner->get_detectors() );
+
+		self::assertContains( MetFormDetector::class, $detectors );
 	}
 
 	/**

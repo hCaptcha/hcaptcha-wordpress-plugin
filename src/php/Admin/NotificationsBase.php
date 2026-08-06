@@ -87,8 +87,11 @@ abstract class NotificationsBase {
 			$urls['trusted_ip_headers_img'] = HCAPTCHA_URL . '/assets/images/trusted-ip-headers.png';
 			$urls['forms_events_trash']     = $urls['forms'];
 			$urls['forms_events_trash_img'] = HCAPTCHA_URL . '/assets/images/forms-events-trash.png';
+			$urls['events_dashboard_img']   = HCAPTCHA_URL . '/assets/images/events-dashboard.png';
 			$urls['paypal_payments']        = $urls['integrations'] . '#paypal_payments_status_1';
 			$urls['paypal_payments_img']    = HCAPTCHA_URL . '/assets/images/woocommerce-paypal-payments.png';
+			$urls['command_palette']        = $urls['general'];
+			$urls['command_palette_img']    = HCAPTCHA_URL . '/assets/images/magnifying-glass.svg';
 		}
 
 		return $urls;

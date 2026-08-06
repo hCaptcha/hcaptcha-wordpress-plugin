@@ -88,6 +88,15 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 
 		self::assertSame( -PHP_INT_MAX, has_action( 'template_redirect', [ $subject, 'protect_content' ] ) );
 
+		// A percent-encoded path resolving to a protected URL is also protected.
+		remove_action( 'template_redirect', [ $subject, 'protect_content' ], -PHP_INT_MAX );
+
+		$_SERVER['REQUEST_URI'] = '/protected-%63ontent';
+
+		$subject->init();
+
+		self::assertSame( -PHP_INT_MAX, has_action( 'template_redirect', [ $subject, 'protect_content' ] ) );
+
 		// The list is empty.
 		remove_action( 'template_redirect', [ $subject, 'protect_content' ], -PHP_INT_MAX );
 		update_option(
@@ -103,6 +112,24 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 		$subject->init();
 
 		self::assertSame( -PHP_INT_MAX, has_action( 'template_redirect', [ $subject, 'protect_content' ] ) );
+	}
+
+	/**
+	 * Test normalize_url() with a protocol-relative request URI.
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_normalize_url_forces_site_origin(): void {
+		$subject = new ProtectContent();
+		$method  = $this->set_method_accessibility( $subject, 'normalize_url' );
+
+		self::assertSame(
+			home_url( '/anything?foo=bar' ),
+			$method->invoke( $subject, '//attacker.example/anything?foo=bar' )
+		);
+
+		$method->setAccessible( false );
 	}
 
 	/**

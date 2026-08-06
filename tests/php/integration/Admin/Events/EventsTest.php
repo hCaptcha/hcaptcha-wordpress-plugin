@@ -14,6 +14,7 @@ namespace HCaptcha\Tests\Integration\Admin\Events;
 
 use Exception;
 use HCaptcha\Admin\Events\Events;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\Settings\General;
 use HCaptcha\Settings\PluginSettingsBase;
@@ -151,6 +152,75 @@ class EventsTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test save_event() with an invalid widget id.
+	 *
+	 * @return void
+	 */
+	public function test_save_event_with_invalid_widget_id(): void {
+		global $wpdb;
+
+		$subject     = new Events();
+		$forged_id   = [
+			'source'  => [ 'forged/source.php' ],
+			'form_id' => 'forged',
+		];
+		$expected_id = [
+			'source'  => [ 'WordPress' ],
+			'form_id' => 'login',
+		];
+		$error_info  = (object) [
+			'codes'       => [ 'bad-signature' ],
+			'expected_id' => $expected_id,
+		];
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode, WordPress.Security.NonceVerification.Missing
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = base64_encode( wp_json_encode( $forged_id ) ) . '-invalid';
+
+		$this->drop_table();
+		$subject::create_table();
+		$subject->save_event( 'bad-signature', [], $error_info );
+
+		$table_name = $wpdb->prefix . Events::TABLE_NAME;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$event = $wpdb->get_row( "SELECT * FROM $table_name ORDER BY id DESC LIMIT 1" );
+
+		self::assertSame( wp_json_encode( $expected_id['source'] ), $event->source );
+		self::assertSame( $expected_id['form_id'], $event->form_id );
+		self::assertSame( wp_json_encode( $error_info->codes ), $event->error_codes );
+	}
+
+	/**
+	 * Test save_event() with an invalid widget id and no expected id.
+	 *
+	 * @return void
+	 */
+	public function test_save_event_with_invalid_widget_id_and_no_expected_id(): void {
+		global $wpdb;
+
+		$subject   = new Events();
+		$forged_id = [
+			'source'  => [ 'forged/source.php' ],
+			'form_id' => 'forged',
+		];
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode, WordPress.Security.NonceVerification.Missing
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = base64_encode( wp_json_encode( $forged_id ) ) . '-invalid';
+
+		$this->drop_table();
+		$subject::create_table();
+		$subject->save_event( 'bad-signature', [], (object) [ 'codes' => [ 'bad-signature' ] ] );
+
+		$table_name = $wpdb->prefix . Events::TABLE_NAME;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$event = $wpdb->get_row( "SELECT * FROM $table_name ORDER BY id DESC LIMIT 1" );
+
+		self::assertSame( wp_json_encode( [ 'Unknown' ] ), $event->source );
+		self::assertSame( 'unknown', $event->form_id );
+	}
+
+	/**
 	 * Test test_save_event_from_check_config().
 	 *
 	 * @return void
@@ -162,7 +232,8 @@ class EventsTest extends HCaptchaWPTestCase {
 		FunctionMocker::replace(
 			'\HCaptcha\Helpers\HCaptcha::decode_id_info',
 			[
-				'id' =>
+				'valid' => true,
+				'id'    =>
 					[
 						'source'  => [ General::class ],
 						'form_id' => General::CHECK_CONFIG_FORM_ID,

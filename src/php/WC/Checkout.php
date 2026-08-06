@@ -182,6 +182,7 @@ class Checkout {
 		$body           = (string) $request->get_body();
 		$body_arr       = Utils::json_decode_arr( $body );
 		$payment_method = $body_arr['payment_method'] ?? '';
+		$payment_method = is_string( $payment_method ) ? $payment_method : '';
 
 		if ( $this->is_express_payment_method( $payment_method ) ) {
 			return $response;
@@ -220,6 +221,10 @@ class Checkout {
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	private function is_express_payment_method( string $payment_method ): bool {
+		if ( '' === $payment_method ) {
+			return false;
+		}
+
 		$express_payment_methods = [];
 
 		foreach ( WC()->payment_gateways()->get_available_payment_gateways() as $gateway ) {

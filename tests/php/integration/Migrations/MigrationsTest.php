@@ -143,6 +143,10 @@ class MigrationsTest extends HCaptchaWPTestCase {
 			$expected_option['5.0.0'] = $time;
 		}
 
+		if ( version_compare( '5.1.0', $plugin_major_version, '<=' ) ) {
+			$expected_option['5.1.0'] = $time;
+		}
+
 		uksort( $expected_option, 'version_compare' );
 
 		update_option( 'hcaptcha_size', $size );

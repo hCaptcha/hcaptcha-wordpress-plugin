@@ -76,10 +76,10 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	/**
 	 * Test verify() not verified.
 	 */
-	public function test_verify_not_verified(): void {
+	public function test_verify_not_verified_with_arbitrary_handler_value(): void {
 		$validation_error           = new WP_Error( 'some error' );
 		$expected                   = clone $validation_error;
-		$_POST['wc_reset_password'] = 'true';
+		$_POST['wc_reset_password'] = '1';
 
 		$expected->add( 'fail', 'The hCaptcha is invalid.' );
 

@@ -236,7 +236,9 @@ abstract class TableBase extends WP_List_Table {
 	 * @noinspection PhpUnused PhpUnused.
 	 */
 	protected function column_name( object $item ): string {
-		$source = Utils::json_decode_arr( $item->source );
+		$source = array_values(
+			array_filter( Utils::json_decode_arr( $item->source ), 'is_string' )
+		);
 
 		foreach ( $source as &$slug ) {
 			if ( 'WordPress' === $slug ) {

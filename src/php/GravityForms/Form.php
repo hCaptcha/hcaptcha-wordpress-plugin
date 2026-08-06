@@ -531,18 +531,33 @@ class Form extends Base {
 		$id = $field->id;
 
 		if ( $field->inputs ) {
-			$values = [];
+			$value = [];
 
 			foreach ( $field->inputs as $input ) {
 				$input_id = 'input_' . str_replace( '.', '_', $input['id'] );
-				$values[] = Request::filter_input( INPUT_POST, $input_id ) ?? '';
+				$value[]  = Request::filter_input( INPUT_POST, $input_id ) ?? '';
 			}
-
-			$value = implode( ' ', array_filter( $values ) );
 		} else {
 			$value = Request::filter_input( INPUT_POST, 'input_' . $id ) ?? '';
 		}
 
-		return $value;
+		return $this->normalize_value( $value );
+	}
+
+	/**
+	 * Normalize field value.
+	 *
+	 * @param array|string $value Field value.
+	 *
+	 * @return string
+	 */
+	private function normalize_value( $value ): string {
+		if ( ! is_array( $value ) ) {
+			return $value;
+		}
+
+		$values = array_map( [ $this, 'normalize_value' ], $value );
+
+		return implode( ' ', array_filter( $values ) );
 	}
 }

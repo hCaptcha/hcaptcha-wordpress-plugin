@@ -289,6 +289,7 @@ class SystemInfoTest extends HCaptchaTestCase {
 			'akismet' => [],
 		];
 		$server                 = 'Apache/2.4.57 (Ubuntu)';
+		$metform_pad            = str_repeat( ' ', 30 );
 		$paypal_payments_pad    = str_repeat( ' ', 10 );
 		$expected               = "
 ### Begin System Info ###
@@ -463,6 +464,8 @@ Maintenance:
 MemberPress:                          
   Login Form:                         Off
   Register Form:                      On
+MetForm:$metform_pad
+  Form:                               On
 Ninja Forms:                          
   Form:                               On
 Otter Blocks:                         

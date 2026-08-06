@@ -748,11 +748,11 @@ CSS;
 	}
 
 	/**
-	 * Test wpforms_frontend_output() when the mode is auto.
+	 * Test wpforms_frontend_output() in auto mode with built-in form interaction.
 	 *
 	 * @return void
 	 */
-	public function test_wpforms_frontend_output_when_mode_auto(): void {
+	public function test_wpforms_frontend_output_when_mode_auto_with_form_interaction(): void {
 		$form_id     = 5;
 		$form_data   = [ 'id' => $form_id ];
 		$deprecated  = null;
@@ -767,8 +767,15 @@ CSS;
 				'form_id' => $form_id,
 			],
 		];
-		$hcap_form   = $this->get_hcap_form( $args );
-		$expected    = '<div class="wpforms-recaptcha-container wpforms-is-hcaptcha" >' . $hcap_form . '</div>';
+
+		add_filter( 'hcap_delay_api_event', '__return_true' );
+
+		$hcap_form = str_replace(
+			'class="h-captcha"',
+			'class="h-captcha hcaptcha-api-delayed"',
+			$this->get_hcap_form( $args )
+		);
+		$expected  = '<div class="wpforms-recaptcha-container wpforms-is-hcaptcha" >' . $hcap_form . '</div>';
 
 		$classes   = [];
 		$classes[] = [
@@ -794,11 +801,16 @@ CSS;
 		// The process_hcaptcha() is true.
 		ob_start();
 		$subject->wpforms_frontend_output( $form_data, $deprecated, $title, $description, $errors );
-		self::assertSame( $expected, ob_get_clean() );
+		$actual = ob_get_clean();
+
+		remove_filter( 'hcap_delay_api_event', '__return_true' );
+
+		self::assertSame( $expected, $actual );
+		self::assertStringContainsString( 'hcaptcha-api-delayed', $actual );
 	}
 
 	/**
-	 * Test wpforms_frontend_output() when mode is auto and form has hCaptcha.
+	 * Test wpforms_frontend_output() when the mode is auto and form has hCaptcha.
 	 *
 	 * @return void
 	 */

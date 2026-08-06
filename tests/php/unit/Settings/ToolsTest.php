@@ -69,6 +69,28 @@ class ToolsTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test command_palette_form_fields().
+	 */
+	public function test_command_palette_form_fields(): void {
+		$subject = Mockery::mock( Tools::class )->makePartial();
+
+		self::assertSame(
+			[
+				'hcaptcha-migration-wizard' => [
+					'label' => 'Migration Wizard',
+				],
+				'hcaptcha-section-export'   => [
+					'label' => 'Export Options',
+				],
+				'hcaptcha-section-import'   => [
+					'label' => 'Import Options',
+				],
+			],
+			$subject->command_palette_form_fields()
+		);
+	}
+
+	/**
 	 * Set migration wizard mock on the subject.
 	 *
 	 * @param Tools|Mockery\MockInterface $subject Subject.
@@ -206,6 +228,8 @@ class ToolsTest extends HCaptchaTestCase {
 
 	/**
 	 * Test ajax_handle_export().
+	 *
+	 * @noinspection PhpConditionAlreadyCheckedInspection
 	 */
 	public function test_ajax_handle_export(): void {
 		$subject = Mockery::mock( Tools::class )->makePartial();
@@ -258,12 +282,12 @@ class ToolsTest extends HCaptchaTestCase {
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
 		file_put_contents( $tmp_name, $json_content );
 
-		$_FILES['import_file']['tmp_name'] = $tmp_name;
+		$_FILES['import_file'] = [
+			'tmp_name' => $tmp_name,
+			'error'    => UPLOAD_ERR_OK,
+		];
 
-		WP_Mock::userFunction( 'sanitize_text_field' )
-			->with( $tmp_name )
-			->andReturn( $tmp_name )
-			->once();
+		FunctionMocker::replace( 'is_uploaded_file', true );
 
 		$transfer = Mockery::mock( 'overload:HCaptcha\Settings\SettingsTransfer' );
 		$transfer->shouldReceive( 'apply_import_payload' )
@@ -300,11 +324,12 @@ class ToolsTest extends HCaptchaTestCase {
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
 		file_put_contents( $tmp_name, $json_content );
 
-		$_FILES['import_file']['tmp_name'] = $tmp_name;
+		$_FILES['import_file'] = [
+			'tmp_name' => $tmp_name,
+			'error'    => UPLOAD_ERR_OK,
+		];
 
-		WP_Mock::userFunction( 'sanitize_text_field' )
-			->with( $tmp_name )
-			->andReturn( $tmp_name );
+		FunctionMocker::replace( 'is_uploaded_file', true );
 
 		$error_message = 'Import failed reason';
 		$error         = Mockery::mock( 'overload:WP_Error' );
@@ -329,6 +354,28 @@ class ToolsTest extends HCaptchaTestCase {
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
 			unlink( $tmp_name );
 		}
+	}
+
+	/**
+	 * Test ajax_handle_import() rejects a non-uploaded file.
+	 */
+	public function test_ajax_handle_import_rejects_non_uploaded_file(): void {
+		$subject = Mockery::mock( Tools::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'run_checks' )->with( Tools::IMPORT_ACTION )->once();
+
+		$_FILES['import_file'] = [
+			'tmp_name' => 'not-uploaded.json',
+			'error'    => UPLOAD_ERR_OK,
+		];
+
+		FunctionMocker::replace( 'is_uploaded_file', false );
+
+		WP_Mock::userFunction( 'wp_send_json_error' )
+			->with( [ 'message' => 'Import failed.' ] )
+			->once();
+
+		$subject->ajax_handle_import();
 	}
 
 	/**
@@ -366,7 +413,9 @@ class ToolsTest extends HCaptchaTestCase {
 		self::assertStringContainsString( '<h3 class="hcaptcha-section-migration-wizard">', $output );
 		self::assertStringContainsString( '<div id="hcaptcha-message"></div>', $output );
 		self::assertStringContainsString( '<h3 class="hcaptcha-section-export">', $output );
+		self::assertStringContainsString( '<div id="hcaptcha-section-export">', $output );
 		self::assertStringContainsString( '<h3 class="hcaptcha-section-import">', $output );
+		self::assertStringContainsString( '<div id="hcaptcha-section-import" class="hcaptcha-section-import">', $output );
 		self::assertStringContainsString( 'Manage migration wizard, export and import of hCaptcha plugin settings.', $output );
 		self::assertStringContainsString( 'Export your hCaptcha settings to a JSON file.', $output );
 		self::assertStringContainsString( 'Import your hCaptcha settings from a JSON file.', $output );

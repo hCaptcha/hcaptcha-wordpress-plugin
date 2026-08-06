@@ -148,7 +148,7 @@ class Utils {
 	}
 
 	/**
-	 * Unflatten array to multidimensional one.
+	 * Unflatten an array to a multidimensional one.
 	 *
 	 * @param array  $arr Flattened array.
 	 * @param string $sep Keys separator.
@@ -230,6 +230,6 @@ class Utils {
 			$arr = [];
 		}
 
-		return $arr;
+		return is_array( $arr ) ? $arr : [];
 	}
 }

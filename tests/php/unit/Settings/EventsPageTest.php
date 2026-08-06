@@ -999,4 +999,25 @@ class EventsPageTest extends HCaptchaTestCase {
 
 		self::assertFalse( $subject->trash_events( [] ) );
 	}
+
+	/**
+	 * Test column_name() with malformed source data.
+	 */
+	public function test_column_name_with_malformed_source_data(): void {
+		new WP_List_Table();
+
+		$subject = Mockery::mock( EventsTable::class )->makePartial()->shouldAllowMockingProtectedMethods();
+
+		WP_Mock::passthruFunction( 'esc_attr' );
+		WP_Mock::passthruFunction( 'esc_html' );
+
+		$method = 'column_name';
+		$actual = $subject->$method(
+			(object) [
+				'source' => '[["unexpected-array"],"WordPress"]',
+			]
+		);
+		self::assertStringContainsString( '<span class="hcaptcha-hide">WordPress</span>', $actual );
+		self::assertSame( 1, substr_count( $actual, 'unexpected-array' ) );
+	}
 }

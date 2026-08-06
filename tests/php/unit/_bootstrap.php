@@ -88,6 +88,7 @@ FunctionMocker::init(
 			'http_response_code',
 			'ini_get',
 			'is_readable',
+			'is_uploaded_file',
 			'uniqid',
 		],
 	]

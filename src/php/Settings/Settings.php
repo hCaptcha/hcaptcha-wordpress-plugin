@@ -193,7 +193,14 @@ class Settings implements SettingsInterface {
 			$bg = $this->get_config_params()['theme']['component']['checkbox']['main']['fill'] ?? $bg;
 		}
 
-		return $bg;
+		if ( ! is_string( $bg ) ) {
+			return '';
+		}
+
+		$bg = trim( $bg );
+
+		// Keep the value inside the background-color declaration and inline style block.
+		return 1 === preg_match( '~\A[a-zA-Z0-9#(),.%\s/-]+\z~', $bg ) ? $bg : '';
 	}
 
 	/**
@@ -217,7 +224,7 @@ class Settings implements SettingsInterface {
 	}
 
 	/**
-	 * Get plugin option.
+	 * Get a plugin option.
 	 *
 	 * @param string $key         Setting name.
 	 * @param mixed  $empty_value Empty value for this setting.

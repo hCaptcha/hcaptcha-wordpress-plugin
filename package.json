@@ -35,52 +35,57 @@
     }
   },
   "engines": {
-    "node": ">=24.15.0",
-    "npm": ">=11.12.1"
+    "node": ">=24.18.1",
+    "npm": ">=12.0.2"
   },
-  "packageManager": "yarn@4.17.0",
+  "packageManager": "yarn@4.18.0",
   "dependencies": {
-    "@wordpress/hooks": "^4.49.0"
+    "@wordpress/hooks": "^4.52.0"
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",
     "@babel/preset-env": "^7.29.7",
-    "@inrupt/jest-jsdom-polyfills": "^4.1.4",
-    "@wordpress/eslint-plugin": "^25.5.0",
+    "@inrupt/jest-jsdom-polyfills": "^4.1.5",
+    "@wordpress/eslint-plugin": "^25.8.0",
     "babel-loader": "^10.1.1",
     "css-loader": "^7.1.4",
     "css-minimizer-webpack-plugin": "^8.0.0",
-    "eslint": "^10.6.0",
+    "eslint": "^10.8.0",
     "glob": "^13.0.6",
-    "globals": "^17.7.0",
+    "globals": "^17.8.0",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
-    "jest-fetch-mock": "^3.0.3",
+    "jest-fetch-mock": "^3.2.0",
     "jquery": "^3.7.1",
     "mini-css-extract-plugin": "^2.10.2",
-    "prettier": "^3.8.5",
+    "prettier": "^3.9.6",
     "terser-webpack-plugin": "^5.6.1",
     "typescript": "^6.0.3",
-    "webpack": "^5.108.1",
-    "webpack-cli": "^7.1.0",
+    "webpack": "^5.109.2",
+    "webpack-cli": "^7.2.2",
     "webpack-remove-empty-scripts": "^1.1.1"
   },
   "resolutions": {
     "@babel/plugin-transform-modules-systemjs": "^7.29.7",
+    "brace-expansion@npm:^1.1.7": "^1.1.16",
+    "brace-expansion@npm:^2.0.2": "^2.1.2",
+    "brace-expansion@npm:^5.0.5": "^5.0.8",
     "cross-spawn": "^7.0.6",
-    "fast-uri": "^3.1.2",
+    "fast-uri": "^3.1.5",
     "flatted": "^3.4.2",
     "js-yaml": "^4.3.0",
     "micromatch": "^4.0.8",
     "minimatch@npm:^3": "^3.1.5",
     "minimatch@npm:9.0.3": "^9.0.9",
-    "minimatch@npm:^10": "^10.2.5",
+    "minimatch@npm:^10.2.2": "^10.2.6",
+    "minimatch@npm:^10.2.4": "^10.2.6",
     "picomatch@npm:^2": "^2.3.14",
     "picomatch@npm:^4": "^4.0.5",
+    "postcss": "^8.5.25",
     "qs": "^6.15.3",
     "serialize-javascript": "^7.0.6",
-    "svgo": "^4.0.1",
-    "tar": "^7.5.17",
-    "undici": "^7.28.0"
+    "svgo": "^4.0.2",
+    "tar": "^7.5.22",
+    "undici": "^7.29.0"
   }
 }

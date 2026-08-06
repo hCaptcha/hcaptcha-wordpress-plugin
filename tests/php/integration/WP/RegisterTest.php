@@ -32,7 +32,7 @@ class RegisterTest extends HCaptchaWPTestCase {
 	 */
 	public function tearDown(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		unset( $_SERVER['REQUEST_URI'], $_GET['action'] );
+		unset( $_SERVER['REQUEST_URI'], $_GET['action'], $_POST['action'] );
 
 		parent::tearDown();
 	}
@@ -142,6 +142,30 @@ class RegisterTest extends HCaptchaWPTestCase {
 		$subject = new Register();
 
 		self::assertEquals( $errors, $subject->verify( $errors, '', '' ) );
+	}
+
+	/**
+	 * Test verify() when the register action is submitted in POST.
+	 */
+	public function test_verify_with_post_action(): void {
+		$_POST['action'] = 'register';
+
+		$verify_called = false;
+		$errors        = new WP_Error( 'some error' );
+
+		FunctionMocker::replace(
+			'HCaptcha\Helpers\API::verify',
+			static function () use ( &$verify_called ) {
+				$verify_called = true;
+
+				return null;
+			}
+		);
+
+		$subject = new Register();
+
+		self::assertSame( $errors, $subject->verify( $errors, '', '' ) );
+		self::assertTrue( $verify_called );
 	}
 
 	/**

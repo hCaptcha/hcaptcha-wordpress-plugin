@@ -390,7 +390,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 		reset( $form_fields );
 		$first_key = key( $form_fields );
 
-		self::assertSame( 'woocommerce_status', $first_key );
+		self::assertSame( 'show_antispam_coverage', $first_key );
 
 		foreach ( $form_fields as $form_field ) {
 			if ( Integrations::SECTION_HEADER === ( $form_field['section'] ?? '' ) ) {
@@ -830,6 +830,10 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'run_checks' )->with( Integrations::ACTIVATE_ACTION )->once();
 		$subject->shouldReceive( 'process_plugins' )->with( $activate, $entities, $entity_name )->once();
 
+		WP_Mock::userFunction( 'current_user_can' )
+			->with( 'activate_plugins' )->once()
+			->andReturn( true );
+
 		$this->set_protected_property( $subject, 'form_fields', $form_fields );
 
 		FunctionMocker::replace(
@@ -864,6 +868,61 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 		$header_remove->wasCalledWithOnce( [ 'Location' ] );
 		$http_response_code->wasCalledWithOnce( [ 200 ] );
+	}
+
+	/**
+	 * Test activate() for a plugin without the required capability.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 * @noinspection PhpVariableIsUsedOnlyInClosureInspection
+	 */
+	public function test_activate_for_plugin_without_capability(): void {
+		$activate    = false;
+		$entity      = 'plugin';
+		$new_theme   = '';
+		$status      = 'acfe_status';
+		$form_fields = $this->get_test_form_fields();
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'run_checks' )->with( Integrations::ACTIVATE_ACTION )->once();
+		$subject->shouldReceive( 'process_plugins' )->never();
+
+		$this->set_protected_property( $subject, 'form_fields', $form_fields );
+
+		FunctionMocker::replace(
+			'filter_input',
+			static function ( $type, $var_name, $filter ) use ( $activate, $entity, $new_theme, $status ) {
+				if ( INPUT_POST === $type && 'activate' === $var_name && FILTER_VALIDATE_BOOLEAN === $filter ) {
+					return $activate;
+				}
+
+				if ( INPUT_POST === $type && 'entity' === $var_name && FILTER_SANITIZE_FULL_SPECIAL_CHARS === $filter ) {
+					return $entity;
+				}
+
+				if ( INPUT_POST === $type && 'newTheme' === $var_name && FILTER_SANITIZE_FULL_SPECIAL_CHARS === $filter ) {
+					return $new_theme;
+				}
+
+				if ( INPUT_POST === $type && 'status' === $var_name && FILTER_SANITIZE_FULL_SPECIAL_CHARS === $filter ) {
+					return $status;
+				}
+
+				return null;
+			}
+		);
+
+		WP_Mock::userFunction( 'current_user_can' )
+			->with( 'activate_plugins' )->once()
+			->andReturn( false );
+		WP_Mock::passthruFunction( 'esc_html__' );
+		WP_Mock::userFunction( 'wp_send_json_error' )
+			->with( 'You are not allowed to activate or deactivate plugins on this site.' )
+			->once();
+
+		$subject->activate();
 	}
 
 	/**
@@ -1989,6 +2048,32 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 		// Test caching of $this->plugin_trees. The plugin_dirs_to_slugs() should not be called here.
 		self::assertSame( $plugin_trees, $subject->build_plugins_tree( $wish_req_slug ) );
+	}
+
+	/**
+	 * Test build_plugins_tree() with an explicit dependency.
+	 *
+	 * @return void
+	 */
+	public function test_build_plugins_tree_with_explicit_dependency(): void {
+		$metform_slug   = 'metform/metform.php';
+		$elementor_slug = 'elementor/elementor.php';
+		$plugin_tree    = [
+			'plugin'   => $metform_slug,
+			'children' => [
+				[
+					'plugin'   => $elementor_slug,
+					'children' => [],
+				],
+			],
+		];
+
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'get_plugin_data' )->twice()->andReturn( [] );
+
+		self::assertSame( $plugin_tree, $subject->build_plugins_tree( $metform_slug ) );
 	}
 
 	/**

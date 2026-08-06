@@ -62,5 +62,15 @@ class BlockParserTest extends HCaptchaWPTestCase {
 		self::assertEquals( 'kadence/advanced-form', $result[0]['blockName'] );
 		self::assertEquals( 456, BlockParser::$form_id );
 		self::assertEmpty( $result[0]['innerBlocks'] );
+
+		// Nested advanced form block with hCaptcha.
+		BlockParser::$form_id = 0;
+		$document             = '<!-- wp:kadence/rowlayout --><!-- wp:kadence/column --><!-- wp:kadence/advanced-form {"id":789} --><!-- wp:kadence/advanced-form-captcha {"type":"hcaptcha"} --><div class="wp-block-kadence-advanced-form-captcha"></div><!-- /wp:kadence/advanced-form-captcha --><!-- /wp:kadence/advanced-form --><!-- /wp:kadence/column --><!-- /wp:kadence/rowlayout -->';
+		$result               = $subject->parse( $document );
+		$advanced_form        = $result[0]['innerBlocks'][0]['innerBlocks'][0];
+
+		self::assertEquals( 'kadence/advanced-form', $advanced_form['blockName'] );
+		self::assertEquals( 789, BlockParser::$form_id );
+		self::assertEmpty( $advanced_form['innerBlocks'] );
 	}
 }

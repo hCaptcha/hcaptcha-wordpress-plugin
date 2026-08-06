@@ -217,6 +217,19 @@ class APITest extends HCaptchaWPTestCase {
 			'form_id' => 'other-form',
 		];
 
+		$filtered_expected_id = null;
+
+		add_filter(
+			'hcap_verify_request',
+			static function ( $result, $deprecated, $error_info ) use ( &$filtered_expected_id ) {
+				$filtered_expected_id = $error_info->expected_id;
+
+				return $result;
+			},
+			10,
+			3
+		);
+
 		$this->prepare_verify_post( $nonce_field_name, $nonce_action_name );
 
 		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $actual_id );
@@ -231,6 +244,7 @@ class APITest extends HCaptchaWPTestCase {
 				]
 			)
 		);
+		self::assertSame( $expected_id, $filtered_expected_id );
 	}
 
 	/**
@@ -303,6 +317,33 @@ class APITest extends HCaptchaWPTestCase {
 		add_filter( 'hcap_protect_form', '__return_false' );
 
 		self::assertNull( API::verify_request( $hcaptcha_response ) );
+	}
+
+	/**
+	 * Test verify_request() with missing keys.
+	 */
+	public function test_verify_request_with_missing_keys(): void {
+		$request_count = 0;
+		$empty_key     = static function () {
+			return '';
+		};
+
+		add_filter( 'hcap_site_key', $empty_key );
+		add_filter( 'hcap_secret_key', $empty_key );
+		add_filter(
+			'pre_http_request',
+			static function ( $preempt ) use ( &$request_count ) {
+				++$request_count;
+
+				return $preempt;
+			}
+		);
+
+		self::assertSame(
+			'Site Key and Secret Key are required.',
+			API::verify_request( 'some response' )
+		);
+		self::assertSame( 0, $request_count );
 	}
 
 	/**
@@ -392,6 +433,11 @@ class APITest extends HCaptchaWPTestCase {
 		$this->prepare_verify_request( $hcaptcha_response );
 
 		$_POST['hcap_hp_test'] = 'bot value';
+
+		self::assertSame( 'Anti-spam check failed.', API::verify_request( $hcaptcha_response ) );
+
+		hcaptcha()->has_result = false;
+		$_POST['hcap_hp_test'] = [ 'nested' ];
 
 		self::assertSame( 'Anti-spam check failed.', API::verify_request( $hcaptcha_response ) );
 	}

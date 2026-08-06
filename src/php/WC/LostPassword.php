@@ -39,7 +39,7 @@ class LostPassword extends LostPasswordBase {
 	/**
 	 * $_POST value to check.
 	 */
-	protected const POST_VALUE = 'true';
+	protected const POST_VALUE = null;
 
 	/**
 	 * Init hooks.

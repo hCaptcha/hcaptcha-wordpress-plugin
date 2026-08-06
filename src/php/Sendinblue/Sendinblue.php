@@ -93,7 +93,7 @@ class Sendinblue {
 	}
 
 	/**
-	 * Verify request filter.
+	 * Verify the request filter.
 	 *
 	 * @param string|null $result      Result of the hCaptcha verification.
 	 * @param array       $error_codes Error codes.

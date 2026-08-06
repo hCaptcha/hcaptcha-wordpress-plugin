@@ -244,9 +244,17 @@ describe( 'hCaptcha WooCommerce PayPal Payments', () => {
 		await window.fetch( '/?wc-ajax=ppc-create-order', { body: JSON.stringify( { context: 'cart' } ) } );
 		expect( app.executePayPalCaptcha ).toHaveBeenCalledWith( '' );
 
+		document.body.innerHTML = '<form class="checkout"></form><div class="hcaptcha-woocommerce-paypal-payments"></div>';
+		app.prepareCreateOrderConfig = jest.fn()
+			.mockReturnValueOnce( { body: JSON.stringify( { context: 'checkout' } ) } )
+			.mockReturnValueOnce( { body: JSON.stringify( { context: 'checkout', 'h-captcha-response': 'after-paypal' } ) } );
+		await window.fetch( '/?wc-ajax=ppc-create-order', { body: JSON.stringify( { context: 'checkout' } ) } );
+		expect( app.executeCheckoutCaptcha ).toHaveBeenCalledTimes( 1 );
+		expect( app.executePayPalCaptcha ).toHaveBeenCalledTimes( 2 );
+
 		app.prepareCreateOrderConfig = jest.fn( ( config ) => ( { ...config, body: JSON.stringify( { context: 'cart', 'h-captcha-response': 'present' } ) } ) );
 		await window.fetch( '/?wc-ajax=ppc-create-order' );
-		expect( app.executePayPalCaptcha ).toHaveBeenCalledTimes( 1 );
+		expect( app.executePayPalCaptcha ).toHaveBeenCalledTimes( 2 );
 		expect( window.hCaptchaBindEvents ).toHaveBeenCalled();
 		expect( app.moveBlockCaptcha ).toHaveBeenCalled();
 
@@ -283,6 +291,7 @@ describe( 'hCaptcha WooCommerce PayPal Payments', () => {
 		expect( app.isCheckoutContext( 'checkout' ) ).toBe( true );
 		expect( app.isCheckoutContext( 'checkout-block' ) ).toBe( true );
 		expect( app.isCheckoutContext( 'cart' ) ).toBe( false );
+		expect( app.usesCheckoutCaptcha( 'checkout' ) ).toBe( false );
 
 		jest.spyOn( app, 'getCaptchaData' ).mockReturnValue( { 'h-captcha-response': 'paypal-token' } );
 		expect( JSON.parse( app.prepareCreateOrderConfig( { body: JSON.stringify( { context: 'cart' } ) } ).body )[ 'h-captcha-response' ] ).toBe( 'paypal-token' );
@@ -369,10 +378,42 @@ describe( 'hCaptcha WooCommerce PayPal Payments', () => {
 		expect( observers[ 0 ].observe ).toHaveBeenCalledWith( document.body, { childList: true, subtree: true } );
 		app.observeBlockCaptcha();
 		app.moveBlockCaptcha();
-		expect( document.querySelector( '.wc-block-components-express-payment__event-buttons' ).nextElementSibling.classList.contains( 'hcaptcha-woocommerce-paypal-payments' ) ).toBe( true );
+		expect( document.querySelector( '.wc-block-components-express-payment__event-buttons' ).previousElementSibling.classList.contains( 'hcaptcha-woocommerce-paypal-payments' ) ).toBe( true );
 		expect( document.querySelector( '.hcaptcha-woocommerce-paypal-payments' ).style.display ).toBe( '' );
 		expect( app.getBlockCaptcha( null ) ).toBeNull();
 	} );
+
+	test( 'moves classic cart captcha directly below the checkout button', () => {
+		const app = loadPayPal( {
+			html: `
+				<div class="wc-proceed-to-checkout">
+					<a class="checkout-button"></a>
+					<div id="wc-stripe-express-checkout-element"></div>
+					<div class="ppc-button-wrapper">
+						<span class="hcaptcha-woocommerce-paypal-payments" style="display:none"></span>
+						<div id="ppc-button-ppcp-gateway"></div>
+					</div>
+				</div>
+			`,
+		} );
+		const checkoutContainer = document.querySelector(
+			'.wc-proceed-to-checkout',
+		);
+		const checkoutButton = document.querySelector( '.checkout-button' );
+		const captcha = document.querySelector(
+			'.hcaptcha-woocommerce-paypal-payments',
+		);
+
+		app.moveBlockCaptcha();
+
+		expect( checkoutButton.nextElementSibling ).toBe( captcha );
+		expect( captcha.nextElementSibling.id ).toBe(
+			'wc-stripe-express-checkout-element',
+		);
+		expect( captcha.parentElement ).toBe( checkoutContainer );
+		expect( captcha.style.display ).toBe( '' );
+	} );
+
 	test( 'covers PayPal SDK loaded handler and Buttons setter branches', () => {
 		const app = loadPayPal();
 		const loadedPaypal = {
@@ -418,12 +459,23 @@ describe( 'hCaptcha WooCommerce PayPal Payments', () => {
 
 	test( 'real prepareCreateOrderConfig merges checkout captcha data', () => {
 		const app = loadPayPal( {
-			html: '<form class="checkout" data-response="checkout-token" data-nonce="checkout-nonce"></form>',
+			html: '<form class="checkout" data-response="checkout-token" data-nonce="checkout-nonce"><input name="hcaptcha_wc_checkout_nonce"></form>',
 		} );
 		const config = app.prepareCreateOrderConfig( {
 			body: JSON.stringify( { context: 'checkout' } ),
 		} );
 
 		expect( JSON.parse( config.body )[ 'h-captcha-response' ] ).toBe( 'checkout-token' );
+	} );
+
+	test( 'prepareCreateOrderConfig falls back to PayPal captcha data for an unprotected checkout', () => {
+		const app = loadPayPal( {
+			html: '<form class="checkout"></form><div class="hcaptcha-woocommerce-paypal-payments" data-response="paypal-token"></div>',
+		} );
+		const config = app.prepareCreateOrderConfig( {
+			body: JSON.stringify( { context: 'checkout' } ),
+		} );
+
+		expect( JSON.parse( config.body )[ 'h-captcha-response' ] ).toBe( 'paypal-token' );
 	} );
 } );

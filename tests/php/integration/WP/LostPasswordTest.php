@@ -124,9 +124,9 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	 * Test verify().
 	 */
 	public function test_verify(): void {
-		$validation_error   = new WP_Error( 'some error' );
-		$expected           = clone $validation_error;
-		$_POST['wp-submit'] = 'some';
+		$validation_error = new WP_Error( 'some error' );
+		$expected         = clone $validation_error;
+		$this->prepare_lost_password_request();
 
 		$this->prepare_verify_post( 'hcaptcha_wp_lost_password_nonce', 'hcaptcha_wp_lost_password' );
 		$this->prepare_widget_id();
@@ -141,9 +141,9 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	 * Test verify() not verified.
 	 */
 	public function test_verify_not_verified(): void {
-		$validation_error   = new WP_Error( 'some error' );
-		$expected           = clone $validation_error;
-		$_POST['wp-submit'] = 'some';
+		$validation_error = new WP_Error( 'some error' );
+		$expected         = clone $validation_error;
+		$this->prepare_lost_password_request();
 
 		$expected->add( 'fail', 'The hCaptcha is invalid.' );
 
@@ -160,9 +160,9 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	 * Test verify() when widget id is bad.
 	 */
 	public function test_verify_bad_widget_id(): void {
-		$validation_error   = new WP_Error( 'some error' );
-		$expected           = clone $validation_error;
-		$_POST['wp-submit'] = 'some';
+		$validation_error = new WP_Error( 'some error' );
+		$expected         = clone $validation_error;
+		$this->prepare_lost_password_request();
 
 		$expected->add( 'bad-signature', 'Bad hCaptcha signature!' );
 
@@ -184,8 +184,29 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	 * Test verify() when not proper post key.
 	 */
 	public function test_verify_when_NOT_proper_post_key(): void {
+		$validation_error       = new WP_Error( 'some error' );
+		$expected               = clone $validation_error;
+		$_SERVER['REQUEST_URI'] = '/wp-login.php';
+		$_GET['action']         = 'lostpassword';
+
+		$subject = new LostPassword();
+		$subject->verify( $validation_error );
+
+		self::assertEquals( $expected, $validation_error );
+	}
+
+	/**
+	 * Test verify() without the optional submit field.
+	 */
+	public function test_verify_without_submit_field(): void {
 		$validation_error = new WP_Error( 'some error' );
 		$expected         = clone $validation_error;
+
+		$expected->add( 'fail', 'The hCaptcha is invalid.' );
+
+		$this->prepare_lost_password_request();
+		$this->prepare_verify_post_html( 'hcaptcha_wp_lost_password_nonce', 'hcaptcha_wp_lost_password', false );
+		$this->prepare_widget_id();
 
 		$subject = new LostPassword();
 		$subject->verify( $validation_error );
@@ -270,5 +291,14 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 		];
 
 		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
+	}
+
+	/**
+	 * Prepare a WordPress lost password request without the optional submit field.
+	 */
+	private function prepare_lost_password_request(): void {
+		$_SERVER['REQUEST_URI'] = '/wp-login.php';
+		$_GET['action']         = 'lostpassword';
+		$_POST['user_login']    = 'igor';
 	}
 }
