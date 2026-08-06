@@ -33,6 +33,8 @@ class AdvancedFormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function tearDown(): void {
+		BlockParser::$form_id = 0;
+
 		unset( $GLOBALS['current_screen'], $_POST );
 
 		parent::tearDown();
@@ -56,6 +58,7 @@ class AdvancedFormTest extends HCaptchaWPTestCase {
 		self::assertSame( 8, has_action( 'wp_print_footer_scripts', [ $subject, 'dequeue_kadence_captcha_api' ] ) );
 
 		self::assertSame( 10, has_filter( 'render_block', [ $subject, 'render_block' ] ) );
+		self::assertSame( 10, has_filter( 'render_block_data', [ $subject, 'render_block_data' ] ) );
 
 		if ( $is_frontend ) {
 			self::assertTrue( has_action( 'block_parser_class' ) );
@@ -144,6 +147,55 @@ class AdvancedFormTest extends HCaptchaWPTestCase {
 		self::assertFalse( $this->get_protected_property( $subject, 'has_captcha' ) );
 		self::assertSame( $expected, $subject->render_block( $block_content, $block, $instance ) );
 		self::assertTrue( $this->get_protected_property( $subject, 'has_captcha' ) );
+	}
+
+	/**
+	 * Test render_block_data().
+	 *
+	 * @return void
+	 */
+	public function test_render_block_data(): void {
+		$subject = new AdvancedForm();
+		$block   = [
+			'blockName' => 'some/block',
+			'attrs'     => [ 'id' => '123' ],
+		];
+
+		BlockParser::$form_id = 5;
+
+		self::assertSame( $block, $subject->render_block_data( $block ) );
+		self::assertSame( 5, BlockParser::$form_id );
+
+		$block['blockName'] = 'kadence/advanced-form';
+
+		self::assertSame( $block, $subject->render_block_data( $block ) );
+		self::assertSame( 123, BlockParser::$form_id );
+	}
+
+	/**
+	 * Test rendering nested forms with different ids.
+	 *
+	 * @return void
+	 */
+	public function test_render_nested_forms_with_different_ids(): void {
+		$document = '<!-- wp:kadence/rowlayout --><!-- wp:kadence/column --><!-- wp:kadence/advanced-form {"id":123} --><!-- wp:kadence/advanced-form-submit --><div class="kb-adv-form-field kb-submit-field"></div><!-- /wp:kadence/advanced-form-submit --><!-- /wp:kadence/advanced-form --><!-- /wp:kadence/column --><!-- wp:kadence/column --><!-- wp:kadence/advanced-form {"id":456} --><!-- wp:kadence/advanced-form-submit --><div class="kb-adv-form-field kb-submit-field"></div><!-- /wp:kadence/advanced-form-submit --><!-- /wp:kadence/advanced-form --><!-- /wp:kadence/column --><!-- /wp:kadence/rowlayout -->';
+
+		new AdvancedForm();
+
+		$output = do_blocks( $document );
+
+		foreach ( [ 123, 456 ] as $form_id ) {
+			$widget_id = HCaptcha::widget_id_value(
+				[
+					'source'  => [ 'kadence-blocks/kadence-blocks.php' ],
+					'form_id' => $form_id,
+				]
+			);
+
+			self::assertSame( 1, substr_count( $output, esc_attr( $widget_id ) ) );
+		}
+
+		self::assertSame( 456, BlockParser::$form_id );
 	}
 
 	/**

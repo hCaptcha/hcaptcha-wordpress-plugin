@@ -11,7 +11,9 @@ assets/js/apps/
 assets/js/**/*.min.js
 assets/js/**/*.min.js.map
 build/
+CLAUDE-SECURITY-*/
 coverage/
+docs/tasks/
 node_modules/
 vendor/
 

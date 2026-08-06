@@ -67,7 +67,7 @@ class SettingsTransfer {
 		$plugin = $payload['meta']['plugin'] ?? '';
 		$schema = $payload['meta']['schema_version'] ?? '';
 
-		if ( hcaptcha()->settings()->get_plugin_name() !== $plugin || self::SCHEMA_VERSION !== $schema ) {
+		if ( self::SCHEMA_VERSION !== $schema || hcaptcha()->settings()->get_plugin_name() !== $plugin ) {
 			return new WP_Error(
 				'plugin_mismatch',
 				__( 'Unsupported settings format.', 'hcaptcha-for-forms-and-more' )
@@ -78,7 +78,7 @@ class SettingsTransfer {
 	}
 
 	/**
-	 * Apply import payload using admin sanitization path.
+	 * Apply the import payload using the admin sanitization path.
 	 *
 	 * @param array $payload    Validated payload.
 	 * @param bool  $allow_keys Whether to allow importing keys block.
@@ -107,7 +107,12 @@ class SettingsTransfer {
 		$settings     = hcaptcha()->settings();
 		$old_settings = $settings->get_raw_settings();
 
-		// Use General settings page sanitization rules to prepare value like the admin UI does.
+		// Apply the same field-specific sanitization as each admin settings tab.
+		foreach ( $settings->get_tabs() as $tab ) {
+			$new_settings = $tab->sanitize_option_callback( $new_settings );
+		}
+
+		// Prepare the combined settings value like the admin UI does.
 		$general  = $settings->get_tab( General::class );
 		$prepared = $general->pre_update_option_filter( $new_settings, $old_settings );
 

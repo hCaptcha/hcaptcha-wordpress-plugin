@@ -60,8 +60,7 @@ class LoginTest extends HCaptchaWPTestCase {
 			</div>';
 
 		$module_slug = 'et_pb_login';
-		$encoded     = 'eyJzb3VyY2UiOlsiRGl2aSJdLCJmb3JtX2lkIjoibG9naW4iLCJoY2FwdGNoYV9zaG93biI6dHJ1ZX0=';
-		$hash        = wp_hash( $encoded );
+		$signature   = $this->get_encoded_signature( Login::class, [ 'Divi' ], 'login', true );
 
 		$hcap_form = $this->get_hcap_form(
 			[
@@ -93,7 +92,7 @@ class LoginTest extends HCaptchaWPTestCase {
 				type="hidden"
 				class="hcaptcha-signature"
 				name="hcaptcha-signature-SENhcHRjaGFcRGl2aVxMb2dpbg=="
-				value="' . $encoded . '-' . $hash . '">
+				value="' . $signature . '">
 		
 <p>
 							<button type="submit" name="et_builder_submit_button" class="et_pb_newsletter_button et_pb_button">Login</button>
@@ -182,8 +181,7 @@ class LoginTest extends HCaptchaWPTestCase {
 				</div>
 			</div>';
 
-		$encoded = 'eyJzb3VyY2UiOlsiRGl2aSJdLCJmb3JtX2lkIjoibG9naW4iLCJoY2FwdGNoYV9zaG93biI6dHJ1ZX0=';
-		$hash    = wp_hash( $encoded );
+		$signature = $this->get_encoded_signature( Login::class, [ 'Divi' ], 'login', true );
 
 		$hcap_form = $this->get_hcap_form(
 			[
@@ -215,7 +213,7 @@ class LoginTest extends HCaptchaWPTestCase {
 				type="hidden"
 				class="hcaptcha-signature"
 				name="hcaptcha-signature-SENhcHRjaGFcRGl2aVxMb2dpbg=="
-				value="' . $encoded . '-' . $hash . '">
+				value="' . $signature . '">
 		
 <p>
 							<button type="submit" name="et_builder_submit_button" class="et_pb_newsletter_button et_pb_button">Login</button>

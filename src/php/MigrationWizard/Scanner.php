@@ -25,6 +25,7 @@ use HCaptcha\MigrationWizard\Detectors\GiveWPDetector;
 use HCaptcha\MigrationWizard\Detectors\GravityFormsRecaptchaDetector;
 use HCaptcha\MigrationWizard\Detectors\KadenceDetector;
 use HCaptcha\MigrationWizard\Detectors\MailPoetDetector;
+use HCaptcha\MigrationWizard\Detectors\MetFormDetector;
 use HCaptcha\MigrationWizard\Detectors\NinjaFormsDetector;
 use HCaptcha\MigrationWizard\Detectors\OtterDetector;
 use HCaptcha\MigrationWizard\Detectors\PaidMembershipProDetector;
@@ -77,6 +78,7 @@ class Scanner {
 			new GravityFormsRecaptchaDetector(),
 			new KadenceDetector(),
 			new MailPoetDetector(),
+			new MetFormDetector(),
 			new NinjaFormsDetector(),
 			new OtterDetector(),
 			new PaidMembershipProDetector(),

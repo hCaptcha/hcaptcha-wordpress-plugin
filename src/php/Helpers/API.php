@@ -55,7 +55,11 @@ class API {
 		}
 
 		$result = self::verify_widget_id( $entry['expected_id'] );
-		$result = $result ?? self::verify_nonce( $entry['nonce_name'], $entry['nonce_action'] );
+		$result = $result ?? self::verify_nonce(
+			$entry['nonce_name'],
+			$entry['nonce_action'],
+			$entry['expected_id']
+		);
 
 		// Init AntiSpam object and add hcap_verify_request hook.
 		if ( null === $result ) {
@@ -225,7 +229,7 @@ class API {
 		) {
 			$errors = hcap_get_error_messages();
 
-			return self::filtered_result( $errors['bad-signature'], [ 'bad-signature' ] );
+			return self::filtered_result( $errors['bad-signature'], [ 'bad-signature' ], $expected_id );
 		}
 
 		return null;
@@ -241,9 +245,10 @@ class API {
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
 	public static function verify_request( $hcaptcha_response = null, array $entry = [] ): ?string {
+		$expected_id = (array) ( $entry['expected_id'] ?? [] );
 		// Do not make a remote request more than once.
 		if ( hcaptcha()->has_result ) {
-			return self::filtered_result( self::$result, self::$error_codes );
+			return self::filtered_result( self::$result, self::$error_codes, $expected_id );
 		}
 
 		hcaptcha()->has_result = true;
@@ -262,12 +267,21 @@ class API {
 			$result      = hcap_get_error_messages()['fail'];
 			$error_codes = [ 'fail' ];
 
-			return self::filtered_result( $result, $error_codes );
+			return self::filtered_result( $result, $error_codes, $expected_id );
 		}
 
 		// Protection is not enabled.
 		if ( ! HCaptcha::is_protection_enabled() ) {
-			return self::filtered_result( null, [] );
+			return self::filtered_result( null, [], $expected_id );
+		}
+
+		$settings = hcaptcha()->settings();
+
+		// The hCaptcha credentials are not configured.
+		if ( '' === $settings->get_site_key() || '' === $settings->get_secret_key() ) {
+			$error_codes = [ 'missing-keys' ];
+
+			return self::filtered_result( hcap_get_error_messages()['missing-keys'], $error_codes );
 		}
 
 		// Check the honeypot field.
@@ -275,7 +289,7 @@ class API {
 			$result      = hcap_get_error_messages()['spam'];
 			$error_codes = [ 'spam' ];
 
-			return self::filtered_result( $result, $error_codes );
+			return self::filtered_result( $result, $error_codes, $expected_id );
 		}
 
 		$hcaptcha_response_sanitized = self::get_hcaptcha_response_sanitized( $hcaptcha_response );
@@ -285,7 +299,7 @@ class API {
 			$result      = hcap_get_error_messages()['empty'];
 			$error_codes = [ 'empty' ];
 
-			return self::filtered_result( $result, $error_codes );
+			return self::filtered_result( $result, $error_codes, $expected_id );
 		}
 
 		// Check the form submit time token.
@@ -295,19 +309,19 @@ class API {
 			$result      = $check->get_error_message();
 			$error_codes = $check->get_error_codes();
 
-			return self::filtered_result( $result, $error_codes );
+			return self::filtered_result( $result, $error_codes, $expected_id );
 		}
 
 		if ( ! self::check_disposable_email( $entry ) ) {
 			$result      = hcap_get_error_messages()['disposable-email'];
 			$error_codes = [ 'disposable-email' ];
 
-			return self::filtered_result( $result, $error_codes );
+			return self::filtered_result( $result, $error_codes, $expected_id );
 		}
 
 		$params = self::get_params( $hcaptcha_response_sanitized );
 
-		return self::process_request( $params );
+		return self::process_request( $params, $expected_id );
 	}
 
 	/**
@@ -330,11 +344,12 @@ class API {
 	/**
 	 * Process request.
 	 *
-	 * @param array $params Request parameters.
+	 * @param array $params      Request parameters.
+	 * @param array $expected_id Expected hCaptcha widget id.
 	 *
 	 * @return string|null
 	 */
-	private static function process_request( array $params ): ?string {
+	private static function process_request( array $params, array $expected_id ): ?string {
 		// Process API request.
 		$raw_response = wp_remote_post(
 			hcaptcha()->get_verify_url(),
@@ -345,7 +360,7 @@ class API {
 			$result      = implode( "\n", $raw_response->get_error_messages() );
 			$error_codes = $raw_response->get_error_codes();
 
-			return self::filtered_result( $result, $error_codes );
+			return self::filtered_result( $result, $error_codes, $expected_id );
 		}
 
 		$raw_body = wp_remote_retrieve_body( $raw_response );
@@ -357,7 +372,7 @@ class API {
 			$result      = $fail_message;
 			$error_codes = [ 'fail' ];
 
-			return self::filtered_result( $result, $error_codes );
+			return self::filtered_result( $result, $error_codes, $expected_id );
 		}
 
 		$body = Utils::json_decode_arr( $raw_body );
@@ -369,22 +384,23 @@ class API {
 			$result             = $hcap_error_message ?: $fail_message;
 			$error_codes        = $hcap_error_message ? $error_codes : [ 'fail' ];
 
-			return self::filtered_result( $result, $error_codes );
+			return self::filtered_result( $result, $error_codes, $expected_id );
 		}
 
 		// Success.
-		return self::filtered_result( null, [] );
+		return self::filtered_result( null, [], $expected_id );
 	}
 
 	/**
 	 * Verify nonce.
 	 *
 	 * @param string|null $name Nonce field name.
-	 * @param string|null $action Nonce action name.
+	 * @param string|null $action      Nonce action name.
+	 * @param array       $expected_id Expected hCaptcha widget id.
 	 *
 	 * @return string|null
 	 */
-	private static function verify_nonce( ?string $name = HCAPTCHA_NONCE, ?string $action = HCAPTCHA_ACTION ): ?string {
+	private static function verify_nonce( ?string $name = HCAPTCHA_NONCE, ?string $action = HCAPTCHA_ACTION, array $expected_id = [] ): ?string {
 		if ( null === $name && null === $action ) {
 			// Do not verify nonce if we didn't request it.
 			return null;
@@ -404,7 +420,7 @@ class API {
 			$result      = $errors['bad-nonce'];
 			$error_codes = [ 'bad-nonce' ];
 
-			return self::filtered_result( $result, $error_codes );
+			return self::filtered_result( $result, $error_codes, $expected_id );
 		}
 
 		return null;
@@ -415,10 +431,11 @@ class API {
 	 *
 	 * @param string|null $result      Result.
 	 * @param array       $error_codes Error codes.
+	 * @param array       $expected_id Expected hCaptcha widget id.
 	 *
 	 * @return string|null
 	 */
-	private static function filtered_result( ?string $result, array $error_codes ): ?string {
+	public static function filtered_result( ?string $result, array $error_codes, array $expected_id = [] ): ?string {
 		/**
 		 * Filters the result of request verification.
 		 *
@@ -426,9 +443,14 @@ class API {
 		 *
 		 * @param string|null $result     The result of verification. The null means success.
 		 * @param string[]    $deprecated Not used.
-		 * @param object      $error_info Error info. Contains error codes or empty array on success.
+		 * @param object      $error_info Error info. Contains error codes and the expected widget id.
 		 */
-		$result = apply_filters( 'hcap_verify_request', $result, $error_codes, (object) [ 'codes' => $error_codes ] );
+		$error_info = (object) [
+			'codes'       => $error_codes,
+			'expected_id' => $expected_id,
+		];
+
+		$result = apply_filters( 'hcap_verify_request', $result, $error_codes, $error_info );
 
 		$result = null === $result ? null : esc_html( (string) $result );
 
@@ -457,7 +479,7 @@ class API {
 		// Verify nonce for logged-in users only.
 		$nonce_verified = ! is_user_logged_in() || wp_verify_nonce( $hp_signature, $hp_name );
 
-		$check = $hp_name && $nonce_verified && '' === trim( $hp_value );
+		$check = $hp_name && $nonce_verified && is_string( $hp_value ) && '' === trim( $hp_value );
 
 		/**
 		 * Filters the result of the honeypot field check.

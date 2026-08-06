@@ -121,6 +121,10 @@ class FormTest extends HCaptchaWPTestCase {
 				'type' => 'error',
 				'text' => 'Bad hCaptcha signature!',
 			],
+			'missing-keys'             => [
+				'type' => 'error',
+				'text' => 'Site Key and Secret Key are required.',
+			],
 			'spam'                     => [
 				'type' => 'error',
 				'text' => 'Anti-spam check failed.',
@@ -179,6 +183,32 @@ class FormTest extends HCaptchaWPTestCase {
 
 		self::assertSame( $content_with_hcaptcha, $subject->add_hcaptcha( $content_with_hcaptcha, $mc4wp_form, $element ) );
 		self::assertSame( $expected, $subject->add_hcaptcha( $content, $mc4wp_form, $element ) );
+	}
+
+	/**
+	 * Test add_hcaptcha() with built-in form interaction.
+	 *
+	 * @return void
+	 */
+	public function test_add_hcaptcha_with_form_interaction(): void {
+		$form_id = 5;
+		$content = '<input type="submit">';
+
+		$mc4wp_form     = Mockery::mock( MC4WP_Form::class );
+		$mc4wp_form->ID = $form_id;
+
+		$element = Mockery::mock( MC4WP_Form_Element::class );
+		$subject = new Form();
+
+		add_filter( 'hcap_delay_api_event', '__return_true' );
+
+		try {
+			$actual = $subject->add_hcaptcha( $content, $mc4wp_form, $element );
+		} finally {
+			remove_filter( 'hcap_delay_api_event', '__return_true' );
+		}
+
+		self::assertStringContainsString( 'class="h-captcha hcaptcha-api-delayed"', $actual );
 	}
 
 	/**

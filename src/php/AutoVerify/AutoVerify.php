@@ -23,6 +23,11 @@ class AutoVerify {
 	public const TRANSIENT = 'hcaptcha_auto_verify';
 
 	/**
+	 * Maximum serialized transient size in bytes.
+	 */
+	public const MAX_TRANSIENT_SIZE = 512 * 1024;
+
+	/**
 	 * Script handle.
 	 */
 	public const HANDLE = 'hcaptcha-auto-verify';
@@ -180,27 +185,20 @@ class AutoVerify {
 	 * @noinspection ForgottenDebugOutputInspection
 	 */
 	public function verify(): void {
-		if ( ! Request::is_post() || ! Request::is_frontend() ) {
+		// Do not let client-controlled REST request shape bypass verification.
+		if ( ! Request::is_post() || ! Request::is_frontend( false ) ) {
 			return;
 		}
 
-		$path = $this->get_path( $this->get_request_uri() );
-
-		if ( ! $path ) {
-			return;
-		}
-
-		$registered_form = $this->get_registered_form( $path );
+		$registered_form = $this->get_registered_form_for_request();
 
 		if ( null === $registered_form ) {
 			return;
 		}
 
 		$args   = $registered_form['args'] ?? [];
-		$action = $args['action'] ?? '';
-		$name   = $args['name'] ?? '';
 		$ajax   = $args['ajax'] ?? '';
-		$result = API::verify( $this->get_entry( $name, $action, $this->get_expected_id( $args ) ) );
+		$result = $this->verify_submission( $registered_form );
 
 		if ( $ajax ) {
 			add_filter( 'wp_doing_ajax', '__return_true' );
@@ -218,6 +216,55 @@ class AutoVerify {
 				]
 			);
 		}
+	}
+
+	/**
+	 * Get the registered form for the current request.
+	 *
+	 * @return array|null
+	 */
+	private function get_registered_form_for_request(): ?array {
+		$request_uri = $this->get_request_uri();
+
+		if ( ! $request_uri ) {
+			return null;
+		}
+
+		$path            = $this->get_path( $request_uri );
+		$registered_form = $path ? $this->get_registered_form( $path ) : null;
+
+		if ( null !== $registered_form ) {
+			return $registered_form;
+		}
+
+		$canonical_path = $this->get_canonical_request_path();
+
+		if ( ! $canonical_path || $canonical_path === $path ) {
+			return null;
+		}
+
+		return $this->get_registered_form( $canonical_path );
+	}
+
+	/**
+	 * Verify a registered form submission.
+	 *
+	 * @param array $registered_form Registered form.
+	 *
+	 * @return string|null
+	 */
+	private function verify_submission( array $registered_form ): ?string {
+		if ( ! $registered_form ) {
+			return API::filtered_result( hcap_get_error_messages()['bad-signature'], [ 'bad-signature' ] );
+		}
+
+		$args   = $registered_form['args'] ?? [];
+		$action = $args['action'] ?? '';
+		$name   = $args['name'] ?? '';
+
+		return API::verify(
+			$this->get_entry( $name, $action, $this->get_expected_id( $args ) )
+		);
 	}
 
 	/**
@@ -302,9 +349,10 @@ class AutoVerify {
 			$args            = $this->registry[ $widget_id_value ] ?? [];
 
 			$forms_data[] = [
-				'action' => $action,
-				'inputs' => $this->get_visible_input_names( $form ),
-				'args'   => $args,
+				'action'    => $action,
+				'inputs'    => $this->get_visible_input_names( $form ),
+				'widget_id' => $widget_id_value,
+				'args'      => $args,
 			];
 		}
 
@@ -348,6 +396,39 @@ class AutoVerify {
 	}
 
 	/**
+	 * Get the canonical path of the current WordPress request.
+	 *
+	 * @return string
+	 */
+	private function get_canonical_request_path(): string {
+		$post_id = url_to_postid( Request::current_url() );
+
+		if ( ! $post_id ) {
+			$pagename = Request::filter_input( INPUT_GET, 'pagename' );
+
+			if ( is_string( $pagename ) && '' !== $pagename ) {
+				$page = get_page_by_path( $pagename );
+
+				if ( $page ) {
+					$post_id = $page->ID;
+				}
+			}
+		}
+
+		if ( ! $post_id ) {
+			return '';
+		}
+
+		$permalink = get_permalink( $post_id );
+
+		if ( ! is_string( $permalink ) ) {
+			return '';
+		}
+
+		return $this->get_path( $permalink );
+	}
+
+	/**
 	 * Get REQUEST_URI without a trailing slash.
 	 *
 	 * @return string
@@ -367,7 +448,12 @@ class AutoVerify {
 	 * @return string
 	 */
 	private function get_path( string $url ): string {
-		$path = (string) wp_parse_url( $url, PHP_URL_PATH );
+		if ( 0 === strpos( $url, '//' ) ) {
+			$url = '/' . ltrim( $url, '/' );
+		}
+
+		$path = rawurldecode( (string) wp_parse_url( $url, PHP_URL_PATH ) );
+		$path = preg_replace( '#/+#', '/', $path );
 
 		return '/' === $path ? $path : untrailingslashit( $path );
 	}
@@ -387,13 +473,13 @@ class AutoVerify {
 		}
 
 		foreach ( $matches[0] as $input ) {
-			if ( ! $this->is_input_visible( $input ) ) {
+			if ( ! $this->is_stable_input( $input ) ) {
 				continue;
 			}
 
 			$name = $this->get_input_name( $input );
 
-			if ( $name ) {
+			if ( $name && 0 !== strpos( $name, 'hcap_' ) ) {
 				$names[] = $name;
 			}
 		}
@@ -402,14 +488,26 @@ class AutoVerify {
 	}
 
 	/**
-	 * Check if input is visible.
+	 * Check if an input is always included in a regular form submission.
 	 *
 	 * @param string $input Input.
 	 *
 	 * @return bool
 	 */
-	private function is_input_visible( string $input ): bool {
-		return ! preg_match( '#type\s*?=\s*?["\']hidden["\']#', $input );
+	private function is_stable_input( string $input ): bool {
+		if ( preg_match( '#\sdisabled(?:\s|=|/?>)#i', $input ) ) {
+			return false;
+		}
+
+		if ( ! preg_match( '#type\s*?=\s*?["\'](.+?)["\']#i', $input, $matches ) ) {
+			return true;
+		}
+
+		return ! in_array(
+			strtolower( $matches[1] ),
+			[ 'hidden', 'checkbox', 'radio', 'submit', 'button', 'reset', 'image', 'file' ],
+			true
+		);
 	}
 
 	/**
@@ -455,15 +553,16 @@ class AutoVerify {
 
 			unset( $data['action'] );
 
-			$inputs = $data['inputs'];
-			$args   = $data['args'];
-			$auto   = $args['auto'];
+			$inputs    = (array) $data['inputs'];
+			$widget_id = (string) ( $data['widget_id'] ?? '' );
+			$args      = $data['args'];
+			$auto      = $args['auto'];
 
 			$key          = false;
 			$action_forms = $registered_forms[ $action ] ?? [];
 
 			foreach ( $action_forms as $index => $action_form ) {
-				if ( ( $action_form['inputs'] ?? [] ) === $inputs ) {
+				if ( $this->is_same_registered_form_identity( (array) $action_form, $inputs, $widget_id ) ) {
 					$key = $index;
 					break;
 				}
@@ -473,18 +572,25 @@ class AutoVerify {
 
 			if ( $auto ) {
 				if ( $registered ) {
-					$registered_forms[ $action ][ $key ] = $data;
+					$action_forms[ $key ] = $data;
 				} else {
-					$registered_forms[ $action ][] = $data;
+					$action_forms[] = $data;
 				}
+
+				// Move the action to the end of the array to mark it as recently used.
+				unset( $registered_forms[ $action ] );
+
+				$registered_forms[ $action ] = array_values( $action_forms );
 
 				continue;
 			}
 
 			if ( $registered ) {
-				unset( $registered_forms[ $action ][ $key ] );
+				$this->remove_registered_form( $registered_forms, $action, $action_forms, $key );
 			}
 		}
+
+		$registered_forms = $this->limit_transient_size( $registered_forms );
 
 		set_transient(
 			self::TRANSIENT,
@@ -492,6 +598,135 @@ class AutoVerify {
 			/** This filter is documented in wp-includes/pluggable.php. */
 			apply_filters( 'nonce_life', constant( 'DAY_IN_SECONDS' ) ) // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 		);
+	}
+
+	/**
+	 * Whether form data has the same registration identity.
+	 *
+	 * @param array  $registered_form Registered form.
+	 * @param array  $inputs Input names.
+	 * @param string $widget_id Widget ID.
+	 *
+	 * @return bool
+	 */
+	private function is_same_registered_form_identity( array $registered_form, array $inputs, string $widget_id ): bool {
+		if ( $widget_id ) {
+			return (string) ( $registered_form['widget_id'] ?? '' ) === $widget_id;
+		}
+
+		return ( $registered_form['inputs'] ?? [] ) === $inputs;
+	}
+
+	/**
+	 * Whether a request matches the registered form structure.
+	 *
+	 * @param array  $registered_form Registered form.
+	 * @param array  $post_keys Submitted input names.
+	 * @param string $widget_id Submitted widget ID.
+	 *
+	 * @return bool
+	 */
+	private function is_same_registered_form( array $registered_form, array $post_keys, string $widget_id ): bool {
+		$inputs               = (array) ( $registered_form['inputs'] ?? [] );
+		$registered_widget_id = (string) ( $registered_form['widget_id'] ?? '' );
+
+		return $widget_id && $registered_widget_id === $widget_id && ! array_diff( $inputs, $post_keys );
+	}
+
+	/**
+	 * Remove a form from a registered action.
+	 *
+	 * @param array  $registered_forms Registered forms.
+	 * @param string $action           Form action.
+	 * @param array  $action_forms     Forms registered for the action.
+	 * @param int    $key              Form key.
+	 *
+	 * @return void
+	 */
+	private function remove_registered_form(
+		array &$registered_forms,
+		string $action,
+		array $action_forms,
+		int $key
+	): void {
+		unset( $action_forms[ $key ] );
+
+		if ( $action_forms ) {
+			$registered_forms[ $action ] = array_values( $action_forms );
+
+			return;
+		}
+
+		unset( $registered_forms[ $action ] );
+	}
+
+	/**
+	 * Limit the serialized transient size by removing the least recently used actions.
+	 *
+	 * @param array $registered_forms Registered forms.
+	 *
+	 * @return array
+	 */
+	private function limit_transient_size( array $registered_forms ): array {
+		$empty_array_size = $this->get_serialized_array_wrapper_size( 0 );
+
+		/**
+		 * Filters the maximum serialized size of the auto-verify transient.
+		 *
+		 * @param int $max_size Maximum size in bytes.
+		 */
+		$max_size = (int) apply_filters( 'hcap_auto_verify_transient_max_size', self::MAX_TRANSIENT_SIZE );
+		$max_size = max( $empty_array_size, $max_size );
+
+		$entry_sizes            = [];
+		$payload_size           = 0;
+		$registered_forms_count = count( $registered_forms );
+
+		foreach ( $registered_forms as $action => $action_forms ) {
+			$entry_size             = $this->get_serialized_array_entry_size( $action, $action_forms );
+			$entry_sizes[ $action ] = $entry_size;
+			$payload_size          += $entry_size;
+		}
+
+		while (
+			$registered_forms &&
+			$this->get_serialized_array_wrapper_size( $registered_forms_count ) + $payload_size > $max_size
+		) {
+			$action        = array_key_first( $registered_forms );
+			$payload_size -= $entry_sizes[ $action ];
+
+			unset( $registered_forms[ $action ], $entry_sizes[ $action ] );
+
+			--$registered_forms_count;
+		}
+
+		return $registered_forms;
+	}
+
+	/**
+	 * Get the serialized size of an array wrapper.
+	 *
+	 * @param int $count Number of array entries.
+	 *
+	 * @return int
+	 */
+	private function get_serialized_array_wrapper_size( int $count ): int {
+		return strlen( 'a:' . $count . ':{' ) + 1;
+	}
+
+	/**
+	 * Get the serialized size of an array entry.
+	 *
+	 * @param int|string $key   Array key.
+	 * @param mixed      $value Array value.
+	 *
+	 * @return int
+	 */
+	private function get_serialized_array_entry_size( $key, $value ): int {
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize
+		$serialized_entry = serialize( [ $key => $value ] );
+
+		return strlen( $serialized_entry ) - $this->get_serialized_array_wrapper_size( 1 );
 	}
 
 	/**
@@ -508,24 +743,25 @@ class AutoVerify {
 			return null;
 		}
 
-		if ( ! isset( $registered_forms[ $path ] ) ) {
+		$action_forms = (array) ( $registered_forms[ $path ] ?? [] );
+
+		if ( ! $action_forms ) {
 			return null;
 		}
 
 		// Nonce is verified later, in \HCaptcha\Helpers\API::verify().
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$post_keys = array_keys( $_POST );
+		$widget_id = Request::filter_input( INPUT_POST, HCaptcha::HCAPTCHA_WIDGET_ID );
+		$widget_id = is_string( $widget_id ) ? $widget_id : '';
 
-		foreach ( $registered_forms[ $path ] as $registered_form ) {
-			$inputs = $registered_form['inputs'] ?? [];
-
-			// Make sure that all inputs are present in the $_POST array.
-			if ( $inputs && ! array_diff( $inputs, $post_keys ) ) {
+		foreach ( $action_forms as $registered_form ) {
+			if ( $this->is_same_registered_form( (array) $registered_form, $post_keys, $widget_id ) ) {
 				return $registered_form;
 			}
 		}
 
-		return null;
+		return [];
 	}
 
 	/**

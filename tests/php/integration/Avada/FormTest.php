@@ -106,6 +106,14 @@ class FormTest extends HCaptchaWPTestCase {
 		$subject->form_after_open( $args, $params );
 		self::assertSame( $wrong_html, $subject->add_hcaptcha( $wrong_html, $args ) );
 		self::assertSame( $expected, $subject->add_hcaptcha( $html, $args ) );
+
+		add_filter( 'hcap_delay_api_event', '__return_true' );
+
+		$actual = $subject->add_hcaptcha( $html, $args );
+
+		remove_filter( 'hcap_delay_api_event', '__return_true' );
+
+		self::assertStringContainsString( 'class="h-captcha hcaptcha-api-delayed"', $actual );
 	}
 
 	/**

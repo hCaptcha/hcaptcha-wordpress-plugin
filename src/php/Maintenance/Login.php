@@ -42,10 +42,10 @@ class Login extends LoginBase {
 	protected function init_hooks(): void {
 		parent::init_hooks();
 
-		add_action( 'load_custom_style', [ hcaptcha(), 'print_inline_styles' ] );
-		add_action( 'load_custom_style', [ $this, 'print_inline_styles' ] );
-		add_action( 'after_main_container', [ $this, 'after_main_container' ] );
-		add_action( 'load_custom_scripts', [ $this, 'add_hcaptcha' ] );
+		add_action( 'mtnc_load_options_style', [ hcaptcha(), 'print_inline_styles' ] );
+		add_action( 'mtnc_load_options_style', [ $this, 'print_inline_styles' ] );
+		add_action( 'mtnc_after_main_container', [ $this, 'after_main_container' ] );
+		add_action( 'mtnc_load_custom_scripts', [ $this, 'add_hcaptcha' ] );
 
 		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
 	}
@@ -77,7 +77,8 @@ class Login extends LoginBase {
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo $login_form;
 
-		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+		remove_filter( 'script_loader_tag', 'mtnc_defer_scripts' );
+
 		do_action( 'wp_print_footer_scripts' );
 	}
 
@@ -153,6 +154,10 @@ class Login extends LoginBase {
 		min-width: 343px;
 		max-width: 343px;
 		right: -343px;
+	}
+
+	body.maintenance.open-login-form > .login-form-container {
+		right: 0;
 	}
 
 	body.maintenance #login-form a.lost-pass {

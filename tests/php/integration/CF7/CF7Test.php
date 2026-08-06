@@ -111,9 +111,9 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		$value = 'some value';
 
-		self::assertSame( $value, $subject->option_wpcf7( $value, 'some_option' ) );
+		self::assertSame( $value, $subject::option_wpcf7( $value, 'some_option' ) );
 
-		self::assertSame( $value, $subject->option_wpcf7( $value, 'wpcf7' ) );
+		self::assertSame( $value, $subject::option_wpcf7( $value, 'wpcf7' ) );
 
 		$value    = [
 			'foo'       => 'bar',
@@ -123,7 +123,7 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 
 		unset( $expected['recaptcha'] );
 
-		self::assertSame( $expected, $subject->option_wpcf7( $value, 'wpcf7' ) );
+		self::assertSame( $expected, $subject::option_wpcf7( $value, 'wpcf7' ) );
 	}
 
 	/**
@@ -265,6 +265,41 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		];
 	}
 
+
+	/**
+	 * Test wpcf7_shortcode() with built-in form interaction.
+	 */
+	public function test_wpcf7_shortcode_with_form_interaction(): void {
+		$output  = '<form><input type="submit" value="Send"></form>';
+		$tag     = 'contact-form-7';
+		$form_id = 177;
+		$attr    = [ 'id' => $form_id ];
+		$m       = [];
+
+		update_option(
+			'hcaptcha_settings',
+			[
+				'site_key'   => General::MODE_TEST_PUBLISHER_SITE_KEY,
+				'cf7_status' => [ 'form' ],
+			]
+		);
+
+		hcaptcha()->init_hooks();
+
+		add_filter( 'hcap_delay_api_event', '__return_true' );
+
+		try {
+			$actual = ( new CF7() )->wpcf7_shortcode( $output, $tag, $attr, $m );
+		} finally {
+			remove_filter( 'hcap_delay_api_event', '__return_true' );
+		}
+
+		self::assertStringContainsString(
+			'class="wpcf7-form-control h-captcha hcaptcha-api-delayed ',
+			$actual
+		);
+		self::assertStringNotContainsString( '<h-captcha', $actual );
+	}
 	/**
 	 * Test wpcf7_shortcode() when NOT active.
 	 *

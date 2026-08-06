@@ -15,6 +15,18 @@ use HCaptcha\Abstracts\LoginBase;
 class Login extends LoginBase {
 
 	/**
+	 * Whether a valid signature can skip login verification.
+	 *
+	 * Re-evaluate the server-side login threshold instead of trusting the
+	 * hcaptcha_shown claim from a previously rendered page.
+	 *
+	 * @return bool
+	 */
+	protected function can_skip_login_verification(): bool {
+		return ! $this->is_login_limit_exceeded();
+	}
+
+	/**
 	 * Init hooks.
 	 *
 	 * @return void

@@ -155,6 +155,14 @@ HTML;
 		$expected = str_replace( $placeholder, $hcaptcha, $template );
 
 		self::assertSame( $expected, $subject->render_block( $content, $block, $instance ) );
+
+		add_filter( 'hcap_delay_api_event', '__return_true' );
+
+		$actual = $subject->render_block( $content, $block, $instance );
+
+		remove_filter( 'hcap_delay_api_event', '__return_true' );
+
+		self::assertStringContainsString( 'class="h-captcha hcaptcha-api-delayed"', $actual );
 	}
 
 	/**

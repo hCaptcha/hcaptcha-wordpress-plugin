@@ -13,6 +13,7 @@
 namespace HCaptcha\Tests\Integration;
 
 use lucatume\WPBrowser\TestCase\WPTestCase;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Settings\General;
 use Mockery;
 use ReflectionClass;
@@ -156,7 +157,7 @@ class HCaptchaWPTestCase extends WPTestCase {
 
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 		$encoded_id = base64_encode( wp_json_encode( $id ) );
-		$widget_id  = $encoded_id . '-' . wp_hash( $encoded_id );
+		$widget_id  = $encoded_id . '-' . wp_hash( HCaptcha::HCAPTCHA_WIDGET_ID . '|' . $encoded_id );
 
 		return '		<input
 				type="hidden"
@@ -375,13 +376,14 @@ HTML;
 	/**
 	 * Get encoded signature.
 	 *
+	 * @param string     $class_name     Class name.
 	 * @param string[]   $source         Signature source.
 	 * @param int|string $form_id        Form id.
 	 * @param bool       $hcaptcha_shown The hCaptcha was shown.
 	 *
 	 * @return string
 	 */
-	protected function get_encoded_signature( array $source, $form_id, bool $hcaptcha_shown ): string {
+	protected function get_encoded_signature( string $class_name, array $source, $form_id, bool $hcaptcha_shown ): string {
 		$id = [
 			'source'         => $source,
 			'form_id'        => $form_id,
@@ -390,7 +392,9 @@ HTML;
 
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 		$encoded_id = base64_encode( wp_json_encode( $id ) );
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$field_name = HCaptcha::HCAPTCHA_SIGNATURE . '-' . base64_encode( $class_name );
 
-		return $encoded_id . '-' . wp_hash( $encoded_id );
+		return $encoded_id . '-' . wp_hash( $field_name . '|' . $encoded_id );
 	}
 }

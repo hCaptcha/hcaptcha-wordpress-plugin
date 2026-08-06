@@ -1065,6 +1065,48 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test render_field() with built-in form interaction.
+	 */
+	public function test_render_field_with_form_interaction(): void {
+		update_option(
+			'hcaptcha_settings',
+			[ 'site_key' => General::MODE_TEST_PUBLISHER_SITE_KEY ]
+		);
+
+		hcaptcha()->init_hooks();
+
+		$item['custom_id'] = '_014ea7c';
+		$item_index        = 5;
+		$form_id           = '687b087';
+		$widget            = Mockery::mock( Widget_Base::class );
+
+		$widget->shouldReceive( 'add_render_attribute' )->once();
+		$widget->shouldReceive( 'get_id' )->once()->andReturn( $form_id );
+
+		$subject = new HCaptchaHandler();
+		$level   = ob_get_level();
+
+		add_filter( 'hcap_delay_api_event', '__return_true' );
+
+		try {
+			ob_start();
+			$subject->render_field( $item, $item_index, $widget );
+			$actual = (string) ob_get_clean();
+		} finally {
+			while ( ob_get_level() > $level ) {
+				ob_end_clean();
+			}
+
+			remove_filter( 'hcap_delay_api_event', '__return_true' );
+		}
+
+		self::assertStringContainsString(
+			'class="h-captcha hcaptcha-api-delayed"',
+			$actual
+		);
+	}
+
+	/**
 	 * Data provider for test_render_field().
 	 *
 	 * @return array

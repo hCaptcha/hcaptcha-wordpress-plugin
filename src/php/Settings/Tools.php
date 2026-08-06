@@ -62,6 +62,25 @@ class Tools extends PluginSettingsBase {
 	}
 
 	/**
+	 * Get form fields for the command palette.
+	 *
+	 * @return array
+	 */
+	public function command_palette_form_fields(): array {
+		return [
+			'hcaptcha-migration-wizard' => [
+				'label' => __( 'Migration Wizard', 'hcaptcha-for-forms-and-more' ),
+			],
+			'hcaptcha-section-export'   => [
+				'label' => __( 'Export Options', 'hcaptcha-for-forms-and-more' ),
+			],
+			'hcaptcha-section-import'   => [
+				'label' => __( 'Import Options', 'hcaptcha-for-forms-and-more' ),
+			],
+		];
+	}
+
+	/**
 	 * Migration wizard instance.
 	 *
 	 * @var MigrationWizard
@@ -144,18 +163,39 @@ class Tools extends PluginSettingsBase {
 	 * Handle Import.
 	 *
 	 * @return void
+	 * @noinspection PhpUnreachableStatementInspection
 	 */
 	public function ajax_handle_import(): void {
 		$this->run_checks( self::IMPORT_ACTION );
 
 		// Nonce is checked in run_checks().
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$filename = isset( $_FILES['import_file']['tmp_name'] ) ? sanitize_text_field( $_FILES['import_file']['tmp_name'] ) : '';
+		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$file         = (array) ( $_FILES['import_file'] ?? [] );
+		$filename     = (string) ( $file['tmp_name'] ?? '' );
+		$upload_error = $file['error'] ?? UPLOAD_ERR_NO_FILE;
+		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+
+		if (
+			'' === $filename ||
+			UPLOAD_ERR_OK !== $upload_error ||
+			! is_uploaded_file( $filename )
+		) {
+			wp_send_json_error( [ 'message' => __( 'Import failed.', 'hcaptcha-for-forms-and-more' ) ] );
+
+			return; // For testing purposes.
+		}
 
 		$include_keys = 'on' === Request::filter_input( INPUT_POST, 'include_keys_import' );
 
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		$json = file_get_contents( $filename );
+
+		if ( false === $json ) {
+			wp_send_json_error( [ 'message' => __( 'Import failed.', 'hcaptcha-for-forms-and-more' ) ] );
+
+			return; // For testing purposes.
+		}
+
 		$data = Utils::json_decode_arr( $json );
 
 		// Admin UI import keeps keys if present.
@@ -216,7 +256,7 @@ class Tools extends PluginSettingsBase {
 
 		<?php $this->print_section_header( 'import', __( 'Import', 'hcaptcha-for-forms-and-more' ) ); ?>
 
-		<div class="hcaptcha-section-import">
+		<div id="hcaptcha-section-import" class="hcaptcha-section-import">
 			<p><?php esc_html_e( 'Import your hCaptcha settings from a JSON file. This will replace your current settings.', 'hcaptcha-for-forms-and-more' ); ?></p>
 			<div class="hcaptcha-file-upload">
 				<label for="hcaptcha-import-file" class="button button-secondary">

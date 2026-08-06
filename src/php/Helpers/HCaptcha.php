@@ -276,7 +276,7 @@ class HCaptcha {
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 		$encoded_id = base64_encode( wp_json_encode( $id ) );
 
-		return $encoded_id . '-' . wp_hash( $encoded_id );
+		return $encoded_id . '-' . self::hash_id( self::HCAPTCHA_WIDGET_ID, $encoded_id );
 	}
 
 	/**
@@ -341,8 +341,7 @@ class HCaptcha {
 	 * @return void
 	 */
 	public static function display_signature( string $class_name, $form_id, bool $hcaptcha_shown ): void {
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-		$name = self::HCAPTCHA_SIGNATURE . '-' . base64_encode( $class_name );
+		$name = self::get_signature_name( $class_name );
 
 		?>
 		<input
@@ -363,13 +362,12 @@ class HCaptcha {
 	 *                   Null if valid and hCaptcha was shown.
 	 */
 	public static function check_signature( string $class_name, $form_id = null ): ?bool {
-		$info = self::decode_id_info(
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-			self::HCAPTCHA_SIGNATURE . '-' . base64_encode( $class_name )
-		);
+		$info = self::decode_id_info( self::get_signature_name( $class_name ) );
 
 		if (
 			! $info['valid'] ||
+			! array_key_exists( 'hcaptcha_shown', $info['id'] ) ||
+			! is_bool( $info['id']['hcaptcha_shown'] ) ||
 			self::get_class_source( $class_name ) !== $info['id']['source']
 		) {
 			return false;
@@ -1050,32 +1048,62 @@ class HCaptcha {
 		if ( ! $hashed_id ) {
 			// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 			$encoded_id = base64_encode( wp_json_encode( self::$default_id ) );
-			$hash       = wp_hash( $encoded_id );
+			$hash       = self::hash_id( $hashed_id_field, $encoded_id );
 
 			return [
 				'id'         => self::$default_id,
 				'encoded_id' => $encoded_id,
 				'hash'       => $hash,
-				'valid'      => true,
+				'valid'      => self::HCAPTCHA_WIDGET_ID === $hashed_id_field,
 			];
 		}
 
-		$hashed_id_arr = explode( '-', $hashed_id );
+		$hashed_id_arr = explode( '-', $hashed_id, 2 );
 		$encoded_id    = $hashed_id_arr[0];
 		$hash          = $hashed_id_arr[1] ?? '';
+		$expected_hash = self::hash_id( $hashed_id_field, $encoded_id );
+		$valid         = hash_equals( $expected_hash, $hash );
 
-		$id = wp_parse_args(
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
-			Utils::json_decode_arr( base64_decode( $encoded_id ) ),
-			self::$default_id
-		);
+		$id = self::$default_id;
+
+		if ( $valid ) {
+			$id = wp_parse_args(
+			// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
+				Utils::json_decode_arr( base64_decode( $encoded_id, true ) ?: '' ),
+				self::$default_id
+			);
+		}
 
 		return [
 			'id'         => $id,
 			'encoded_id' => $encoded_id,
 			'hash'       => $hash,
-			'valid'      => wp_hash( $encoded_id ) === $hash,
+			'valid'      => $valid,
 		];
+	}
+
+	/**
+	 * Hash an encoded id in the context of its field.
+	 *
+	 * @param string $hashed_id_field Hashed id field name.
+	 * @param string $encoded_id      Encoded id.
+	 *
+	 * @return string
+	 */
+	private static function hash_id( string $hashed_id_field, string $encoded_id ): string {
+		return wp_hash( $hashed_id_field . '|' . $encoded_id );
+	}
+
+	/**
+	 * Get a signature field name.
+	 *
+	 * @param string $class_name Class name.
+	 *
+	 * @return string
+	 */
+	private static function get_signature_name( string $class_name ): string {
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		return self::HCAPTCHA_SIGNATURE . '-' . base64_encode( $class_name );
 	}
 
 	/**
@@ -1097,7 +1125,7 @@ class HCaptcha {
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 		$encoded_id = base64_encode( wp_json_encode( $id ) );
 
-		return $encoded_id . '-' . wp_hash( $encoded_id );
+		return $encoded_id . '-' . self::hash_id( self::get_signature_name( $class_name ), $encoded_id );
 	}
 
 	/**

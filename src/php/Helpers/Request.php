@@ -17,13 +17,15 @@ class Request {
 	/**
 	 * Check if it is a frontend request.
 	 *
+	 * @param bool $check_rest Whether to check if it is a REST request.
+	 *
 	 * @return bool
 	 */
-	public static function is_frontend(): bool {
+	public static function is_frontend( bool $check_rest = true ): bool {
 		return ! (
 			self::is_xml_rpc() || self::is_cli() ||
 			is_admin() || wp_doing_ajax() || wp_doing_cron() ||
-			self::is_rest()
+			( $check_rest && self::is_rest() )
 		);
 	}
 

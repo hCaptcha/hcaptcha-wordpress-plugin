@@ -1,6 +1,6 @@
 <?php
 /**
- * CF7 form class file.
+ * CF7 form's class file.
  *
  * @package hcaptcha-wp
  */
@@ -150,17 +150,16 @@ class CF7 extends Base {
 
 		$id        = $attr['cf7-id'] ?? uniqid( 'hcap_cf7-', true );
 		$class     = $attr['cf7-class'] ?? '';
-		$hcap_form = preg_replace(
-			[
-				'/(<h-captcha\s+?class="h-captcha")/',
-				'#</h-captcha>#',
-			],
-			[
-				'<span id="' . esc_attr( $id ) . '" class="wpcf7-form-control h-captcha ' . esc_attr( $class ) . '"',
-				'</span>',
-			],
+		$hcap_form = preg_replace_callback(
+			'/<h-captcha\s+?class="([^"]*)"/',
+			static function ( array $matches ) use ( $id, $class ): string {
+				$classes = 'wpcf7-form-control ' . $matches[1] . ( $class ? ' ' . $class : ' ' );
+
+				return '<span id="' . esc_attr( $id ) . '" class="' . esc_attr( $classes ) . '"';
+			},
 			$hcap_form
 		);
+		$hcap_form = str_replace( '</h-captcha>', '</span>', $hcap_form );
 
 		$submission         = WPCF7_Submission::get_instance();
 		$hcap_invalid_field = $submission ? $submission->get_invalid_field( 'hcap-cf7' ) : [];

@@ -75,6 +75,7 @@ class RequestTest extends HCaptchaTestCase {
 		FunctionMocker::replace( 'HCaptcha\Helpers\Request::is_rest', true );
 
 		self::assertFalse( Request::is_frontend() );
+		self::assertTrue( Request::is_frontend( false ) );
 
 		FunctionMocker::replace( 'HCaptcha\Helpers\Request::is_rest', false );
 

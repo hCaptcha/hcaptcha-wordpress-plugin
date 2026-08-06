@@ -145,7 +145,7 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test HCaptcha::form_display() with delay API event.
+	 * Test HCaptcha::form_display() with a delay API event.
 	 *
 	 * @return void
 	 */
@@ -187,7 +187,7 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 		$encoded_id = base64_encode( wp_json_encode( $id ) );
-		$widget_id  = $encoded_id . '-' . wp_hash( $encoded_id );
+		$widget_id  = $encoded_id . '-' . wp_hash( HCaptcha::HCAPTCHA_WIDGET_ID . '|' . $encoded_id );
 		$expected   = <<<HTML
 		<input
 				type="hidden"
@@ -214,7 +214,7 @@ HTML;
 
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 		$name              = $hcaptcha_signature . '-' . base64_encode( $class_name );
-		$encoded_signature = $this->get_encoded_signature( $source, $form_id, $hcaptcha_shown );
+		$encoded_signature = $this->get_encoded_signature( $class_name, $source, $form_id, $hcaptcha_shown );
 		$expected          = <<<HTML
 		<input
 				type="hidden"
@@ -242,7 +242,7 @@ HTML;
 		// False when no signature.
 		self::assertFalse( HCaptcha::check_signature( $class_name, $form_id ) );
 
-		$_POST[ $name ] = $this->get_encoded_signature( [], $form_id, true );
+		$_POST[ $name ] = $this->get_encoded_signature( $class_name, [], $form_id, true );
 
 		// False when wrong form_id.
 		self::assertFalse( HCaptcha::check_signature( $class_name, 'wrong_form_id' ) );
@@ -250,12 +250,74 @@ HTML;
 		// Null when hCaptcha shown.
 		self::assertNull( HCaptcha::check_signature( $class_name, $form_id ) );
 
-		$_POST[ $name ] = $this->get_encoded_signature( [], $form_id, false );
+		$_POST[ $name ] = $this->get_encoded_signature( $class_name, [], $form_id, false );
 
 		// True when hCaptcha not shown.
 		self::assertTrue( HCaptcha::check_signature( $class_name, $form_id ) );
 
 		unset( $_POST[ $name ] );
+	}
+
+	/**
+	 * Test check_signature() rejects a widget id replayed as a signature.
+	 *
+	 * @return void
+	 */
+	public function test_check_signature_rejects_widget_id(): void {
+		$class_name = 'SomeClass';
+		$form_id    = 'some_id';
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$name = HCaptcha::HCAPTCHA_SIGNATURE . '-' . base64_encode( $class_name );
+
+		$_POST[ $name ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [],
+				'form_id' => $form_id,
+			]
+		);
+
+		self::assertFalse( HCaptcha::check_signature( $class_name, $form_id ) );
+	}
+
+	/**
+	 * Test check_signature() rejects a signature issued for another class.
+	 *
+	 * @return void
+	 */
+	public function test_check_signature_rejects_other_class(): void {
+		$class_name       = 'SomeClass';
+		$other_class_name = 'OtherClass';
+		$form_id          = 'some_id';
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$name = HCaptcha::HCAPTCHA_SIGNATURE . '-' . base64_encode( $class_name );
+
+		$_POST[ $name ] = $this->get_encoded_signature( $other_class_name, [], $form_id, false );
+
+		self::assertFalse( HCaptcha::check_signature( $class_name, $form_id ) );
+	}
+
+	/**
+	 * Test check_signature() rejects a signature without the shown claim.
+	 *
+	 * @return void
+	 */
+	public function test_check_signature_rejects_missing_shown_claim(): void {
+		$class_name = 'SomeClass';
+		$form_id    = 'some_id';
+		$id         = [
+			'source'  => [],
+			'form_id' => $form_id,
+		];
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$name = HCaptcha::HCAPTCHA_SIGNATURE . '-' . base64_encode( $class_name );
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$encoded_id     = base64_encode( wp_json_encode( $id ) );
+		$_POST[ $name ] = $encoded_id . '-' . wp_hash( $name . '|' . $encoded_id );
+
+		self::assertFalse( HCaptcha::check_signature( $class_name, $form_id ) );
 	}
 
 	/**
@@ -276,7 +338,7 @@ HTML;
 
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 		$encoded_id = base64_encode( wp_json_encode( $id ) );
-		$hash       = wp_hash( $encoded_id );
+		$hash       = wp_hash( HCaptcha::HCAPTCHA_WIDGET_ID . '|' . $encoded_id );
 
 		if ( ! $hash_ok ) {
 			$hash = 'broken hash';
@@ -333,6 +395,10 @@ HTML;
 		self::assertSame( $default_id, HCaptcha::get_widget_id() );
 
 		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = $encoded_id . '-' . $hash;
+
+		self::assertSame( $default_id, HCaptcha::get_widget_id() );
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
 
 		self::assertSame( $expected, HCaptcha::get_widget_id() );
 	}
@@ -718,13 +784,13 @@ JS;
 		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
 		$name = HCaptcha::HCAPTCHA_SIGNATURE . '-' . base64_encode( $class_name );
 
-		$_POST[ $name ] = $this->get_encoded_signature( [ 'wrong/source.php' ], $form_id, true );
+		$_POST[ $name ] = $this->get_encoded_signature( $class_name, [ 'wrong/source.php' ], $form_id, true );
 
 		self::assertFalse( HCaptcha::check_signature( $class_name, $form_id ) );
 	}
 
 	/**
-	 * Test get_source_name() when the integrations tab is unavailable.
+	 * Test get_source_name() when the integrations' tab is unavailable.
 	 *
 	 * @return void
 	 * @throws ReflectionException Reflection exception.

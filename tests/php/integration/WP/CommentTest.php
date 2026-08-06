@@ -21,7 +21,7 @@ use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
 
 /**
- * Test comment form file.
+ * Test the comment form.
  *
  * @group wp-comment
  * @group wp
@@ -169,6 +169,36 @@ class CommentTest extends HCaptchaWPTestCase {
 		// Test when hCaptcha plugin is active.
 		self::assertSame( $expected, $subject->add_captcha( $submit_field, [] ) );
 	}
+	/**
+	 * Test add_captcha() with built-in form interaction.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_add_captcha_with_form_interaction(): void {
+		$form_id      = 1;
+		$submit_field =
+			'<p class="form-submit"><input name="submit" type="submit" id="submit" class="submit" value="Submit Comment" />' .
+			"<input type='hidden' name='comment_post_ID' value='$form_id' id='comment_post_ID' />" .
+			"<input type='hidden' name='comment_parent' id='comment_parent' value='0' />" .
+			'</p>';
+
+		add_filter( 'hcap_delay_api_event', '__return_true' );
+
+		try {
+			$subject = Mockery::mock( Comment::class )->makePartial();
+			$this->set_protected_property( $subject, 'active', true );
+
+			$output = $subject->add_captcha( $submit_field, [] );
+
+			self::assertStringContainsString(
+				'class="h-captcha hcaptcha-api-delayed"',
+				$output
+			);
+		} finally {
+			remove_filter( 'hcap_delay_api_event', '__return_true' );
+		}
+	}
+
 
 	/**
 	 * Test add_captcha() when not active.
@@ -218,11 +248,21 @@ class CommentTest extends HCaptchaWPTestCase {
 		$this->prepare_verify_post_html( 'hcaptcha_comment_nonce', 'hcaptcha_comment' );
 		$this->prepare_widget_id( (int) $comment_data['comment_post_ID'] );
 
-		FunctionMocker::replace( '\HCaptcha\Helpers\HCaptcha::check_signature' );
+		$checked_form_id = null;
+
+		FunctionMocker::replace(
+			'\HCaptcha\Helpers\HCaptcha::check_signature',
+			static function ( $class_name, $form_id ) use ( &$checked_form_id ) {
+				$checked_form_id = $form_id;
+
+				return null;
+			}
+		);
 
 		$subject = new Comment();
 
 		self::assertSame( $comment_data, $subject->verify( $comment_data ) );
+		self::assertSame( $comment_data['comment_post_ID'], $checked_form_id );
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		self::assertFalse( isset( $_POST['h-captcha-response'], $_POST['g-recaptcha-response'] ) );

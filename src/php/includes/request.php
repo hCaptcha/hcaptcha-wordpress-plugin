@@ -137,15 +137,19 @@ function hcap_get_user_ip( bool $filter_out_local = true ) {
 		}
 
 		/*
-		 * Some address headers can contain a chain of comma-separated addresses.
-		 * When a trusted header is enabled, use the first address in the chain.
+		 * A chain cannot be attributed to a client without trusted proxy-hop data.
+		 * Reject it so a client-supplied address cannot match the IP allowlist and disable hCaptcha.
 		 */
 		$address_chain = explode(
 			',',
-			filter_var( wp_unslash( $_SERVER[ $header ] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ),
-			2
+			filter_var( wp_unslash( $_SERVER[ $header ] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS )
 		);
-		$ip            = trim( $address_chain[0] );
+
+		if ( 1 !== count( $address_chain ) ) {
+			break;
+		}
+
+		$ip = trim( $address_chain[0] );
 
 		break;
 	}
@@ -189,6 +193,7 @@ function hcap_get_error_messages(): array {
 			'fail'                     => __( 'The hCaptcha is invalid.', 'hcaptcha-for-forms-and-more' ),
 			'bad-nonce'                => __( 'Bad hCaptcha nonce!', 'hcaptcha-for-forms-and-more' ),
 			'bad-signature'            => __( 'Bad hCaptcha signature!', 'hcaptcha-for-forms-and-more' ),
+			'missing-keys'             => __( 'Site Key and Secret Key are required.', 'hcaptcha-for-forms-and-more' ),
 			'spam'                     => __( 'Anti-spam check failed.', 'hcaptcha-for-forms-and-more' ),
 			'fst-no-object'            => __( 'FST object does not exist.', 'hcaptcha-for-forms-and-more' ),
 			'fst-too-fast'             => __( 'Form submitted too quickly.', 'hcaptcha-for-forms-and-more' ),
@@ -254,14 +259,21 @@ function hcap_get_wp_error( $error_codes ): WP_Error {
  */
 function hcap_check_site_config(): array {
 	$settings = hcaptcha()->settings();
-	$params   = [
+
+	if ( '' === $settings->get_site_key() || '' === $settings->get_secret_key() ) {
+		return [
+			'error' => hcap_get_error_messages()['missing-keys'],
+		];
+	}
+
+	$params = [
 		'host'    => (string) wp_parse_url( home_url(), PHP_URL_HOST ),
 		'sitekey' => $settings->get_site_key(),
 		'sc'      => 1,
 		'swa'     => 1,
 		'spst'    => 0,
 	];
-	$url      = add_query_arg( $params, hcaptcha()->get_check_site_config_url() );
+	$url    = add_query_arg( $params, hcaptcha()->get_check_site_config_url() );
 
 	$raw_response = wp_remote_post( $url );
 

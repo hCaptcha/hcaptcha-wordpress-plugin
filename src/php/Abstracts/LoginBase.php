@@ -138,7 +138,7 @@ abstract class LoginBase {
 
 		$check = HCaptcha::check_signature( static::class, 'login' );
 
-		if ( $check ) {
+		if ( $check && $this->can_skip_login_verification() ) {
 			return $user;
 		}
 
@@ -150,6 +150,15 @@ abstract class LoginBase {
 		}
 
 		return $this->login_base_verify( $user, $password );
+	}
+
+	/**
+	 * Whether a valid signature can skip login verification.
+	 *
+	 * @return bool
+	 */
+	protected function can_skip_login_verification(): bool {
+		return true;
 	}
 
 	/**

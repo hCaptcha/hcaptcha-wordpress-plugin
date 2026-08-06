@@ -44,10 +44,10 @@ class LoginTest extends HCaptchaWPTestCase {
 	public function test_constructor_and_init_hooks(): void {
 		$subject = new Login();
 
-		self::assertSame( 10, has_action( 'load_custom_style', [ hcaptcha(), 'print_inline_styles' ] ) );
-		self::assertSame( 10, has_action( 'load_custom_style', [ $subject, 'print_inline_styles' ] ) );
-		self::assertSame( 10, has_action( 'after_main_container', [ $subject, 'after_main_container' ] ) );
-		self::assertSame( 10, has_action( 'load_custom_scripts', [ $subject, 'add_hcaptcha' ] ) );
+		self::assertSame( 10, has_action( 'mtnc_load_options_style', [ hcaptcha(), 'print_inline_styles' ] ) );
+		self::assertSame( 10, has_action( 'mtnc_load_options_style', [ $subject, 'print_inline_styles' ] ) );
+		self::assertSame( 10, has_action( 'mtnc_after_main_container', [ $subject, 'after_main_container' ] ) );
+		self::assertSame( 10, has_action( 'mtnc_load_custom_scripts', [ $subject, 'add_hcaptcha' ] ) );
 
 		self::assertSame( 10, has_filter( 'wp_authenticate_user', [ $subject, 'verify' ] ) );
 	}
@@ -71,7 +71,7 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$subject = new Login();
 
-		// Force protection enabled so get_hcaptcha() returns markup.
+		// Force protection enabled, so get_hcaptcha() returns markup.
 		add_filter( 'hcap_login_limit_exceeded', '__return_true' );
 
 		add_action(
@@ -81,6 +81,7 @@ class LoginTest extends HCaptchaWPTestCase {
 				echo $footer_scripts;
 			}
 		);
+		add_filter( 'script_loader_tag', 'mtnc_defer_scripts', 10, 2 );
 
 		$form      = '<form><input type="text" name="login" /><input type="submit" value="Login"></form>';
 		$args      = [
@@ -109,6 +110,24 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		// hCaptcha should be injected before the 'submit' input and footer scripts should be printed.
 		self::assertSame( 0, strpos( $output, $expected ) );
+		self::assertFalse( has_filter( 'script_loader_tag', 'mtnc_defer_scripts' ) );
+
+		add_filter( 'hcap_delay_api_event', '__return_true' );
+
+		$subject->after_main_container();
+
+		ob_start();
+
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo $form;
+
+		$subject->add_hcaptcha();
+
+		$output = ob_get_clean();
+
+		remove_filter( 'hcap_delay_api_event', '__return_true' );
+
+		self::assertStringContainsString( 'class="h-captcha hcaptcha-api-delayed"', $output );
 	}
 
 	/**
@@ -125,7 +144,7 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		add_filter( 'hcap_login_limit_exceeded', '__return_true' );
 
-		// Prepare a failed verification so verify() sets error_message.
+		// Prepare failed verification so verify() sets error_message.
 		$this->prepare_verify_post_html( 'hcaptcha_maintenance_login_nonce', 'hcaptcha_maintenance_login', false );
 		$this->prepare_widget_id();
 
@@ -290,6 +309,10 @@ class LoginTest extends HCaptchaWPTestCase {
 		min-width: 343px;
 		max-width: 343px;
 		right: -343px;
+	}
+
+	body.maintenance.open-login-form > .login-form-container {
+		right: 0;
 	}
 
 	body.maintenance #login-form a.lost-pass {

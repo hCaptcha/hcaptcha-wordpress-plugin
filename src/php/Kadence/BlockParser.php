@@ -17,9 +17,9 @@ class BlockParser extends WP_Block_Parser {
 	/**
 	 * Form id.
 	 *
-	 * @var mixed
+	 * @var int
 	 */
-	public static $form_id = 0;
+	public static int $form_id = 0;
 
 	/**
 	 * Parses a document and returns a list of block structures
@@ -61,6 +61,14 @@ class BlockParser extends WP_Block_Parser {
 			default:
 				break;
 		}
+
+		if ( ! isset( $block['innerBlocks'] ) || ! is_array( $block['innerBlocks'] ) ) {
+			return;
+		}
+
+		foreach ( array_keys( $block['innerBlocks'] ) as $index ) {
+			$this->process_block( $block['innerBlocks'][ $index ] );
+		}
 	}
 
 	/**
@@ -83,7 +91,7 @@ class BlockParser extends WP_Block_Parser {
 	 * @return void
 	 */
 	private function process_advanced_form_block( array &$block ): void {
-		self::$form_id = $block['attrs']['id'] ?? 0;
+		self::$form_id = (int) ( $block['attrs']['id'] ?? 0 );
 
 		if ( ! ( isset( $block['innerBlocks'] ) && is_array( $block['innerBlocks'] ) ) ) {
 			// @codeCoverageIgnoreStart

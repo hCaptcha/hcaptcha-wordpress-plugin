@@ -20,7 +20,7 @@ use WP_Block;
 class Contact {
 
 	/**
-	 * Contact form shortcode tag.
+	 * Contact form's shortcode tag.
 	 */
 	private const TAG = 'et_pb_contact_form';
 
@@ -320,6 +320,34 @@ class Contact {
 	}
 
 	/**
+	 * Filter submitted field metadata.
+	 *
+	 * @param array $fields_data_array Submitted field metadata.
+	 *
+	 * @return array
+	 */
+	private function filter_fields_data( array $fields_data_array ): array {
+		return array_filter(
+			$fields_data_array,
+			static function ( $item ): bool {
+				if ( ! is_array( $item ) ) {
+					return false;
+				}
+
+				foreach ( [ 'field_id', 'field_type', 'original_id', 'field_label' ] as $key ) {
+					if ( isset( $item[ $key ] ) && ! is_string( $item[ $key ] ) ) {
+						return false;
+					}
+				}
+
+				$field_id = $item['field_id'] ?? '';
+
+				return '' !== $field_id && ! preg_match( '/captcha|hcap_hp_|hcap_fst_token/', $field_id );
+			}
+		);
+	}
+
+	/**
 	 * Get entry.
 	 *
 	 * @param array $fields_data_array An array of submitted data.
@@ -411,12 +439,7 @@ class Contact {
 
 					$fields_data_array = Utils::json_decode_arr( $fields_data_json );
 
-				$fields_data_array            = array_filter(
-					$fields_data_array,
-					static function ( $item ) {
-						return ! preg_match( '/captcha|hcap_hp_|hcap_fst_token/', $item['field_id'] );
-					}
-				);
+				$fields_data_array            = $this->filter_fields_data( $fields_data_array );
 				$fields_data_json             = wp_json_encode( $fields_data_array, JSON_UNESCAPED_UNICODE );
 				$_POST[ $current_form_field ] = wp_slash( $fields_data_json );
 			}

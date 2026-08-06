@@ -12,6 +12,9 @@
 
 namespace HCaptcha\WP;
 
+use HCaptcha\Helpers\Request;
+
+use Perfmatters\General;
 use WPS\WPS_Hide_Login\Plugin;
 
 /**
@@ -28,6 +31,15 @@ trait Base {
 		if ( function_exists( 'perfmatters_login_url' ) ) {
 			// Integration with the Perfmatters plugin.
 			return (string) wp_parse_url( perfmatters_login_url(), PHP_URL_PATH );
+		}
+
+		if (
+			is_callable( [ '\Perfmatters\General', 'login_url' ] ) &&
+			is_callable( [ '\Perfmatters\General', 'login_slug' ] ) &&
+			General::login_slug()
+		) {
+			// Integration with the Perfmatters plugin since 2.5.8.
+			return (string) wp_parse_url( General::login_url(), PHP_URL_PATH );
 		}
 
 		if ( class_exists( Plugin::class ) ) {
@@ -60,8 +72,11 @@ trait Base {
 	 * @return string
 	 */
 	private function get_action(): string {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		return isset( $_GET['action'] ) ? sanitize_text_field( wp_unslash( $_GET['action'] ) ) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$input_type = isset( $_POST['action'] ) ? INPUT_POST : INPUT_GET;
+		$action     = Request::filter_input( $input_type, 'action' );
+
+		return is_string( $action ) ? $action : '';
 	}
 
 	/**

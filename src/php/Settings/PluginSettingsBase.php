@@ -154,6 +154,24 @@ abstract class PluginSettingsBase extends SettingsBase {
 	}
 
 	/**
+	 * Get the command palette page title.
+	 *
+	 * @return string
+	 */
+	public function command_palette_page_title(): string {
+		return $this->page_title();
+	}
+
+	/**
+	 * Get form fields for the command palette.
+	 *
+	 * @return array
+	 */
+	public function command_palette_form_fields(): array {
+		return $this->form_fields();
+	}
+
+	/**
 	 * Get a plugin base name.
 	 *
 	 * @return string

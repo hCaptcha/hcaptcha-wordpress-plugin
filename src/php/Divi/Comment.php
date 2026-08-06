@@ -70,7 +70,7 @@ class Comment {
 				$m
 			)
 		) {
-			$post_id = $m[1];
+			$post_id = (int) $m[1];
 		}
 
 		$args = [

@@ -140,6 +140,7 @@ class LoginTest extends HCaptchaWPTestCase {
 		$password = 'some password';
 
 		FunctionMocker::replace( '\HCaptcha\Helpers\HCaptcha::check_signature', true );
+		add_filter( 'hcap_login_limit_exceeded', '__return_false' );
 
 		$subject = new Login();
 
@@ -150,6 +151,33 @@ class LoginTest extends HCaptchaWPTestCase {
 		// phpcs:enable WordPress.WP.GlobalVariablesOverride.Prohibited
 
 		self::assertSame( $user, $subject->check_signature( $user, $password ) );
+	}
+
+	/**
+	 * Test check_signature() rechecks the login limit before skipping verification.
+	 *
+	 * @return void
+	 */
+	public function test_check_signature_when_good_signature_and_login_limit_exceeded(): void {
+		$user     = wp_get_current_user();
+		$password = 'some password';
+		$expected = new WP_Error( 'fail', 'The hCaptcha is invalid.', 400 );
+
+		FunctionMocker::replace( '\HCaptcha\Helpers\HCaptcha::check_signature', true );
+		add_filter( 'hcap_login_limit_exceeded', '__return_true' );
+
+		$this->prepare_verify_post_html( 'hcaptcha_login_nonce', 'hcaptcha_login', false );
+		$this->prepare_widget_id();
+
+		$subject = new Login();
+
+		// phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
+		$GLOBALS['wp_actions']['login_init']           = 1;
+		$GLOBALS['wp_actions']['login_form_login']     = 1;
+		$GLOBALS['wp_filters']['login_link_separator'] = 1;
+		// phpcs:enable WordPress.WP.GlobalVariablesOverride.Prohibited
+
+		self::assertEquals( $expected, $subject->check_signature( $user, $password ) );
 	}
 
 	/**
@@ -476,7 +504,7 @@ class LoginTest extends HCaptchaWPTestCase {
 				type="hidden"
 				class="' . $const . '"
 				name="' . $name . '"
-				value="' . $this->get_encoded_signature( [ 'WordPress' ], 'login', false ) . '">
+				value="' . $this->get_encoded_signature( $class_name, [ 'WordPress' ], 'login', false ) . '">
 		';
 	}
 

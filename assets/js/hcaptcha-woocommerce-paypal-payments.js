@@ -236,7 +236,7 @@ const app = {
 			const requestBody = app.getJsonBody( requestConfig.body );
 
 			if (
-				app.isCheckoutContext( requestBody.context ) &&
+				app.usesCheckoutCaptcha( requestBody.context ) &&
 				! requestBody[ 'h-captcha-response' ]
 			) {
 				await app.executeCheckoutCaptcha();
@@ -280,7 +280,7 @@ const app = {
 		const requestConfig = { ...config };
 		const body = app.getJsonBody( requestConfig.body );
 
-		if ( app.isCheckoutContext( body.context ) ) {
+		if ( app.usesCheckoutCaptcha( body.context ) ) {
 			Object.assign( body, app.getCheckoutCaptchaData() );
 		} else {
 			Object.assign(
@@ -305,6 +305,12 @@ const app = {
 
 	isCheckoutContext( context ) {
 		return [ 'checkout', 'checkout-block' ].includes( context );
+	},
+
+	usesCheckoutCaptcha( context ) {
+		const checkoutRoot = app.getCheckoutCaptchaRoot();
+
+		return app.isCheckoutContext( context ) && app.hasCheckoutCaptcha( checkoutRoot );
 	},
 
 	async executeCaptchaBeforePayPal( wrapper ) {
@@ -507,6 +513,8 @@ const app = {
 	},
 
 	moveBlockCaptcha() {
+		app.moveClassicCartCaptcha();
+
 		const buttonContainers = document.querySelectorAll(
 			'.wc-block-components-express-payment__event-buttons',
 		);
@@ -519,8 +527,33 @@ const app = {
 				continue;
 			}
 
-			if ( buttonContainer.nextElementSibling !== captcha ) {
-				buttonContainer.after( captcha );
+			if ( buttonContainer.previousElementSibling !== captcha ) {
+				buttonContainer.before( captcha );
+			}
+
+			captcha.style.removeProperty( 'display' );
+		}
+	},
+
+	moveClassicCartCaptcha() {
+		const checkoutContainers = document.querySelectorAll(
+			'.wc-proceed-to-checkout',
+		);
+
+		for ( const checkoutContainer of checkoutContainers ) {
+			const checkoutButton = checkoutContainer.querySelector(
+				'.checkout-button',
+			);
+			const captcha = checkoutContainer.querySelector(
+				'.hcaptcha-woocommerce-paypal-payments',
+			);
+
+			if ( ! checkoutButton || ! captcha ) {
+				continue;
+			}
+
+			if ( checkoutButton.nextElementSibling !== captcha ) {
+				checkoutButton.after( captcha );
 			}
 
 			captcha.style.removeProperty( 'display' );

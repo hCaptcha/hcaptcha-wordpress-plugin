@@ -90,8 +90,8 @@ class RequestTest extends HCaptchaWPTestCase {
 				false,
 			],
 			'address chain'          => [
-				[ 'REMOTE_ADDR' => '7.7.7.11, 7.7.7.12' ],
-				'7.7.7.11',
+				[ 'REMOTE_ADDR' => '7.7.7.11, 7.7.7.12, 7.7.7.13' ],
+				false,
 			],
 		];
 	}
@@ -177,9 +177,9 @@ class RequestTest extends HCaptchaWPTestCase {
 				'7.7.7.9',
 			],
 			'address chain'            => [
-				[ 'HTTP_X_FORWARDED_FOR' => '7.7.7.11, 7.7.7.12' ],
+				[ 'HTTP_X_FORWARDED_FOR' => '7.7.7.11, 7.7.7.12, 7.7.7.13' ],
 				[ 'HTTP_X_FORWARDED_FOR' ],
-				'7.7.7.11',
+				false,
 			],
 		];
 	}
@@ -291,6 +291,10 @@ class RequestTest extends HCaptchaWPTestCase {
 			'hCaptcha errors: Your secret key is missing.; The hCaptcha is invalid.',
 			hcap_get_error_message( [ 'missing-input-secret', 'fail' ] )
 		);
+		self::assertSame(
+			'hCaptcha error: Site Key and Secret Key are required.',
+			hcap_get_error_message( 'missing-keys' )
+		);
 	}
 
 	/**
@@ -299,10 +303,14 @@ class RequestTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_hcap_check_site_config(): void {
+		$request_count = 0;
+
 		add_filter(
 			'pre_http_request',
-			static function ( $value, $parsed_args, $url ) use ( &$result ) {
+			static function ( $value, $parsed_args, $url ) use ( &$request_count, &$result ) {
 				if ( false !== strpos( $url, 'hcaptcha.com' ) ) {
+					++$request_count;
+
 					return null === $result ? [] : [ 'body' => wp_json_encode( $result ) ];
 				}
 
@@ -310,6 +318,37 @@ class RequestTest extends HCaptchaWPTestCase {
 			},
 			10,
 			3
+		);
+
+		// Missing keys do not cause a request.
+		$empty_key = static function () {
+			return '';
+		};
+
+		add_filter( 'hcap_site_key', $empty_key );
+		add_filter( 'hcap_secret_key', $empty_key );
+
+		$expected = [
+			'error' => 'Site Key and Secret Key are required.',
+		];
+
+		self::assertSame( $expected, hcap_check_site_config() );
+		self::assertSame( 0, $request_count );
+
+		remove_filter( 'hcap_site_key', $empty_key );
+		remove_filter( 'hcap_secret_key', $empty_key );
+
+		add_filter(
+			'hcap_site_key',
+			static function () {
+				return 'some-site-key';
+			}
+		);
+		add_filter(
+			'hcap_secret_key',
+			static function () {
+				return 'some-secret-key';
+			}
 		);
 
 		// Cannot communicate.

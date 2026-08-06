@@ -197,6 +197,31 @@ class ContactTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test add_hcaptcha() with built-in form interaction.
+	 */
+	public function test_add_captcha_with_form_interaction(): void {
+		FunctionMocker::replace( 'et_core_is_fb_enabled', false );
+
+		$output      = '<form><div class="et_contact_bottom_container"></div></form>';
+		$module_slug = 'et_pb_contact_form';
+
+		hcaptcha()->init_hooks();
+
+		add_filter( 'hcap_delay_api_event', '__return_true' );
+
+		try {
+			$actual = ( new Contact() )->add_hcaptcha( $output, $module_slug );
+		} finally {
+			remove_filter( 'hcap_delay_api_event', '__return_true' );
+		}
+
+		self::assertStringContainsString(
+			'class="h-captcha hcaptcha-api-delayed"',
+			$actual
+		);
+	}
+
+	/**
 	 * Test add_hcaptcha_to_block().
 	 */
 	public function test_add_hcaptcha_to_block(): void {
@@ -264,6 +289,46 @@ class ContactTest extends HCaptchaWPTestCase {
 		self::assertSame( 0, $this->get_protected_property( $subject, 'render_count' ) );
 		self::assertSame( $output, $subject->add_hcaptcha( $output, $module_slug ) );
 		self::assertSame( 0, $this->get_protected_property( $subject, 'render_count' ) );
+	}
+
+	/**
+	 * Test filtering malformed submitted field metadata.
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_filter_fields_data_rejects_nested_values(): void {
+		$valid     = [
+			'field_id'    => 'et_pb_contact_name_0',
+			'field_type'  => 'input',
+			'original_id' => 'name',
+			'field_label' => 'Name',
+		];
+		$malformed = [
+			'scalar',
+			[ 'field_id' => [] ],
+			[
+				'field_id'    => 'et_pb_contact_email_0',
+				'field_type'  => 'email',
+				'field_label' => [],
+			],
+			[
+				'field_id'    => 'h-captcha-response',
+				'field_type'  => 'text',
+				'field_label' => '',
+			],
+		];
+
+		$subject = new Contact();
+		$method  = $this->set_method_accessibility( $subject, 'filter_fields_data' );
+
+		self::assertSame(
+			[ $valid ],
+			$method->invoke(
+				$subject,
+				array_merge( [ $valid ], $malformed )
+			)
+		);
 	}
 
 	/**

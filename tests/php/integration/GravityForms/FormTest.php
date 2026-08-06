@@ -38,6 +38,7 @@ class FormTest extends HCaptchaWPTestCase {
 			$_POST['input_3_3'],
 			$_POST['input_3_6'],
 			$_POST['input_4'],
+			$_POST['input_5'],
 			$_POST['gform_submit'],
 			$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ]
 		);
@@ -450,6 +451,29 @@ class FormTest extends HCaptchaWPTestCase {
 			],
 			$subject->form_validation_errors( [], $form )
 		);
+	}
+
+	/**
+	 * Test get_value() with an array value.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_get_value_with_array(): void {
+		$field = $this->get_gf_field(
+			[
+				'id'     => 5,
+				'type'   => 'multiselect',
+				'label'  => 'Choices',
+				'inputs' => null,
+			]
+		);
+
+		$_POST['input_5'] = [ 'First', '', 'Second' ];
+
+		$subject   = new Form();
+		$get_value = $this->set_method_accessibility( $subject, 'get_value' );
+
+		self::assertSame( 'First Second', $get_value->invoke( $subject, $field ) );
 	}
 
 	/**

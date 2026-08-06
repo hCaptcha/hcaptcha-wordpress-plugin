@@ -6,6 +6,7 @@
 
 import HCaptcha from './hcaptcha';
 import HCaptchaCustomElement from './hcaptcha-custom-element';
+import FormInteraction from './form-interaction';
 import ReadyGate from './ready-gate';
 
 if ( ! window.hCaptcha ) {
@@ -42,6 +43,10 @@ if ( ! window.hCaptcha ) {
 	};
 
 	window.customElements.define( 'h-captcha', HCaptchaCustomElement );
+
+	const formInteractionEvent = window.HCaptchaMainObject?.formInteractionEvent ?? '';
+
+	new FormInteraction( formInteractionEvent ).init();
 
 	document.dispatchEvent( new CustomEvent( 'hCaptchaBeforeAPI' ) );
 }

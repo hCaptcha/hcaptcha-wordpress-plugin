@@ -31,7 +31,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * Test add_captcha().
 	 */
 	public function test_add_captcha(): void {
-		$form_id     = '3075';
+		$form_id     = 3075;
 		$output      = <<<HTML
 <form>
 	<button name="submit" type="submit" id="et_pb_submit" class="submit">Submit Comment</button>

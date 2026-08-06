@@ -15,6 +15,7 @@ namespace HCaptcha\Tests\Integration;
 
 use HCaptcha\Abilities\Abilities;
 use HCaptcha\Admin\AdminNotices;
+use HCaptcha\Admin\CommandPalette;
 use HCaptcha\Admin\MaxMindDb;
 use HCaptcha\Admin\Privacy;
 use HCaptcha\Admin\SupportModal;
@@ -1276,12 +1277,55 @@ CSS;
 	}
 
 	/**
-	 * Test print_footer_scripts() when the delay API event is set.
+	 * Test print_footer_scripts() with built-in form interaction.
 	 *
 	 * @return void
 	 */
-	public function test_print_footer_scripts_with_delay_api_event(): void {
-		$delay_api_event        = 'hcap:load-api';
+	public function test_print_footer_scripts_with_form_interaction(): void {
+		$delay_api_event_filter = static function () {
+			return true;
+		};
+
+		add_filter( 'hcap_delay_api_event', $delay_api_event_filter );
+
+		try {
+			$hcaptcha = hcaptcha();
+
+			$hcaptcha->form_shown = true;
+
+			$hcaptcha->init_hooks();
+
+			ob_start();
+			do_action( 'wp_print_footer_scripts' );
+			$scripts = ob_get_clean();
+
+			self::assertNotFalse( strpos( $scripts, 'var HCaptchaMainObject = ' ) );
+			self::assertNotFalse( strpos( $scripts, '"formInteractionEvent":"hCaptchaFormInteraction"' ) );
+			self::assertNotFalse( strpos( $scripts, 'const delayApiEvent="hCaptchaFormInteraction";' ) );
+			self::assertNotFalse(
+				strpos(
+					$scripts,
+					"document.addEventListener('hCaptchaBeforeAPI',function(){document.addEventListener(delayApiEvent,load)})"
+				)
+			);
+			self::assertNotFalse( strpos( $scripts, 'api.js' ) );
+			self::assertFalse( strpos( $scripts, 'setTimeout' ) );
+			self::assertFalse( strpos( $scripts, 'touchstart' ) );
+			self::assertFalse( strpos( $scripts, 'mouseenter' ) );
+			self::assertFalse( strpos( $scripts, 'keydown' ) );
+			self::assertFalse( strpos( $scripts, 'scrollHandler' ) );
+		} finally {
+			remove_filter( 'hcap_delay_api_event', $delay_api_event_filter );
+		}
+	}
+
+	/**
+	 * Test print_footer_scripts() with a custom delay API event.
+	 *
+	 * @return void
+	 */
+	public function test_print_footer_scripts_with_custom_delay_api_event(): void {
+		$delay_api_event        = 'hcap-load-api';
 		$delay_api_event_filter = static function () use ( $delay_api_event ) {
 			return $delay_api_event;
 		};
@@ -1300,7 +1344,8 @@ CSS;
 			$scripts = ob_get_clean();
 
 			self::assertNotFalse( strpos( $scripts, 'var HCaptchaMainObject = ' ) );
-			self::assertNotFalse( strpos( $scripts, 'const delayApiEvent="hcap:load-api";' ) );
+			self::assertFalse( strpos( $scripts, '"formInteractionEvent"' ) );
+			self::assertNotFalse( strpos( $scripts, 'const delayApiEvent="hcap-load-api";' ) );
 			self::assertNotFalse(
 				strpos(
 					$scripts,
@@ -1309,10 +1354,6 @@ CSS;
 			);
 			self::assertNotFalse( strpos( $scripts, 'api.js' ) );
 			self::assertFalse( strpos( $scripts, 'setTimeout' ) );
-			self::assertFalse( strpos( $scripts, 'touchstart' ) );
-			self::assertFalse( strpos( $scripts, 'mouseenter' ) );
-			self::assertFalse( strpos( $scripts, 'keydown' ) );
-			self::assertFalse( strpos( $scripts, 'scrollHandler' ) );
 		} finally {
 			remove_filter( 'hcap_delay_api_event', $delay_api_event_filter );
 		}
@@ -1665,7 +1706,7 @@ CSS;
 	 * Test register_recurring_actions().
 	 *
 	 * @return void
-	 * @noinspection PhpArrayIsAlwaysEmptyInspection
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_register_recurring_actions(): void {
 		require_once HCAPTCHA_PATH . '/vendor/woocommerce/action-scheduler/action-scheduler.php';
@@ -1750,6 +1791,7 @@ CSS;
 			Privacy::class,
 			SupportModal::class,
 			WhatsNew::class,
+			CommandPalette::class,
 			Abilities::class,
 		];
 		$loaded_classes          = $this->get_protected_property( $subject, 'loaded_classes' );
@@ -2107,6 +2149,11 @@ CSS;
 				[ 'memberpress_status', 'register' ],
 				'memberpress/memberpress.php',
 				\HCaptcha\MemberPress\Register::class,
+			],
+			'MetForm'                           => [
+				[ 'metform_status', 'form' ],
+				'metform/metform.php',
+				\HCaptcha\MetForm\Form::class,
 			],
 			'Ninja Forms'                       => [
 				[ 'ninja_status', 'form' ],

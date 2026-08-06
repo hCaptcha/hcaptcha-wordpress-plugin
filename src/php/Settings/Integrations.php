@@ -86,6 +86,7 @@ class Integrations extends PluginSettingsBase {
 		'essential-addons-elementor/essential_adons_elementor.php'          => 'elementor/elementor.php',
 		'essential-addons-for-elementor-lite/essential_adons_elementor.php' => 'elementor/elementor.php',
 		'fluentformpro/fluentformpro.php'                                   => 'fluentform/fluentform.php',
+		'metform/metform.php'                                               => 'elementor/elementor.php',
 		'sfwd-lms/sfwd_lms.php'                                             => 'learndash-hub/learndash-hub.php',
 		'ultimate-elementor/ultimate-elementor.php'                         => 'elementor/elementor.php',
 		'woocommerce-germanized/woocommerce-germanized.php'                 => 'woocommerce/woocommerce.php',
@@ -211,7 +212,7 @@ class Integrations extends PluginSettingsBase {
 	}
 
 	/**
-	 * Filter list of plugin to activate.
+	 * Filter the list of plugin to activate.
 	 * Proceed with the special case for blocksy companion plugins.
 	 * Companion plugins produce a fatal error when activated together.
 	 *
@@ -627,6 +628,14 @@ class Integrations extends PluginSettingsBase {
 					'register' => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			'metform_status'                   => [
+				'label'   => 'MetForm',
+				'logo'    => 'svg',
+				'type'    => 'checkbox',
+				'options' => [
+					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 			'ninja_status'                     => [
 				'label'   => 'Ninja Forms',
 				'type'    => 'checkbox',
@@ -862,6 +871,17 @@ class Integrations extends PluginSettingsBase {
 	}
 
 	/**
+	 * Get form fields for the command palette.
+	 *
+	 * @return array
+	 */
+	public function command_palette_form_fields(): array {
+		$form_fields = $this->form_fields();
+
+		return [ 'show_antispam_coverage' => $form_fields['show_antispam_coverage'] ];
+	}
+
+	/**
 	 * Get form fields.
 	 *
 	 * @return array
@@ -985,8 +1005,11 @@ class Integrations extends PluginSettingsBase {
 		uasort(
 			$fields,
 			static function ( $a, $b ) {
-				if ( self::SECTION_HEADER === $a['section'] ) {
-					return -1;
+				$a_header = self::SECTION_HEADER === ( $a['section'] ?? '' );
+				$b_header = self::SECTION_HEADER === ( $b['section'] ?? '' );
+
+				if ( $a_header !== $b_header ) {
+					return $b_header <=> $a_header;
 				}
 
 				$a_disabled = $a['disabled'] ?? false;
@@ -1202,6 +1225,7 @@ class Integrations extends PluginSettingsBase {
 	 * Ajax action to activate/deactivate the plugin / theme.
 	 *
 	 * @return void
+	 * @noinspection PhpUnreachableStatementInspection
 	 */
 	public function activate(): void {
 		$this->run_checks( self::ACTIVATE_ACTION );
@@ -1213,6 +1237,14 @@ class Integrations extends PluginSettingsBase {
 		$status        = filter_input( INPUT_POST, 'status', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 		$status        = str_replace( '-', '_', $status );
 		$entity_name   = $this->form_fields[ $status ]['label'] ?? '';
+
+		if ( 'plugin' === $this->entity && ! current_user_can( 'activate_plugins' ) ) {
+			wp_send_json_error(
+				esc_html__( 'You are not allowed to activate or deactivate plugins on this site.', 'hcaptcha-for-forms-and-more' )
+			);
+
+			return; // For testing purposes.
+		}
 
 		header_remove( 'Location' );
 		http_response_code( 200 );
@@ -1404,7 +1436,7 @@ class Integrations extends PluginSettingsBase {
 	 */
 	protected function activate_plugins( array $plugins, bool $first_only = true ) {
 		/**
-		 * Filter list of plugin to activate.
+		 * Filter the list of plugin to activate.
 		 *
 		 * @param array $plugins    List of plugins.
 		 * @param bool  $first_only Activate the first available plugin only.

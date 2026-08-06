@@ -987,6 +987,7 @@ abstract class SettingsBase {
 					$settings[ $key ] = array_map( 'sanitize_text_field', (array) $setting );
 					break;
 				case 'textarea':
+					$setting          = is_scalar( $setting ) ? (string) $setting : '';
 					$settings[ $key ] = wp_kses_post( $setting );
 					break;
 				default:

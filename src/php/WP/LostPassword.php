@@ -33,7 +33,7 @@ class LostPassword extends LostPasswordBase {
 	/**
 	 * $_POST key to check.
 	 */
-	protected const POST_KEY = 'wp-submit';
+	protected const POST_KEY = 'user_login';
 
 	/**
 	 * $_POST value to check.
@@ -44,6 +44,21 @@ class LostPassword extends LostPasswordBase {
 	 * WP login action.
 	 */
 	private const WP_LOGIN_ACTION = 'lostpassword';
+
+	/**
+	 * Verify a lost password form.
+	 *
+	 * @param mixed $errors Error.
+	 *
+	 * @return void
+	 */
+	public function verify( $errors ): void {
+		if ( ! $this->is_login_url() || ! $this->is_login_action() ) {
+			return;
+		}
+
+		parent::verify( $errors );
+	}
 
 	/**
 	 * Add captcha.
