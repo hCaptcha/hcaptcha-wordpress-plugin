@@ -32,6 +32,26 @@ class FormTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test add_captcha() with built-in form interaction.
+	 *
+	 * @return void
+	 */
+	public function test_add_captcha_with_form_interaction(): void {
+		$subject = new Form();
+		$content = '<form class="wp-block-jetpack-contact-form" <div class="wp-block-jetpack-button wp-block-button" <button type="submit">Contact Us</button></form>';
+
+		add_filter( 'hcap_delay_api_event', '__return_true' );
+
+		try {
+			$actual = $subject->add_hcaptcha( $content );
+		} finally {
+			remove_filter( 'hcap_delay_api_event', '__return_true' );
+		}
+
+		self::assertStringContainsString( 'class="h-captcha hcaptcha-api-delayed"', $actual );
+	}
+
+	/**
 	 * Data provider for test_add_captcha().
 	 *
 	 * @return array

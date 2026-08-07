@@ -14,6 +14,9 @@
 // - Comment form.
 // - Post/Page Password form.
 
+// Jetpack forms handled here:
+// - Contact form (classic and block).
+
 // Contact Form 7 forms handled here:
 // - Contact form.
 
@@ -82,6 +85,21 @@ function hcap_forms_mark_wp_password_form( $output ): string {
 }
 
 add_filter( 'the_password_form', 'hcap_forms_mark_wp_password_form', 0 );
+
+/**
+ * Mark the request when Jetpack renders a contact form.
+ *
+ * @param string $html Jetpack contact form HTML.
+ *
+ * @return string
+ */
+function hcap_forms_mark_jetpack_form( string $html ): string {
+	$GLOBALS['hcap_forms_has_jetpack_form'] = true;
+
+	return $html;
+}
+
+add_filter( 'jetpack_contact_form_html', 'hcap_forms_mark_jetpack_form', 1 );
 
 /**
  * Mark the request when Contact Form 7 renders a form.
@@ -342,6 +360,7 @@ function hcap_forms_delay_api_event( $delay_api_event ) {
 	if (
 		! empty( $GLOBALS['hcap_forms_has_wp_comment_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_wp_password_form'] ) ||
+		! empty( $GLOBALS['hcap_forms_has_jetpack_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_cf7_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_elementor_pro_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_woocommerce_form'] ) ||
