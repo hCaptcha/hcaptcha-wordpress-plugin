@@ -1016,6 +1016,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 5.3.0 =
+* Added an option to delay the hCaptcha API until the user interacts with Jetpack form.
+
 = 5.2.0 =
 * Added MetForm integration.
 * Added MetForm migration to the Migration Wizard.
