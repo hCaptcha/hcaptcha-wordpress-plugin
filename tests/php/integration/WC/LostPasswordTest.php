@@ -8,7 +8,7 @@
 namespace HCaptcha\Tests\Integration\WC;
 
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use HCaptcha\WC\LostPassword;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
@@ -19,7 +19,13 @@ use WP_Error;
  * @group wc-lost-password
  * @group wc
  */
-class LostPasswordTest extends HCaptchaWPTestCase {
+class LostPasswordTest extends HCaptchaPluginWPTestCase {
+	/**
+	 * Plugin relative path.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'woocommerce/woocommerce.php';
 
 	/**
 	 * Test constructor and init_hooks().
@@ -35,6 +41,9 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test add_captcha().
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
+	 * @noinspection PhpUnusedLocalVariableInspection
 	 */
 	public function test_add_captcha(): void {
 		$args     = [
@@ -51,9 +60,13 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 
 		ob_start();
 
-		$subject->add_captcha();
+		wc_get_template( 'myaccount/form-lost-password.php' );
 
-		self::assertSame( $expected, ob_get_clean() );
+		$output = ob_get_clean();
+
+		self::assertStringContainsString( 'woocommerce-ResetPassword', $output );
+		self::assertSame( 1, substr_count( $output, $expected ) );
+		self::assertLessThan( strpos( $output, 'name="wc_reset_password"' ), strpos( $output, $expected ) );
 	}
 
 	/**
