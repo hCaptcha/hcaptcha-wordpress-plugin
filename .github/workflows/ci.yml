@@ -192,6 +192,27 @@ jobs:
           path: ${{ env.wp-plugin-directory }}
           persist-credentials: false
 
+      - name: Detect Elementor Pro access
+        id: elementor_pro
+        env:
+          ELEMENTOR_PRO_CI_TOKEN: ${{ secrets.ELEMENTOR_PRO_CI_TOKEN }}
+        run: |
+          if [[ -n "$ELEMENTOR_PRO_CI_TOKEN" ]]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout Elementor Pro package
+        if: steps.elementor_pro.outputs.available == 'true'
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: kagg-design/elementor-pro-ci
+          ref: 96f333b1f31fc5b61a16ffd65950e785ec39796d # Elementor Pro 4.2.1
+          token: ${{ secrets.ELEMENTOR_PRO_CI_TOKEN }}
+          path: elementor-pro-ci
+          persist-credentials: false
+
       - name: Setup PHP
         uses: hCaptcha/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2.37.0
         with:
@@ -238,11 +259,24 @@ jobs:
 
       - name: Install plugins
         working-directory: ${{ env.wp-directory }}
-        run: wp plugin install bbpress buddypress contact-form-7 ninja-forms ultimate-member woocommerce wpforms-lite wpforo
+        run: wp plugin install bbpress buddypress contact-form-7 elementor ninja-forms ultimate-member woocommerce wpforms-lite wpforo
 
-      - name: Run WP tests
+      - name: Install Elementor Pro
+        if: steps.elementor_pro.outputs.available == 'true'
+        working-directory: ${{ env.wp-directory }}
+        run: |
+          wp plugin install "$GITHUB_WORKSPACE/elementor-pro-ci/elementor-pro-4.2.1.zip"
+          wp plugin is-installed elementor-pro
+
+      - name: Run WP tests with Elementor Pro
+        if: steps.elementor_pro.outputs.available == 'true'
         working-directory: ${{ env.wp-plugin-directory }}
         run: composer integration -- --env github-actions
+
+      - name: Run WP tests without Elementor Pro
+        if: steps.elementor_pro.outputs.available != 'true'
+        working-directory: ${{ env.wp-plugin-directory }}
+        run: composer integration -- --env github-actions --skip-group elementor-pro
 
   update_changelog:
     name: Update Changelog
