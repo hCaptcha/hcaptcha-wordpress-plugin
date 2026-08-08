@@ -192,25 +192,25 @@ jobs:
           path: ${{ env.wp-plugin-directory }}
           persist-credentials: false
 
-      - name: Detect Elementor Pro access
-        id: elementor_pro
+      - name: Detect private test plugins access
+        id: test_plugins
         env:
-          ELEMENTOR_PRO_CI_TOKEN: ${{ secrets.ELEMENTOR_PRO_CI_TOKEN }}
+          HCAPTCHA_TEST_PLUGINS_TOKEN: ${{ secrets.ELEMENTOR_PRO_CI_TOKEN }}
         run: |
-          if [[ -n "$ELEMENTOR_PRO_CI_TOKEN" ]]; then
+          if [[ -n "$HCAPTCHA_TEST_PLUGINS_TOKEN" ]]; then
             echo "available=true" >> "$GITHUB_OUTPUT"
           else
             echo "available=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Checkout Elementor Pro package
-        if: steps.elementor_pro.outputs.available == 'true'
+      - name: Checkout private test plugins
+        if: steps.test_plugins.outputs.available == 'true'
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          repository: kagg-design/elementor-pro-ci
-          ref: 96f333b1f31fc5b61a16ffd65950e785ec39796d # Elementor Pro 4.2.1
+          repository: kagg-design/hcaptcha-test-plugins
+          ref: c671467e2e21d48f0d6f93e41d367844b9a3103e # Elementor Pro 4.2.1, Ultimate Addons 1.39.5
           token: ${{ secrets.ELEMENTOR_PRO_CI_TOKEN }}
-          path: elementor-pro-ci
+          path: hcaptcha-test-plugins
           persist-credentials: false
 
       - name: Setup PHP
@@ -259,24 +259,26 @@ jobs:
 
       - name: Install plugins
         working-directory: ${{ env.wp-directory }}
-        run: wp plugin install bbpress buddypress contact-form-7 elementor ninja-forms ultimate-member woocommerce wpforms-lite wpforo
+        run: wp plugin install bbpress buddypress contact-form-7 elementor essential-addons-for-elementor-lite metform ninja-forms ultimate-member woocommerce wpforms-lite wpforo
 
-      - name: Install Elementor Pro
-        if: steps.elementor_pro.outputs.available == 'true'
+      - name: Install private test plugins
+        if: steps.test_plugins.outputs.available == 'true'
         working-directory: ${{ env.wp-directory }}
         run: |
-          wp plugin install "$GITHUB_WORKSPACE/elementor-pro-ci/elementor-pro-4.2.1.zip"
+          wp plugin install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/elementor-pro-4.2.1.zip"
+          wp plugin install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/ultimate-elementor-1.39.5.zip"
           wp plugin is-installed elementor-pro
+          wp plugin is-installed ultimate-elementor
 
-      - name: Run WP tests with Elementor Pro
-        if: steps.elementor_pro.outputs.available == 'true'
+      - name: Run WP tests with private test plugins
+        if: steps.test_plugins.outputs.available == 'true'
         working-directory: ${{ env.wp-plugin-directory }}
         run: composer integration -- --env github-actions
 
-      - name: Run WP tests without Elementor Pro
-        if: steps.elementor_pro.outputs.available != 'true'
+      - name: Run WP tests without private test plugins
+        if: steps.test_plugins.outputs.available != 'true'
         working-directory: ${{ env.wp-plugin-directory }}
-        run: composer integration -- --env github-actions --skip-group elementor-pro
+        run: composer integration -- --env github-actions --skip-group elementor-pro --skip-group ultimate-addons
 
   update_changelog:
     name: Update Changelog

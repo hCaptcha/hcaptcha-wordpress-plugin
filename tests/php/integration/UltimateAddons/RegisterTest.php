@@ -12,12 +12,14 @@
 
 namespace HCaptcha\Tests\Integration\UltimateAddons;
 
-use Elementor\Element_Base;
+use Elementor\Plugin as ElementorPlugin;
+use Elementor\Widget_Base;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use HCaptcha\UltimateAddons\Register;
-use Mockery;
 use tad\FunctionMocker\FunctionMocker;
+use UltimateElementor\Modules\RegistrationForm\Module as RegistrationFormModule;
+use UltimateElementor\Modules\RegistrationForm\Widgets\RegistrationForm as UltimateElementorRegistration;
 
 /**
  * Test Ultimate Addons Register class.
@@ -27,18 +29,25 @@ use tad\FunctionMocker\FunctionMocker;
  */
 class RegisterTest extends HCaptchaPluginWPTestCase {
 	/**
-	 * Plugin relative path.
+	 * Plugin relative paths.
 	 *
-	 * @var string
+	 * @var string[]
 	 */
-	protected static $plugin = 'elementor/elementor.php';
+	protected static $plugin = [
+		'elementor/elementor.php',
+		'ultimate-elementor/ultimate-elementor.php',
+	];
 
 	/**
 	 * Hooks to replay after loading the plugin.
 	 *
 	 * @var string[]
 	 */
-	protected static array $plugin_load_hooks = [ 'init' ];
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'elementor/init',
+		'init',
+	];
 
 	/**
 	 * Test constructor and init_hooks().
@@ -61,6 +70,8 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test before_render() and add_hcaptcha().
+	 *
+	 * @noinspection PhpParamsInspection
 	 */
 	public function test_render(): void {
 		$form = '<form>some HTML<div class="uael-reg-form-submit something"><button type="submit">Register</button></div></form>';
@@ -68,7 +79,7 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 		$subject = new Register();
 
 		// Test with a wrong element.
-		$element = Mockery::mock( Element_Base::class );
+		$element = $this->get_elementor_widget( 'heading' );
 
 		ob_start();
 		$subject->before_render( $element );
@@ -82,7 +93,7 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 		self::assertSame( $form, $output );
 
 		// Test with a correct element.
-		$element = Mockery::mock( 'alias:UltimateElementor\Modules\RegistrationForm\Widgets\RegistrationForm', Element_Base::class );
+		$element = $this->get_registration_widget();
 
 		$args      = [
 			'action' => 'hcaptcha_ultimate_addons_register',
@@ -267,6 +278,41 @@ CSS;
 		$subject->print_inline_styles();
 
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Get a widget registered by the live Elementor instance.
+	 *
+	 * @param string $widget_name Widget name.
+	 *
+	 * @return Widget_Base
+	 * @noinspection PhpSameParameterValueInspection
+	 */
+	private function get_elementor_widget( string $widget_name ): Widget_Base {
+		$widget = ElementorPlugin::instance()->widgets_manager->get_widget_types( $widget_name );
+
+		self::assertInstanceOf( Widget_Base::class, $widget );
+
+		return $widget;
+	}
+
+	/**
+	 * Get the live Ultimate Addons registration widget.
+	 *
+	 * @return UltimateElementorRegistration
+	 */
+	private function get_registration_widget(): UltimateElementorRegistration {
+		$widgets_manager = ElementorPlugin::instance()->widgets_manager;
+		$widget          = $widgets_manager->get_widget_types( 'uael-registration-form' );
+
+		if ( ! $widget ) {
+			RegistrationFormModule::instance()->init_widgets();
+			$widget = $widgets_manager->get_widget_types( 'uael-registration-form' );
+		}
+
+		self::assertInstanceOf( UltimateElementorRegistration::class, $widget );
+
+		return $widget;
 	}
 
 	/**

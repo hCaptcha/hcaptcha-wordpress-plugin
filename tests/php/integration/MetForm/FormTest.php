@@ -12,11 +12,17 @@
 
 namespace HCaptcha\Tests\Integration\MetForm;
 
+use Elementor\MetForm_Input_Button;
+use Elementor\Plugin as ElementorPlugin;
 use Elementor\Widget_Base;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\MetForm\Form;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use MetForm\Core\Entries\Action as EntriesAction;
+use MetForm\Plugin as MetFormPlugin;
+use MetForm\Widgets\Manifest as WidgetsManifest;
 use Mockery;
+use ReflectionClass;
 use ReflectionException;
 use WP_REST_Request;
 
@@ -27,18 +33,39 @@ use WP_REST_Request;
  */
 class FormTest extends HCaptchaPluginWPTestCase {
 	/**
-	 * Plugin relative path.
+	 * Plugin relative paths.
 	 *
-	 * @var string
+	 * @var string[]
 	 */
-	protected static $plugin = 'elementor/elementor.php';
+	protected static $plugin = [
+		'elementor/elementor.php',
+		'metform/metform.php',
+	];
 
 	/**
 	 * Hooks to replay after loading the plugin.
 	 *
 	 * @var string[]
 	 */
-	protected static array $plugin_load_hooks = [ 'init' ];
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
+
+	/**
+	 * Test that live Elementor and MetForm plugins are loaded.
+	 *
+	 * @return void
+	 */
+	public function test_live_plugins_are_loaded(): void {
+		$elementor_file = wp_normalize_path( ( new ReflectionClass( ElementorPlugin::class ) )->getFileName() );
+		$metform_file   = wp_normalize_path( ( new ReflectionClass( MetFormPlugin::class ) )->getFileName() );
+
+		self::assertTrue( is_plugin_active( 'elementor/elementor.php' ) );
+		self::assertTrue( is_plugin_active( 'metform/metform.php' ) );
+		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/elementor/' ), $elementor_file );
+		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/metform/' ), $metform_file );
+	}
 
 	/**
 	 * Tear down the test.
@@ -93,11 +120,8 @@ class FormTest extends HCaptchaPluginWPTestCase {
 			$content
 		);
 
-		$other_widget = Mockery::mock( Widget_Base::class );
-		$other_widget->shouldReceive( 'get_name' )->andReturn( 'mf-text' );
-
-		$button_widget = Mockery::mock( Widget_Base::class );
-		$button_widget->shouldReceive( 'get_name' )->andReturn( 'mf-button' );
+		$other_widget  = $this->get_elementor_widget( 'heading' );
+		$button_widget = $this->get_elementor_widget( 'mf-button' );
 
 		$subject = Mockery::mock( Form::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
@@ -284,11 +308,39 @@ class FormTest extends HCaptchaPluginWPTestCase {
 			'h-captcha-response'     => 'captcha-response',
 		];
 
-		$entries_action = Mockery::mock();
-		$entries_action->shouldReceive( 'get_fields' )->once()->with( $form_id )->andReturn( $fields );
+		$elements = [];
 
-		$entries_action_class = Mockery::mock( 'alias:MetForm\\Core\\Entries\\Action' );
-		$entries_action_class->shouldReceive( 'instance' )->once()->andReturn( $entries_action );
+		foreach ( $fields as $field_name => $field ) {
+			$elements[] = [
+				'id'         => $field_name,
+				'elType'     => 'widget',
+				// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+				'widgetType' => $field->widgetType,
+				'elements'   => [],
+				'settings'   => [
+					'mf_input_label' => $field->mf_input_label,
+					'mf_input_name'  => $field->mf_input_name,
+				],
+			];
+		}
+
+		update_post_meta(
+			$form_id,
+			'_elementor_data',
+			wp_slash(
+				wp_json_encode(
+					[
+						[
+							'id'       => 'container',
+							'elType'   => 'container',
+							'elements' => $elements,
+						],
+					]
+				)
+			)
+		);
+
+		self::assertEquals( $fields, EntriesAction::instance()->get_fields( $form_id ) );
 
 		$subject = new Form();
 		$request = new WP_REST_Request( 'POST', '/metform/v1/entries/insert/' . $form_id );
@@ -343,5 +395,26 @@ class FormTest extends HCaptchaPluginWPTestCase {
 			'/assets/js/hcaptcha-metform.min.js',
 			wp_scripts()->registered['hcaptcha-metform']->src
 		);
+	}
+
+	/**
+	 * Get a widget registered by the live Elementor instance.
+	 *
+	 * @param string $widget_name Widget name.
+	 *
+	 * @return Widget_Base
+	 */
+	private function get_elementor_widget( string $widget_name ): Widget_Base {
+		$widgets_manager = ElementorPlugin::instance()->widgets_manager;
+		$widget          = $widgets_manager->get_widget_types( $widget_name );
+
+		if ( 'mf-button' === $widget_name && ! $widget ) {
+			WidgetsManifest::instance()->register_widgets();
+			$widget = $widgets_manager->get_widget_types( $widget_name );
+		}
+
+		self::assertInstanceOf( Widget_Base::class, $widget );
+
+		return $widget;
 	}
 }

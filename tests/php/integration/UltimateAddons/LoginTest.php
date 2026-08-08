@@ -12,12 +12,15 @@
 
 namespace HCaptcha\Tests\Integration\UltimateAddons;
 
-use Elementor\Element_Base;
+use Elementor\Plugin as ElementorPlugin;
+use Elementor\Widget_Base;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use HCaptcha\UltimateAddons\Login;
-use Mockery;
+use ReflectionClass;
 use tad\FunctionMocker\FunctionMocker;
+use UltimateElementor\Modules\LoginForm\Module as LoginFormModule;
+use UltimateElementor\Modules\LoginForm\Widgets\LoginForm as UltimateElementorLogin;
 use WP_Error;
 use WP_User;
 
@@ -29,18 +32,46 @@ use WP_User;
  */
 class LoginTest extends HCaptchaPluginWPTestCase {
 	/**
-	 * Plugin relative path.
+	 * Plugin relative paths.
 	 *
-	 * @var string
+	 * @var string[]
 	 */
-	protected static $plugin = 'elementor/elementor.php';
+	protected static $plugin = [
+		'elementor/elementor.php',
+		'ultimate-elementor/ultimate-elementor.php',
+	];
 
 	/**
 	 * Hooks to replay after loading the plugin.
 	 *
 	 * @var string[]
 	 */
-	protected static array $plugin_load_hooks = [ 'init' ];
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'elementor/init',
+		'init',
+	];
+
+	/**
+	 * Test that live Elementor and Ultimate Addons plugins are loaded.
+	 *
+	 * @return void
+	 * @noinspection PhpUnusedLocalVariableInspection
+	 */
+	public function test_live_plugins_are_loaded(): void {
+		$elementor_file         = wp_normalize_path( ( new ReflectionClass( ElementorPlugin::class ) )->getFileName() );
+		$ultimate_addons_file   = wp_normalize_path( ( new ReflectionClass( UltimateElementorLogin::class ) )->getFileName() );
+		$ultimate_addons_widget = $this->get_login_widget();
+
+		self::assertTrue( is_plugin_active( 'elementor/elementor.php' ) );
+		self::assertTrue( is_plugin_active( 'ultimate-elementor/ultimate-elementor.php' ) );
+		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/elementor/' ), $elementor_file );
+		self::assertStringStartsWith(
+			wp_normalize_path( WP_PLUGIN_DIR . '/ultimate-elementor/' ),
+			$ultimate_addons_file
+		);
+		self::assertSame( '1.39.5', constant( 'UAEL_VER' ) );
+	}
 
 	/**
 	 * Test constructor and init_hooks().
@@ -62,6 +93,8 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test before_render() and add_hcaptcha().
+	 *
+	 * @noinspection PhpParamsInspection
 	 */
 	public function test_render(): void {
 		$form = '<form>some HTML<div class="elementor-field-group something"><button type="submit">Login</button></div></form>';
@@ -69,7 +102,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 		$subject = new Login();
 
 		// Test with a wrong element.
-		$element = Mockery::mock( Element_Base::class );
+		$element = $this->get_elementor_widget( 'heading' );
 
 		ob_start();
 		$subject->before_render( $element );
@@ -83,7 +116,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 		self::assertSame( $form, $output );
 
 		// Test with a correct element and login limit not exceeded.
-		$element = Mockery::mock( 'alias:UltimateElementor\Modules\LoginForm\Widgets\LoginForm', Element_Base::class );
+		$element = $this->get_login_widget();
 
 		add_filter( 'hcap_login_limit_exceeded', '__return_false' );
 
@@ -99,8 +132,6 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 		self::assertSame( $form, $output );
 
 		// Test with a correct element and login limit exceeded.
-		$element = Mockery::mock( 'alias:UltimateElementor\Modules\LoginForm\Widgets\LoginForm', Element_Base::class );
-
 		remove_filter( 'hcap_login_limit_exceeded', '__return_false' );
 		add_filter( 'hcap_login_limit_exceeded', '__return_true' );
 
@@ -347,6 +378,41 @@ CSS;
 		$subject->print_inline_styles();
 
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Get a widget registered by the live Elementor instance.
+	 *
+	 * @param string $widget_name Widget name.
+	 *
+	 * @return Widget_Base
+	 * @noinspection PhpSameParameterValueInspection
+	 */
+	private function get_elementor_widget( string $widget_name ): Widget_Base {
+		$widget = ElementorPlugin::instance()->widgets_manager->get_widget_types( $widget_name );
+
+		self::assertInstanceOf( Widget_Base::class, $widget );
+
+		return $widget;
+	}
+
+	/**
+	 * Get the live Ultimate Addons login widget.
+	 *
+	 * @return UltimateElementorLogin
+	 */
+	private function get_login_widget(): UltimateElementorLogin {
+		$widgets_manager = ElementorPlugin::instance()->widgets_manager;
+		$widget          = $widgets_manager->get_widget_types( 'uael-login-form' );
+
+		if ( ! $widget ) {
+			LoginFormModule::instance()->init_widgets();
+			$widget = $widgets_manager->get_widget_types( 'uael-login-form' );
+		}
+
+		self::assertInstanceOf( UltimateElementorLogin::class, $widget );
+
+		return $widget;
 	}
 
 	/**

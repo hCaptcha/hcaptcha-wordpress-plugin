@@ -25,11 +25,11 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 	protected static $plugin;
 
 	/**
-	 * Plugin active status.
+	 * Plugins whose PHP entry files have been loaded in this process.
 	 *
-	 * @var array
+	 * @var array<string, bool>
 	 */
-	protected static array $plugin_active = [];
+	protected static array $plugin_loaded = [];
 
 	/**
 	 * Hooks to replay when plugins are loaded after the hooks fired.
@@ -78,7 +78,6 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 
 		parent::setUp();
 
-		$plugins        = [];
 		$hook_callbacks = [];
 
 		foreach ( static::$plugin_load_hooks as $hook_name ) {
@@ -86,23 +85,12 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 		}
 
 		foreach ( (array) static::$plugin as $plugin ) {
-			if ( $plugin && ! isset( static::$plugin_active[ $plugin ] ) ) {
-				$result = activate_plugin( $plugin );
-
-				if ( is_wp_error( $result ) ) {
-					self::fail( $result->get_error_message() );
-				}
-
-				$plugins[] = $plugin;
-			}
+			$this->activate_test_plugin( $plugin );
+			$this->replay_elementor_loaded_action( $plugin );
 		}
 
 		foreach ( $hook_callbacks as $hook_name => $previous_callbacks ) {
 			$this->run_late_hook_callbacks( $hook_name, $previous_callbacks );
-		}
-
-		foreach ( $plugins as $plugin ) {
-			static::$plugin_active[ $plugin ] = true;
 		}
 	}
 
@@ -115,6 +103,48 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 	 */
 	private function get_hook_callbacks( string $hook_name ): array {
 		return $GLOBALS['wp_filter'][ $hook_name ]->callbacks ?? [];
+	}
+
+	/**
+	 * Activate a plugin for the current test.
+	 *
+	 * @param string $plugin Plugin relative path.
+	 *
+	 * @return void
+	 */
+	private function activate_test_plugin( string $plugin ): void {
+		if ( ! $plugin || is_plugin_active( $plugin ) ) {
+			return;
+		}
+
+		$silent = isset( static::$plugin_loaded[ $plugin ] );
+		$result = activate_plugin( $plugin, '', false, $silent );
+
+		if ( is_wp_error( $result ) ) {
+			self::fail( $result->get_error_message() );
+		}
+
+		static::$plugin_loaded[ $plugin ] = true;
+	}
+
+	/**
+	 * Replay the Elementor loaded action when the test runner reset its state.
+	 *
+	 * @param string $plugin Plugin relative path.
+	 *
+	 * @return void
+	 */
+	private function replay_elementor_loaded_action( string $plugin ): void {
+		if (
+			'elementor/elementor.php' !== $plugin ||
+			! class_exists( '\\Elementor\\Plugin', false ) ||
+			did_action( 'elementor/loaded' )
+		) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+		do_action( 'elementor/loaded' );
 	}
 
 	/**

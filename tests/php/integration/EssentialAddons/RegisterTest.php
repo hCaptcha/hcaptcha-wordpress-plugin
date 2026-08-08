@@ -12,12 +12,14 @@
 
 namespace HCaptcha\Tests\Integration\EssentialAddons;
 
+use Elementor\Plugin as ElementorPlugin;
+use Essential_Addons_Elementor\Classes\Bootstrap;
+use Essential_Addons_Elementor\Elements\Login_Register as EssentialAddonsLoginRegister;
 use HCaptcha\EssentialAddons\Register;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
 use tad\FunctionMocker\FunctionMocker;
-use Elementor\Widget_Base;
 
 /**
  * Class RegisterTest
@@ -27,18 +29,24 @@ use Elementor\Widget_Base;
  */
 class RegisterTest extends HCaptchaPluginWPTestCase {
 	/**
-	 * Plugin relative path.
+	 * Plugin relative paths.
 	 *
-	 * @var string
+	 * @var string[]
 	 */
-	protected static $plugin = 'elementor/elementor.php';
+	protected static $plugin = [
+		'elementor/elementor.php',
+		'essential-addons-for-elementor-lite/essential_adons_elementor.php',
+	];
 
 	/**
 	 * Hooks to replay after loading the plugin.
 	 *
 	 * @var string[]
 	 */
-	protected static array $plugin_load_hooks = [ 'init' ];
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
 
 	/**
 	 * Tear down the test.
@@ -76,9 +84,10 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 	 * Test add_register_hcaptcha().
 	 *
 	 * @return void
+	 * @noinspection PhpParamsInspection
 	 */
 	public function test_add_register_hcaptcha(): void {
-		$widget   = Mockery::mock( Widget_Base::class );
+		$widget   = $this->get_login_register_widget();
 		$args     = [
 			'action' => 'hcaptcha_essential_addons_register',
 			'name'   => 'hcaptcha_essential_addons_register_nonce',
@@ -105,9 +114,10 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 	 * Test add_register_hcaptcha() with built-in form interaction.
 	 *
 	 * @return void
+	 * @noinspection PhpParamsInspection
 	 */
 	public function test_add_register_hcaptcha_with_form_interaction(): void {
-		$widget  = Mockery::mock( Widget_Base::class );
+		$widget  = $this->get_login_register_widget();
 		$subject = new Register();
 		$level   = ob_get_level();
 
@@ -330,6 +340,25 @@ CSS;
 		$subject->print_inline_styles();
 
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Get the live Essential Addons login/register widget.
+	 *
+	 * @return EssentialAddonsLoginRegister
+	 */
+	private function get_login_register_widget(): EssentialAddonsLoginRegister {
+		$widgets_manager = ElementorPlugin::instance()->widgets_manager;
+		$widget          = $widgets_manager->get_widget_types( 'eael-login-register' );
+
+		if ( ! $widget ) {
+			Bootstrap::instance()->register_elements( $widgets_manager );
+			$widget = $widgets_manager->get_widget_types( 'eael-login-register' );
+		}
+
+		self::assertInstanceOf( EssentialAddonsLoginRegister::class, $widget );
+
+		return $widget;
 	}
 
 	/**
