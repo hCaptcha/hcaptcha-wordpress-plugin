@@ -44,7 +44,10 @@ class General {
 
 			add_action( 'login_enqueue_scripts', [ $this, 'remove_wordfence_recaptcha_script' ], 20 );
 			add_filter( 'wordfence_ls_require_captcha', [ $this, 'block_wordfence_recaptcha' ] );
-			add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
+
+			if ( $this->has_native_hcaptcha_support() ) {
+				add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
+			}
 		} else {
 			add_action( 'plugins_loaded', [ $this, 'remove_wp_login_hcaptcha_hooks' ] );
 		}
@@ -87,6 +90,10 @@ class General {
 	 * @return void
 	 */
 	public function admin_enqueue_scripts( string $hook_suffix ): void {
+		if ( ! $this->has_native_hcaptcha_support() ) {
+			return;
+		}
+
 		$wordfence_pages = [
 			'toplevel_page_WFLS',
 			'wordfence_page_WFLS',
@@ -149,5 +156,17 @@ class General {
 ';
 
 		HCaptcha::css_display( $css );
+	}
+
+	/**
+	 * Determine whether Wordfence has native hCaptcha support.
+	 *
+	 * @return bool
+	 */
+	private function has_native_hcaptcha_support(): bool {
+		return defined( 'WordfenceLS\\Controller_CAPTCHA::PROVIDER_HCAPTCHA' ) &&
+			defined( 'WordfenceLS\\Controller_Settings::OPTION_ENABLE_HCAPTCHA' ) &&
+			defined( 'WordfenceLS\\Controller_Settings::OPTION_HCAPTCHA_SITE_KEY' ) &&
+			defined( 'WordfenceLS\\Controller_Settings::OPTION_HCAPTCHA_SECRET' );
 	}
 }

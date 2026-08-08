@@ -114,7 +114,10 @@ class GeneralTest extends HCaptchaPluginWPTestCase {
 			self::assertSame( [ 'on' ], hcaptcha()->settings()->get( 'recaptcha_compat_off' ) );
 			self::assertSame( 20, has_action( 'login_enqueue_scripts', [ $subject, 'remove_wordfence_recaptcha_script' ] ) );
 			self::assertSame( 10, has_filter( 'wordfence_ls_require_captcha', [ $subject, 'block_wordfence_recaptcha' ] ) );
-			self::assertSame( 10, has_action( 'admin_enqueue_scripts', [ $subject, 'admin_enqueue_scripts' ] ) );
+			self::assertSame(
+				self::has_native_hcaptcha_support() ? 10 : false,
+				has_action( 'admin_enqueue_scripts', [ $subject, 'admin_enqueue_scripts' ] )
+			);
 		} else {
 			self::assertSame( 10, has_action( 'plugins_loaded', [ $subject, 'remove_wp_login_hcaptcha_hooks' ] ) );
 		}
@@ -142,6 +145,7 @@ class GeneralTest extends HCaptchaPluginWPTestCase {
 	 * @dataProvider dp_test_remove_wordfence_captcha_script
 	 */
 	public function test_remove_wordfence_captcha_script( string $provider, string $script_handle ): void {
+		$this->skip_unsupported_hcaptcha_provider( $provider );
 		$this->configure_wordfence_captcha( $provider );
 		$this->enable_wordfence_integration();
 
@@ -186,6 +190,7 @@ class GeneralTest extends HCaptchaPluginWPTestCase {
 	 * @dataProvider dp_test_captcha_provider
 	 */
 	public function test_block_wordfence_recaptcha( string $provider ): void {
+		$this->skip_unsupported_hcaptcha_provider( $provider );
 		$this->configure_wordfence_captcha( $provider );
 
 		self::assertTrue( WordfenceCaptcha::shared()->is_captcha_required() );
@@ -203,6 +208,8 @@ class GeneralTest extends HCaptchaPluginWPTestCase {
 	 * @throws ViewNotFoundException ViewNotFoundException.
 	 */
 	public function test_live_wordfence_hcaptcha_admin_ui(): void {
+		$this->skip_unsupported_hcaptcha_provider( 'hcaptcha' );
+
 		$html = WordfenceView::create( 'settings/hcaptcha-ui' )->render();
 
 		self::assertStringContainsString( 'id="wfls-hcaptcha-settings"', $html );
@@ -228,6 +235,12 @@ class GeneralTest extends HCaptchaPluginWPTestCase {
 		self::assertFalse( wp_script_is( 'admin-wordfence' ) );
 
 		$subject->admin_enqueue_scripts( $hook_suffix );
+
+		if ( ! self::has_native_hcaptcha_support() ) {
+			self::assertFalse( wp_script_is( 'admin-wordfence' ) );
+
+			return;
+		}
 
 		self::assertTrue( wp_script_is( 'admin-wordfence' ) );
 
@@ -270,6 +283,7 @@ class GeneralTest extends HCaptchaPluginWPTestCase {
 	 * @dataProvider dp_test_captcha_provider
 	 */
 	public function test_live_wordfence_authentication( string $provider ): void {
+		$this->skip_unsupported_hcaptcha_provider( $provider );
 		$this->configure_wordfence_captcha( $provider );
 		$this->enable_wordfence_integration();
 
@@ -388,20 +402,21 @@ CSS;
 	 * @return void
 	 */
 	private function configure_wordfence_captcha( string $provider ): void {
-		$is_hcaptcha = WordfenceCaptcha::PROVIDER_HCAPTCHA === $provider;
+		$is_hcaptcha = 'hcaptcha' === $provider;
 		$settings    = WordfenceSettings::shared();
+		$values      = [
+			WordfenceSettings::OPTION_ENABLE_AUTH_CAPTCHA => ! $is_hcaptcha,
+			WordfenceSettings::OPTION_RECAPTCHA_SITE_KEY  => 'wordfence-recaptcha-site-key',
+			WordfenceSettings::OPTION_RECAPTCHA_SECRET    => 'wordfence-recaptcha-secret',
+		];
 
-		$settings->set_multiple(
-			[
-				WordfenceSettings::OPTION_ENABLE_AUTH_CAPTCHA => ! $is_hcaptcha,
-				WordfenceSettings::OPTION_RECAPTCHA_SITE_KEY => 'wordfence-recaptcha-site-key',
-				WordfenceSettings::OPTION_RECAPTCHA_SECRET => 'wordfence-recaptcha-secret',
-				WordfenceSettings::OPTION_ENABLE_HCAPTCHA  => $is_hcaptcha,
-				WordfenceSettings::OPTION_HCAPTCHA_SITE_KEY => 'wordfence-hcaptcha-site-key',
-				WordfenceSettings::OPTION_HCAPTCHA_SECRET  => 'wordfence-hcaptcha-secret',
-			],
-			true
-		);
+		if ( $is_hcaptcha ) {
+			$values[ WordfenceSettings::OPTION_ENABLE_HCAPTCHA ]   = true;
+			$values[ WordfenceSettings::OPTION_HCAPTCHA_SITE_KEY ] = 'wordfence-hcaptcha-site-key';
+			$values[ WordfenceSettings::OPTION_HCAPTCHA_SECRET ]   = 'wordfence-hcaptcha-secret';
+		}
+
+		$settings->set_multiple( $values, true );
 	}
 
 	/**
@@ -428,13 +443,43 @@ CSS;
 	 * @return string[]
 	 */
 	private function get_wordfence_captcha_setting_keys(): array {
-		return [
+		$setting_keys = [
 			WordfenceSettings::OPTION_ENABLE_AUTH_CAPTCHA,
 			WordfenceSettings::OPTION_RECAPTCHA_SITE_KEY,
 			WordfenceSettings::OPTION_RECAPTCHA_SECRET,
-			WordfenceSettings::OPTION_ENABLE_HCAPTCHA,
-			WordfenceSettings::OPTION_HCAPTCHA_SITE_KEY,
-			WordfenceSettings::OPTION_HCAPTCHA_SECRET,
 		];
+
+		if ( self::has_native_hcaptcha_support() ) {
+			$setting_keys[] = WordfenceSettings::OPTION_ENABLE_HCAPTCHA;
+			$setting_keys[] = WordfenceSettings::OPTION_HCAPTCHA_SITE_KEY;
+			$setting_keys[] = WordfenceSettings::OPTION_HCAPTCHA_SECRET;
+		}
+
+		return $setting_keys;
+	}
+
+	/**
+	 * Skip a native hCaptcha test when Wordfence does not support the provider.
+	 *
+	 * @param string $provider CAPTCHA provider.
+	 *
+	 * @return void
+	 */
+	private function skip_unsupported_hcaptcha_provider( string $provider ): void {
+		if ( 'hcaptcha' === $provider && ! self::has_native_hcaptcha_support() ) {
+			self::markTestSkipped( 'Wordfence does not have native hCaptcha support.' );
+		}
+	}
+
+	/**
+	 * Determine whether Wordfence has native hCaptcha support.
+	 *
+	 * @return bool
+	 */
+	private static function has_native_hcaptcha_support(): bool {
+		return defined( 'WordfenceLS\\Controller_CAPTCHA::PROVIDER_HCAPTCHA' ) &&
+			defined( 'WordfenceLS\\Controller_Settings::OPTION_ENABLE_HCAPTCHA' ) &&
+			defined( 'WordfenceLS\\Controller_Settings::OPTION_HCAPTCHA_SITE_KEY' ) &&
+			defined( 'WordfenceLS\\Controller_Settings::OPTION_HCAPTCHA_SECRET' );
 	}
 }
