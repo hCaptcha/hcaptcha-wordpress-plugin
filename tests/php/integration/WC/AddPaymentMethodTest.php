@@ -76,28 +76,9 @@ class AddPaymentMethodTest extends HCaptchaPluginWPTestCase {
 
 		$gateway = new class() extends WC_Payment_Gateway {
 			/**
-			 * Gateway ID.
-			 *
-			 * @var string
-			 */
-			public string $id;
-
-			/**
-			 * Whether the gateway is enabled.
-			 *
-			 * @var string
-			 */
-			public string $enabled;
-
-			/**
-			 * Gateway title.
-			 *
-			 * @var string
-			 */
-			public string $title;
-
-			/**
 			 * Constructor.
+			 *
+			 * @noinspection PhpDynamicFieldDeclarationInspection
 			 */
 			public function __construct() {
 				$this->id      = 'test_gateway';
