@@ -19,13 +19,14 @@ use Elementor\Controls_Manager;
 use Elementor\Controls_Stack;
 use Elementor\Plugin;
 use Elementor\Widget_Base;
+use ElementorPro\Modules\Forms\Module as FormsModule;
+use ElementorPro\Plugin as ElementorProPlugin;
 use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Helpers\Utils;
 use HCaptcha\Settings\General;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
-use ReflectionException;
+use ReflectionClass;
 use tad\FunctionMocker\FunctionMocker;
 use Elementor\Settings;
 
@@ -35,23 +36,40 @@ use Elementor\Settings;
  * @group elementor-pro
  * @group elementor-pro-hcaptcha-handler
  */
-class HCaptchaHandlerTest extends HCaptchaWPTestCase {
+class HCaptchaHandlerTest extends HCaptchaPluginWPTestCase {
 	/**
-	 * Setup class.
+	 * Plugin relative paths.
+	 *
+	 * @var string[]
+	 */
+	protected static $plugin = [
+		'elementor/elementor.php',
+		'elementor-pro/elementor-pro.php',
+	];
+
+	/**
+	 * Hooks to replay after loading the plugins.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
+
+	/**
+	 * Test that live Elementor plugins are loaded.
 	 *
 	 * @return void
 	 */
-	public static function setUpBeforeClass(): void {
-		Mockery::getConfiguration()->setConstantsMap(
-			[
-				Settings::class => [
-					'PAGE_ID'          => 'elementor',
-					'TAB_INTEGRATIONS' => 'integrations',
-				],
-			]
-		);
+	public function test_live_plugins_are_loaded(): void {
+		$elementor_file     = wp_normalize_path( ( new ReflectionClass( Plugin::class ) )->getFileName() );
+		$elementor_pro_file = wp_normalize_path( ( new ReflectionClass( ElementorProPlugin::class ) )->getFileName() );
 
-		parent::setUpBeforeClass();
+		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/elementor/' ), $elementor_file );
+		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/elementor-pro/' ), $elementor_pro_file );
+		self::assertNotEmpty( constant( 'ELEMENTOR_VERSION' ) );
+		self::assertNotEmpty( constant( 'ELEMENTOR_PRO_VERSION' ) );
 	}
 
 	/**
@@ -96,13 +114,11 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	/**
 	 * Test block_native_integration().
 	 *
-	 * @param bool $is_native_exist Whether native integration exists.
-	 *
 	 * @return void
-	 * @dataProvider dp_test_block_native_integration
 	 */
-	public function test_block_native_integration( bool $is_native_exist ): void {
-		$actions = [
+	public function test_block_native_integration(): void {
+		$is_native_loaded = class_exists( HCaptcha_Handler::class, false );
+		$actions          = [
 			'elementor_pro/forms/field_types',
 			'elementor/element/form/section_form_fields/after_section_end',
 			'elementor_pro/forms/render_field/hcaptcha',
@@ -120,17 +136,13 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 		wp_register_script( 'elementor-hcaptcha-api', '', [], HCAPTCHA_VERSION, true );
 		wp_register_script( 'hcaptcha', '', [], HCAPTCHA_VERSION, true );
 
-		if ( $is_native_exist ) {
-			Mockery::mock( HCaptcha_Handler::class );
-		}
-
 		$subject = Mockery::mock( HCaptchaHandler::class )->makePartial();
 
 		$subject->shouldAllowMockingProtectedMethods();
 
 		$subject->block_native_integration();
 
-		if ( $is_native_exist ) {
+		if ( $is_native_loaded ) {
 			foreach ( $actions as $action ) {
 				self::assertFalse( has_action( $action, [ HCaptcha_Handler::class, $action . '_callback' ] ) );
 			}
@@ -145,18 +157,13 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 			self::assertTrue( wp_script_is( 'elementor-hcaptcha-api', 'registered' ) );
 			self::assertTrue( wp_script_is( 'hcaptcha', 'registered' ) );
 		}
-	}
 
-	/**
-	 * Data provider for test_block_native_integration().
-	 *
-	 * @return array
-	 */
-	public function dp_test_block_native_integration(): array {
-		return [
-			[ false ],
-			[ true ],
-		];
+		foreach ( $actions as $action ) {
+			remove_action( $action, [ HCaptcha_Handler::class, $action . '_callback' ] );
+		}
+
+		wp_deregister_script( 'elementor-hcaptcha-api' );
+		wp_deregister_script( 'hcaptcha' );
 	}
 
 	/**
@@ -167,40 +174,20 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 * @param bool $is_preview Elementor preview page.
 	 *
 	 * @dataProvider dp_test_init
-	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_init( bool $is_enabled, bool $is_admin, bool $is_preview ): void {
 		$this->prepare_test_init( $is_enabled, $is_admin, $is_preview );
 
-		$subject = new HCaptchaHandler();
-
-		Mockery::mock( 'alias:Elementor\Settings' );
-
-		$utils = Mockery::mock( Utils::class )->makePartial();
-
-		$utils->shouldAllowMockingProtectedMethods();
-		$this->set_protected_property( $utils, 'instance', $utils );
-
-		$forms_module = Mockery::mock( 'alias:ElementorPro\Modules\Forms\Module' );
-
-		$forms_module->shouldReceive( 'instance' )->once()->with()->andReturn( $forms_module );
-		$forms_module->shouldReceive( 'add_component' )->once()->with( 'hcaptcha', $subject );
+		$subject               = new HCaptchaHandler();
+		$editor_init_callbacks = $GLOBALS['wp_filter']['elementor/editor/init']->callbacks[10] ?? [];
 
 		self::assertFalse( wp_script_is( 'elementor-hcaptcha-api', 'registered' ) );
 		self::assertFalse( wp_script_is( 'hcaptcha', 'registered' ) );
 		self::assertFalse( wp_script_is( 'hcaptcha-elementor-pro', 'registered' ) );
 
-		// Settings prepare.
-		if ( $is_admin ) {
-			$callback_pattern = '#^' . preg_quote( HCaptcha_Handler::class . '::register_admin_fields', '#' ) . '#';
-			$replace          = [ $subject, 'register_admin_fields' ];
-			$hook_name        = 'elementor/admin/after_create_settings/elementor';
-
-			$utils->shouldReceive( 'replace_action_regex' )
-				->once()->with( $callback_pattern, $replace, $hook_name );
-		}
-
 		$subject->init();
+
+		self::assertSame( $subject, FormsModule::instance()->get_component( 'hcaptcha' ) );
 
 		// Settings.
 		if ( $is_admin ) {
@@ -336,8 +323,15 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 			has_filter( 'hcap_print_hcaptcha_scripts', '__return_false' )
 		);
 
-		// phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
-		do_action( 'elementor/editor/init' );
+		$editor_init_callbacks = array_diff_key(
+			$GLOBALS['wp_filter']['elementor/editor/init']->callbacks[10] ?? [],
+			$editor_init_callbacks
+		);
+
+		self::assertCount( 1, $editor_init_callbacks );
+
+		$editor_init_callback = current( $editor_init_callbacks )['function'];
+		$editor_init_callback();
 
 		self::assertSame(
 			10,
@@ -367,33 +361,15 @@ class HCaptchaHandlerTest extends HCaptchaWPTestCase {
 	 * Test register_admin_fields().
 	 *
 	 * @return void
-	 * @noinspection PhpParamsInspection
 	 */
 	public function test_register_admin_fields(): void {
-		$settings = Mockery::mock( 'alias:Elementor\Settings' );
-		$captured = null;
-
-		$settings->shouldReceive( 'add_section' )
-			->once()
-			->with(
-				Settings::TAB_INTEGRATIONS,
-				'hcaptcha',
-				Mockery::on(
-					static function ( $arg ) use ( &$captured ) {
-						if ( is_array( $arg ) && isset( $arg['callback'] ) && is_callable( $arg['callback'] ) ) {
-							$captured = $arg['callback'];
-
-							return true;
-						}
-
-						return false;
-					}
-				)
-			);
-
-		$subject = new HCaptchaHandler();
+		$settings = new Settings();
+		$subject  = new HCaptchaHandler();
 
 		$subject->register_admin_fields( $settings );
+
+		$tabs     = $settings->get_tabs();
+		$captured = $tabs[ Settings::TAB_INTEGRATIONS ]['sections']['hcaptcha']['callback'] ?? null;
 
 		self::assertIsCallable( $captured );
 
@@ -1523,8 +1499,6 @@ CSS;
 				return $secret_key;
 			}
 		);
-
-		hcaptcha()->init_hooks();
 
 		if ( $is_admin ) {
 			set_current_screen( 'some' );

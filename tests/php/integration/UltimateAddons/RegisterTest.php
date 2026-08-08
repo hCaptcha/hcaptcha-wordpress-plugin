@@ -14,7 +14,7 @@ namespace HCaptcha\Tests\Integration\UltimateAddons;
 
 use Elementor\Element_Base;
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use HCaptcha\UltimateAddons\Register;
 use Mockery;
 use tad\FunctionMocker\FunctionMocker;
@@ -25,7 +25,20 @@ use tad\FunctionMocker\FunctionMocker;
  * @group ultimate-addons-register
  * @group ultimate-addons
  */
-class RegisterTest extends HCaptchaWPTestCase {
+class RegisterTest extends HCaptchaPluginWPTestCase {
+	/**
+	 * Plugin relative path.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'elementor/elementor.php';
+
+	/**
+	 * Hooks to replay after loading the plugin.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [ 'init' ];
 
 	/**
 	 * Test constructor and init_hooks().

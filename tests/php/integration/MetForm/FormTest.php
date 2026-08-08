@@ -15,7 +15,7 @@ namespace HCaptcha\Tests\Integration\MetForm;
 use Elementor\Widget_Base;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\MetForm\Form;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
 use ReflectionException;
 use WP_REST_Request;
@@ -25,7 +25,20 @@ use WP_REST_Request;
  *
  * @group metform
  */
-class FormTest extends HCaptchaWPTestCase {
+class FormTest extends HCaptchaPluginWPTestCase {
+	/**
+	 * Plugin relative path.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'elementor/elementor.php';
+
+	/**
+	 * Hooks to replay after loading the plugin.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [ 'init' ];
 
 	/**
 	 * Tear down the test.

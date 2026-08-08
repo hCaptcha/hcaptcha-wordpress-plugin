@@ -14,7 +14,7 @@ namespace HCaptcha\Tests\Integration\EssentialAddons;
 
 use HCaptcha\EssentialAddons\Login;
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
 use Essential_Addons_Elementor\Classes\Bootstrap;
 use tad\FunctionMocker\FunctionMocker;
@@ -26,7 +26,20 @@ use Elementor\Widget_Base;
  * @group essential-addons
  * @group essential-addons-login
  */
-class LoginTest extends HCaptchaWPTestCase {
+class LoginTest extends HCaptchaPluginWPTestCase {
+	/**
+	 * Plugin relative path.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'elementor/elementor.php';
+
+	/**
+	 * Hooks to replay after loading the plugin.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [ 'init' ];
 
 	/**
 	 * Tear down the test.
