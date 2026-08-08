@@ -7,11 +7,13 @@
 
 namespace HCaptcha\Tests\Integration\Jetpack;
 
+use Automattic\Jetpack\Forms\ContactForm\Contact_Form as JetpackForm;
+use Automattic\Jetpack\Forms\ContactForm\Contact_Form_Plugin as JetpackFormPlugin;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Jetpack\Base;
 use HCaptcha\Jetpack\Form;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
+use ReflectionClass;
 use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
@@ -21,7 +23,34 @@ use WP_Error;
  *
  * @group jetpack
  */
-class BaseTest extends HCaptchaWPTestCase {
+class BaseTest extends JetpackTestCase {
+
+	/**
+	 * Test that the live Jetpack Forms module is loaded.
+	 *
+	 * @return void
+	 */
+	public function test_live_plugin_is_loaded(): void {
+		$plugin_dir = realpath( WP_PLUGIN_DIR . '/jetpack' );
+		$form_file  = wp_normalize_path( ( new ReflectionClass( JetpackForm::class ) )->getFileName() );
+
+		self::assertTrue( is_plugin_active( 'jetpack/jetpack.php' ) );
+		self::assertNotFalse( $plugin_dir );
+		self::assertStringStartsWith( trailingslashit( wp_normalize_path( $plugin_dir ) ), $form_file );
+		self::assertTrue( version_compare( constant( 'JETPACK__VERSION' ), '16.0.1', '>=' ) );
+		self::assertTrue( \Jetpack::is_module_active( 'contact-form' ) );
+		$shortcode_callback = $GLOBALS['shortcode_tags']['contact-form'];
+
+		self::assertSame( JetpackForm::class, ltrim( $shortcode_callback[0], '\\' ) );
+		self::assertSame( 'parse', $shortcode_callback[1] );
+		self::assertSame(
+			10,
+			has_filter(
+				'jetpack_contact_form_is_spam',
+				[ JetpackFormPlugin::init(), 'is_spam_blocklist' ]
+			)
+		);
+	}
 
 	/**
 	 * Tear down the test.
@@ -107,6 +136,34 @@ class BaseTest extends HCaptchaWPTestCase {
 
 		self::assertFalse( $subject->verify() );
 		self::assertTrue( $subject->verify( true ) );
+	}
+
+	/**
+	 * Test hCaptcha verification in the live Jetpack spam pipeline.
+	 *
+	 * @return void
+	 */
+	public function test_live_jetpack_spam_pipeline(): void {
+		$this->prepare_verify_post( 'hcaptcha_jetpack_nonce', 'hcaptcha_jetpack' );
+		$this->prepare_widget_id();
+
+		$_POST['contact-form-id'] = '13';
+		$_POST['g13-name']        = 'Some name';
+		$_POST['g13-email']       = 'foo@bar.com';
+		$_POST['g13']             = 'Some message';
+
+		$subject = new Form();
+		$form    = [
+			'comment_author'       => 'Some name',
+			'comment_author_email' => 'foo@bar.com',
+			'comment_author_url'   => '',
+			'comment_content'      => 'Some message',
+			'user_ip'              => '127.0.0.1',
+			'user_agent'           => 'Jetpack integration test',
+		];
+
+		self::assertSame( 100, has_filter( 'jetpack_contact_form_is_spam', [ $subject, 'verify' ] ) );
+		self::assertFalse( apply_filters( 'jetpack_contact_form_is_spam', false, $form ) );
 	}
 
 	/**
