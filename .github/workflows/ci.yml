@@ -261,15 +261,19 @@ jobs:
         working-directory: ${{ env.wp-directory }}
         run: wp plugin install bbpress buddypress contact-form-7 elementor essential-addons-for-elementor-lite jetpack mailchimp-for-wp metform ninja-forms ultimate-member woocommerce wordfence-login-security wpforms-lite wpforo
 
-      - name: Install private test plugins and theme
+      - name: Install private test plugins and themes
         if: steps.test_plugins.outputs.available == 'true'
         working-directory: ${{ env.wp-directory }}
         run: |
           wp plugin install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/elementor-pro-4.2.1.zip"
           wp plugin install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/ultimate-elementor-1.39.5.zip"
+          wp plugin install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/fusion-builder-3.11.2.zip"
+          wp theme install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/Avada-7.11.2.zip"
           wp theme install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/Divi-4.27.6.zip"
           wp plugin is-installed elementor-pro
           wp plugin is-installed ultimate-elementor
+          wp plugin is-installed fusion-builder
+          wp theme is-installed Avada
           wp theme is-installed Divi
 
       - name: Run WP tests with private test plugins
