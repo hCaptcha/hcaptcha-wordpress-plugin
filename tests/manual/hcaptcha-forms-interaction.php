@@ -32,6 +32,12 @@
 // - Multi-Step form.
 // - Regular form.
 
+// MetForm forms handled here:
+// - Form.
+
+// Ninja Forms forms handled here:
+// - Form containing an hCaptcha field.
+
 // WooCommerce forms handled here:
 // - Add a Payment Method form.
 // - Checkout form (classic and block).
@@ -182,6 +188,45 @@ function hcap_forms_mark_forminator_form( $id, string $form_type ): void {
 }
 
 add_action( 'forminator_before_form_render', 'hcap_forms_mark_forminator_form', 0, 2 );
+
+/**
+ * Mark the request when MetForm renders a submit button widget.
+ *
+ * @param mixed $content Widget content.
+ * @param mixed $widget  Elementor widget.
+ *
+ * @return mixed
+ */
+function hcap_forms_mark_metform_form( $content, $widget ) {
+	if ( ! is_object( $widget ) || ! method_exists( $widget, 'get_name' ) ) {
+		return $content;
+	}
+
+	if ( 'mf-button' !== $widget->get_name() ) {
+		return $content;
+	}
+
+	$GLOBALS['hcap_forms_has_metform_form'] = true;
+
+	return $content;
+}
+
+add_filter( 'elementor/widget/render_content', 'hcap_forms_mark_metform_form', 0, 2 );
+
+/**
+ * Mark the request when Ninja Forms localizes an hCaptcha field.
+ *
+ * @param mixed $field Field data.
+ *
+ * @return mixed
+ */
+function hcap_forms_mark_ninja_form( $field ) {
+	$GLOBALS['hcap_forms_has_ninja_form'] = true;
+
+	return $field;
+}
+
+add_filter( 'ninja_forms_localize_field_hcaptcha-for-ninja-forms', 'hcap_forms_mark_ninja_form', 0 );
 
 /**
  * Mark the request when WooCommerce renders an action-based protected form.
@@ -424,6 +469,8 @@ function hcap_forms_delay_api_event( $delay_api_event ) {
 			empty( $GLOBALS['hcap_forms_has_fluent_conversational_form'] )
 		) ||
 		! empty( $GLOBALS['hcap_forms_has_forminator_form'] ) ||
+		! empty( $GLOBALS['hcap_forms_has_metform_form'] ) ||
+		! empty( $GLOBALS['hcap_forms_has_ninja_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_woocommerce_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_wpforms_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_divi_form'] ) ||
