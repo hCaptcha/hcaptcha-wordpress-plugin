@@ -14,11 +14,19 @@
 // - Comment form.
 // - Post/Page Password form.
 
+// Blocksy forms handled here:
+// - Newsletter Subscribe form.
+// - Product Review form.
+// - Waitlist form.
+
 // Jetpack forms handled here:
 // - Contact form (classic and block).
 
 // Contact Form 7 forms handled here:
 // - Contact form.
+
+// CoBlocks forms handled here:
+// - Form block.
 
 // Elementor Pro forms handled here:
 // - Form widget containing an hCaptcha field.
@@ -27,6 +35,9 @@
 // - Login form.
 // - Multi-Step form.
 // - Regular form.
+
+// Formidable Forms forms handled here:
+// - Form containing an hCaptcha field.
 
 // Forminator forms handled here:
 // - Multi-Step form.
@@ -70,6 +81,9 @@
 // Mailchimp for WordPress forms handled here:
 // - Subscription form.
 
+// MailPoet forms handled here:
+// - Subscription form.
+
 // Ultimate Addons for Elementor forms handled here:
 // - Login form.
 // - Registration form.
@@ -110,6 +124,63 @@ function hcap_forms_mark_wp_password_form( $output ): string {
 add_filter( 'the_password_form', 'hcap_forms_mark_wp_password_form', 0 );
 
 /**
+ * Mark the request when WordPress renders a Blocksy newsletter block.
+ *
+ * @param string|mixed $block_content Block content.
+ * @param array        $block         Block data.
+ *
+ * @return string|mixed
+ */
+function hcap_forms_mark_blocksy_newsletter_form( $block_content, array $block ) {
+	if ( 'blocksy/newsletter' === ( $block['blockName'] ?? '' ) ) {
+		$GLOBALS['hcap_forms_has_blocksy_form'] = true;
+	}
+
+	return $block_content;
+}
+
+add_filter( 'render_block', 'hcap_forms_mark_blocksy_newsletter_form', 0, 2 );
+
+/**
+ * Mark the request when Blocksy renders a product waitlist layer.
+ *
+ * @param array|mixed $layer Layer data.
+ *
+ * @return void
+ */
+function hcap_forms_mark_blocksy_waitlist_form( $layer ): void {
+	if ( 'product_waitlist' === ( $layer['id'] ?? '' ) ) {
+		$GLOBALS['hcap_forms_has_blocksy_form'] = true;
+	}
+}
+
+add_action( 'blocksy:woocommerce:product:custom:layer', 'hcap_forms_mark_blocksy_waitlist_form', 0 );
+
+/**
+ * Mark the request when Blocksy renders a product review form.
+ *
+ * @param string|mixed $submit_field Submit field markup.
+ *
+ * @return string|mixed
+ */
+function hcap_forms_mark_blocksy_product_review_form( $submit_field ) {
+	if ( ! function_exists( 'blocksy_manager' ) ) {
+		return $submit_field;
+	}
+
+	$manager = blocksy_manager();
+	$screen  = is_object( $manager ) ? ( $manager->screen ?? null ) : null;
+
+	if ( is_object( $screen ) && method_exists( $screen, 'is_product' ) && $screen->is_product() ) {
+		$GLOBALS['hcap_forms_has_blocksy_form'] = true;
+	}
+
+	return $submit_field;
+}
+
+add_filter( 'comment_form_submit_field', 'hcap_forms_mark_blocksy_product_review_form', 0 );
+
+/**
  * Mark the request when Jetpack renders a contact form.
  *
  * @param string $html Jetpack contact form HTML.
@@ -138,6 +209,24 @@ function hcap_forms_mark_cf7_form( $form ): string {
 }
 
 add_filter( 'wpcf7_form_elements', 'hcap_forms_mark_cf7_form', 0 );
+
+/**
+ * Mark the request when WordPress renders a CoBlocks form block.
+ *
+ * @param string|mixed $block_content Block content.
+ * @param array        $block         Block data.
+ *
+ * @return string|mixed
+ */
+function hcap_forms_mark_coblocks_form( $block_content, array $block ) {
+	if ( 'coblocks/form' === ( $block['blockName'] ?? '' ) ) {
+		$GLOBALS['hcap_forms_has_coblocks_form'] = true;
+	}
+
+	return $block_content;
+}
+
+add_filter( 'render_block', 'hcap_forms_mark_coblocks_form', 0, 2 );
 
 /**
  * Mark the request when Elementor Pro renders an hCaptcha form field.
@@ -178,6 +267,26 @@ function hcap_forms_mark_fluent_conversational_form(): void {
 }
 
 add_action( 'fluentform/conversational_enqueue_assets', 'hcap_forms_mark_fluent_conversational_form', 0 );
+
+/**
+ * Mark the request when Formidable Forms renders an hCaptcha field.
+ *
+ * @param string|mixed $html  Field HTML.
+ * @param array        $field Field data.
+ *
+ * @return string|mixed
+ */
+function hcap_forms_mark_formidable_form( $html, array $field ) {
+	if ( 'captcha' !== ( $field['type'] ?? '' ) || false === strpos( (string) $html, 'h-captcha' ) ) {
+		return $html;
+	}
+
+	$GLOBALS['hcap_forms_has_formidable_form'] = true;
+
+	return $html;
+}
+
+add_filter( 'frm_replace_shortcodes', 'hcap_forms_mark_formidable_form', 0, 2 );
 
 /**
  * Mark the request when Forminator renders a custom form.
@@ -452,6 +561,25 @@ function hcap_forms_mark_mailchimp_form( $content ) {
 add_filter( 'mc4wp_form_content', 'hcap_forms_mark_mailchimp_form', 0 );
 
 /**
+ * Mark the request when WordPress renders a MailPoet subscription form.
+ *
+ * @param string|mixed $content Post content.
+ *
+ * @return string
+ */
+function hcap_forms_mark_mailpoet_form( $content ): string {
+	$content = (string) $content;
+
+	if ( preg_match( '~<form[\s\S]+?"data\[form_id]" value="\d+?"[\s\S]+?<input type="submit"[\s\S]+?</form>~', $content ) ) {
+		$GLOBALS['hcap_forms_has_mailpoet_form'] = true;
+	}
+
+	return $content;
+}
+
+add_filter( 'the_content', 'hcap_forms_mark_mailpoet_form', 19 );
+
+/**
  * Mark the request when Ultimate Addons renders a protected form widget.
  *
  * @param mixed $element Elementor element.
@@ -528,13 +656,16 @@ function hcap_forms_delay_api_event( $delay_api_event ) {
 	if (
 		! empty( $GLOBALS['hcap_forms_has_wp_comment_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_wp_password_form'] ) ||
+		! empty( $GLOBALS['hcap_forms_has_blocksy_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_jetpack_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_cf7_form'] ) ||
+		! empty( $GLOBALS['hcap_forms_has_coblocks_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_elementor_pro_form'] ) ||
 		(
 			! empty( $GLOBALS['hcap_forms_has_fluent_form'] ) &&
 			empty( $GLOBALS['hcap_forms_has_fluent_conversational_form'] )
 		) ||
+		! empty( $GLOBALS['hcap_forms_has_formidable_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_forminator_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_gravity_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_kadence_form'] ) ||
@@ -545,6 +676,7 @@ function hcap_forms_delay_api_event( $delay_api_event ) {
 		! empty( $GLOBALS['hcap_forms_has_divi_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_essential_addons_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_mailchimp_form'] ) ||
+		! empty( $GLOBALS['hcap_forms_has_mailpoet_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_ultimate_addons_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_avada_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_maintenance_form'] ) ||
