@@ -28,6 +28,10 @@
 // - Multi-Step form.
 // - Regular form.
 
+// Forminator forms handled here:
+// - Multi-Step form.
+// - Regular form.
+
 // WooCommerce forms handled here:
 // - Add a Payment Method form.
 // - Checkout form (classic and block).
@@ -160,6 +164,24 @@ function hcap_forms_mark_fluent_conversational_form(): void {
 }
 
 add_action( 'fluentform/conversational_enqueue_assets', 'hcap_forms_mark_fluent_conversational_form', 0 );
+
+/**
+ * Mark the request when Forminator renders a custom form.
+ *
+ * @param int|mixed $id        Form id.
+ * @param string    $form_type Form type.
+ *
+ * @return void
+ */
+function hcap_forms_mark_forminator_form( $id, string $form_type ): void {
+	if ( 'custom-form' !== $form_type ) {
+		return;
+	}
+
+	$GLOBALS['hcap_forms_has_forminator_form'] = true;
+}
+
+add_action( 'forminator_before_form_render', 'hcap_forms_mark_forminator_form', 0, 2 );
 
 /**
  * Mark the request when WooCommerce renders an action-based protected form.
@@ -401,6 +423,7 @@ function hcap_forms_delay_api_event( $delay_api_event ) {
 			! empty( $GLOBALS['hcap_forms_has_fluent_form'] ) &&
 			empty( $GLOBALS['hcap_forms_has_fluent_conversational_form'] )
 		) ||
+		! empty( $GLOBALS['hcap_forms_has_forminator_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_woocommerce_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_wpforms_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_divi_form'] ) ||
