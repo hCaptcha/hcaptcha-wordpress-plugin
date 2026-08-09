@@ -13,7 +13,6 @@
 namespace HCaptcha\Tests\Integration\WC;
 
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use HCaptcha\WC\Checkout;
 use Mockery;
 use ReflectionClass;
@@ -29,14 +28,7 @@ use WP_REST_Request;
  * @group    wc-checkout
  * @group    wc
  */
-class CheckoutTest extends HCaptchaPluginWPTestCase {
-
-	/**
-	 * Plugin relative path.
-	 *
-	 * @var string
-	 */
-	protected static $plugin = 'woocommerce/woocommerce.php';
+class CheckoutTest extends WooCommerceTestCase {
 
 	/**
 	 * Test that the live WooCommerce plugin is loaded.

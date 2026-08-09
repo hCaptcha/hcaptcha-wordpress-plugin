@@ -13,7 +13,6 @@
 namespace HCaptcha\Tests\Integration\WC;
 
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use HCaptcha\WC\AddPaymentMethod;
 use tad\FunctionMocker\FunctionMocker;
 use WC_Payment_Gateway;
@@ -24,14 +23,7 @@ use WC_Payment_Gateway;
  * @group wc
  * @group wc-add-payment-method
  */
-class AddPaymentMethodTest extends HCaptchaPluginWPTestCase {
-
-	/**
-	 * Plugin relative path.
-	 *
-	 * @var string
-	 */
-	protected static $plugin = 'woocommerce/woocommerce.php';
+class AddPaymentMethodTest extends WooCommerceTestCase {
 
 	/**
 	 * Test constructor and init hooks.

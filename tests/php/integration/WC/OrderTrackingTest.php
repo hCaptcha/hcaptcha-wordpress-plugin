@@ -11,7 +11,6 @@
 namespace HCaptcha\Tests\Integration\WC;
 
 use HCaptcha\Settings\General;
-use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use HCaptcha\WC\OrderTracking;
 use WC_Shortcodes;
 
@@ -20,13 +19,7 @@ use WC_Shortcodes;
  *
  * @group wc
  */
-class OrderTrackingTest extends HCaptchaPluginWPTestCase {
-	/**
-	 * Plugin relative path.
-	 *
-	 * @var string
-	 */
-	protected static $plugin = 'woocommerce/woocommerce.php';
+class OrderTrackingTest extends WooCommerceTestCase {
 
 	/**
 	 * Test constructor and init hooks.

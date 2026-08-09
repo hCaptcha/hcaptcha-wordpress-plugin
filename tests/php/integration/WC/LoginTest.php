@@ -8,7 +8,6 @@
 namespace HCaptcha\Tests\Integration\WC;
 
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use HCaptcha\WC\Login;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
@@ -19,13 +18,7 @@ use WP_Error;
  * @group wc-login
  * @group wc
  */
-class LoginTest extends HCaptchaPluginWPTestCase {
-	/**
-	 * Plugin relative path.
-	 *
-	 * @var string
-	 */
-	protected static $plugin = 'woocommerce/woocommerce.php';
+class LoginTest extends WooCommerceTestCase {
 
 	/**
 	 * Test constructor and init_hooks().
