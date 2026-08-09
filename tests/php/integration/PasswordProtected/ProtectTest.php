@@ -30,6 +30,7 @@ class ProtectTest extends HCaptchaWPTestCase {
 
 		self::assertSame( 10, has_filter( 'password_protected_below_password_field', [ $subject, 'add_hcaptcha' ] ) );
 		self::assertSame( 10, has_action( 'password_protected_verify_recaptcha', [ $subject, 'verify' ] ) );
+		self::assertSame( 10, has_action( 'password_protected_login_head', [ hcaptcha(), 'print_inline_styles' ] ) );
 		self::assertSame( 20, has_action( 'password_protected_login_head', [ $subject, 'print_inline_styles' ] ) );
 	}
 
