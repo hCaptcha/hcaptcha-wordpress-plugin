@@ -14,6 +14,9 @@
 // - Comment form.
 // - Post/Page Password form.
 
+// ACF Extended forms handled here:
+// - Form containing a reCAPTCHA field replaced by hCaptcha.
+
 // Blocksy forms handled here:
 // - Newsletter Subscribe form.
 // - Product Review form.
@@ -94,6 +97,11 @@
 // - Login form.
 // - Registration form.
 
+// Ultimate Member forms handled here:
+// - Login form.
+// - Lost Password form.
+// - Member Register form.
+
 // Avada forms handled here:
 // - Avada Form.
 
@@ -102,6 +110,17 @@
 
 // Spectra forms handled here:
 // - Form block without a reCAPTCHA field.
+
+/**
+ * Mark the request when ACF Extended renders a reCAPTCHA field replaced by hCaptcha.
+ *
+ * @return void
+ */
+function hcap_forms_mark_acfe_form(): void {
+	$GLOBALS['hcap_forms_has_acfe_form'] = true;
+}
+
+add_action( 'acf/render_field/type=acfe_recaptcha', 'hcap_forms_mark_acfe_form', 0 );
 
 /**
  * Mark the request when WordPress renders a comment form.
@@ -636,6 +655,37 @@ function hcap_forms_mark_ultimate_addons_form( $element ): void {
 add_action( 'elementor/frontend/widget/before_render', 'hcap_forms_mark_ultimate_addons_form', 0 );
 
 /**
+ * Mark the request when Ultimate Member renders an hCaptcha form field.
+ *
+ * @param mixed  $output Field HTML output.
+ * @param string $mode   Form mode.
+ *
+ * @return mixed
+ */
+function hcap_forms_mark_ultimate_member_form( $output, string $mode ) {
+	if ( ! in_array( $mode, [ 'login', 'password', 'register' ], true ) ) {
+		return $output;
+	}
+
+	$GLOBALS['hcap_forms_has_ultimate_member_form'] = true;
+
+	return $output;
+}
+
+add_filter( 'um_hcaptcha_form_edit_field', 'hcap_forms_mark_ultimate_member_form', 0, 2 );
+
+/**
+ * Mark the request when Ultimate Member renders its lost password form.
+ *
+ * @return void
+ */
+function hcap_forms_mark_ultimate_member_lost_password_form(): void {
+	$GLOBALS['hcap_forms_has_ultimate_member_form'] = true;
+}
+
+add_action( 'um_after_password_reset_fields', 'hcap_forms_mark_ultimate_member_lost_password_form', 0 );
+
+/**
  * Mark the request when Avada renders a protected form.
  *
  * @return void
@@ -689,6 +739,7 @@ add_filter( 'render_block', 'hcap_forms_mark_spectra_form', 0, 2 );
  */
 function hcap_forms_delay_api_event( $delay_api_event ) {
 	if (
+		! empty( $GLOBALS['hcap_forms_has_acfe_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_wp_comment_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_wp_password_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_blocksy_form'] ) ||
@@ -715,6 +766,7 @@ function hcap_forms_delay_api_event( $delay_api_event ) {
 		! empty( $GLOBALS['hcap_forms_has_mailchimp_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_mailpoet_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_ultimate_addons_form'] ) ||
+		! empty( $GLOBALS['hcap_forms_has_ultimate_member_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_avada_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_maintenance_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_spectra_form'] )
