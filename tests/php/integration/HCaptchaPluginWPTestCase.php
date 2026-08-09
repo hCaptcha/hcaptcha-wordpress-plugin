@@ -12,6 +12,8 @@
 
 namespace HCaptcha\Tests\Integration;
 
+use WP_Theme;
+
 /**
  * Class HCaptchaPluginWPTestCase
  */
@@ -25,6 +27,13 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 	protected static $plugin;
 
 	/**
+	 * Theme stylesheet slug.
+	 *
+	 * @var string
+	 */
+	protected static string $theme = '';
+
+	/**
 	 * Plugins whose PHP entry files have been loaded in this process.
 	 *
 	 * @var array<string, bool>
@@ -32,11 +41,39 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 	protected static array $plugin_loaded = [];
 
 	/**
+	 * Themes whose PHP files have been loaded in this process.
+	 *
+	 * @var array<string, bool>
+	 */
+	protected static array $theme_loaded = [];
+
+	/**
+	 * Theme shortcode tags and the classes that register them.
+	 *
+	 * @var array<string, string>
+	 */
+	protected static array $theme_shortcode_classes = [];
+
+	/**
+	 * Shortcodes registered by loaded themes.
+	 *
+	 * @var array<string, array<string, callable>>
+	 */
+	protected static array $theme_shortcodes = [];
+
+	/**
 	 * Hooks to replay when plugins are loaded after the hooks fired.
 	 *
 	 * @var string[]
 	 */
 	protected static array $plugin_load_hooks = [];
+
+	/**
+	 * Expected incorrect usage notices caused by loading a theme after WordPress bootstrap.
+	 *
+	 * @var string[]
+	 */
+	protected static array $theme_expected_incorrect_usage = [];
 
 	/**
 	 * Teardown after class.
@@ -78,6 +115,8 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 
 		parent::setUp();
 
+		$this->load_test_theme();
+
 		$hook_callbacks = [];
 
 		foreach ( static::$plugin_load_hooks as $hook_name ) {
@@ -92,6 +131,121 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 		foreach ( $hook_callbacks as $hook_name => $previous_callbacks ) {
 			$this->run_late_hook_callbacks( $hook_name, $previous_callbacks );
 		}
+	}
+
+	/**
+	 * Load and activate a theme for the current test.
+	 *
+	 * @return void
+	 */
+	private function load_test_theme(): void {
+		if ( ! static::$theme ) {
+			return;
+		}
+
+		$theme = wp_get_theme( static::$theme );
+
+		if ( ! $theme->exists() || $theme->errors() ) {
+			self::markTestSkipped( 'The ' . static::$theme . ' theme is not installed.' );
+		}
+
+		$this->set_active_test_theme( $theme );
+
+		if ( isset( static::$theme_loaded[ static::$theme ] ) ) {
+			$this->load_test_theme_shortcodes();
+			return;
+		}
+
+		$this->initialize_test_theme( $theme );
+		$this->load_test_theme_shortcodes();
+
+		static::$theme_loaded[ static::$theme ] = true;
+	}
+
+	/**
+	 * Load theme files and replay its WordPress lifecycle callbacks.
+	 *
+	 * @param WP_Theme $theme Theme instance.
+	 *
+	 * @return void
+	 */
+	private function initialize_test_theme( WP_Theme $theme ): void {
+		$hook_callbacks      = [];
+		$previous_shortcodes = $GLOBALS['shortcode_tags'] ?? [];
+
+		foreach ( [ 'after_setup_theme', 'init', 'wp_loaded' ] as $hook_name ) {
+			$hook_callbacks[ $hook_name ] = $this->get_hook_callbacks( $hook_name );
+		}
+
+		foreach ( static::$theme_expected_incorrect_usage as $incorrect_usage ) {
+			$this->setExpectedIncorrectUsage( $incorrect_usage );
+		}
+
+		require_once $theme->get_template_directory() . '/functions.php';
+
+		foreach ( $hook_callbacks as $hook_name => $previous_callbacks ) {
+			for ( $pass = 0; $pass < 10; ++$pass ) {
+				$current_callbacks = $this->run_late_hook_callbacks( $hook_name, $previous_callbacks, true );
+
+				if ( $current_callbacks === $previous_callbacks ) {
+					break;
+				}
+
+				$previous_callbacks = $current_callbacks;
+			}
+		}
+
+		static::$theme_shortcodes[ static::$theme ] = array_diff_key(
+			$GLOBALS['shortcode_tags'] ?? [],
+			$previous_shortcodes
+		);
+	}
+
+	/**
+	 * Load lazy theme modules and restore their shortcode callbacks.
+	 *
+	 * @return void
+	 */
+	private function load_test_theme_shortcodes(): void {
+		foreach ( static::$theme_shortcodes[ static::$theme ] ?? [] as $tag => $callback ) {
+			add_shortcode( $tag, $callback );
+		}
+
+		foreach ( static::$theme_shortcode_classes as $class_name ) {
+			if ( class_exists( $class_name ) ) {
+				new $class_name();
+			}
+		}
+	}
+
+	/**
+	 * Make a theme active for the current test.
+	 *
+	 * @param WP_Theme $theme Theme instance.
+	 *
+	 * @return void
+	 */
+	private function set_active_test_theme( WP_Theme $theme ): void {
+		$template   = $theme->get_template();
+		$stylesheet = $theme->get_stylesheet();
+
+		add_filter(
+			'pre_option_template',
+			static function () use ( $template ) {
+				return $template;
+			},
+			PHP_INT_MIN
+		);
+		add_filter(
+			'pre_option_stylesheet',
+			static function () use ( $stylesheet ) {
+				return $stylesheet;
+			},
+			PHP_INT_MIN
+		);
+
+		$GLOBALS['wp_template_path']   = $theme->get_template_directory();
+		$GLOBALS['wp_stylesheet_path'] = $theme->get_stylesheet_directory();
 	}
 
 	/**
@@ -152,12 +306,13 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 	 *
 	 * @param string $hook_name          Hook name.
 	 * @param array  $previous_callbacks Callbacks registered before plugin activation.
+	 * @param bool   $force              Run callbacks even when the hook counter was reset by the test runner.
 	 *
-	 * @return void
+	 * @return array
 	 */
-	private function run_late_hook_callbacks( string $hook_name, array $previous_callbacks ): void {
-		if ( ! did_action( $hook_name ) ) {
-			return;
+	private function run_late_hook_callbacks( string $hook_name, array $previous_callbacks, bool $force = false ): array {
+		if ( ! $force && ! did_action( $hook_name ) ) {
+			return $previous_callbacks;
 		}
 
 		foreach ( $this->get_hook_callbacks( $hook_name ) as $priority => $callbacks ) {
@@ -166,8 +321,12 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 					continue;
 				}
 
+				$previous_callbacks[ $priority ][ $callback_id ] = $callback;
+
 				call_user_func( $callback['function'] );
 			}
 		}
+
+		return $previous_callbacks;
 	}
 }

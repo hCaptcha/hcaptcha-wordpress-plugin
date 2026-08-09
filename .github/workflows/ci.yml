@@ -208,7 +208,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: kagg-design/hcaptcha-test-plugins
-          ref: c671467e2e21d48f0d6f93e41d367844b9a3103e # Elementor Pro 4.2.1, Ultimate Addons 1.39.5
+          ref: main
           token: ${{ secrets.ELEMENTOR_PRO_CI_TOKEN }}
           path: hcaptcha-test-plugins
           persist-credentials: false
@@ -261,14 +261,16 @@ jobs:
         working-directory: ${{ env.wp-directory }}
         run: wp plugin install bbpress buddypress contact-form-7 elementor essential-addons-for-elementor-lite jetpack metform ninja-forms ultimate-member woocommerce wordfence-login-security wpforms-lite wpforo
 
-      - name: Install private test plugins
+      - name: Install private test plugins and theme
         if: steps.test_plugins.outputs.available == 'true'
         working-directory: ${{ env.wp-directory }}
         run: |
           wp plugin install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/elementor-pro-4.2.1.zip"
           wp plugin install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/ultimate-elementor-1.39.5.zip"
+          wp theme install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/Divi-4.27.6.zip"
           wp plugin is-installed elementor-pro
           wp plugin is-installed ultimate-elementor
+          wp theme is-installed Divi
 
       - name: Run WP tests with private test plugins
         if: steps.test_plugins.outputs.available == 'true'
