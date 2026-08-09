@@ -32,6 +32,14 @@
 // - Multi-Step form.
 // - Regular form.
 
+// Gravity Forms forms handled here:
+// - Form using automatic or embedded hCaptcha mode.
+// - Gravity Perks Nested Form.
+
+// Kadence forms handled here:
+// - Advanced Form.
+// - Form.
+
 // MetForm forms handled here:
 // - Form.
 
@@ -188,6 +196,65 @@ function hcap_forms_mark_forminator_form( $id, string $form_type ): void {
 }
 
 add_action( 'forminator_before_form_render', 'hcap_forms_mark_forminator_form', 0, 2 );
+
+/**
+ * Mark the request when Gravity Forms renders a protected form.
+ *
+ * @param string|mixed $markup Form opening markup.
+ * @param array        $form   Form data and settings.
+ *
+ * @return string
+ */
+function hcap_forms_mark_gravity_form( $markup, array $form ): string {
+	$settings = function_exists( 'hcaptcha' ) ? hcaptcha()->settings() : null;
+
+	if ( $settings && $settings->is( 'gravity_status', 'form' ) ) {
+		$GLOBALS['hcap_forms_has_gravity_form'] = true;
+
+		return (string) $markup;
+	}
+
+	$embed = $settings && $settings->is( 'gravity_status', 'embed' );
+
+	foreach ( (array) ( $form['fields'] ?? [] ) as $field ) {
+		$type    = is_object( $field ) ? ( $field->type ?? '' ) : '';
+		$content = is_object( $field ) ? ( $field->content ?? '' ) : '';
+
+		if ( ( $embed && 'hcaptcha' === $type ) || has_shortcode( $content, 'hcaptcha' ) ) {
+			$GLOBALS['hcap_forms_has_gravity_form'] = true;
+
+			break;
+		}
+	}
+
+	return (string) $markup;
+}
+
+add_filter( 'gform_form_after_open', 'hcap_forms_mark_gravity_form', 0, 2 );
+
+/**
+ * Mark the request when WordPress renders a protected Kadence form block.
+ *
+ * @param string|mixed $block_content Block content.
+ * @param array        $block         Block data.
+ *
+ * @return string|mixed
+ */
+function hcap_forms_mark_kadence_form( $block_content, array $block ) {
+	$block_names = [
+		'kadence/form',
+		'kadence/advanced-form-captcha',
+		'kadence/advanced-form-submit',
+	];
+
+	if ( in_array( $block['blockName'] ?? '', $block_names, true ) ) {
+		$GLOBALS['hcap_forms_has_kadence_form'] = true;
+	}
+
+	return $block_content;
+}
+
+add_filter( 'render_block', 'hcap_forms_mark_kadence_form', 0, 2 );
 
 /**
  * Mark the request when MetForm renders a submit button widget.
@@ -469,6 +536,8 @@ function hcap_forms_delay_api_event( $delay_api_event ) {
 			empty( $GLOBALS['hcap_forms_has_fluent_conversational_form'] )
 		) ||
 		! empty( $GLOBALS['hcap_forms_has_forminator_form'] ) ||
+		! empty( $GLOBALS['hcap_forms_has_gravity_form'] ) ||
+		! empty( $GLOBALS['hcap_forms_has_kadence_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_metform_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_ninja_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_woocommerce_form'] ) ||
