@@ -15,7 +15,8 @@ namespace HCaptcha\Tests\Integration\Maintenance;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Utils;
 use HCaptcha\Maintenance\Login;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use MTNC;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
 use WP_User;
@@ -26,7 +27,14 @@ use WP_User;
  * @group maintenance-login
  * @group maintenance
  */
-class LoginTest extends HCaptchaWPTestCase {
+class LoginTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * Maintenance plugin entry file.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'maintenance/maintenance.php';
 
 	/**
 	 * Tear down the test.
@@ -42,6 +50,10 @@ class LoginTest extends HCaptchaWPTestCase {
 	 * Test constructor and init_hooks().
 	 */
 	public function test_constructor_and_init_hooks(): void {
+		self::assertTrue( is_plugin_active( static::$plugin ) );
+		self::assertTrue( class_exists( 'MTNC', false ) );
+		self::assertInstanceOf( MTNC::class, $GLOBALS['wf_mtnc'] );
+
 		$subject = new Login();
 
 		self::assertSame( 10, has_action( 'mtnc_load_options_style', [ hcaptcha(), 'print_inline_styles' ] ) );
@@ -54,6 +66,8 @@ class LoginTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test render flow.
+	 *
+	 * @noinspection PhpUnusedLocalVariableInspection
 	 */
 	public function test_render(): void {
 		$footer_scripts = '<!-- footer-scripts -->';
@@ -83,7 +97,6 @@ class LoginTest extends HCaptchaWPTestCase {
 		);
 		add_filter( 'script_loader_tag', 'mtnc_defer_scripts', 10, 2 );
 
-		$form      = '<form><input type="text" name="login" /><input type="submit" value="Login"></form>';
 		$args      = [
 			'action' => 'hcaptcha_maintenance_login',
 			'name'   => 'hcaptcha_maintenance_login_nonce',
@@ -93,37 +106,19 @@ class LoginTest extends HCaptchaWPTestCase {
 			],
 		];
 		$hcap_form = $this->get_hcap_form( $args );
-		$search    = '<input type="submit"';
-		$expected  = str_replace( $search, "\n" . $hcap_form . "\n" . $search, $form );
+		$output    = $this->render_maintenance_page();
 
-		// Start buffering and emit a minimal form.
-		$subject->after_main_container();
-
-		ob_start();
-
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		echo $form;
-
-		$subject->add_hcaptcha();
-
-		$output = ob_get_clean();
-
-		// hCaptcha should be injected before the 'submit' input and footer scripts should be printed.
-		self::assertSame( 0, strpos( $output, $expected ) );
+		// The real Maintenance login form should contain hCaptcha before the `submit` input.
+		self::assertStringContainsString( '<form name="login-form" id="login-form"', $output );
+		self::assertStringContainsString( '<input type="hidden" name="is_custom_login" value="1"', $output );
+		self::assertStringContainsString( $hcap_form, $output );
+		self::assertStringContainsString( $footer_scripts, $output );
+		self::assertLessThan( strpos( $output, '<input type="submit"' ), strpos( $output, $hcap_form ) );
 		self::assertFalse( has_filter( 'script_loader_tag', 'mtnc_defer_scripts' ) );
 
 		add_filter( 'hcap_delay_api_event', '__return_true' );
 
-		$subject->after_main_container();
-
-		ob_start();
-
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		echo $form;
-
-		$subject->add_hcaptcha();
-
-		$output = ob_get_clean();
+		$output = $this->render_maintenance_page();
 
 		remove_filter( 'hcap_delay_api_event', '__return_true' );
 
@@ -134,8 +129,6 @@ class LoginTest extends HCaptchaWPTestCase {
 	 * Test render flow when an error message is set by verify(): it should be displayed in span.login-error.
 	 */
 	public function test_render_injection_with_error_message(): void {
-		$footer_scripts = '<!-- footer-scripts -->';
-
 		$subject = new Login();
 
 		// Simulate Maintenance custom login POST and exceeded limit.
@@ -152,42 +145,17 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		$subject->verify( $user, 'pass' );
 
-		// Start buffering and emit a form with a login-error span.
-		$subject->after_main_container();
+		// Keep the hCaptcha error on the integration while rendering an unsubmitted real form.
+		unset( $_POST['is_custom_login'] );
 
-		add_action(
-			'wp_print_footer_scripts',
-			static function () use ( $footer_scripts ) {
-				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-				echo $footer_scripts;
-			}
+		$output = $this->render_maintenance_page();
+
+		self::assertStringContainsString( '<form name="login-form" id="login-form"', $output );
+		self::assertStringContainsString(
+			'<span class="login-error"><strong>hCaptcha error:</strong> The hCaptcha is invalid.</span>',
+			$output
 		);
-
-		$form      = '<form><span class="login-error">Some old error</span><input type="text" name="login" /><input type="submit" value="Login"></form>';
-		$args      = [
-			'action' => 'hcaptcha_maintenance_login',
-			'name'   => 'hcaptcha_maintenance_login_nonce',
-			'id'     => [
-				'source'  => [ 'maintenance/maintenance.php' ],
-				'form_id' => 'login',
-			],
-		];
-		$hcap_form = $this->get_hcap_form( $args );
-		$search    = '<input type="submit"';
-		$expected  = str_replace( $search, "\n" . $hcap_form . "\n" . $search, $form );
-		$expected  = preg_replace( '#(<span class="login-error">).*?(</span>)#', '$1<strong>hCaptcha error:</strong> The hCaptcha is invalid.$2', $expected );
-
-		ob_start();
-
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		echo $form;
-
-		$subject->add_hcaptcha();
-
-		$output = ob_get_clean();
-
-		// hCaptcha should be injected before the 'submit' input and footer scripts should be printed.
-		self::assertSame( 0, strpos( $output, $expected ) );
+		self::assertStringContainsString( 'name="hcaptcha_maintenance_login_nonce"', $output );
 	}
 
 	/**
@@ -348,5 +316,44 @@ CSS;
 		];
 
 		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
+	}
+
+	/**
+	 * Render the real Maintenance frontend template.
+	 *
+	 * @return string
+	 * @noinspection PhpUndefinedConstantInspection
+	 */
+	private function render_maintenance_page(): string {
+		global $wf_mtnc;
+
+		$options      = $wf_mtnc->get_options();
+		$test_options = array_merge(
+			$options,
+			[
+				'login_button'     => '1',
+				'no_cache_headers' => '0',
+				'blockse'          => '0',
+			]
+		);
+		$buffer_level = ob_get_level();
+
+		$wf_mtnc->update_options( 'options', $test_options );
+
+		ob_start();
+
+		try {
+			require MTNC_LOAD . 'index.php';
+
+			$output = ob_get_clean();
+		} finally {
+			while ( ob_get_level() > $buffer_level ) {
+				ob_end_clean();
+			}
+
+			$wf_mtnc->update_options( 'options', $options );
+		}
+
+		return $output;
 	}
 }

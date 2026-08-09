@@ -259,7 +259,7 @@ jobs:
 
       - name: Install plugins
         working-directory: ${{ env.wp-directory }}
-        run: wp plugin install bbpress buddypress contact-form-7 elementor essential-addons-for-elementor-lite jetpack mailchimp-for-wp metform ninja-forms ultimate-member woocommerce wordfence-login-security wpforms-lite wpforo
+        run: wp plugin install bbpress buddypress contact-form-7 elementor essential-addons-for-elementor-lite jetpack maintenance mailchimp-for-wp metform ninja-forms ultimate-member woocommerce wordfence-login-security wpforms-lite wpforo
 
       - name: Install private test plugins and themes
         if: steps.test_plugins.outputs.available == 'true'
