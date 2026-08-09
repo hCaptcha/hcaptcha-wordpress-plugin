@@ -23,6 +23,11 @@
 // Elementor Pro forms handled here:
 // - Form widget containing an hCaptcha field.
 
+// Fluent Forms forms handled here:
+// - Login form.
+// - Multi-Step form.
+// - Regular form.
+
 // WooCommerce forms handled here:
 // - Add a Payment Method form.
 // - Checkout form (classic and block).
@@ -126,6 +131,35 @@ function hcap_forms_mark_elementor_pro_form(): void {
 }
 
 add_action( 'elementor_pro/forms/render_field/hcaptcha', 'hcap_forms_mark_elementor_pro_form', 0 );
+
+/**
+ * Mark the request when Fluent Forms renders a form.
+ *
+ * @param mixed $form Form data.
+ *
+ * @return mixed
+ */
+function hcap_forms_mark_fluent_form( $form ) {
+	$GLOBALS['hcap_forms_has_fluent_form'] = true;
+
+	return $form;
+}
+
+add_filter( 'fluentform/rendering_form', 'hcap_forms_mark_fluent_form', 0 );
+
+/**
+ * Mark the request when Fluent Forms renders a conversational form.
+ *
+ * Conversational forms load their interactive markup only after hCaptcha loads,
+ * so they cannot use the built-in form interaction trigger.
+ *
+ * @return void
+ */
+function hcap_forms_mark_fluent_conversational_form(): void {
+	$GLOBALS['hcap_forms_has_fluent_conversational_form'] = true;
+}
+
+add_action( 'fluentform/conversational_enqueue_assets', 'hcap_forms_mark_fluent_conversational_form', 0 );
 
 /**
  * Mark the request when WooCommerce renders an action-based protected form.
@@ -363,6 +397,10 @@ function hcap_forms_delay_api_event( $delay_api_event ) {
 		! empty( $GLOBALS['hcap_forms_has_jetpack_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_cf7_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_elementor_pro_form'] ) ||
+		(
+			! empty( $GLOBALS['hcap_forms_has_fluent_form'] ) &&
+			empty( $GLOBALS['hcap_forms_has_fluent_conversational_form'] )
+		) ||
 		! empty( $GLOBALS['hcap_forms_has_woocommerce_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_wpforms_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_divi_form'] ) ||
