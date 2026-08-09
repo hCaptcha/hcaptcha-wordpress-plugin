@@ -57,6 +57,12 @@
 // Ninja Forms forms handled here:
 // - Form containing an hCaptcha field.
 
+// Otter Blocks forms handled here:
+// - Form block.
+
+// Password Protected forms handled here:
+// - Site Password form.
+
 // WooCommerce forms handled here:
 // - Add a Payment Method form.
 // - Checkout form (classic and block).
@@ -405,6 +411,35 @@ function hcap_forms_mark_ninja_form( $field ) {
 add_filter( 'ninja_forms_localize_field_hcaptcha-for-ninja-forms', 'hcap_forms_mark_ninja_form', 0 );
 
 /**
+ * Mark the request when WordPress renders an Otter form block.
+ *
+ * @param string|mixed $block_content Block content.
+ * @param array        $block         Block data.
+ *
+ * @return string|mixed
+ */
+function hcap_forms_mark_otter_form( $block_content, array $block ) {
+	if ( 'themeisle-blocks/form' === ( $block['blockName'] ?? '' ) ) {
+		$GLOBALS['hcap_forms_has_otter_form'] = true;
+	}
+
+	return $block_content;
+}
+
+add_filter( 'render_block', 'hcap_forms_mark_otter_form', 0, 2 );
+
+/**
+ * Mark the request when Password Protected renders its site password form.
+ *
+ * @return void
+ */
+function hcap_forms_mark_password_protected_form(): void {
+	$GLOBALS['hcap_forms_has_password_protected_form'] = true;
+}
+
+add_action( 'password_protected_below_password_field', 'hcap_forms_mark_password_protected_form', 0 );
+
+/**
  * Mark the request when WooCommerce renders an action-based protected form.
  *
  * @return void
@@ -671,6 +706,8 @@ function hcap_forms_delay_api_event( $delay_api_event ) {
 		! empty( $GLOBALS['hcap_forms_has_kadence_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_metform_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_ninja_form'] ) ||
+		! empty( $GLOBALS['hcap_forms_has_otter_form'] ) ||
+		! empty( $GLOBALS['hcap_forms_has_password_protected_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_woocommerce_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_wpforms_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_divi_form'] ) ||
