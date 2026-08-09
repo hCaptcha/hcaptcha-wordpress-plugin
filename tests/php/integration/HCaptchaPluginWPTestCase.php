@@ -41,6 +41,20 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 	protected static array $plugin_loaded = [];
 
 	/**
+	 * Hooks registered by loaded plugins.
+	 *
+	 * @var array<string, array<string, array<int, array<string, array>>>>
+	 */
+	protected static array $plugin_hooks = [];
+
+	/**
+	 * Shortcodes registered by loaded plugins.
+	 *
+	 * @var array<string, array<string, callable>>
+	 */
+	protected static array $plugin_shortcodes = [];
+
+	/**
 	 * Themes whose PHP files have been loaded in this process.
 	 *
 	 * @var array<string, bool>
@@ -95,6 +109,7 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 				'contact-form-7/wp-contact-form-7.php',
 				'elementor/elementor.php',
 				'elementor-pro/elementor-pro.php',
+				'mailchimp-for-wp/mailchimp-for-wp.php',
 				'ninja-forms/ninja-forms.php',
 				'woocommerce/woocommerce.php',
 			],
@@ -117,7 +132,13 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 
 		$this->load_test_theme();
 
-		$hook_callbacks = [];
+		$hook_callbacks      = [];
+		$plugin_key          = implode( '|', (array) static::$plugin );
+		$previous_shortcodes = $GLOBALS['shortcode_tags'] ?? [];
+
+		$this->load_test_plugin_hooks( $plugin_key );
+
+		$previous_plugin_hooks = $this->get_all_hook_callbacks();
 
 		foreach ( static::$plugin_load_hooks as $hook_name ) {
 			$hook_callbacks[ $hook_name ] = $this->get_hook_callbacks( $hook_name );
@@ -130,6 +151,77 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 
 		foreach ( $hook_callbacks as $hook_name => $previous_callbacks ) {
 			$this->run_late_hook_callbacks( $hook_name, $previous_callbacks );
+		}
+
+		$this->store_test_plugin_hooks( $plugin_key, $previous_plugin_hooks );
+		$this->load_test_plugin_shortcodes( $plugin_key, $previous_shortcodes );
+	}
+
+	/**
+	 * Restore callbacks registered by test plugins.
+	 *
+	 * @param string $plugin_key Plugin entry files identifying the test group.
+	 *
+	 * @return void
+	 */
+	private function load_test_plugin_hooks( string $plugin_key ): void {
+		foreach ( static::$plugin_hooks[ $plugin_key ] ?? [] as $hook_name => $priorities ) {
+			foreach ( $priorities as $priority => $callbacks ) {
+				foreach ( $callbacks as $callback ) {
+					add_filter( $hook_name, $callback['function'], $priority, $callback['accepted_args'] );
+				}
+			}
+		}
+	}
+
+	/**
+	 * Store callbacks registered while test plugins were activated.
+	 *
+	 * @param string $plugin_key     Plugin entry files identifying the test group.
+	 * @param array  $previous_hooks Hooks registered before plugin activation.
+	 *
+	 * @return void
+	 */
+	private function store_test_plugin_hooks( string $plugin_key, array $previous_hooks ): void {
+		if ( ! $plugin_key ) {
+			return;
+		}
+
+		foreach ( $this->get_all_hook_callbacks() as $hook_name => $priorities ) {
+			foreach ( $priorities as $priority => $callbacks ) {
+				foreach ( $callbacks as $callback_id => $callback ) {
+					if ( isset( $previous_hooks[ $hook_name ][ $priority ][ $callback_id ] ) ) {
+						continue;
+					}
+
+					static::$plugin_hooks[ $plugin_key ][ $hook_name ][ $priority ][ $callback_id ] = $callback;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Store and restore shortcode callbacks registered by test plugins.
+	 *
+	 * @param string $plugin_key          Plugin entry files identifying the test group.
+	 * @param array  $previous_shortcodes Shortcodes registered before plugin activation.
+	 *
+	 * @return void
+	 */
+	private function load_test_plugin_shortcodes( string $plugin_key, array $previous_shortcodes ): void {
+		if ( ! $plugin_key ) {
+			return;
+		}
+
+		$new_shortcodes = array_diff_key( $GLOBALS['shortcode_tags'] ?? [], $previous_shortcodes );
+
+		static::$plugin_shortcodes[ $plugin_key ] = array_merge(
+			static::$plugin_shortcodes[ $plugin_key ] ?? [],
+			$new_shortcodes
+		);
+
+		foreach ( static::$plugin_shortcodes[ $plugin_key ] as $tag => $callback ) {
+			add_shortcode( $tag, $callback );
 		}
 	}
 
@@ -257,6 +349,21 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 	 */
 	private function get_hook_callbacks( string $hook_name ): array {
 		return $GLOBALS['wp_filter'][ $hook_name ]->callbacks ?? [];
+	}
+
+	/**
+	 * Get callbacks currently registered on all hooks.
+	 *
+	 * @return array
+	 */
+	private function get_all_hook_callbacks(): array {
+
+		return array_map(
+			static function ( $hook ) {
+				return $hook->callbacks;
+			},
+			$GLOBALS['wp_filter']
+		);
 	}
 
 	/**
