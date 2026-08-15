@@ -24,7 +24,7 @@ class LoginOut extends LoginBase {
 	protected function init_hooks(): void {
 		parent::init_hooks();
 
-		add_filter( 'login_form_middle', [ $this, 'add_wp_login_out_hcaptcha' ], 10, 2 );
+		add_filter( 'login_form_middle', [ $this, 'add_wp_login_out_hcaptcha' ], PHP_INT_MAX - 1, 2 );
 	}
 
 	/**
@@ -39,7 +39,10 @@ class LoginOut extends LoginBase {
 	public function add_wp_login_out_hcaptcha( $content, $args ): string {
 		$content = (string) $content;
 
-		if ( ! $this->is_wp_login_out_form() ) {
+		if (
+			! $this->is_wp_login_out_form() ||
+			false !== strpos( $content, 'name="' . HCaptcha::HCAPTCHA_WIDGET_ID . '"' )
+		) {
 			return $content;
 		}
 
