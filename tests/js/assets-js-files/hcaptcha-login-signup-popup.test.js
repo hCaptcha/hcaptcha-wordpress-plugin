@@ -24,6 +24,12 @@ describe( 'hCaptcha Login Signup Popup', () => {
 		expect( window.hCaptchaBindEvents ).not.toHaveBeenCalled();
 
 		$( document ).trigger( 'ajaxSuccess', [ {}, { data: 'xoo_el_form_action=login' } ] );
-		expect( window.hCaptchaBindEvents ).toHaveBeenCalledTimes( 1 );
+
+		const formData = new FormData();
+		formData.append( 'action', 'xoo_el_form_action' );
+		$( document ).trigger( 'ajaxSuccess', [ {}, { data: formData } ] );
+
+		$( document ).trigger( 'ajaxSuccess', [ {}, { data: { action: 'xoo_el_form_action' } } ] );
+		expect( window.hCaptchaBindEvents ).toHaveBeenCalledTimes( 3 );
 	} );
 } );

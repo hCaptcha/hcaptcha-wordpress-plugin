@@ -1019,6 +1019,7 @@ Instructions for popular native integrations are below:
 = 5.3.0 =
 * Added an option to delay the hCaptcha API until the user interacts with a Jetpack form, Fluent Forms, Forminator, Metforms, Ninja Forms.
 * Fixed “Bad hCaptcha signature” errors on WordPress and bbPress login, registration, and lost password forms.
+* Fixed hCaptcha reinitialization after Login/Signup Popup AJAX submissions using FormData.
 
 = 5.2.0 =
 * Added MetForm integration.
