@@ -8,6 +8,7 @@
 namespace HCaptcha\Tests\Integration\WP;
 
 use HCaptcha\Abstracts\LoginBase;
+use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WP\Login;
@@ -32,11 +33,13 @@ class LoginTest extends HCaptchaWPTestCase {
 		unset(
 			$_POST['log'],
 			$_POST['pwd'],
+			$_SERVER['REQUEST_METHOD'],
 			$_SERVER['REMOTE_ADDR'],
 			$GLOBALS['wp_action']['login_init'],
 			$GLOBALS['wp_action']['login_form_login'],
 			$GLOBALS['wp_filters']['login_link_separator']
 		);
+		delete_transient( AutoVerify::TRANSIENT );
 
 		parent::tearDown();
 	}
@@ -52,6 +55,14 @@ class LoginTest extends HCaptchaWPTestCase {
 		self::assertSame( PHP_INT_MAX, has_filter( 'login_form_middle', [ $subject, 'add_signature' ] ) );
 		self::assertSame( PHP_INT_MAX, has_filter( 'wp_authenticate_user', [ $subject, 'check_signature' ] ) );
 		self::assertSame( 100, has_filter( 'authenticate', [ $subject, 'hide_login_error' ] ) );
+		self::assertSame(
+			10,
+			has_filter( 'hcap_auto_verify_unmatched_form', [ $subject, 'defer_auto_verification' ] )
+		);
+		self::assertSame(
+			10,
+			has_filter( 'hcap_wp_login_can_skip_verification', [ $subject, 'allow_wp_login_skip_verification' ] )
+		);
 
 		self::assertSame( 10, has_action( 'wp_login', [ $subject, 'login' ] ) );
 		self::assertSame( 10, has_action( 'wp_login_failed', [ $subject, 'login_failed' ] ) );
@@ -178,6 +189,104 @@ class LoginTest extends HCaptchaWPTestCase {
 		// phpcs:enable WordPress.WP.GlobalVariablesOverride.Prohibited
 
 		self::assertEquals( $expected, $subject->check_signature( $user, $password ) );
+	}
+
+	/**
+	 * Test check_signature() when another login integration verifies the request.
+	 *
+	 * @return void
+	 */
+	public function test_check_signature_when_other_integration_verifies_request(): void {
+		$user     = wp_get_current_user();
+		$password = 'some password';
+
+		FunctionMocker::replace( '\HCaptcha\Helpers\HCaptcha::check_signature', true );
+		add_filter( 'hcap_login_limit_exceeded', '__return_true' );
+		add_filter( 'hcap_wp_login_can_skip_verification', '__return_true' );
+
+		$subject = new Login();
+
+		// phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
+		$GLOBALS['wp_actions']['login_init']           = 1;
+		$GLOBALS['wp_actions']['login_form_login']     = 1;
+		$GLOBALS['wp_filters']['login_link_separator'] = 1;
+		// phpcs:enable WordPress.WP.GlobalVariablesOverride.Prohibited
+
+		self::assertSame( $user, $subject->check_signature( $user, $password ) );
+	}
+
+	/**
+	 * Test AutoVerify defers a native login request that owns its signed widget.
+	 *
+	 * @return void
+	 */
+	public function test_auto_verify_defers_native_login_request(): void {
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$_SERVER['REQUEST_URI']    = '/wp-login.php';
+
+		$this->prepare_native_login_owner_post();
+		$this->register_bbpress_lost_password_auto_form();
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$expected = $_POST;
+		$die_arr  = [];
+
+		add_filter(
+			'wp_die_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		new Login();
+		( new AutoVerify() )->verify();
+
+		self::assertSame( [], $die_arr );
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		self::assertSame( $expected, $_POST );
+	}
+
+	/**
+	 * Test AutoVerify rejects a native login request without a valid owner signature.
+	 *
+	 * @return void
+	 */
+	public function test_auto_verify_rejects_native_login_request_with_bad_owner_signature(): void {
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$_SERVER['REQUEST_URI']    = '/wp-login.php';
+
+		$this->prepare_native_login_owner_post( false );
+		$this->register_bbpress_lost_password_auto_form();
+
+		$die_arr  = [];
+		$expected = [
+			'Bad hCaptcha signature!',
+			'hCaptcha',
+			[
+				'back_link' => true,
+				'response'  => 403,
+			],
+		];
+
+		add_filter(
+			'wp_die_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		new Login();
+		( new AutoVerify() )->verify();
+
+		self::assertSame( $expected, $die_arr );
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		self::assertSame( [], $_POST );
 	}
 
 	/**
@@ -520,5 +629,51 @@ class LoginTest extends HCaptchaWPTestCase {
 		];
 
 		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
+	}
+
+	/**
+	 * Prepare a native login request with its signed widget owner.
+	 *
+	 * @param bool $valid_signature Whether to use a valid owner signature.
+	 *
+	 * @return void
+	 */
+	private function prepare_native_login_owner_post( bool $valid_signature = true ): void {
+		$this->prepare_widget_id();
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$name = HCaptcha::HCAPTCHA_SIGNATURE . '-' . base64_encode( Login::class );
+
+		$_POST['log']   = 'some login';
+		$_POST['pwd']   = 'some password';
+		$_POST[ $name ] = $valid_signature ?
+			$this->get_encoded_signature( Login::class, [ 'WordPress' ], 'login', true ) :
+			'bad-signature';
+	}
+
+	/**
+	 * Register a colliding bbPress lost-password form on the login endpoint.
+	 *
+	 * @return void
+	 */
+	private function register_bbpress_lost_password_auto_form(): void {
+		$id         = [
+			'source'  => [ 'bbpress/bbpress.php' ],
+			'form_id' => 'lost_password',
+		];
+		$login_path = untrailingslashit( (string) wp_parse_url( wp_login_url(), PHP_URL_PATH ) );
+
+		set_transient(
+			AutoVerify::TRANSIENT,
+			[
+				$login_path => [
+					[
+						'inputs'    => [ 'user_login' ],
+						'args'      => [ 'id' => $id ],
+						'widget_id' => HCaptcha::widget_id_value( $id ),
+					],
+				],
+			]
+		);
 	}
 }

@@ -10,6 +10,7 @@ namespace HCaptcha\Tests\Integration\BBPress;
 use HCaptcha\BBPress\Register;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use HCaptcha\WP\Register as WPRegister;
 use WP_Error;
 
 /**
@@ -32,6 +33,11 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 
 		self::assertSame( 10, has_filter( 'do_shortcode_tag', [ $subject, 'add_captcha' ] ) );
 		self::assertSame( 10, has_filter( 'registration_errors', [ $subject, 'verify' ] ) );
+		self::assertSame( 10, has_filter( 'hcap_registration_request_owner', [ $subject, 'claim_request_owner' ] ) );
+		self::assertSame(
+			10,
+			has_filter( 'hcap_auto_verify_unmatched_form', [ $subject, 'defer_auto_verification' ] )
+		);
 
 		hcaptcha()->settings()->set( 'bbp_status', 'some' );
 
@@ -132,6 +138,27 @@ HTML;
 		$this->prepare_widget_id();
 
 		self::assertEquals( $expected, $subject->verify( $errors, $sanitized_user_login, $user_email ) );
+	}
+
+	/**
+	 * Test verify() skips a request owned by the native WordPress verifier.
+	 *
+	 * @return void
+	 */
+	public function test_verify_skips_wordpress_owner(): void {
+		$errors  = new WP_Error( 'some code', 'some message' );
+		$subject = new Register();
+
+		new WPRegister();
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'WordPress' ],
+				'form_id' => 'register',
+			]
+		);
+
+		self::assertSame( $errors, $subject->verify( $errors, '', '' ) );
 	}
 
 	/**

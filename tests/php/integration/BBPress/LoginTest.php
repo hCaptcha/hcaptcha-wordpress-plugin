@@ -27,27 +27,23 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	public function test_init_hooks(): void {
 		$subject = new Login();
 
-		self::assertSame( 10, has_filter( 'do_shortcode_tag', [ $subject, 'do_shortcode_tag' ] ) );
+		self::assertSame( 10, has_filter( 'bbp_get_template_part', [ $subject, 'mark_template_login_form' ] ) );
+		self::assertSame( 10, has_filter( 'bbp_login_widget_title', [ $subject, 'mark_widget_login_form' ] ) );
+		self::assertSame( 10, has_action( 'login_form', [ $subject, 'add_bbpress_captcha' ] ) );
+		self::assertSame( 10, has_filter( 'hcap_auto_verify_unmatched_form', [ $subject, 'defer_auto_verification' ] ) );
+		self::assertSame(
+			10,
+			has_filter( 'hcap_wp_login_can_skip_verification', [ $subject, 'allow_wp_login_skip_verification' ] )
+		);
 	}
 
 	/**
-	 * Test do_shortcode_tag().
+	 * Test adding hCaptcha to a template-based login form.
 	 *
 	 * @return void
-	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function test_do_shortcode_tag(): void {
-		$tag  = 'bbp-login';
-		$attr = [];
-		$m    = [];
-
-		$placeholder = '===hcaptcha placeholder===';
-		$template    = <<<HTML
-<form action="https://test.test/wp-login.php">
-		$placeholder<button type="submit"/>
-</form>
-HTML;
-
+	public function test_template_login_form(): void {
+		$templates = [ 'form-user-login.php' ];
 		$args      = [
 			'action' => 'hcaptcha_login',
 			'name'   => 'hcaptcha_login_nonce',
@@ -56,49 +52,123 @@ HTML;
 				'form_id' => 'login',
 			],
 		];
-		$hcaptcha  = $this->get_hcap_form( $args );
-		$signature = HCaptcha::get_signature( Login::class, 'login', true );
-
-		$output   = str_replace( $placeholder, '', $template );
-		$expected = str_replace( $placeholder, $hcaptcha . $signature . "\n", $template );
+		$expected  = $this->get_hcap_form( $args );
 
 		$subject = new Login();
 
-		// Wrong tag.
-		self::assertSame( $output, $subject->do_shortcode_tag( $output, 'some', $attr, $m ) );
-
-		// Logged in.
-		wp_set_current_user( 1 );
-
-		self::assertSame( $output, $subject->do_shortcode_tag( $output, $tag, $attr, $m ) );
-
-		// Login limit not exceeded.
-		wp_set_current_user( 0 );
-		add_filter(
-			'hcap_login_limit_exceeded',
-			static function ( $value ) use ( &$limit_exceeded ) {
-				return $limit_exceeded;
-			}
-		);
-
-		$limit_exceeded = false;
-
-		self::assertSame( $output, $subject->do_shortcode_tag( $output, $tag, $attr, $m ) );
-
-		// Status is 'login'.
-		$limit_exceeded = true;
+		ob_start();
+		self::assertSame( $templates, $subject->mark_template_login_form( $templates, 'some', 'user-login' ) );
+		$subject->add_bbpress_captcha();
+		self::assertSame( '', ob_get_clean() );
 
 		hcaptcha()->settings()->set( 'bbp_status', 'login' );
 
-		self::assertSame( $expected, $subject->do_shortcode_tag( $output, $tag, $attr, $m ) );
-		self::assertSame( 1, did_action( 'hcap_signature' ) );
+		ob_start();
+		self::assertSame( $templates, $subject->mark_template_login_form( $templates, 'form', 'user-login' ) );
+		$subject->add_bbpress_captcha();
+		self::assertSame( $expected, ob_get_clean() );
 
-		// Status is not 'login'.
-		hcaptcha()->settings()->set( 'bbp_status', 'some' );
+		// The marker must be consumed by the form.
+		ob_start();
+		$subject->add_bbpress_captcha();
+		self::assertSame( '', ob_get_clean() );
+	}
 
-		$expected = str_replace( $placeholder, $signature . "\n", $template );
+	/**
+	 * Test adding hCaptcha to a login widget.
+	 *
+	 * @return void
+	 */
+	public function test_widget_login_form(): void {
+		$title   = 'Widget title';
+		$subject = new Login();
 
-		self::assertSame( $expected, $subject->do_shortcode_tag( $output, $tag, $attr, $m ) );
-		self::assertSame( 2, did_action( 'hcap_signature' ) );
+		self::assertSame( $title, $subject->mark_widget_login_form( $title ) );
+	}
+
+	/**
+	 * Test allowing native WordPress login verification to defer to bbPress.
+	 *
+	 * @return void
+	 */
+	public function test_allow_wp_login_skip_verification(): void {
+		$subject = new Login();
+
+		self::assertTrue( $subject->allow_wp_login_skip_verification( true ) );
+		self::assertFalse( $subject->allow_wp_login_skip_verification( false ) );
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$name = HCaptcha::HCAPTCHA_SIGNATURE . '-' . base64_encode( Login::class );
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$_POST[ $name ] = $this->get_encoded_signature(
+			Login::class,
+			[ 'bbpress/bbpress.php' ],
+			'login',
+			true
+		);
+
+		self::assertTrue( $subject->allow_wp_login_skip_verification( false ) );
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$_POST[ $name ] = $this->get_encoded_signature(
+			Login::class,
+			[ 'bbpress/bbpress.php' ],
+			'login',
+			false
+		);
+
+		self::assertFalse( $subject->allow_wp_login_skip_verification( false ) );
+	}
+
+	/**
+	 * Test deferring unmatched auto-verification to bbPress.
+	 *
+	 * @return void
+	 */
+	public function test_defer_auto_verification(): void {
+		$registered_form = [];
+		$subject         = new Login();
+		$login_path      = (string) wp_parse_url( wp_login_url(), PHP_URL_PATH );
+		$widget_id       = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'bbpress/bbpress.php' ],
+				'form_id' => 'login',
+			]
+		);
+
+		self::assertSame(
+			$registered_form,
+			$subject->defer_auto_verification( $registered_form, $login_path, $widget_id )
+		);
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$name = HCaptcha::HCAPTCHA_SIGNATURE . '-' . base64_encode( Login::class );
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$_POST[ $name ] = $this->get_encoded_signature(
+			Login::class,
+			[ 'bbpress/bbpress.php' ],
+			'login',
+			true
+		);
+
+		self::assertSame(
+			$registered_form,
+			$subject->defer_auto_verification( $registered_form, '/some-path', $widget_id )
+		);
+		self::assertSame(
+			$registered_form,
+			$subject->defer_auto_verification( $registered_form, $login_path, $widget_id )
+		);
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = $widget_id;
+
+		self::assertSame(
+			$registered_form,
+			$subject->defer_auto_verification( $registered_form, $login_path, 'bad-widget-id' )
+		);
+		self::assertNull( $subject->defer_auto_verification( $registered_form, $login_path, $widget_id ) );
 	}
 }

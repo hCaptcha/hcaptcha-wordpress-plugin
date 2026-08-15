@@ -411,6 +411,28 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test verify_form() defers an unmatched request to a dedicated verifier.
+	 *
+	 * @return void
+	 */
+	public function test_verify_form_defers_unmatched_request(): void {
+		$request_uri = $this->get_test_request_uri();
+
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$_SERVER['REQUEST_URI']    = $request_uri;
+		$_POST['test_input']       = 'some input';
+
+		set_transient( AutoVerify::TRANSIENT, $this->get_test_registered_forms() );
+		add_filter( 'hcap_auto_verify_unmatched_form', '__return_null' );
+
+		$subject = new AutoVerify();
+		$subject->verify();
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		self::assertSame( [ 'test_input' => 'some input' ], $_POST );
+	}
+
+	/**
 	 * Test verify_form() when verify is successful.
 	 */
 	public function test_verify_form_when_success(): void {

@@ -17,6 +17,17 @@
 // ACF Extended forms handled here:
 // - Form containing a reCAPTCHA field replaced by hCaptcha.
 
+// bbPress forms handled here:
+// - Login form.
+// - Lost Password form.
+// - New Topic form.
+// - Registration form.
+// - Reply form.
+
+// Beaver Builder forms handled here:
+// - Contact form.
+// - Login form.
+
 // Blocksy forms handled here:
 // - Newsletter Subscribe form.
 // - Product Review form.
@@ -121,6 +132,97 @@ function hcap_forms_mark_acfe_form(): void {
 }
 
 add_action( 'acf/render_field/type=acfe_recaptcha', 'hcap_forms_mark_acfe_form', 0 );
+
+/**
+ * Mark the request when bbPress renders a shortcode-based protected form.
+ *
+ * @param mixed  $output Shortcode output.
+ * @param string $tag    Shortcode name.
+ *
+ * @return mixed
+ */
+function hcap_forms_mark_bbpress_shortcode_form( $output, string $tag ) {
+	if ( is_user_logged_in() || ! in_array( $tag, [ 'bbp-lost-pass', 'bbp-register' ], true ) ) {
+		return $output;
+	}
+
+	$GLOBALS['hcap_forms_has_bbpress_form'] = true;
+
+	return $output;
+}
+
+add_filter( 'do_shortcode_tag', 'hcap_forms_mark_bbpress_shortcode_form', 0, 2 );
+
+/**
+ * Mark the request when bbPress renders a login form template.
+ *
+ * @param array       $templates Possible template files.
+ * @param string      $slug      Template slug.
+ * @param string|null $name      Template name.
+ *
+ * @return array
+ */
+function hcap_forms_mark_bbpress_login_template( array $templates, string $slug, ?string $name ): array {
+	if ( 'form' === $slug && 'user-login' === $name && ! is_user_logged_in() ) {
+		$GLOBALS['hcap_forms_has_bbpress_form'] = true;
+	}
+
+	return $templates;
+}
+
+add_filter( 'bbp_get_template_part', 'hcap_forms_mark_bbpress_login_template', 0, 3 );
+
+/**
+ * Mark the request when bbPress renders a login widget.
+ *
+ * @param mixed $title Widget title.
+ *
+ * @return mixed
+ */
+function hcap_forms_mark_bbpress_login_widget( $title ) {
+	if ( ! is_user_logged_in() ) {
+		$GLOBALS['hcap_forms_has_bbpress_form'] = true;
+	}
+
+	return $title;
+}
+
+add_filter( 'bbp_login_widget_title', 'hcap_forms_mark_bbpress_login_widget', 0 );
+
+/**
+ * Mark the request when bbPress renders a topic or reply form.
+ *
+ * @return void
+ */
+function hcap_forms_mark_bbpress_editor_form(): void {
+	$GLOBALS['hcap_forms_has_bbpress_form'] = true;
+}
+
+add_action( 'bbp_theme_after_topic_form_content', 'hcap_forms_mark_bbpress_editor_form', 0 );
+add_action( 'bbp_theme_after_reply_form_content', 'hcap_forms_mark_bbpress_editor_form', 0 );
+
+/**
+ * Mark the request when Beaver Builder renders a protected form module.
+ *
+ * @param mixed $output Module HTML output.
+ *
+ * @return mixed
+ */
+function hcap_forms_mark_beaver_builder_form( $output ) {
+	$output_string = (string) $output;
+	$contact_form  = false !== strpos( $output_string, '<form class="fl-contact-form"' );
+	$login_form    =
+		false !== strpos( $output_string, '<div class="fl-login-form' ) &&
+		! preg_match( '/<div class="fl-login-form.+?logout.*?>/', $output_string );
+
+	if ( $contact_form || $login_form ) {
+		$GLOBALS['hcap_forms_has_beaver_builder_form'] = true;
+	}
+
+	return $output;
+}
+
+add_filter( 'fl_builder_render_module_content', 'hcap_forms_mark_beaver_builder_form', 0 );
 
 /**
  * Mark the request when WordPress renders a comment form.
@@ -740,6 +842,8 @@ add_filter( 'render_block', 'hcap_forms_mark_spectra_form', 0, 2 );
 function hcap_forms_delay_api_event( $delay_api_event ) {
 	if (
 		! empty( $GLOBALS['hcap_forms_has_acfe_form'] ) ||
+		! empty( $GLOBALS['hcap_forms_has_bbpress_form'] ) ||
+		! empty( $GLOBALS['hcap_forms_has_beaver_builder_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_wp_comment_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_wp_password_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_blocksy_form'] ) ||

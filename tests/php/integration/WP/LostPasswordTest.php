@@ -12,8 +12,11 @@
 
 namespace HCaptcha\Tests\Integration\WP;
 
+use HCaptcha\AutoVerify\AutoVerify;
+use HCaptcha\BBPress\LostPassword as BBPressLostPassword;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\WC\LostPassword as WCLostPassword;
 use HCaptcha\WP\LostPassword;
 use Mockery;
 use tad\FunctionMocker\FunctionMocker;
@@ -34,10 +37,13 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	public function tearDown(): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		unset(
+			$_SERVER['REQUEST_METHOD'],
 			$_SERVER['REQUEST_URI'],
 			$_GET['action'],
+			$_POST['action'],
 			$GLOBALS['mockery'][ 'alias:' . Plugin::class ]
 		);
+		delete_transient( AutoVerify::TRANSIENT );
 
 		parent::tearDown();
 	}
@@ -55,6 +61,14 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 		self::assertSame(
 			10,
 			has_action( 'lostpassword_post', [ $subject, 'verify' ] )
+		);
+		self::assertSame(
+			10,
+			has_filter( 'hcap_lost_password_request_owner', [ $subject, 'claim_request_owner' ] )
+		);
+		self::assertSame(
+			10,
+			has_filter( 'hcap_auto_verify_unmatched_form', [ $subject, 'defer_auto_verification' ] )
 		);
 	}
 
@@ -181,6 +195,115 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test verify() skips a request owned by bbPress AutoVerify.
+	 *
+	 * @return void
+	 */
+	public function test_verify_skips_bbpress_owner(): void {
+		$validation_error = new WP_Error( 'some error' );
+		$expected         = clone $validation_error;
+
+		$this->prepare_lost_password_request();
+		$this->prepare_widget_id(
+			[
+				'source'  => [ 'bbpress/bbpress.php' ],
+				'form_id' => 'lost_password',
+			]
+		);
+
+		new BBPressLostPassword();
+		$subject = new LostPassword();
+		$subject->verify( $validation_error );
+
+		self::assertEquals( $expected, $validation_error );
+	}
+
+	/**
+	 * Test AutoVerify defers a native request to the WordPress verifier.
+	 *
+	 * @return void
+	 */
+	public function test_auto_verify_defers_wordpress_owner(): void {
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$_POST['action']           = 'lostpassword';
+
+		$this->prepare_lost_password_request();
+		$this->prepare_widget_id();
+		$this->register_colliding_auto_form();
+
+		new LostPassword();
+		new BBPressLostPassword();
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$expected = $_POST;
+		$die_arr  = [];
+
+		add_filter(
+			'wp_die_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		( new AutoVerify() )->verify();
+
+		self::assertSame( [], $die_arr );
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		self::assertSame( $expected, $_POST );
+	}
+
+	/**
+	 * Test AutoVerify does not defer to an owner that cannot handle the request.
+	 *
+	 * @return void
+	 */
+	public function test_auto_verify_rejects_owner_without_its_post_marker(): void {
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$_POST['action']           = 'lostpassword';
+
+		$this->prepare_lost_password_request();
+		$this->prepare_widget_id(
+			[
+				'source'  => [ 'woocommerce/woocommerce.php' ],
+				'form_id' => 'lost_password',
+			]
+		);
+		$this->register_colliding_auto_form();
+
+		new LostPassword();
+		new WCLostPassword();
+
+		$die_arr  = [];
+		$expected = [
+			'Bad hCaptcha signature!',
+			'hCaptcha',
+			[
+				'back_link' => true,
+				'response'  => 403,
+			],
+		];
+
+		add_filter(
+			'wp_die_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		( new AutoVerify() )->verify();
+
+		self::assertSame( $expected, $die_arr );
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		self::assertSame( [], $_POST );
+	}
+
+	/**
 	 * Test verify() when not proper post key.
 	 */
 	public function test_verify_when_NOT_proper_post_key(): void {
@@ -300,5 +423,31 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 		$_SERVER['REQUEST_URI'] = '/wp-login.php';
 		$_GET['action']         = 'lostpassword';
 		$_POST['user_login']    = 'igor';
+	}
+
+	/**
+	 * Register a bbPress lost-password form colliding with the shared login endpoint.
+	 *
+	 * @return void
+	 */
+	private function register_colliding_auto_form(): void {
+		$id         = [
+			'source'  => [ 'bbpress/bbpress.php' ],
+			'form_id' => 'lost_password',
+		];
+		$login_path = untrailingslashit( (string) wp_parse_url( wp_login_url(), PHP_URL_PATH ) );
+
+		set_transient(
+			AutoVerify::TRANSIENT,
+			[
+				$login_path => [
+					[
+						'inputs'    => [ 'user_login' ],
+						'args'      => [ 'id' => $id ],
+						'widget_id' => HCaptcha::widget_id_value( $id ),
+					],
+				],
+			]
+		);
 	}
 }

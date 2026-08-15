@@ -30,6 +30,13 @@ class LostPasswordTest extends HCaptchaPluginWPTestCase {
 		$subject = new LostPassword();
 
 		self::assertSame( 10, has_filter( 'do_shortcode_tag', [ $subject, 'add_captcha' ] ) );
+		self::assertSame(
+			10,
+			has_filter( 'hcap_lost_password_request_owner', [ $subject, 'claim_request_owner' ] )
+		);
+		self::assertFalse(
+			has_filter( 'hcap_auto_verify_unmatched_form', [ $subject, 'defer_auto_verification' ] )
+		);
 
 		hcaptcha()->settings()->set( 'bbp_status', 'some' );
 

@@ -761,7 +761,19 @@ class AutoVerify {
 			}
 		}
 
-		return [];
+		/**
+		 * Filters an unmatched request for an action that has auto-verified forms.
+		 *
+		 * A dedicated integration may return null to defer verification when it
+		 * owns the submitted signed widget ID and verifies the request itself.
+		 *
+		 * @param array|null $registered_form Empty array by default.
+		 * @param string     $path            Request path.
+		 * @param string     $widget_id       Submitted widget ID.
+		 */
+		$registered_form = apply_filters( 'hcap_auto_verify_unmatched_form', [], $path, $widget_id );
+
+		return is_array( $registered_form ) ? $registered_form : null;
 	}
 
 	/**

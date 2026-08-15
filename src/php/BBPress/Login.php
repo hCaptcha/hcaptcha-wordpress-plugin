@@ -15,6 +15,13 @@ use HCaptcha\Abstracts\LoginBase;
 class Login extends LoginBase {
 
 	/**
+	 * Whether bbPress is rendering a login form.
+	 *
+	 * @var bool
+	 */
+	private bool $bbpress_login_form = false;
+
+	/**
 	 * Init hooks.
 	 *
 	 * @return void
@@ -22,52 +29,58 @@ class Login extends LoginBase {
 	protected function init_hooks(): void {
 		parent::init_hooks();
 
-		add_filter( 'do_shortcode_tag', [ $this, 'do_shortcode_tag' ], 10, 4 );
+		add_filter( 'bbp_get_template_part', [ $this, 'mark_template_login_form' ], 10, 3 );
+		add_filter( 'bbp_login_widget_title', [ $this, 'mark_widget_login_form' ] );
+		add_action( 'login_form', [ $this, 'add_bbpress_captcha' ] );
 	}
 
 	/**
-	 * Filters the output created by a shortcode callback.
+	 * Mark a bbPress login form rendered from a template part.
 	 *
-	 * @param string|mixed $output Shortcode output.
-	 * @param string       $tag    Shortcode name.
-	 * @param array|string $attr   Shortcode attributes array or empty string.
-	 * @param array        $m      Regular expression match array.
+	 * @param array       $templates Possible template files.
+	 * @param string      $slug      Template slug.
+	 * @param string|null $name      Template name.
 	 *
-	 * @return string|mixed
-	 * @noinspection PhpUnusedParameterInspection
+	 * @return array
 	 */
-	public function do_shortcode_tag( $output, string $tag, $attr, array $m ) {
-		if ( 'bbp-login' !== $tag || is_user_logged_in() ) {
-			return $output;
+	public function mark_template_login_form( array $templates, string $slug, ?string $name ): array {
+		if ( 'form' === $slug && 'user-login' === $name && ! is_user_logged_in() ) {
+			$this->bbpress_login_form = true;
 		}
 
-		if ( ! $this->is_login_limit_exceeded() ) {
-			return $output;
+		return $templates;
+	}
+
+	/**
+	 * Mark a bbPress login widget form.
+	 *
+	 * @param mixed $title Widget title.
+	 *
+	 * @return mixed
+	 */
+	public function mark_widget_login_form( $title ) {
+		if ( ! is_user_logged_in() ) {
+			$this->bbpress_login_form = true;
 		}
 
-		$hcaptcha = '';
+		return $title;
+	}
+
+	/**
+	 * Add hCaptcha to a marked bbPress login form.
+	 *
+	 * @return void
+	 */
+	public function add_bbpress_captcha(): void {
+		if ( ! $this->bbpress_login_form ) {
+			return;
+		}
+
+		$this->bbpress_login_form = false;
 
 		// Check the login status, because the class is always loading when bbPress is active.
 		if ( hcaptcha()->settings()->is( 'bbp_status', 'login' ) ) {
-			ob_start();
-
 			$this->add_captcha();
-			$hcaptcha = (string) ob_get_clean();
 		}
-
-		ob_start();
-
-		/**
-		 * Display hCaptcha signature.
-		 */
-		do_action( 'hcap_signature' );
-
-		$signatures = (string) ob_get_clean();
-
-		$pattern     = '/(<button type="submit")/';
-		$replacement = $hcaptcha . $signatures . "\n$1";
-
-		// Insert hCaptcha.
-		return (string) preg_replace( $pattern, $replacement, $output );
 	}
 }
