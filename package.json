@@ -78,6 +78,7 @@
     "minimatch@npm:^3": "^3.1.5",
     "minimatch@npm:^9": "^9.0.9",
     "minimatch@npm:^10": "^10.2.6",
+    "nanoid": "^6.0.1",
     "picomatch@npm:^2": "^2.3.14",
     "picomatch@npm:^4": "^4.0.5",
     "postcss": "^8.5.25",
