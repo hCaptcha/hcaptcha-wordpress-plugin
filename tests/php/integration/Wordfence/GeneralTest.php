@@ -36,7 +36,7 @@ class GeneralTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @var string
 	 */
-	protected static $plugin = 'wordfence-login-security/wordfence-login-security.php';
+	protected static $plugin = 'wordfence/wordfence.php';
 
 	/**
 	 * Set up the test.
@@ -78,10 +78,10 @@ class GeneralTest extends HCaptchaPluginWPTestCase {
 	 * @return void
 	 */
 	public function test_live_plugin_is_loaded(): void {
-		$plugin_dir  = realpath( WP_PLUGIN_DIR . '/wordfence-login-security' );
+		$plugin_dir  = realpath( WP_PLUGIN_DIR . '/wordfence' );
 		$plugin_file = wp_normalize_path( ( new ReflectionClass( Controller_WordfenceLS::class ) )->getFileName() );
 
-		self::assertTrue( is_plugin_active( 'wordfence-login-security/wordfence-login-security.php' ) );
+		self::assertTrue( is_plugin_active( 'wordfence/wordfence.php' ) );
 		self::assertNotFalse( $plugin_dir );
 		self::assertStringStartsWith(
 			trailingslashit( wp_normalize_path( $plugin_dir ) ),
