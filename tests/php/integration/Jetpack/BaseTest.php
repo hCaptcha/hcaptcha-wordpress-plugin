@@ -10,9 +10,7 @@ namespace HCaptcha\Tests\Integration\Jetpack;
 use Automattic\Jetpack\Forms\ContactForm\Contact_Form as JetpackForm;
 use Automattic\Jetpack\Forms\ContactForm\Contact_Form_Plugin as JetpackFormPlugin;
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Jetpack\Base;
 use HCaptcha\Jetpack\Form;
-use Mockery;
 use ReflectionClass;
 use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
@@ -80,12 +78,16 @@ class BaseTest extends JetpackTestCase {
 	 * @dataProvider dp_test_init_hooks
 	 */
 	public function test_init_hooks( bool $is_editing_jetpack_form_post ): void {
-		$subject = Mockery::mock( Form::class )->makePartial();
+		if ( $is_editing_jetpack_form_post ) {
+			$post_id = wp_insert_post( [ 'post_content' => '<!-- wp:jetpack/contact-form' ] );
 
-		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'is_editing_jetpack_form_post' )->andReturn( $is_editing_jetpack_form_post );
+			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+			$GLOBALS['pagenow'] = 'post.php';
+			$_GET['post']       = $post_id;
+			$_GET['action']     = 'edit';
+		}
 
-		$subject->__construct();
+		$subject = new Form();
 
 		self::assertSame( 10, has_filter( 'jetpack_contact_form_html', [ $subject, 'add_hcaptcha' ] ) );
 		self::assertSame( 0, has_filter( 'widget_text', [ $subject, 'add_hcaptcha' ] ) );
@@ -441,40 +443,47 @@ CSS;
 	 * @return void
 	 */
 	public function test_is_editing_jetpack_form_post(): void {
-		$subject = Mockery::mock( Base::class )->makePartial();
+		$subject = new class() extends Form {
+			/**
+			 * Expose the editor-state check for testing.
+			 *
+			 * @return bool
+			 */
+			public function is_editing_jetpack_form_post_for_test(): bool {
+				return $this->is_editing_jetpack_form_post();
+			}
+		};
 
-		$subject->shouldAllowMockingProtectedMethods();
-
-		self::assertFalse( $subject->is_editing_jetpack_form_post() );
+		self::assertFalse( $subject->is_editing_jetpack_form_post_for_test() );
 
 		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 		$GLOBALS['pagenow'] = 'post.php';
 
-		self::assertFalse( $subject->is_editing_jetpack_form_post() );
+		self::assertFalse( $subject->is_editing_jetpack_form_post_for_test() );
 
 		$_GET['post'] = 1;
 
-		self::assertFalse( $subject->is_editing_jetpack_form_post() );
+		self::assertFalse( $subject->is_editing_jetpack_form_post_for_test() );
 
 		$_GET['action'] = 'some';
 
-		self::assertFalse( $subject->is_editing_jetpack_form_post() );
+		self::assertFalse( $subject->is_editing_jetpack_form_post_for_test() );
 
 		$_GET['action'] = 'edit';
 
-		self::assertFalse( $subject->is_editing_jetpack_form_post() );
+		self::assertFalse( $subject->is_editing_jetpack_form_post_for_test() );
 
 		$post_id = wp_insert_post( [ 'post_content' => 'some content' ] );
 
 		$_GET['post'] = $post_id;
 
-		self::assertFalse( $subject->is_editing_jetpack_form_post() );
+		self::assertFalse( $subject->is_editing_jetpack_form_post_for_test() );
 
 		$post_id = wp_insert_post( [ 'post_content' => '<!-- wp:jetpack/contact-form' ] );
 
 		$_GET['post'] = $post_id;
 
-		self::assertTrue( $subject->is_editing_jetpack_form_post() );
+		self::assertTrue( $subject->is_editing_jetpack_form_post_for_test() );
 	}
 
 	/**
