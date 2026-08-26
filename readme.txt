@@ -1023,6 +1023,7 @@ Instructions for popular native integrations are below:
 * Fixed LearnDash registrations being blocked by “Bad hCaptcha signature” errors when WordPress registration protection is also enabled.
 * Fixed a fatal error that prevented Affiliates registration forms from loading before their first submission.
 * Fixed hCaptcha reinitialization after Login/Signup Popup AJAX submissions using FormData.
+* Fixed Elementor Pro form submit buttons remaining disabled after client-side validation failures.
 
 = 5.2.0 =
 * Added MetForm integration.

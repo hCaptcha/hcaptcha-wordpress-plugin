@@ -23,6 +23,18 @@ const hcaptchaElementorPro = function() {
 			return window?.parent?.HCaptchaMainObject?.params ?? '';
 		},
 	);
+
+	wp.hooks.addFilter(
+		'hcaptcha.ajaxSubmitButton',
+		'hcaptcha',
+		( isAjaxSubmitButton, submitButtonElement ) => {
+			if ( submitButtonElement.closest( '.elementor-form' ) ) {
+				return true;
+			}
+
+			return isAjaxSubmitButton;
+		},
+	);
 };
 
 window.hCaptchaElementorPro = hcaptchaElementorPro;
