@@ -11,9 +11,12 @@
 namespace HCaptcha\Tests\Integration\NF;
 
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\NF\Base;
 use HCaptcha\NF\Field;
+use HCaptcha\NF\NF;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
-use NF_Database_Migrations;
+use Ninja_Forms;
+use ReflectionClass;
 
 /**
  * Test Field class.
@@ -28,6 +31,38 @@ class FieldTest extends HCaptchaPluginWPTestCase {
 	 * @var string
 	 */
 	protected static $plugin = 'ninja-forms/ninja-forms.php';
+
+	/**
+	 * Hooks to replay after loading the plugin.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
+
+	/**
+	 * Test rendering an hCaptcha field through the live Ninja Forms frontend.
+	 */
+	public function test_live_form_render(): void {
+		$ninja_forms_file = wp_normalize_path( ( new ReflectionClass( Ninja_Forms::class ) )->getFileName() );
+
+		self::assertTrue( is_plugin_active( static::$plugin ) );
+		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/ninja-forms/' ), $ninja_forms_file );
+
+		new NF();
+
+		Ninja_Forms::instance()->instantiateTranslatableObjects();
+
+		$form_id = $this->create_ninja_form( true );
+		$html    = do_shortcode( '[ninja_form id="' . $form_id . '"]' );
+
+		self::assertStringContainsString( 'id="nf-form-' . $form_id . '-cont"', $html );
+		self::assertStringContainsString( '"type":"' . Base::NAME . '"', $html );
+		self::assertStringContainsString( 'class=\"h-captcha\"', $html );
+		self::assertStringContainsString( 'hcaptcha-widget-id', $html );
+	}
 
 	/**
 	 * Tear down the test.
@@ -219,19 +254,13 @@ class FieldTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Create a Ninja form.
 	 *
+	 * @param bool $with_hcaptcha Whether to add an hCaptcha field.
+	 *
 	 * @return int
 	 * @noinspection PhpUndefinedFunctionInspection
 	 * @noinspection PhpUndefinedClassInspection
 	 */
-	protected function create_ninja_form(): int {
-		global $wpdb;
-
-		static $form_id;
-
-		if ( $form_id ) {
-			return $form_id;
-		}
-
+	protected function create_ninja_form( bool $with_hcaptcha = false ): int {
 		// Create a Ninja form.
 		$form = Ninja_Forms()->form()->get();
 
@@ -249,6 +278,15 @@ class FieldTest extends HCaptchaPluginWPTestCase {
 		$field->update_setting( 'order', 1 );
 		$field->save();
 
+		if ( $with_hcaptcha ) {
+			$hcaptcha_field = Ninja_Forms()->form( $form_id )->field()->get();
+			$hcaptcha_field->update_setting( 'label', 'hCaptcha' );
+			$hcaptcha_field->update_setting( 'key', 'hcaptcha' );
+			$hcaptcha_field->update_setting( 'type', Base::NAME );
+			$hcaptcha_field->update_setting( 'order', 3 );
+			$hcaptcha_field->save();
+		}
+
 		// Add an email field.
 		$field = Ninja_Forms()->form( $form_id )->field()->get();
 		$field->update_setting( 'label', 'Email' );
@@ -263,9 +301,6 @@ class FieldTest extends HCaptchaPluginWPTestCase {
 		$submit_field->update_setting( 'type', 'submit' );
 		$submit_field->update_setting( 'order', 999 );
 		$submit_field->save();
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$wpdb->query( 'COMMIT' );
 
 		return $form_id;
 	}

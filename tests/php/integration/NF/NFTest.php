@@ -34,6 +34,16 @@ class NFTest extends HCaptchaPluginWPTestCase {
 	protected static $plugin = 'ninja-forms/ninja-forms.php';
 
 	/**
+	 * Hooks to replay after loading the plugin.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
+
+	/**
 	 * Tear down the test.
 	 *
 	 * @return void

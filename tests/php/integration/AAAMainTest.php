@@ -1798,6 +1798,8 @@ CSS;
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_load_modules( array $module ): void {
+		$this->skip_mocked_gravity_forms_module_test( $module );
+
 		[ $option_name, $option_value ] = $module[0];
 
 		update_option(
@@ -1929,6 +1931,17 @@ CSS;
 		foreach ( $loaded_classes as $class_name => $loaded_class ) {
 			self::assertInstanceOf( $class_name, $loaded_class );
 			self::assertSame( $loaded_class, $subject->get( $class_name ) );
+		}
+	}
+
+	/**
+	 * Skip the mocked Gravity Forms module test superseded by live integration tests.
+	 *
+	 * @param array $module Module to load.
+	 */
+	private function skip_mocked_gravity_forms_module_test( array $module ): void {
+		if ( 'gravityforms/gravityforms.php' === $module[1] ) {
+			self::markTestSkipped( 'Covered by the live Gravity Forms integration tests.' );
 		}
 	}
 

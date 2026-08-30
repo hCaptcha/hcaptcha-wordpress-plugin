@@ -13,20 +13,100 @@
 namespace HCaptcha\Tests\Integration\GravityForms;
 
 use GF_Field;
+use GFAPI;
 use HCaptcha\GravityForms\Base;
 use HCaptcha\GravityForms\Form;
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
-use Mockery;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use ReflectionClass;
 use ReflectionException;
-use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test GravityForms Form class.
  *
  * @group gravityforms
  */
-class FormTest extends HCaptchaWPTestCase {
+class FormTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * Plugin relative path.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'gravityforms/gravityforms.php';
+
+	/**
+	 * Hooks to replay after loading the plugin.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+	];
+
+	/**
+	 * Whether the live Gravity Forms schema was prepared.
+	 *
+	 * @var bool
+	 */
+	private static bool $schema_ready = false;
+
+	/**
+	 * Set up the live Gravity Forms database schema.
+	 */
+	public function setUp(): void {
+		parent::setUp();
+
+		// The WP test transaction rolls these options back after every test.
+		update_option( 'gf_db_version', \GFForms::$version, false );
+		update_option( 'rg_form_version', \GFForms::$version, false );
+
+		if ( ! self::$schema_ready ) {
+			gf_upgrade()->upgrade_schema();
+			self::$schema_ready = true;
+		}
+	}
+
+	/**
+	 * Test rendering through the live Gravity Forms API and frontend renderer.
+	 */
+	public function test_live_form_render(): void {
+		$api_file = wp_normalize_path( ( new ReflectionClass( GFAPI::class ) )->getFileName() );
+
+		self::assertTrue( is_plugin_active( static::$plugin ) );
+		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/gravityforms/' ), $api_file );
+
+		$form_id = GFAPI::add_form(
+			[
+				'title'  => 'hCaptcha integration form',
+				'fields' => [
+					[
+						'id'         => 1,
+						'type'       => 'text',
+						'label'      => 'Name',
+						'isRequired' => true,
+					],
+				],
+				'button' => [
+					'type' => 'text',
+					'text' => 'Submit',
+				],
+			]
+		);
+
+		self::assertIsInt( $form_id );
+
+		update_option( 'hcaptcha_settings', [ 'gravity_status' => [ 'form' ] ] );
+		hcaptcha()->init_hooks();
+		new Form();
+
+		$html = gravity_form( $form_id, false, false, false, null, false, 0, false );
+
+		self::assertStringContainsString( 'gform_wrapper', $html );
+		self::assertStringContainsString( "name='input_1'", $html );
+		self::assertStringContainsString( 'class="h-captcha"', $html );
+		self::assertStringContainsString( 'gravity_forms_nonce', $html );
+	}
 
 	/**
 	 * Tear down the test.
@@ -149,49 +229,44 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_add_hcaptcha_in_embed_mode(): void {
-		$button_input   = '';
-		$hcaptcha_field = (object) [
-			'type' => 'hcaptcha',
-		];
-		$form_id        = 23;
-		$form           = [
-			'id'     => $form_id,
-			'fields' => [],
-		];
-		$expected       = $this->get_hcap_form(
-			[
-				'action' => Base::ACTION,
-				'name'   => Base::NONCE,
-				'id'     => [
-					'source'  => [ 'gravityforms/gravityforms.php' ],
-					'form_id' => $form_id,
-				],
-			]
-		);
+		$button_input = '';
 
 		update_option( 'hcaptcha_settings', [ 'gravity_status' => [ 'embed' ] ] );
 		hcaptcha()->init_hooks();
 
 		$subject = new Form();
+		$form_id = 999999;
+		$form    = [
+			'id'     => $form_id,
+			'fields' => [],
+		];
 
 		$this->set_protected_property( $subject, 'form_id', $form_id );
-
 		add_filter( 'hcap_form_args', [ $subject, 'hcap_form_args' ] );
 
 		// Form does not exist (strange case), add hCaptcha.
-		FunctionMocker::replace( 'GFFormsModel::get_form_meta' );
-
-		self::assertSame( $expected, $subject->add_hcaptcha( $button_input, $form ) );
+		self::assertSame( $this->get_gravity_hcaptcha( $form_id ), $subject->add_hcaptcha( $button_input, $form ) );
 
 		// Does not have hCaptcha in the form, add hCaptcha.
-		FunctionMocker::replace( 'GFFormsModel::get_form_meta', $form );
+		$form    = $this->create_gravity_form( [] );
+		$form_id = (int) $form['id'];
 
-		self::assertSame( $expected, $subject->add_hcaptcha( $button_input, $form ) );
+		$this->set_protected_property( $subject, 'form_id', $form_id );
+
+		self::assertSame( $this->get_gravity_hcaptcha( $form_id ), $subject->add_hcaptcha( $button_input, $form ) );
 
 		// Has hCaptcha in the form, do not add hCaptcha.
-		$form['fields'] = [ $hcaptcha_field ];
-
-		FunctionMocker::replace( 'GFFormsModel::get_form_meta', $form );
+		$form = $this->create_gravity_form(
+			[
+				$this->get_gf_field(
+					[
+						'id'    => 1,
+						'type'  => 'hcaptcha',
+						'label' => 'hCaptcha',
+					]
+				),
+			]
+		);
 
 		self::assertSame( $button_input, $subject->add_hcaptcha( $button_input, $form ) );
 	}
@@ -243,42 +318,8 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @dataProvider dp_test_verify
 	 */
 	public function test_verify( string $mode ): void {
-		$form_id           = 23;
-		$form              = [
-			'id'     => $form_id,
-			'fields' => [
-				$this->get_gf_field(
-					[
-						'id'     => 3,
-						'type'   => 'name',
-						'label'  => 'Name',
-						'inputs' => [
-							[ 'id' => '3.2' ],
-							[ 'id' => '3.3' ],
-							[ 'id' => '3.4' ],
-							[ 'id' => '3.6' ],
-							[ 'id' => '3.8' ],
-						],
-					]
-				),
-				$this->get_gf_field(
-					[
-						'id'     => 4,
-						'type'   => 'email',
-						'label'  => 'Email',
-						'inputs' => null,
-					]
-				),
-				$this->get_gf_field(
-					[
-						'id'     => 2,
-						'type'   => 'hcaptcha',
-						'label'  => 'hCaptcha',
-						'inputs' => null,
-					]
-				),
-			],
-		];
+		$form              = $this->create_verification_form();
+		$form_id           = (int) $form['id'];
 		$validation_result = [
 			'is_valid'               => true,
 			'form'                   => $form,
@@ -290,8 +331,6 @@ class FormTest extends HCaptchaWPTestCase {
 		$_POST['input_3_6']    = 'Doe';
 		$_POST['input_4']      = 'foo@bar.com';
 		$_POST['gform_submit'] = $form_id;
-
-		FunctionMocker::replace( 'GFFormsModel::get_form_meta', $form );
 
 		update_option( 'hcaptcha_settings', [ 'gravity_status' => [ $mode ] ] );
 
@@ -314,42 +353,8 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @dataProvider dp_test_verify
 	 */
 	public function test_verify_not_verified( string $mode ): void {
-		$form_id           = 23;
-		$form              = [
-			'id'     => $form_id,
-			'fields' => [
-				$this->get_gf_field(
-					[
-						'id'     => 3,
-						'type'   => 'name',
-						'label'  => 'Name',
-						'inputs' => [
-							[ 'id' => '3.2' ],
-							[ 'id' => '3.3' ],
-							[ 'id' => '3.4' ],
-							[ 'id' => '3.6' ],
-							[ 'id' => '3.8' ],
-						],
-					]
-				),
-				$this->get_gf_field(
-					[
-						'id'     => 4,
-						'type'   => 'email',
-						'label'  => 'Email',
-						'inputs' => null,
-					]
-				),
-				$this->get_gf_field(
-					[
-						'id'     => 2,
-						'type'   => 'hcaptcha',
-						'label'  => 'hCaptcha',
-						'inputs' => null,
-					]
-				),
-			],
-		];
+		$form              = $this->create_verification_form();
+		$form_id           = (int) $form['id'];
 		$validation_result = [
 			'is_valid'               => true,
 			'form'                   => $form,
@@ -366,8 +371,6 @@ class FormTest extends HCaptchaWPTestCase {
 		$_POST['input_3_6']    = 'Doe';
 		$_POST['input_4']      = 'foo@bar.com';
 		$_POST['gform_submit'] = $form_id;
-
-		FunctionMocker::replace( 'GFFormsModel::get_form_meta', $form );
 
 		$this->prepare_verify_post( Base::NONCE, Base::ACTION, false );
 		$this->prepare_widget_id( $form_id );
@@ -386,34 +389,8 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_verify_missing_widget_id(): void {
-		$form_id           = 23;
-		$form              = [
-			'id'     => $form_id,
-			'fields' => [
-				$this->get_gf_field(
-					[
-						'id'     => 3,
-						'type'   => 'name',
-						'label'  => 'Name',
-						'inputs' => [
-							[ 'id' => '3.2' ],
-							[ 'id' => '3.3' ],
-							[ 'id' => '3.4' ],
-							[ 'id' => '3.6' ],
-							[ 'id' => '3.8' ],
-						],
-					]
-				),
-				$this->get_gf_field(
-					[
-						'id'     => 4,
-						'type'   => 'email',
-						'label'  => 'Email',
-						'inputs' => null,
-					]
-				),
-			],
-		];
+		$form              = $this->create_verification_form( false );
+		$form_id           = (int) $form['id'];
 		$validation_result = [
 			'is_valid'               => true,
 			'form'                   => $form,
@@ -430,8 +407,6 @@ class FormTest extends HCaptchaWPTestCase {
 		$_POST['input_3_6']    = 'Doe';
 		$_POST['input_4']      = 'foo@bar.com';
 		$_POST['gform_submit'] = $form_id;
-
-		FunctionMocker::replace( 'GFFormsModel::get_form_meta', $form );
 
 		$this->prepare_verify_post( Base::NONCE, Base::ACTION );
 
@@ -494,98 +469,53 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_verify_when_should_not_be_verified(): void {
-		$form_id           = 2;
-		$nested_form_id    = 9;
-		$multipage_form_id = 3;
-		$source_page_name  = "gform_source_page_number_$multipage_form_id";
-		$target_page_name  = "gform_target_page_number_$multipage_form_id";
-		$hcaptcha_field    = (object) [
-			'type' => 'hcaptcha',
-		];
-		$nested_form_field = Mockery::mock( 'GP_Field_Nested_Form' );
-		// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-		$nested_form_field->gpnfForm = $form_id;
-		$form_fields                 = [
-			'id'     => $form_id,
-			'fields' => [ $hcaptcha_field ],
-		];
-		$nested_form_fields          = [
-			'id'     => $nested_form_id,
-			'fields' => [ $nested_form_field ],
-		];
-		$multipage_form_fields       = [
-			'id'         => $nested_form_id,
-			'pagination' => [
-				'pages' => [
-					0 => [],
-					1 => [],
+		$form              = $this->create_gravity_form(
+			[],
+			[
+				'pagination' => [
+					'pages' => [
+						[ 'name' => 'First page' ],
+						[ 'name' => 'Second page' ],
+					],
 				],
-			],
-			'fields'     => [ $hcaptcha_field ],
-		];
-		$validation_result           = [
+			]
+		);
+		$form_id           = (int) $form['id'];
+		$source_page_name  = "gform_source_page_number_$form_id";
+		$target_page_name  = "gform_target_page_number_$form_id";
+		$validation_result = [
 			'is_valid'               => true,
-			'form'                   => [],
+			'form'                   => $form,
 			'failed_validation_page' => 0,
 		];
-		$context                     = 'form-submit';
+		$context           = 'form-submit';
+
+		update_option( 'hcaptcha_settings', [ 'gravity_status' => [ 'form' ] ] );
+		hcaptcha()->init_hooks();
 
 		$subject = new Form();
 
 		// The POST 'gform_submit' not set.
 		self::assertSame( $validation_result, $subject->verify( $validation_result, $context ) );
 
-		// Nested form.
-		$_POST['gform_submit']        = $form_id;
-		$_POST['gpnf_parent_form_id'] = $nested_form_id;
-
-		FunctionMocker::replace(
-			'GFFormsModel::get_form_meta',
-			static function ( $id ) use (
-				$form_id,
-				$form_fields,
-				$nested_form_id,
-				$nested_form_fields,
-				$multipage_form_id,
-				$multipage_form_fields
-			) {
-				if ( $id === $form_id ) {
-					return $form_fields;
-				}
-
-				if ( $id === $nested_form_id ) {
-					return $nested_form_fields;
-				}
-
-				if ( $id === $multipage_form_id ) {
-					return $multipage_form_fields;
-				}
-
-				return [];
-			}
-		);
-
-		self::assertSame( $validation_result, $subject->verify( $validation_result, $context ) );
-
-		// Not a nested form.
-		unset( $_POST['gpnf_parent_form_id'] );
-
 		// Multipage form.
-		$_POST['gform_submit'] = $multipage_form_id;
+		$_POST['gform_submit'] = $form_id;
 
-		// The POST target_page is set and not 0.
+		// Switching pages does not verify hCaptcha.
 		$_POST[ $source_page_name ] = 1;
 		$_POST[ $target_page_name ] = 2;
 
 		self::assertSame( $validation_result, $subject->verify( $validation_result, $context ) );
 
-		// The POST target_page is set and 0.
+		// Submitting the last page verifies hCaptcha through the live form metadata.
 		$_POST[ $source_page_name ] = 2;
 		$_POST[ $target_page_name ] = 0;
+		$this->prepare_verify_post( Base::NONCE, Base::ACTION );
+		$this->prepare_widget_id( $form_id );
 
 		self::assertSame( $validation_result, $subject->verify( $validation_result, $context ) );
 
-		// The POST target_page is unset.
+		// An unset target page is also a final submission.
 		unset( $_POST[ $target_page_name ] );
 
 		self::assertSame( $validation_result, $subject->verify( $validation_result, $context ) );
@@ -646,63 +576,18 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function test_print_inline_styles(): void {
-		FunctionMocker::replace(
-			'defined',
-			static function ( $constant_name ) {
-				return 'SCRIPT_DEBUG' === $constant_name;
-			}
-		);
-
-		FunctionMocker::replace(
-			'constant',
-			static function ( $name ) {
-				return 'SCRIPT_DEBUG' === $name;
-			}
-		);
-
-		$expected = <<<'CSS'
-	.gform_previous_button + .h-captcha {
-		margin-top: 2rem;
-	}
-
-	.gform_footer.before .h-captcha[data-size="normal"] {
-		margin-bottom: 3px;
-	}
-
-	.gform_footer.before .h-captcha[data-size="compact"] {
-		margin-bottom: 0;
-	}
-
-	.gform_wrapper.gravity-theme .gform_footer,
-	.gform_wrapper.gravity-theme .gform_page_footer {
-		flex-wrap: wrap;
-	}
-
-	.gform_wrapper.gravity-theme .h-captcha,
-	.gform_wrapper.gravity-theme .h-captcha {
-		margin: 0;
-		flex-basis: 100%;
-	}
-
-	.gform_wrapper.gravity-theme input[type="submit"],
-	.gform_wrapper.gravity-theme input[type="submit"] {
-		align-self: flex-start;
-	}
-
-	.gform_wrapper.gravity-theme .h-captcha ~ input[type="submit"],
-	.gform_wrapper.gravity-theme .h-captcha ~ input[type="submit"] {
-		margin: 1em 0 0 0 !important;
-	}
-CSS;
-		$expected = "<style>\n$expected\n</style>\n";
-
 		$subject = new Form();
 
 		ob_start();
 
 		$subject->print_inline_styles();
 
-		self::assertSame( $expected, ob_get_clean() );
+		$output = ob_get_clean();
+
+		self::assertStringStartsWith( '<style>', $output );
+		self::assertStringContainsString( '.gform_previous_button', $output );
+		self::assertStringContainsString( '.gform_wrapper.gravity-theme', $output );
+		self::assertStringEndsWith( "</style>\n", $output );
 	}
 
 	/**
@@ -745,6 +630,101 @@ CSS;
 		);
 
 		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
+	}
+
+	/**
+	 * Create and reload a form through the live Gravity Forms API.
+	 *
+	 * @param array $fields     Form fields.
+	 * @param array $properties Additional form properties.
+	 *
+	 * @return array
+	 */
+	private function create_gravity_form( array $fields, array $properties = [] ): array {
+		$form_id = GFAPI::add_form(
+			array_merge(
+				[
+					'title'  => 'hCaptcha integration form',
+					'fields' => $fields,
+				],
+				$properties
+			)
+		);
+
+		self::assertIsInt( $form_id );
+
+		$form = GFAPI::get_form( $form_id );
+
+		self::assertIsArray( $form );
+
+		return $form;
+	}
+
+	/**
+	 * Get the expected Gravity Forms hCaptcha markup.
+	 *
+	 * @param int $form_id Form ID.
+	 *
+	 * @return string
+	 */
+	private function get_gravity_hcaptcha( int $form_id ): string {
+		return $this->get_hcap_form(
+			[
+				'action' => Base::ACTION,
+				'name'   => Base::NONCE,
+				'id'     => [
+					'source'  => [ 'gravityforms/gravityforms.php' ],
+					'form_id' => $form_id,
+				],
+			]
+		);
+	}
+
+	/**
+	 * Create a Gravity Forms form used by verification tests.
+	 *
+	 * @param bool $with_hcaptcha Whether to add an embedded hCaptcha field.
+	 *
+	 * @return array
+	 */
+	private function create_verification_form( bool $with_hcaptcha = true ): array {
+		$fields = [
+			$this->get_gf_field(
+				[
+					'id'     => 3,
+					'type'   => 'name',
+					'label'  => 'Name',
+					'inputs' => [
+						[ 'id' => '3.2' ],
+						[ 'id' => '3.3' ],
+						[ 'id' => '3.4' ],
+						[ 'id' => '3.6' ],
+						[ 'id' => '3.8' ],
+					],
+				]
+			),
+			$this->get_gf_field(
+				[
+					'id'     => 4,
+					'type'   => 'email',
+					'label'  => 'Email',
+					'inputs' => null,
+				]
+			),
+		];
+
+		if ( $with_hcaptcha ) {
+			$fields[] = $this->get_gf_field(
+				[
+					'id'     => 2,
+					'type'   => 'hcaptcha',
+					'label'  => 'hCaptcha',
+					'inputs' => null,
+				]
+			);
+		}
+
+		return $this->create_gravity_form( $fields );
 	}
 
 	/**

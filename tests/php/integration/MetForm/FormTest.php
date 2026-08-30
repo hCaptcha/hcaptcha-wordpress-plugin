@@ -12,6 +12,7 @@
 
 namespace HCaptcha\Tests\Integration\MetForm;
 
+use Elementor\Core\Kits\Manager as KitsManager;
 use Elementor\MetForm_Input_Button;
 use Elementor\Plugin as ElementorPlugin;
 use Elementor\Widget_Base;
@@ -53,6 +54,31 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	];
 
 	/**
+	 * Restore the Elementor default kit rolled back by the WP test transaction.
+	 */
+	public function setUp(): void {
+		parent::setUp();
+
+		$elementor = ElementorPlugin::instance();
+
+		// A later plugin lifecycle can replace the manager after its register action ran.
+		$elementor->documents->register_default_types();
+		$elementor->kits_manager->register_document( $elementor->documents );
+
+		// Rolled-back posts can leave stale document objects under reused IDs.
+		$this->set_protected_property( $elementor->documents, 'documents', [] );
+
+		$kit_id = (int) get_option( KitsManager::OPTION_ACTIVE );
+
+		if ( $kit_id && get_post( $kit_id ) ) {
+			return;
+		}
+
+		delete_option( KitsManager::OPTION_ACTIVE );
+		KitsManager::create_default_kit();
+	}
+
+	/**
 	 * Test that live Elementor and MetForm plugins are loaded.
 	 *
 	 * @return void
@@ -65,6 +91,89 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		self::assertTrue( is_plugin_active( 'metform/metform.php' ) );
 		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/elementor/' ), $elementor_file );
 		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/metform/' ), $metform_file );
+	}
+
+	/**
+	 * Test rendering a live MetForm widget in an Elementor document.
+	 */
+	public function test_live_form_render(): void {
+		$form_id = wp_insert_post(
+			[
+				'post_type'   => 'metform-form',
+				'post_status' => 'publish',
+				'post_title'  => 'hCaptcha integration form',
+			]
+		);
+
+		self::assertIsInt( $form_id );
+
+		update_post_meta( $form_id, '_elementor_edit_mode', 'builder' );
+		update_post_meta( $form_id, '_elementor_template_type', 'wp-post' );
+		update_post_meta( $form_id, '_elementor_version', ELEMENTOR_VERSION );
+
+		WidgetsManifest::instance()->register_widgets();
+		new Form();
+
+		$elementor = ElementorPlugin::instance();
+		$document  = $elementor->documents->get( $form_id, false );
+		$widget    = new MetForm_Input_Button(
+			[
+				'id'         => 'metform-submit',
+				'elType'     => 'widget',
+				'widgetType' => 'mf-button',
+				'settings'   => [
+					'mf_btn_text'       => 'Submit',
+					'mf_btn_icon_align' => '',
+					'mf_btn_class'      => '',
+					'mf_btn_id'         => '',
+					'mf_btn_icon'       => [
+						'value'   => '',
+						'library' => '',
+					],
+				],
+				'elements'   => [],
+			],
+			[]
+		);
+
+		self::assertNotFalse( $document );
+		self::assertStringStartsWith(
+			wp_normalize_path( WP_PLUGIN_DIR . '/metform/' ),
+			wp_normalize_path( ( new ReflectionClass( $widget ) )->getFileName() )
+		);
+
+		$elementor->documents->switch_to_document( $document );
+		$level = ob_get_level();
+
+		try {
+			ob_start();
+			$widget->render_content();
+			$html = (string) ob_get_clean();
+		} finally {
+			while ( ob_get_level() > $level ) {
+				ob_end_clean();
+			}
+
+			$elementor->documents->restore_document();
+		}
+
+		self::assertStringContainsString( 'metform-submit-btn', $html );
+		self::assertStringContainsString( 'hcaptcha-metform-placeholder', $html );
+		self::assertStringContainsString( rawurlencode( 'hcaptcha_metform_nonce' ), $html );
+		self::assertStringContainsString(
+			rawurlencode(
+				// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Encoding a public widget identifier.
+				base64_encode(
+					wp_json_encode(
+						[
+							'source'  => [ 'metform/metform.php' ],
+							'form_id' => $form_id,
+						]
+					)
+				)
+			),
+			$html
+		);
 	}
 
 	/**

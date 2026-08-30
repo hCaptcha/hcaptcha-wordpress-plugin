@@ -13,10 +13,12 @@
 namespace HCaptcha\Tests\Integration\Forminator;
 
 use Forminator_Front_Action;
+use Forminator_API;
 use HCaptcha\Forminator\Form;
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
+use ReflectionClass;
 use ReflectionException;
 
 /**
@@ -24,7 +26,58 @@ use ReflectionException;
  *
  * @group forminator
  */
-class FormTest extends HCaptchaWPTestCase {
+class FormTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * Plugin relative path.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'forminator/forminator.php';
+
+	/**
+	 * Hooks to replay after loading the plugin.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
+
+	/**
+	 * Test rendering through the live Forminator API and frontend renderer.
+	 */
+	public function test_live_form_render(): void {
+		$api_file = wp_normalize_path( ( new ReflectionClass( Forminator_API::class ) )->getFileName() );
+
+		self::assertTrue( is_plugin_active( static::$plugin ) );
+		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/forminator/' ), $api_file );
+
+		$form_id = Forminator_API::add_form( 'hCaptcha integration form' );
+
+		self::assertIsInt( $form_id );
+
+		$field_id = Forminator_API::add_form_field(
+			$form_id,
+			'text',
+			[
+				'field_label' => 'Name',
+				'placeholder' => 'Name',
+			]
+		);
+
+		self::assertIsString( $field_id );
+
+		new Form();
+
+		$html = forminator_form( $form_id );
+
+		self::assertStringContainsString( 'forminator-custom-form-' . $form_id, $html );
+		self::assertStringContainsString( 'name="text-1"', $html );
+		self::assertStringContainsString( 'class="h-captcha"', $html );
+		self::assertStringContainsString( 'hcaptcha_forminator_nonce', $html );
+	}
 
 	/**
 	 * Tear down the test.

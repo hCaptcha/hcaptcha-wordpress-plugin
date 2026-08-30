@@ -1359,11 +1359,16 @@ class HCaptchaHandlerTest extends HCaptchaPluginWPTestCase {
 
 		$plugin = Plugin::instance();
 
-		$plugin::$instance        = $plugin;
-		$plugin->controls_manager = $controls_manager;
+		$original_controls_manager = $plugin->controls_manager;
+		$plugin::$instance         = $plugin;
+		$plugin->controls_manager  = $controls_manager;
 
-		$subject = new HCaptchaHandler();
-		$subject->modify_controls( $controls_stack, $args );
+		try {
+			$subject = new HCaptchaHandler();
+			$subject->modify_controls( $controls_stack, $args );
+		} finally {
+			$plugin->controls_manager = $original_controls_manager;
+		}
 	}
 
 	/**
