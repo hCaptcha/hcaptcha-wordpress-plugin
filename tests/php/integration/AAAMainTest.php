@@ -38,6 +38,7 @@ use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\NF\NF;
 use HCaptcha\Quform\Quform;
 use HCaptcha\Sendinblue\Sendinblue;
+use HCaptcha\Settings\AntiSpamPage;
 use HCaptcha\Settings\Settings;
 use HCaptcha\WC\Checkout;
 use HCaptcha\WC\OrderTracking;
@@ -70,6 +71,43 @@ require_once __DIR__ . '/CLI/WPCLI.php';
  * @group subscriber
  */
 class AAAMainTest extends HCaptchaWPTestCase {
+
+	/**
+	 * Test authenticated XML-RPC setting.
+	 *
+	 * @param bool $disabled Whether authenticated XML-RPC is disabled.
+	 *
+	 * @dataProvider dp_test_authenticated_xml_rpc_setting
+	 * @return void
+	 */
+	public function test_authenticated_xml_rpc_setting( bool $disabled ): void {
+		update_option(
+			AntiSpamPage::OPTION_NAME,
+			[ AntiSpamPage::DISABLE_XML_RPC_AUTH => $disabled ? [ 'on' ] : [] ]
+		);
+
+		FunctionMocker::replace( 'HCaptcha\Helpers\Request::is_xml_rpc', true );
+
+		$subject = new Main();
+		$subject->init_hooks();
+
+		self::assertSame( ! $disabled, apply_filters( 'xmlrpc_enabled', true ) );
+		self::assertFalse( has_action( 'plugins_loaded', [ $subject, 'load_modules' ] ) );
+
+		remove_filter( 'xmlrpc_enabled', '__return_false', PHP_INT_MAX );
+	}
+
+	/**
+	 * Data provider for test_authenticated_xml_rpc_setting().
+	 *
+	 * @return array[]
+	 */
+	public function dp_test_authenticated_xml_rpc_setting(): array {
+		return [
+			'enabled'  => [ true ],
+			'disabled' => [ false ],
+		];
+	}
 
 	/**
 	 * Included components in test_load_modules().

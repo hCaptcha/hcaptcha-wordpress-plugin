@@ -26,6 +26,24 @@ use WP_Mock;
 class MainTest extends HCaptchaTestCase {
 
 	/**
+	 * Test init() on an XML-RPC request.
+	 *
+	 * @return void
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_init_on_xml_rpc(): void {
+		FunctionMocker::replace( 'HCaptcha\Helpers\Request::is_xml_rpc', true );
+
+		$subject = new Main();
+
+		WP_Mock::expectActionAdded( 'plugins_loaded', [ $subject, 'init_hooks' ], Main::LOAD_PRIORITY );
+
+		$subject->init();
+
+		self::assertSame( [], $this->get_protected_property( $subject, 'loaded_classes' ) );
+	}
+
+	/**
 	 * Test declare_wc_compatibility().
 	 *
 	 * @return void

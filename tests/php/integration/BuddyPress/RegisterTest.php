@@ -15,6 +15,7 @@ namespace HCaptcha\Tests\Integration\BuddyPress;
 use HCaptcha\BuddyPress\Register;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test Register.
@@ -42,6 +43,19 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
+	 * Test init hooks.
+	 *
+	 * @return void
+	 */
+	public function test_init_hooks(): void {
+		$subject = new Register();
+
+		self::assertSame( 10, has_action( 'bp_before_registration_submit_buttons', [ $subject, 'add_captcha' ] ) );
+		self::assertSame( 10, has_action( 'bp_signup_validate', [ $subject, 'verify' ] ) );
+		self::assertSame( 20, has_action( 'wp_head', [ $subject, 'print_inline_styles' ] ) );
+	}
+
+	/**
 	 * Test add_captcha().
 	 */
 	public function test_add_captcha(): void {
@@ -53,7 +67,10 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 				'form_id' => 'register',
 			],
 		];
-		$expected = $this->get_hcap_form( $args );
+		$expected =
+			'<div class="hcap_buddypress_register_form">' .
+			$this->get_hcap_form( $args ) .
+			'</div>';
 
 		$subject = new Register();
 
@@ -87,10 +104,12 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 		];
 
 		$expected =
+			'<div class="hcap_buddypress_register_form">' .
 			'<div class="error">' .
 			$hcaptcha_response_verify .
 			'</div>' .
-			$this->get_hcap_form( $args );
+			$this->get_hcap_form( $args ) .
+			'</div>';
 		$subject  = new Register();
 
 		ob_start();
@@ -134,6 +153,52 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 		self::assertFalse( $subject->verify() );
 
 		self::assertEquals( $expected, $bp->signup );
+	}
+
+	/**
+	 * Test print_inline_styles().
+	 *
+	 * @return void
+	 * @noinspection CssUnusedSymbol
+	 */
+	public function test_print_inline_styles(): void {
+		FunctionMocker::replace(
+			'defined',
+			static function ( $constant_name ) {
+				return 'SCRIPT_DEBUG' === $constant_name;
+			}
+		);
+
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				return 'SCRIPT_DEBUG' === $name;
+			}
+		);
+
+		$expected = <<<'CSS'
+	#buddypress .standard-form .hcap_buddypress_register_form {
+		clear: both;
+		margin-inline-start: 52%;
+		width: 48%;
+	}
+
+	@media screen and (max-width: 46.8em) {
+		#buddypress .standard-form .hcap_buddypress_register_form {
+			margin-inline-start: 0;
+			width: 100%;
+		}
+	}
+CSS;
+		$expected = "<style>\n$expected\n</style>\n";
+
+		$subject = new Register();
+
+		ob_start();
+
+		$subject->print_inline_styles();
+
+		self::assertSame( $expected, ob_get_clean() );
 	}
 
 	/**
