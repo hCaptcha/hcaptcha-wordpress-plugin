@@ -1026,6 +1026,7 @@ Instructions for popular native integrations are below:
 * Fixed hCaptcha reinitialization after Login/Signup Popup AJAX submissions using FormData.
 * Fixed misplaced hCaptcha widgets and unreadable error messages on two-column BuddyPress registration forms.
 * Fixed Elementor Pro form submit buttons remaining disabled after client-side validation failures.
+* Fixed delayed hCaptcha loading after interaction with Beaver Builder login forms.
 
 = 5.2.0 =
 * Added MetForm integration.

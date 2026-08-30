@@ -121,7 +121,11 @@ class FormInteraction {
 			return;
 		}
 
-		const form = target.closest( 'form' );
+		const formSelector = wp.hooks.applyFilters(
+			'hcaptcha.formSelector',
+			'form',
+		);
+		const form = target.closest( formSelector );
 
 		if ( ! form?.querySelector( '.h-captcha.hcaptcha-api-delayed' ) ) {
 			return;
