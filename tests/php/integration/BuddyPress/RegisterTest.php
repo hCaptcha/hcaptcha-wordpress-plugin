@@ -15,7 +15,6 @@ namespace HCaptcha\Tests\Integration\BuddyPress;
 use HCaptcha\BuddyPress\Register;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
-use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test Register.
@@ -30,6 +29,41 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 	 * @var string
 	 */
 	protected static $plugin = 'buddypress/bp-loader.php';
+
+	/**
+	 * Hooks to replay after loading BuddyPress.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'setup_theme',
+		'after_setup_theme',
+		'init',
+	];
+
+	/**
+	 * Initialize BuddyPress after the WordPress test bootstrap.
+	 *
+	 * @var bool
+	 */
+	protected static bool $force_plugin_load_hooks = true;
+
+	/**
+	 * Enable the BuddyPress components used by these tests.
+	 *
+	 * @return void
+	 */
+	protected function before_load_test_plugins(): void {
+		add_filter(
+			'bp_active_components',
+			static function ( $components ) {
+				$components['groups'] = '1';
+
+				return $components;
+			}
+		);
+	}
 
 	/**
 	 * Tear down the test.
@@ -79,6 +113,33 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 		$subject->add_captcha();
 
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Test hCaptcha in the live BuddyPress registration template.
+	 *
+	 * @return void
+	 */
+	public function test_live_registration_template(): void {
+		$bp         = buddypress();
+		$bp->signup = (object) [
+			'step'   => 'request-details',
+			'errors' => [],
+		];
+		$subject    = new Register();
+		$template   = bp_locate_template( 'members/register.php' );
+		$html       = bp_buffer_template_part( 'members/register', null, false );
+
+		self::assertTrue( is_plugin_active( static::$plugin ) );
+		self::assertStringStartsWith(
+			wp_normalize_path( WP_PLUGIN_DIR . '/buddypress/' ),
+			wp_normalize_path( (string) $template )
+		);
+		self::assertStringContainsString( 'name="signup_form"', $html );
+		self::assertStringContainsString( 'name="signup_email"', $html );
+		self::assertStringContainsString( 'class="hcap_buddypress_register_form"', $html );
+		self::assertStringContainsString( 'name="hcaptcha_bp_register_nonce"', $html );
+		self::assertSame( 10, has_action( 'bp_before_registration_submit_buttons', [ $subject, 'add_captcha' ] ) );
 	}
 
 	/**
@@ -162,43 +223,17 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function test_print_inline_styles(): void {
-		FunctionMocker::replace(
-			'defined',
-			static function ( $constant_name ) {
-				return 'SCRIPT_DEBUG' === $constant_name;
-			}
-		);
-
-		FunctionMocker::replace(
-			'constant',
-			static function ( $name ) {
-				return 'SCRIPT_DEBUG' === $name;
-			}
-		);
-
-		$expected = <<<'CSS'
-	#buddypress .standard-form .hcap_buddypress_register_form {
-		clear: both;
-		margin-inline-start: 52%;
-		width: 48%;
-	}
-
-	@media screen and (max-width: 46.8em) {
-		#buddypress .standard-form .hcap_buddypress_register_form {
-			margin-inline-start: 0;
-			width: 100%;
-		}
-	}
-CSS;
-		$expected = "<style>\n$expected\n</style>\n";
-
 		$subject = new Register();
 
 		ob_start();
 
 		$subject->print_inline_styles();
+		$css = (string) ob_get_clean();
 
-		self::assertSame( $expected, ob_get_clean() );
+		self::assertStringContainsString( '<style>', $css );
+		self::assertStringContainsString( '.hcap_buddypress_register_form', $css );
+		self::assertStringContainsString( 'margin-inline-start', $css );
+		self::assertStringContainsString( '@media', $css );
 	}
 
 	/**

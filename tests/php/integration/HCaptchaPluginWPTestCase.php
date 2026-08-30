@@ -111,6 +111,13 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 	protected static array $plugin_allowed_activation_errors = [];
 
 	/**
+	 * Plugins whose activation hooks must be skipped in the test process.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_silent_activation = [];
+
+	/**
 	 * Expected incorrect usage notices caused by loading a theme after WordPress bootstrap.
 	 *
 	 * @var string[]
@@ -439,7 +446,11 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 			return;
 		}
 
-		$silent = isset( static::$plugin_loaded[ $plugin ] );
+		$silent = isset( static::$plugin_loaded[ $plugin ] ) || in_array(
+			$plugin,
+			static::$plugin_silent_activation,
+			true
+		);
 		$result = activate_plugin( $plugin, '', false, $silent );
 
 		if (

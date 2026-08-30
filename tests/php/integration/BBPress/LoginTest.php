@@ -10,6 +10,7 @@ namespace HCaptcha\Tests\Integration\BBPress;
 use HCaptcha\BBPress\Login;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use ReflectionClass;
 
 /**
  * Test Login class.
@@ -18,6 +19,56 @@ use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
  * @group bbpress-login
  */
 class LoginTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * Plugin relative path.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'bbpress/bbpress.php';
+
+	/**
+	 * Hooks to replay after loading bbPress.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'setup_theme',
+		'after_setup_theme',
+		'init',
+	];
+
+	/**
+	 * Force lifecycle hook replay after WPTestCase resets action counters.
+	 *
+	 * @var bool
+	 */
+	protected static bool $force_plugin_load_hooks = true;
+
+	/**
+	 * Test the login form rendered by the live bbPress shortcode.
+	 */
+	public function test_live_login_form(): void {
+		hcaptcha()->settings()->set( 'bbp_status', 'login' );
+
+		new Login();
+
+		$shortcodes_file = wp_normalize_path( ( new ReflectionClass( \BBP_Shortcodes::class ) )->getFileName() );
+		$template        = bbp_get_template_part( 'form', 'user-login' );
+
+		ob_start();
+		load_template( $template, false );
+		$html = ob_get_clean();
+
+		self::assertTrue( is_plugin_active( static::$plugin ) );
+		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/bbpress/' ), $shortcodes_file );
+		self::assertTrue( shortcode_exists( 'bbp-login' ) );
+		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/bbpress/' ), wp_normalize_path( $template ) );
+		self::assertStringContainsString( 'class="bbp-login-form"', $html );
+		self::assertStringContainsString( 'class="h-captcha"', $html );
+		self::assertStringContainsString( 'hcaptcha_login_nonce', $html );
+	}
 
 	/**
 	 * Test init_hooks().

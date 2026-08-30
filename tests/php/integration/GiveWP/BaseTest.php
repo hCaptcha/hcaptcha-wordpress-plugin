@@ -14,11 +14,9 @@ namespace HCaptcha\Tests\Integration\GiveWP;
 
 use HCaptcha\GiveWP\Form;
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
-use HCaptcha\Tests\Integration\Stubs\Give\DonationForms\ValueObjects\DonationFormErrorTypesStub;
-use Mockery;
-use tad\FunctionMocker\FunctionMocker;
-use Give\DonationForms\ValueObjects\DonationFormErrorTypes;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use Give\Onboarding\DefaultFormFactory;
+use ReflectionFunction;
 use WP_Error;
 
 /**
@@ -26,7 +24,40 @@ use WP_Error;
  *
  * @group givewp
  */
-class BaseTest extends HCaptchaWPTestCase {
+class BaseTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * Plugin relative path.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'give/give.php';
+
+	/**
+	 * Hooks to replay after loading GiveWP.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
+
+	/**
+	 * Force lifecycle hook replay after WPTestCase resets action counters.
+	 *
+	 * @var bool
+	 */
+	protected static bool $force_plugin_load_hooks = true;
+
+	/**
+	 * Expected late-bootstrap notice emitted by GiveWP's lifecycle container.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_expected_incorrect_usage = [
+		'_lw_harbor_instance_registry',
+	];
 
 	/**
 	 * Tear down the test.
@@ -35,6 +66,10 @@ class BaseTest extends HCaptchaWPTestCase {
 	 */
 	public function tearDown(): void {
 		unset( $_POST, $_GET, $_SERVER['REQUEST_METHOD'] );
+
+		if ( function_exists( 'give_clear_errors' ) ) {
+			give_clear_errors();
+		}
 
 		wp_dequeue_script( 'hcaptcha-give-wp' );
 		wp_deregister_script( 'hcaptcha-give-wp' );
@@ -137,6 +172,34 @@ class BaseTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test hCaptcha in a donation form rendered by the live GiveWP shortcode.
+	 *
+	 * @return void
+	 */
+	public function test_live_donation_form(): void {
+		$form_id = ( new DefaultFormFactory() )->make();
+		$user_id = self::factory()->user->create();
+
+		update_post_meta( $form_id, '_give_form_template', 'legacy' );
+		wp_set_current_user( $user_id );
+
+		$subject  = new Form();
+		$function = new ReflectionFunction( 'give_form_shortcode' );
+		$html     = do_shortcode( '[give_form id="' . $form_id . '"]' );
+
+		self::assertTrue( is_plugin_active( static::$plugin ) );
+		self::assertStringStartsWith(
+			wp_normalize_path( WP_PLUGIN_DIR . '/give/' ),
+			wp_normalize_path( (string) $function->getFileName() )
+		);
+		self::assertTrue( shortcode_exists( 'give_form' ) );
+		self::assertStringContainsString( 'give-form', $html );
+		self::assertStringContainsString( 'name="give-form-id"', $html );
+		self::assertStringContainsString( 'name="hcaptcha_give_wp_form_nonce"', $html );
+		self::assertSame( 10, has_action( 'give_donation_form_user_info', [ $subject, 'add_captcha' ] ) );
+	}
+
+	/**
 	 * Test verify() with the correct action.
 	 *
 	 * @return void
@@ -150,15 +213,13 @@ class BaseTest extends HCaptchaWPTestCase {
 		$_POST['action']       = 'give_process_donation';
 		$_POST['give-form-id'] = $form_id;
 
-		FunctionMocker::replace( 'give_set_error' );
+		give_clear_errors();
 
 		$subject = new Form();
 
 		$subject->verify( true );
 
-		// Verified successfully — give_set_error should not be called.
-		// No exception means success.
-		self::assertTrue( true );
+		self::assertEmpty( give_get_errors() );
 	}
 
 	/**
@@ -175,23 +236,16 @@ class BaseTest extends HCaptchaWPTestCase {
 		$_POST['action']       = 'give_process_donation';
 		$_POST['give-form-id'] = $form_id;
 
-		$error_slug    = '';
-		$error_message = '';
-
-		FunctionMocker::replace(
-			'give_set_error',
-			static function ( $slug, $message ) use ( &$error_slug, &$error_message ) {
-				$error_slug    = $slug;
-				$error_message = $message;
-			}
-		);
+		give_clear_errors();
 
 		$subject = new Form();
 
 		$subject->verify( true );
 
-		self::assertSame( 'invalid_hcaptcha', $error_slug );
-		self::assertNotEmpty( $error_message );
+		$errors = give_get_errors();
+
+		self::assertArrayHasKey( 'invalid_hcaptcha', $errors );
+		self::assertNotEmpty( $errors['invalid_hcaptcha'] );
 	}
 
 	/**
@@ -222,22 +276,15 @@ class BaseTest extends HCaptchaWPTestCase {
 
 		$this->prepare_widget_id( $form_id );
 
-		$error_slug    = '';
-		$error_message = '';
-
-		FunctionMocker::replace(
-			'give_set_error',
-			static function ( $slug, $message ) use ( &$error_slug, &$error_message ) {
-				$error_slug    = $slug;
-				$error_message = $message;
-			}
-		);
+		give_clear_errors();
 
 		$subject = new Form();
 
 		$subject->verify( true );
 
-		self::assertSame( 'invalid_hcaptcha', $error_slug );
+		$errors        = give_get_errors();
+		$error_message = $errors['invalid_hcaptcha'] ?? '';
+
 		self::assertStringContainsString( 'Please complete the hCaptcha.', $error_message );
 		self::assertStringNotContainsString( 'Token replayed or expired.', $error_message );
 	}
@@ -249,20 +296,13 @@ class BaseTest extends HCaptchaWPTestCase {
 	public function test_verify_wrong_action(): void {
 		$_POST['action'] = 'some_other_action';
 
-		$called = false;
-
-		FunctionMocker::replace(
-			'give_set_error',
-			static function () use ( &$called ) {
-				$called = true;
-			}
-		);
+		give_clear_errors();
 
 		$subject = new Form();
 
 		$subject->verify( true );
 
-		self::assertFalse( $called );
+		self::assertEmpty( give_get_errors() );
 	}
 
 	/**
@@ -365,8 +405,6 @@ class BaseTest extends HCaptchaWPTestCase {
 	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_verify_block_no_hcaptcha_response(): void {
-		Mockery::namedMock( DonationFormErrorTypes::class, DonationFormErrorTypesStub::class );
-
 		$die_arr  = [];
 		$expected = [
 			'',
@@ -414,8 +452,6 @@ class BaseTest extends HCaptchaWPTestCase {
 	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_verify_block_not_verified(): void {
-		Mockery::namedMock( DonationFormErrorTypes::class, DonationFormErrorTypes::class );
-
 		$die_arr  = [];
 		$expected = [
 			'',

@@ -269,15 +269,22 @@ jobs:
       - name: Install public test plugins and themes
         working-directory: ${{ env.wp-directory }}
         run: |
-          wp plugin install acf-extended bbpress blocksy-companion buddypress coblocks contact-form-7 elementor essential-addons-for-elementor-lite fluentform formidable forminator jetpack kadence-blocks mailchimp-for-wp mailpoet maintenance metform ninja-forms otter-blocks password-protected ultimate-addons-for-gutenberg ultimate-member woocommerce wordfence wpforms-lite wpforo
+          wp plugin install acf-extended bbpress blocksy-companion buddypress coblocks contact-form-7 download-manager elementor essential-addons-for-elementor-lite essential-blocks fluentform formidable forminator give jetpack kadence-blocks mailchimp-for-wp mailin mailpoet maintenance metform ninja-forms otter-blocks paid-memberships-pro password-protected ultimate-addons-for-gutenberg ultimate-member woocommerce wordfence wpforms-lite wpforo
           wp theme install blocksy
           wp plugin is-installed acf-extended
+          wp plugin is-installed bbpress
           wp plugin is-installed blocksy-companion
+          wp plugin is-installed buddypress
           wp plugin is-installed coblocks
+          wp plugin is-installed download-manager
+          wp plugin is-installed essential-blocks
           wp plugin is-installed formidable
+          wp plugin is-installed give
           wp plugin is-installed kadence-blocks
+          wp plugin is-installed mailin
           wp plugin is-installed mailpoet
           wp plugin is-installed otter-blocks
+          wp plugin is-installed paid-memberships-pro
           wp plugin is-installed password-protected
           wp plugin is-installed ultimate-member
           wp theme is-installed blocksy
@@ -308,6 +315,22 @@ jobs:
           wp theme is-installed Avada
           wp theme is-installed Divi
 
+      - name: Install Beaver Builder
+        if: steps.test_plugins.outputs.available == 'true'
+        id: beaver_builder
+        working-directory: ${{ env.wp-directory }}
+        run: |
+          beaver_builder_archive="$(find "$GITHUB_WORKSPACE/hcaptcha-test-plugins" -maxdepth 1 -type f \( -iname 'bb-plugin*.zip' -o -iname 'beaver-builder*.zip' \) | sort -V | tail -n 1)"
+
+          if [[ -z "$beaver_builder_archive" ]]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          wp plugin install "$beaver_builder_archive"
+          wp plugin is-installed bb-plugin
+          echo "available=true" >> "$GITHUB_OUTPUT"
+
       - name: Run WP tests with private test plugins
         if: steps.test_plugins.outputs.available == 'true'
         working-directory: ${{ env.wp-plugin-directory }}
@@ -318,13 +341,17 @@ jobs:
             integration_args+=(--skip-group cf7-really-simple-captcha)
           fi
 
+          if [[ "${{ steps.beaver_builder.outputs.available }}" != "true" ]]; then
+            integration_args+=(--skip-group beaver-builder)
+          fi
+
           composer integration -- --env github-actions "${integration_args[@]}"
 
       - name: Run WP tests without private test plugins
         if: steps.test_plugins.outputs.available != 'true'
         working-directory: ${{ env.wp-plugin-directory }}
         run: |
-          integration_args=(--skip-group elementor-pro --skip-group gravityforms --skip-group ultimate-addons)
+          integration_args=(--skip-group beaver-builder --skip-group elementor-pro --skip-group gravityforms --skip-group ultimate-addons)
 
           if [[ "${{ steps.really_simple_captcha.outputs.supported }}" != "true" ]]; then
             integration_args+=(--skip-group cf7-really-simple-captcha)
