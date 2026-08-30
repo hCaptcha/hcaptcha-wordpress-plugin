@@ -260,13 +260,18 @@ jobs:
       - name: Install public test plugins and themes
         working-directory: ${{ env.wp-directory }}
         run: |
-          wp plugin install bbpress blocksy-companion buddypress coblocks contact-form-7 elementor essential-addons-for-elementor-lite fluentform forminator jetpack kadence-blocks mailchimp-for-wp mailpoet maintenance metform ninja-forms really-simple-captcha ultimate-addons-for-gutenberg ultimate-member woocommerce wordfence wpforms-lite wpforo
+          wp plugin install acf-extended bbpress blocksy-companion buddypress coblocks contact-form-7 elementor essential-addons-for-elementor-lite fluentform formidable forminator jetpack kadence-blocks mailchimp-for-wp mailpoet maintenance metform ninja-forms otter-blocks password-protected really-simple-captcha ultimate-addons-for-gutenberg ultimate-member woocommerce wordfence wpforms-lite wpforo
           wp theme install blocksy
+          wp plugin is-installed acf-extended
           wp plugin is-installed blocksy-companion
           wp plugin is-installed coblocks
+          wp plugin is-installed formidable
           wp plugin is-installed kadence-blocks
           wp plugin is-installed mailpoet
+          wp plugin is-installed otter-blocks
+          wp plugin is-installed password-protected
           wp plugin is-installed really-simple-captcha
+          wp plugin is-installed ultimate-member
           wp theme is-installed blocksy
 
       - name: Install private test plugins and themes
@@ -274,12 +279,14 @@ jobs:
         working-directory: ${{ env.wp-directory }}
         run: |
           wp plugin install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/elementor-pro-4.2.1.zip"
+          wp plugin install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/advanced-custom-fields-pro-6.8.0.1.zip"
           wp plugin install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/gravityforms-3.0.2.zip"
           wp plugin install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/ultimate-elementor-1.39.5.zip"
           wp plugin install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/fusion-builder-3.11.2.zip"
           wp theme install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/Avada-7.11.2.zip"
           wp theme install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/Divi-4.27.6.zip"
           wp plugin is-installed elementor-pro
+          wp plugin is-installed advanced-custom-fields-pro
           wp plugin is-installed gravityforms
           wp plugin is-installed ultimate-elementor
           wp plugin is-installed fusion-builder

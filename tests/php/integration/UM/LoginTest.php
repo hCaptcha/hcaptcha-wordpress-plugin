@@ -11,6 +11,7 @@ use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use HCaptcha\UM\Login;
 use Mockery;
+use ReflectionClass;
 
 /**
  * Class LoginTest.
@@ -26,6 +27,72 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	 * @var string
 	 */
 	protected static $plugin = 'ultimate-member/ultimate-member.php';
+
+	/**
+	 * Hooks to replay after loading Ultimate Member.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
+
+	/**
+	 * Force lifecycle hook replay after WPTestCase resets action counters.
+	 *
+	 * @var bool
+	 */
+	protected static bool $force_plugin_load_hooks = true;
+
+	/**
+	 * Test a live Ultimate Member login form.
+	 */
+	public function test_live_login_form(): void {
+		wp_set_current_user( 0 );
+
+		$form_id = wp_insert_post(
+			[
+				'post_title'  => 'hCaptcha integration login',
+				'post_status' => 'publish',
+				'post_type'   => 'um_form',
+			]
+		);
+
+		self::assertIsInt( $form_id );
+
+		foreach ( UM()->config()->core_form_meta['login'] as $meta_key => $meta_value ) {
+			update_post_meta( $form_id, $meta_key, $meta_value );
+		}
+
+		update_post_meta( $form_id, '_um_template', 'login' );
+
+		$integration = new Login();
+		$class_file  = wp_normalize_path( ( new ReflectionClass( \um\core\Shortcodes::class ) )->getFileName() );
+		$form_data   = UM()->query()->post_data( $form_id );
+		$form_args   = array_merge( $form_data, UM()->shortcodes()->get_css_args( $form_data ) );
+
+		ob_start();
+		UM()->shortcodes()->template_load( $form_data['template'], $form_args );
+		$html = ob_get_clean();
+
+		self::assertTrue( is_plugin_active( static::$plugin ) );
+		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/ultimate-member/' ), $class_file );
+		self::assertTrue( shortcode_exists( 'ultimatemember' ) );
+		self::assertSame( \um\core\Shortcodes::class, get_class( $GLOBALS['shortcode_tags']['ultimatemember'][0] ) );
+		self::assertSame( 'ultimatemember', $GLOBALS['shortcode_tags']['ultimatemember'][1] );
+		self::assertSame( 'um_form', get_post_type( $form_id ) );
+		self::assertSame( 'publish', get_post_status( $form_id ) );
+		self::assertSame( 'login', $form_data['mode'] );
+		self::assertSame( 'login', $form_data['template'] );
+		self::assertTrue( UM()->shortcodes()->template_exists( $form_data['mode'] ) );
+		self::assertSame( 100, has_filter( 'um_get_form_fields', [ $integration, 'add_um_captcha' ] ) );
+		self::assertStringContainsString( 'class="um um-login ', $html );
+		self::assertStringContainsString( 'name="username-' . $form_id . '"', $html );
+		self::assertStringContainsString( 'name="user_password-' . $form_id . '"', $html );
+		self::assertStringContainsString( 'class="h-captcha"', $html );
+		self::assertStringContainsString( 'hcaptcha_um_login_nonce', $html );
+	}
 
 	/**
 	 * Tear down the test.

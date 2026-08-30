@@ -83,11 +83,25 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 	protected static array $plugin_load_hooks = [];
 
 	/**
+	 * Whether plugin lifecycle callbacks must be replayed even when WPTestCase reset their action counters.
+	 *
+	 * @var bool
+	 */
+	protected static bool $force_plugin_load_hooks = false;
+
+	/**
 	 * Expected incorrect usage notices caused by loading plugins after WordPress bootstrap.
 	 *
 	 * @var string[]
 	 */
 	protected static array $plugin_expected_incorrect_usage = [];
+
+	/**
+	 * Expected deprecation notices caused by loading plugins after WordPress bootstrap.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_expected_deprecated = [];
 
 	/**
 	 * Activation error codes allowed for individual test plugins.
@@ -114,10 +128,12 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 		parent::tearDownAfterClass();
 	}
 
+	// phpcs:disable Generic.Metrics.CyclomaticComplexity.TooHigh
 	/**
 	 * Setup test.
 	 */
 	public function setUp(): void {
+		// phpcs:enable Generic.Metrics.CyclomaticComplexity.TooHigh
 		$plugins_requiring_php = [
 			'7.4' => [
 				'contact-form-7/wp-contact-form-7.php',
@@ -163,13 +179,31 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 			$this->setExpectedIncorrectUsage( $incorrect_usage );
 		}
 
+		foreach ( static::$plugin_expected_deprecated as $deprecated ) {
+			$this->setExpectedDeprecated( $deprecated );
+		}
+
 		foreach ( (array) static::$plugin as $plugin ) {
 			$this->activate_test_plugin( $plugin );
 			$this->replay_elementor_loaded_action( $plugin );
 		}
 
 		foreach ( $hook_callbacks as $hook_name => $previous_callbacks ) {
-			$this->run_late_hook_callbacks( $hook_name, $previous_callbacks );
+			if ( ! static::$force_plugin_load_hooks ) {
+				$this->run_late_hook_callbacks( $hook_name, $previous_callbacks );
+
+				continue;
+			}
+
+			for ( $pass = 0; $pass < 10; ++$pass ) {
+				$current_callbacks = $this->run_late_hook_callbacks( $hook_name, $previous_callbacks, true );
+
+				if ( $current_callbacks === $previous_callbacks ) {
+					break;
+				}
+
+				$previous_callbacks = $current_callbacks;
+			}
 		}
 
 		$this->store_test_plugin_hooks( $plugin_key, $previous_plugin_hooks );
@@ -455,6 +489,11 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 			return $previous_callbacks;
 		}
 
+		if ( $force && ! did_action( $hook_name ) ) {
+			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Preserve the lifecycle state reset by WPTestCase.
+			$GLOBALS['wp_actions'][ $hook_name ] = 1;
+		}
+
 		foreach ( $this->get_hook_callbacks( $hook_name ) as $priority => $callbacks ) {
 			foreach ( $callbacks as $callback_id => $callback ) {
 				if ( isset( $previous_callbacks[ $priority ][ $callback_id ] ) ) {
@@ -463,7 +502,13 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 
 				$previous_callbacks[ $priority ][ $callback_id ] = $callback;
 
+				$buffer_level = ob_get_level();
+
 				call_user_func( $callback['function'] );
+
+				while ( ob_get_level() > $buffer_level ) {
+					ob_end_clean();
+				}
 			}
 		}
 

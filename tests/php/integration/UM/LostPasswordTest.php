@@ -26,6 +26,23 @@ class LostPasswordTest extends HCaptchaPluginWPTestCase {
 	protected static $plugin = 'ultimate-member/ultimate-member.php';
 
 	/**
+	 * Hooks to replay after loading Ultimate Member.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
+
+	/**
+	 * Force lifecycle hook replay after WPTestCase resets action counters.
+	 *
+	 * @var bool
+	 */
+	protected static bool $force_plugin_load_hooks = true;
+
+	/**
 	 * Tear down the test.
 	 *
 	 * @return void

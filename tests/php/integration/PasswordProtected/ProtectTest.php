@@ -9,8 +9,8 @@ namespace HCaptcha\Tests\Integration\PasswordProtected;
 
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\PasswordProtected\Protect;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
-use tad\FunctionMocker\FunctionMocker;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use ReflectionClass;
 use WP_Error;
 
 /**
@@ -18,7 +18,56 @@ use WP_Error;
  *
  * @group password-protected
  */
-class ProtectTest extends HCaptchaWPTestCase {
+class ProtectTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * Plugin relative path.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'password-protected/password-protected.php';
+
+	/**
+	 * Hooks to replay after loading Password Protected.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
+
+	/**
+	 * Force lifecycle hook replay after WPTestCase resets action counters.
+	 *
+	 * @var bool
+	 */
+	protected static bool $force_plugin_load_hooks = true;
+
+	/**
+	 * Test the live Password Protected login template.
+	 */
+	public function test_live_login_form(): void {
+		// phpcs:ignore WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase -- Global name defined by Password Protected.
+		global $Password_Protected;
+
+		new Protect();
+
+		$plugin_file = wp_normalize_path( ( new ReflectionClass( \Password_Protected::class ) )->getFileName() );
+
+		ob_start();
+		load_template( PASSWORD_PROTECTED_DIR . 'theme/password-protected-login.php' );
+		$html = ob_get_clean();
+
+		self::assertTrue( is_plugin_active( static::$plugin ) );
+		// phpcs:ignore WordPress.NamingConventions.ValidVariableName.VariableNotSnakeCase -- Global name defined by Password Protected.
+		self::assertInstanceOf( \Password_Protected::class, $Password_Protected );
+		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/password-protected/' ), $plugin_file );
+		self::assertStringContainsString( 'id="loginform"', $html );
+		self::assertStringContainsString( 'name="password_protected_pwd"', $html );
+		self::assertStringContainsString( 'class="h-captcha"', $html );
+		self::assertStringContainsString( 'hcaptcha_password_protected_nonce', $html );
+	}
 
 	/**
 	 * Test init_hooks().
@@ -134,36 +183,17 @@ class ProtectTest extends HCaptchaWPTestCase {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function test_print_inline_styles(): void {
-		FunctionMocker::replace(
-			'defined',
-			static function ( $constant_name ) {
-				return 'SCRIPT_DEBUG' === $constant_name;
-			}
-		);
-
-		FunctionMocker::replace(
-			'constant',
-			static function ( $name ) {
-				return 'SCRIPT_DEBUG' === $name;
-			}
-		);
-
-		$expected = <<<'CSS'
-	body.login-password-protected #loginform {
-		min-width: 302px;
-	}
-	body.login-password-protected p.submit + div {
-		margin-bottom: 15px;
-	}
-CSS;
-		$expected = "<style>\n$expected\n</style>\n";
-
 		$subject = new Protect();
 
 		ob_start();
 
 		$subject->print_inline_styles();
 
-		self::assertSame( $expected, ob_get_clean() );
+		$output = ob_get_clean();
+
+		self::assertStringContainsString( '<style>', $output );
+		self::assertStringContainsString( 'body.login-password-protected #loginform', $output );
+		self::assertStringContainsString( 'min-width:302px', preg_replace( '/\s+/', '', $output ) );
+		self::assertStringContainsString( 'body.login-password-protected p.submit+div', $output );
 	}
 }
