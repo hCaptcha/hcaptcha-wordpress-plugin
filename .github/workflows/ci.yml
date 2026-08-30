@@ -220,6 +220,15 @@ jobs:
           extensions: json, mysqli, mbstring, zip
           ini-values: register_argc_argv=On
 
+      - name: Detect Really Simple CAPTCHA support
+        id: really_simple_captcha
+        run: |
+          if php -r 'exit(version_compare(PHP_VERSION, "8.3", ">=") ? 0 : 1);'; then
+            echo "supported=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "supported=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Install dependencies with caching
         uses: hCaptcha/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # v4.0.0
         with:
@@ -260,7 +269,7 @@ jobs:
       - name: Install public test plugins and themes
         working-directory: ${{ env.wp-directory }}
         run: |
-          wp plugin install acf-extended bbpress blocksy-companion buddypress coblocks contact-form-7 elementor essential-addons-for-elementor-lite fluentform formidable forminator jetpack kadence-blocks mailchimp-for-wp mailpoet maintenance metform ninja-forms otter-blocks password-protected really-simple-captcha ultimate-addons-for-gutenberg ultimate-member woocommerce wordfence wpforms-lite wpforo
+          wp plugin install acf-extended bbpress blocksy-companion buddypress coblocks contact-form-7 elementor essential-addons-for-elementor-lite fluentform formidable forminator jetpack kadence-blocks mailchimp-for-wp mailpoet maintenance metform ninja-forms otter-blocks password-protected ultimate-addons-for-gutenberg ultimate-member woocommerce wordfence wpforms-lite wpforo
           wp theme install blocksy
           wp plugin is-installed acf-extended
           wp plugin is-installed blocksy-companion
@@ -270,9 +279,15 @@ jobs:
           wp plugin is-installed mailpoet
           wp plugin is-installed otter-blocks
           wp plugin is-installed password-protected
-          wp plugin is-installed really-simple-captcha
           wp plugin is-installed ultimate-member
           wp theme is-installed blocksy
+
+      - name: Install Really Simple CAPTCHA
+        if: steps.really_simple_captcha.outputs.supported == 'true'
+        working-directory: ${{ env.wp-directory }}
+        run: |
+          wp plugin install really-simple-captcha
+          wp plugin is-installed really-simple-captcha
 
       - name: Install private test plugins and themes
         if: steps.test_plugins.outputs.available == 'true'
@@ -296,12 +311,26 @@ jobs:
       - name: Run WP tests with private test plugins
         if: steps.test_plugins.outputs.available == 'true'
         working-directory: ${{ env.wp-plugin-directory }}
-        run: composer integration -- --env github-actions
+        run: |
+          integration_args=()
+
+          if [[ "${{ steps.really_simple_captcha.outputs.supported }}" != "true" ]]; then
+            integration_args+=(--skip-group cf7-really-simple-captcha)
+          fi
+
+          composer integration -- --env github-actions "${integration_args[@]}"
 
       - name: Run WP tests without private test plugins
         if: steps.test_plugins.outputs.available != 'true'
         working-directory: ${{ env.wp-plugin-directory }}
-        run: composer integration -- --env github-actions --skip-group elementor-pro --skip-group gravityforms --skip-group ultimate-addons
+        run: |
+          integration_args=(--skip-group elementor-pro --skip-group gravityforms --skip-group ultimate-addons)
+
+          if [[ "${{ steps.really_simple_captcha.outputs.supported }}" != "true" ]]; then
+            integration_args+=(--skip-group cf7-really-simple-captcha)
+          fi
+
+          composer integration -- --env github-actions "${integration_args[@]}"
 
   update_changelog:
     name: Update Changelog
