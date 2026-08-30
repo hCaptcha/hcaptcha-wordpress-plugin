@@ -77,8 +77,8 @@ class BaseTest extends HCaptchaWPTestCase {
 			has_filter( 'hcap_print_hcaptcha_scripts', '__return_true' )
 		);
 		self::assertSame(
-			9,
-			has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] )
+			10,
+			has_action( 'givewp_donation_form_enqueue_scripts', [ $subject, 'enqueue_scripts' ] )
 		);
 		self::assertSame(
 			10,
@@ -98,7 +98,7 @@ class BaseTest extends HCaptchaWPTestCase {
 		$subject = new Form();
 
 		self::assertFalse(
-			has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] )
+			has_action( 'givewp_donation_form_enqueue_scripts', [ $subject, 'enqueue_scripts' ] )
 		);
 	}
 
@@ -113,7 +113,7 @@ class BaseTest extends HCaptchaWPTestCase {
 		$subject = new Form();
 
 		self::assertFalse(
-			has_action( 'wp_print_footer_scripts', [ $subject, 'print_footer_scripts' ] )
+			has_action( 'givewp_donation_form_enqueue_scripts', [ $subject, 'enqueue_scripts' ] )
 		);
 	}
 
@@ -452,17 +452,17 @@ class BaseTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test print_footer_scripts().
+	 * Test enqueue_scripts().
 	 *
 	 * @return void
 	 */
-	public function test_print_footer_scripts(): void {
+	public function test_enqueue_scripts(): void {
 		$_GET['givewp-route'] = 'donation-form-view';
 		$_GET['form-id']      = '42';
 
 		$subject = new Form();
 
-		$subject->print_footer_scripts();
+		$subject->enqueue_scripts();
 
 		$script = wp_scripts()->registered['hcaptcha-give-wp'] ?? null;
 
@@ -470,6 +470,7 @@ class BaseTest extends HCaptchaWPTestCase {
 		self::assertStringContainsString( 'hcaptcha-givewp', $script->src );
 		self::assertContains( 'wp-blocks', $script->deps );
 		self::assertContains( 'hcaptcha', $script->deps );
+		self::assertContains( 'hcaptcha-fst', $script->deps );
 		self::assertSame( HCAPTCHA_VERSION, $script->ver );
 
 		// Check localization.

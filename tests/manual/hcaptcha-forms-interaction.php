@@ -28,6 +28,10 @@
 // - Contact form.
 // - Login form.
 
+// BuddyPress forms handled here:
+// - Create Group form.
+// - Register form.
+
 // Blocksy forms handled here:
 // - Newsletter Subscribe form.
 // - Product Review form.
@@ -77,6 +81,10 @@
 // Password Protected forms handled here:
 // - Site Password form.
 
+// Paid Memberships Pro forms handled here:
+// - Checkout form.
+// - Login form.
+
 // WooCommerce forms handled here:
 // - Add a Payment Method form.
 // - Checkout form (classic and block).
@@ -94,14 +102,26 @@
 // - Email Optin form.
 // - Login form.
 
+// Download Manager forms handled here:
+// - Download button form.
+
+// Essential Blocks forms handled here:
+// - Form block.
+
 // Essential Addons for Elementor forms handled here:
 // - Login form.
 // - Registration form.
+
+// GiveWP forms handled here:
+// - Donation form (classic and upgraded).
 
 // Mailchimp for WordPress forms handled here:
 // - Subscription form.
 
 // MailPoet forms handled here:
+// - Subscription form.
+
+// SendInBlue forms handled here:
 // - Subscription form.
 
 // Ultimate Addons for Elementor forms handled here:
@@ -223,6 +243,65 @@ function hcap_forms_mark_beaver_builder_form( $output ) {
 }
 
 add_filter( 'fl_builder_render_module_content', 'hcap_forms_mark_beaver_builder_form', 0 );
+
+/**
+ * Mark the request when BuddyPress renders a protected form.
+ *
+ * @return void
+ */
+function hcap_forms_mark_buddypress_form(): void {
+	$GLOBALS['hcap_forms_has_buddypress_form'] = true;
+}
+
+add_action( 'bp_before_registration_submit_buttons', 'hcap_forms_mark_buddypress_form', 0 );
+add_action( 'bp_after_group_details_creation_step', 'hcap_forms_mark_buddypress_form', 0 );
+
+/**
+ * Mark the request when Download Manager renders a protected download form.
+ *
+ * @param mixed $template Download template.
+ *
+ * @return mixed
+ */
+function hcap_forms_mark_download_manager_form( $template ) {
+	if ( preg_match( '/wpdmdl=\d+/', (string) $template ) ) {
+		$GLOBALS['hcap_forms_has_download_manager_form'] = true;
+	}
+
+	return $template;
+}
+
+add_filter( 'wpdm_after_fetch_template', 'hcap_forms_mark_download_manager_form', 0 );
+
+/**
+ * Mark the request when Essential Blocks renders a Form block.
+ *
+ * @param string|mixed $block_content Block content.
+ * @param array        $block         Block data.
+ *
+ * @return string
+ */
+function hcap_forms_mark_essential_blocks_form( $block_content, array $block ): string {
+	if ( 'essential-blocks/form' === ( $block['blockName'] ?? '' ) ) {
+		$GLOBALS['hcap_forms_has_essential_blocks_form'] = true;
+	}
+
+	return (string) $block_content;
+}
+
+add_filter( 'render_block', 'hcap_forms_mark_essential_blocks_form', 0, 2 );
+
+/**
+ * Mark the request when GiveWP renders a protected donation form.
+ *
+ * @return void
+ */
+function hcap_forms_mark_givewp_form(): void {
+	$GLOBALS['hcap_forms_has_givewp_form'] = true;
+}
+
+add_action( 'give_donation_form_user_info', 'hcap_forms_mark_givewp_form', 0 );
+add_action( 'givewp_donation_form_enqueue_scripts', 'hcap_forms_mark_givewp_form', 0 );
 
 /**
  * Mark the request when WordPress renders a comment form.
@@ -561,6 +640,32 @@ function hcap_forms_mark_password_protected_form(): void {
 add_action( 'password_protected_below_password_field', 'hcap_forms_mark_password_protected_form', 0 );
 
 /**
+ * Mark the request when Paid Memberships Pro renders a checkout form.
+ *
+ * @return void
+ */
+function hcap_forms_mark_paid_memberships_pro_checkout_form(): void {
+	$GLOBALS['hcap_forms_has_paid_memberships_pro_form'] = true;
+}
+
+add_action( 'pmpro_checkout_before_submit_button', 'hcap_forms_mark_paid_memberships_pro_checkout_form', 0 );
+
+/**
+ * Mark the request when Paid Memberships Pro renders a login form.
+ *
+ * @param mixed $content Login form HTML output.
+ *
+ * @return mixed
+ */
+function hcap_forms_mark_paid_memberships_pro_login_form( $content ) {
+	$GLOBALS['hcap_forms_has_paid_memberships_pro_form'] = true;
+
+	return $content;
+}
+
+add_filter( 'pmpro_pages_shortcode_login', 'hcap_forms_mark_paid_memberships_pro_login_form', 0 );
+
+/**
  * Mark the request when WooCommerce renders an action-based protected form.
  *
  * @return void
@@ -736,6 +841,24 @@ function hcap_forms_mark_mailpoet_form( $content ): string {
 add_filter( 'the_content', 'hcap_forms_mark_mailpoet_form', 19 );
 
 /**
+ * Mark the request when SendInBlue renders a subscription form.
+ *
+ * @param mixed  $output Form HTML output.
+ * @param string $tag    Shortcode name.
+ *
+ * @return mixed
+ */
+function hcap_forms_mark_sendinblue_form( $output, string $tag ) {
+	if ( 'sibwp_form' === $tag ) {
+		$GLOBALS['hcap_forms_has_sendinblue_form'] = true;
+	}
+
+	return $output;
+}
+
+add_filter( 'do_shortcode_tag', 'hcap_forms_mark_sendinblue_form', 0, 2 );
+
+/**
  * Mark the request when Ultimate Addons renders a protected form widget.
  *
  * @param mixed $element Elementor element.
@@ -844,6 +967,10 @@ function hcap_forms_delay_api_event( $delay_api_event ) {
 		! empty( $GLOBALS['hcap_forms_has_acfe_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_bbpress_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_beaver_builder_form'] ) ||
+		! empty( $GLOBALS['hcap_forms_has_buddypress_form'] ) ||
+		! empty( $GLOBALS['hcap_forms_has_download_manager_form'] ) ||
+		! empty( $GLOBALS['hcap_forms_has_essential_blocks_form'] ) ||
+		! empty( $GLOBALS['hcap_forms_has_givewp_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_wp_comment_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_wp_password_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_blocksy_form'] ) ||
@@ -863,12 +990,14 @@ function hcap_forms_delay_api_event( $delay_api_event ) {
 		! empty( $GLOBALS['hcap_forms_has_ninja_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_otter_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_password_protected_form'] ) ||
+		! empty( $GLOBALS['hcap_forms_has_paid_memberships_pro_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_woocommerce_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_wpforms_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_divi_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_essential_addons_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_mailchimp_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_mailpoet_form'] ) ||
+		! empty( $GLOBALS['hcap_forms_has_sendinblue_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_ultimate_addons_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_ultimate_member_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_avada_form'] ) ||

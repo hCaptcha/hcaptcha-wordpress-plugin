@@ -74,7 +74,7 @@ abstract class Base {
 		$this->form_id = $form_id;
 
 		add_filter( 'hcap_print_hcaptcha_scripts', '__return_true', 0 );
-		add_action( 'wp_print_footer_scripts', [ $this, 'print_footer_scripts' ], 9 );
+		add_action( 'givewp_donation_form_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 		add_filter( 'script_loader_tag', [ $this, 'add_type_module' ], 10, 3 );
 	}
 
@@ -223,17 +223,24 @@ abstract class Base {
 	}
 
 	/**
-	 * Print footer scripts.
+	 * Enqueue scripts.
 	 *
 	 * @return void
 	 */
-	public function print_footer_scripts(): void {
-		$min = hcap_min_suffix();
+	public function enqueue_scripts(): void {
+		$min          = hcap_min_suffix();
+		$dependencies = [ 'wp-blocks', 'hcaptcha' ];
+		$settings     = hcaptcha()->settings();
+
+		// GiveWP pins its script queue before footer hooks run, so expose the optional FST script as a dependency.
+		if ( $settings && $settings->is_on( 'set_min_submit_time' ) ) {
+			$dependencies[] = 'hcaptcha-fst';
+		}
 
 		wp_enqueue_script(
 			self::HANDLE,
 			HCAPTCHA_URL . "/assets/js/hcaptcha-givewp$min.js",
-			[ 'wp-blocks', 'hcaptcha' ],
+			$dependencies,
 			HCAPTCHA_VERSION,
 			true
 		);
