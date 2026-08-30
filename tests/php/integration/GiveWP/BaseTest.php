@@ -36,6 +36,9 @@ class BaseTest extends HCaptchaWPTestCase {
 	public function tearDown(): void {
 		unset( $_POST, $_GET, $_SERVER['REQUEST_METHOD'] );
 
+		wp_dequeue_script( 'hcaptcha-give-wp' );
+		wp_deregister_script( 'hcaptcha-give-wp' );
+
 		parent::tearDown();
 	}
 
