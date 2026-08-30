@@ -257,9 +257,17 @@ jobs:
           wp db create
           wp core install --url="${{ env.WP_URL }}" --title="Test" --admin_user="${{ env.WP_ADMIN_USERNAME }}" --admin_password="${{ env.WP_ADMIN_PASSWORD }}" --admin_email="${{ env.WP_ADMIN_EMAIL }}" --skip-email
 
-      - name: Install plugins
+      - name: Install public test plugins and themes
         working-directory: ${{ env.wp-directory }}
-        run: wp plugin install bbpress buddypress contact-form-7 elementor essential-addons-for-elementor-lite fluentform forminator jetpack maintenance mailchimp-for-wp metform ninja-forms ultimate-addons-for-gutenberg ultimate-member woocommerce wordfence wpforms-lite wpforo
+        run: |
+          wp plugin install bbpress blocksy-companion buddypress coblocks contact-form-7 elementor essential-addons-for-elementor-lite fluentform forminator jetpack kadence-blocks mailchimp-for-wp mailpoet maintenance metform ninja-forms really-simple-captcha ultimate-addons-for-gutenberg ultimate-member woocommerce wordfence wpforms-lite wpforo
+          wp theme install blocksy
+          wp plugin is-installed blocksy-companion
+          wp plugin is-installed coblocks
+          wp plugin is-installed kadence-blocks
+          wp plugin is-installed mailpoet
+          wp plugin is-installed really-simple-captcha
+          wp theme is-installed blocksy
 
       - name: Install private test plugins and themes
         if: steps.test_plugins.outputs.available == 'true'

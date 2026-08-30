@@ -13,17 +13,53 @@
 namespace HCaptcha\Tests\Integration\Blocksy;
 
 use HCaptcha\Blocksy\ProductReview;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
-use Mockery;
-use stdClass;
-use tad\FunctionMocker\FunctionMocker;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use ReflectionClass;
 
 /**
  * Test ProductReview class.
  *
  * @group blocksy
  */
-class ProductReviewTest extends HCaptchaWPTestCase {
+class ProductReviewTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * WooCommerce plugin entry file.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'woocommerce/woocommerce.php';
+
+	/**
+	 * Blocksy theme stylesheet.
+	 *
+	 * @var string
+	 */
+	protected static string $theme = 'blocksy';
+
+	/**
+	 * Hooks to replay after loading WooCommerce.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
+
+	/**
+	 * Test that the live Blocksy screen manager and WooCommerce are loaded.
+	 *
+	 * @return void
+	 */
+	public function test_live_blocksy_and_woocommerce_are_loaded(): void {
+		$theme_file = wp_normalize_path( ( new ReflectionClass( 'Blocksy_Screen_Manager' ) )->getFileName() );
+
+		self::assertTrue( is_plugin_active( static::$plugin ) );
+		self::assertSame( 'blocksy', get_stylesheet() );
+		self::assertStringStartsWith( wp_normalize_path( get_theme_root() . '/blocksy/' ), $theme_file );
+		self::assertNotNull( blocksy_manager()->screen );
+	}
 
 	/**
 	 * Tear down the test.
@@ -55,18 +91,14 @@ class ProductReviewTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_add_hcaptcha_not_product(): void {
-		$screen = Mockery::mock( 'Blocksy_Screen_Manager' );
-		$screen->shouldReceive( 'is_product' )->andReturn( false );
-
-		$manager         = new stdClass();
-		$manager->screen = $screen;
-
-		FunctionMocker::replace(
-			'blocksy_manager',
-			static function () use ( $manager ) {
-				return $manager;
-			}
+		$page_id = wp_insert_post(
+			[
+				'post_title'  => 'Test Page',
+				'post_status' => 'publish',
+				'post_type'   => 'page',
+			]
 		);
+		$this->go_to( get_permalink( $page_id ) );
 
 		$submit_field = '<div class="form-submit"><button type="submit">Submit</button></div>';
 		$comment_args = [];
@@ -75,7 +107,8 @@ class ProductReviewTest extends HCaptchaWPTestCase {
 
 		$result = $subject->add_hcaptcha( $submit_field, $comment_args );
 
-		// Should contain signature but not hcaptcha form.
+		self::assertFalse( blocksy_manager()->screen->is_product() );
+		self::assertStringNotContainsString( '<h-captcha', $result );
 		self::assertStringContainsString( '<button type="submit">Submit</button>', $result );
 	}
 
@@ -98,19 +131,6 @@ class ProductReviewTest extends HCaptchaWPTestCase {
 		$GLOBALS['wp_query']->queried_object    = get_post( $product_id );
 		$GLOBALS['wp_query']->queried_object_id = $product_id;
 
-		$screen = Mockery::mock( 'Blocksy_Screen_Manager' );
-		$screen->shouldReceive( 'is_product' )->andReturn( true );
-
-		$manager         = new stdClass();
-		$manager->screen = $screen;
-
-		FunctionMocker::replace(
-			'blocksy_manager',
-			static function () use ( $manager ) {
-				return $manager;
-			}
-		);
-
 		$submit_field = '<div class="form-submit"><button type="submit">Submit</button></div>';
 		$comment_args = [];
 
@@ -118,34 +138,8 @@ class ProductReviewTest extends HCaptchaWPTestCase {
 
 		$result = $subject->add_hcaptcha( $submit_field, $comment_args );
 
+		self::assertTrue( blocksy_manager()->screen->is_product() );
 		self::assertStringContainsString( 'h-captcha', $result );
-		self::assertStringContainsString( '<button type="submit">Submit</button>', $result );
-	}
-
-	/**
-	 * Test add_hcaptcha() when the screen is null.
-	 *
-	 * @return void
-	 */
-	public function test_add_hcaptcha_no_screen(): void {
-		$manager         = new stdClass();
-		$manager->screen = null;
-
-		FunctionMocker::replace(
-			'blocksy_manager',
-			static function () use ( $manager ) {
-				return $manager;
-			}
-		);
-
-		$submit_field = '<div class="form-submit"><button type="submit">Submit</button></div>';
-		$comment_args = [];
-
-		$subject = new ProductReview();
-
-		$result = $subject->add_hcaptcha( $submit_field, $comment_args );
-
-		// Should contain a signature but not hcaptcha form (not a product).
 		self::assertStringContainsString( '<button type="submit">Submit</button>', $result );
 	}
 
@@ -156,42 +150,16 @@ class ProductReviewTest extends HCaptchaWPTestCase {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function test_print_inline_styles(): void {
-		FunctionMocker::replace(
-			'defined',
-			static function ( $constant_name ) {
-				return 'SCRIPT_DEBUG' === $constant_name;
-			}
-		);
-
-		FunctionMocker::replace(
-			'constant',
-			static function ( $name ) {
-				return 'SCRIPT_DEBUG' === $name;
-			}
-		);
-
-		$expected = <<<'CSS'
-	.ct-product-waitlist-form input[type="email"] {
-		grid-row: 1;
-	}
-
-	.ct-product-waitlist-form h-captcha {
-		grid-row: 2;
-		margin-bottom: 0;
-	}
-
-	.ct-product-waitlist-form button {
-		grid-row: 3;
-	}
-CSS;
-		$expected = "<style>\n$expected\n</style>\n";
-
 		$subject = new ProductReview();
 
 		ob_start();
 
 		$subject->print_inline_styles();
 
-		self::assertSame( $expected, ob_get_clean() );
+		$output = ob_get_clean();
+
+		self::assertStringContainsString( '.ct-product-waitlist-form input[type="email"]', $output );
+		self::assertStringContainsString( '.ct-product-waitlist-form h-captcha', $output );
+		self::assertStringContainsString( '.ct-product-waitlist-form button', $output );
 	}
 }

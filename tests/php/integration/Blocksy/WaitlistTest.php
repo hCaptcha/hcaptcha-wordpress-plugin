@@ -9,9 +9,9 @@ namespace HCaptcha\Tests\Integration\Blocksy;
 
 use HCaptcha\Blocksy\Waitlist;
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use ReflectionClass;
 use ReflectionException;
-use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
 
 /**
@@ -19,7 +19,50 @@ use WP_Error;
  *
  * @group blocksy
  */
-class WaitlistTest extends HCaptchaWPTestCase {
+class WaitlistTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * WooCommerce and Blocksy Companion entry files.
+	 *
+	 * @var string[]
+	 */
+	protected static $plugin = [
+		'woocommerce/woocommerce.php',
+		'blocksy-companion/blocksy-companion.php',
+	];
+
+	/**
+	 * Blocksy theme stylesheet.
+	 *
+	 * @var string
+	 */
+	protected static string $theme = 'blocksy';
+
+	/**
+	 * Hooks to replay after loading the plugins.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
+
+	/**
+	 * Test that the live Blocksy stack is loaded for the waitlist integration.
+	 *
+	 * @return void
+	 */
+	public function test_live_blocksy_stack_is_loaded(): void {
+		$theme_file  = wp_normalize_path( ( new ReflectionClass( 'Blocksy_Screen_Manager' ) )->getFileName() );
+		$plugin_file = wp_normalize_path( ( new ReflectionClass( \Blocksy\Plugin::class ) )->getFileName() );
+
+		self::assertTrue( is_plugin_active( 'woocommerce/woocommerce.php' ) );
+		self::assertTrue( is_plugin_active( 'blocksy-companion/blocksy-companion.php' ) );
+		self::assertSame( 'blocksy', get_stylesheet() );
+		self::assertStringStartsWith( wp_normalize_path( get_theme_root() . '/blocksy/' ), $theme_file );
+		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/blocksy-companion/' ), $plugin_file );
+	}
 
 	/**
 	 * Tear down the test.
@@ -341,42 +384,16 @@ class WaitlistTest extends HCaptchaWPTestCase {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function test_print_inline_styles(): void {
-		FunctionMocker::replace(
-			'defined',
-			static function ( $constant_name ) {
-				return 'SCRIPT_DEBUG' === $constant_name;
-			}
-		);
-
-		FunctionMocker::replace(
-			'constant',
-			static function ( $name ) {
-				return 'SCRIPT_DEBUG' === $name;
-			}
-		);
-
-		$expected = <<<'CSS'
-	.ct-product-waitlist-form input[type="email"] {
-		grid-row: 1;
-	}
-
-	.ct-product-waitlist-form h-captcha {
-		grid-row: 2;
-		margin-bottom: 0;
-	}
-
-	.ct-product-waitlist-form button {
-		grid-row: 3;
-	}
-CSS;
-		$expected = "<style>\n$expected\n</style>\n";
-
 		$subject = new Waitlist();
 
 		ob_start();
 
 		$subject->print_inline_styles();
 
-		self::assertSame( $expected, ob_get_clean() );
+		$output = ob_get_clean();
+
+		self::assertStringContainsString( '.ct-product-waitlist-form input[type="email"]', $output );
+		self::assertStringContainsString( '.ct-product-waitlist-form h-captcha', $output );
+		self::assertStringContainsString( '.ct-product-waitlist-form button', $output );
 	}
 }

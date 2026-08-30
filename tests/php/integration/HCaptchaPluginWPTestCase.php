@@ -83,6 +83,20 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 	protected static array $plugin_load_hooks = [];
 
 	/**
+	 * Expected incorrect usage notices caused by loading plugins after WordPress bootstrap.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_expected_incorrect_usage = [];
+
+	/**
+	 * Activation error codes allowed for individual test plugins.
+	 *
+	 * @var array<string, string[]>
+	 */
+	protected static array $plugin_allowed_activation_errors = [];
+
+	/**
 	 * Expected incorrect usage notices caused by loading a theme after WordPress bootstrap.
 	 *
 	 * @var string[]
@@ -131,6 +145,7 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 		parent::setUp();
 
 		$this->load_test_theme();
+		$this->before_load_test_plugins();
 
 		$hook_callbacks      = [];
 		$plugin_key          = implode( '|', (array) static::$plugin );
@@ -144,6 +159,10 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 			$hook_callbacks[ $hook_name ] = $this->get_hook_callbacks( $hook_name );
 		}
 
+		foreach ( static::$plugin_expected_incorrect_usage as $incorrect_usage ) {
+			$this->setExpectedIncorrectUsage( $incorrect_usage );
+		}
+
 		foreach ( (array) static::$plugin as $plugin ) {
 			$this->activate_test_plugin( $plugin );
 			$this->replay_elementor_loaded_action( $plugin );
@@ -155,6 +174,14 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 
 		$this->store_test_plugin_hooks( $plugin_key, $previous_plugin_hooks );
 		$this->load_test_plugin_shortcodes( $plugin_key, $previous_shortcodes );
+	}
+
+	/**
+	 * Prepare options and hooks required before test plugins are loaded.
+	 *
+	 * @return void
+	 */
+	protected function before_load_test_plugins(): void {
 	}
 
 	/**
@@ -381,8 +408,14 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 		$silent = isset( static::$plugin_loaded[ $plugin ] );
 		$result = activate_plugin( $plugin, '', false, $silent );
 
-		if ( is_wp_error( $result ) ) {
-			self::fail( $result->get_error_message() );
+		if (
+			is_wp_error( $result ) &&
+			! in_array( $result->get_error_code(), static::$plugin_allowed_activation_errors[ $plugin ] ?? [], true )
+		) {
+			$output  = trim( (string) $result->get_error_data() );
+			$message = $result->get_error_message();
+
+			self::fail( $output ? $message . ' ' . $output : $message );
 		}
 
 		static::$plugin_loaded[ $plugin ] = true;

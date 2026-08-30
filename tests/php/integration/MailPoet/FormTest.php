@@ -14,51 +14,114 @@ namespace HCaptcha\Tests\Integration\MailPoet;
 
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\MailPoet\Form;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
-use HCaptcha\Tests\Integration\Stubs\MailPoet\API\JSON\ResponseStub;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use MailPoet\API\JSON\API;
-use MailPoet\API\JSON\Response;
 use MailPoet\API\JSON\ErrorResponse;
+use MailPoet\API\JSON\Response;
+use MailPoet\DI\ContainerWrapper;
+use MailPoet\Entities\FormEntity;
+use MailPoet\Form\FormsRepository;
 use Mockery;
+use ReflectionClass;
 
 /**
  * Test Form class.
  *
  * @group mailpoet
  */
-class FormTest extends HCaptchaWPTestCase {
+class FormTest extends HCaptchaPluginWPTestCase {
 
 	/**
-	 * Setup test.
+	 * MailPoet plugin entry file.
+	 *
+	 * @var string
 	 */
-	public function setUp(): void {
-		global $wpdb;
+	protected static $plugin = 'mailpoet/mailpoet.php';
 
-		parent::setUp();
+	/**
+	 * Hooks to replay after loading MailPoet.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
 
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$wpdb->query(
-			"CREATE TABLE IF NOT EXISTS {$wpdb->prefix}mailpoet_forms
-					(id bigint(20) NOT NULL AUTO_INCREMENT,
-					updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-					PRIMARY KEY (id))"
-		);
-		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, ordPress.DB.DirectDatabaseQuery.NoCaching
-	}
+	/**
+	 * MailPoet can expose a recoverable migration query error as activation output on MariaDB.
+	 *
+	 * @var array<string, string[]>
+	 */
+	protected static array $plugin_allowed_activation_errors = [
+		'mailpoet/mailpoet.php' => [ 'unexpected_output' ],
+	];
 
 	/**
 	 * Tear down the test.
 	 */
 	public function tearDown(): void {
-		global $wpdb;
-
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}mailpoet_forms" );
-		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.DirectDatabaseQuery.NoCaching
-
 		unset( $_POST['action'], $_POST['endpoint'], $_POST['method'], $_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] );
 
 		parent::tearDown();
+	}
+
+	/**
+	 * Test a form persisted and rendered by the live MailPoet plugin.
+	 *
+	 * @return void
+	 */
+	public function test_live_mailpoet_form(): void {
+		$repository = ContainerWrapper::getInstance()->get( FormsRepository::class );
+		$form       = new FormEntity( 'hCaptcha integration form' );
+
+		$form->setBody(
+			[
+				[
+					'id'     => 'email',
+					'name'   => 'Email',
+					'type'   => 'text',
+					'params' => [
+						'label'        => 'Email Address',
+						'required'     => true,
+						'label_within' => true,
+					],
+					'styles' => [ 'full_width' => true ],
+				],
+				[
+					'id'     => 'submit',
+					'name'   => 'Submit',
+					'type'   => 'submit',
+					'params' => [ 'label' => 'Subscribe' ],
+					'styles' => [ 'full_width' => true ],
+				],
+			]
+		);
+		$form->setSettings(
+			[
+				'on_success'           => 'message',
+				'success_message'      => 'Subscribed',
+				'segments'             => [],
+				'segments_selected_by' => 'admin',
+			]
+		);
+		$form->setStyles( '' );
+
+		$repository->persist( $form );
+		$repository->flush();
+
+		new Form();
+
+		$output      = apply_filters( 'the_content', '[mailpoet_form id="' . $form->getId() . '"]' );
+		$plugin_file = wp_normalize_path( ( new ReflectionClass( FormsRepository::class ) )->getFileName() );
+
+		self::assertTrue( is_plugin_active( static::$plugin ) );
+		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/mailpoet/' ), $plugin_file );
+		self::assertTrue( shortcode_exists( 'mailpoet_form' ) );
+		self::assertStringContainsString( 'class="mailpoet_form ', $output );
+		self::assertStringContainsString( 'value="Subscribe"', $output );
+		self::assertStringContainsString( '<h-captcha', $output );
+		self::assertStringContainsString( 'name="hcaptcha_mailpoet_nonce"', $output );
 	}
 
 	/**
@@ -188,15 +251,12 @@ HTML;
 		$code          = 'fail';
 		$error_message = 'The hCaptcha is invalid.';
 
-		if ( ! class_exists( Response::class, false ) ) {
-			Mockery::namedMock( Response::class, ResponseStub::class );
-		}
 		$error_response = Mockery::mock( ErrorResponse::class );
 		$api            = Mockery::mock( API::class );
 
 		$error_response->shouldReceive( 'send' )->once();
 		$api->shouldReceive( 'createErrorResponse' )
-			->with( $code, $error_message, ResponseStub::STATUS_UNAUTHORIZED )
+			->with( $code, $error_message, Response::STATUS_UNAUTHORIZED )
 			->andReturn( $error_response );
 
 		$subject = new Form();
@@ -225,15 +285,12 @@ HTML;
 		$code          = 'bad-signature';
 		$error_message = 'Bad hCaptcha signature!';
 
-		if ( ! class_exists( Response::class, false ) ) {
-			Mockery::namedMock( Response::class, ResponseStub::class );
-		}
 		$error_response = Mockery::mock( ErrorResponse::class );
 		$api            = Mockery::mock( API::class );
 
 		$error_response->shouldReceive( 'send' )->once();
 		$api->shouldReceive( 'createErrorResponse' )
-			->with( $code, $error_message, ResponseStub::STATUS_UNAUTHORIZED )
+			->with( $code, $error_message, Response::STATUS_UNAUTHORIZED )
 			->andReturn( $error_response );
 
 		$subject = new Form();

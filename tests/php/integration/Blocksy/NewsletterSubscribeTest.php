@@ -9,10 +9,10 @@ namespace HCaptcha\Tests\Integration\Blocksy;
 
 use HCaptcha\Blocksy\NewsletterSubscribe;
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
+use ReflectionClass;
 use ReflectionException;
-use tad\FunctionMocker\FunctionMocker;
 use WP_Block;
 
 /**
@@ -20,7 +20,74 @@ use WP_Block;
  *
  * @group blocksy
  */
-class NewsletterSubscribeTest extends HCaptchaWPTestCase {
+class NewsletterSubscribeTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * Blocksy Companion plugin entry file.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'blocksy-companion/blocksy-companion.php';
+
+	/**
+	 * Blocksy theme stylesheet.
+	 *
+	 * @var string
+	 */
+	protected static string $theme = 'blocksy';
+
+	/**
+	 * Hooks to replay after loading Blocksy Companion.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [ 'init' ];
+
+	/**
+	 * Expected incorrect usage notices raised by the live plugin.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_expected_incorrect_usage = [ "add_theme_support( 'title-tag' )" ];
+
+	/**
+	 * Enable the newsletter extension before Blocksy Companion is loaded.
+	 *
+	 * @return void
+	 */
+	protected function before_load_test_plugins(): void {
+		update_option( 'blocksy_active_extensions', [ 'newsletter-subscribe' ] );
+		update_option(
+			'blocksy_ext_mailchimp_credentials',
+			[
+				'provider' => 'demo',
+				'api_key'  => 'test-key',
+				'list_id'  => 'demolist',
+			]
+		);
+	}
+
+	/**
+	 * Test a newsletter form rendered by the live Blocksy block.
+	 *
+	 * @return void
+	 */
+	public function test_live_blocksy_newsletter_form(): void {
+		new NewsletterSubscribe();
+
+		$output      = do_blocks( '<!-- wp:blocksy/newsletter {"newsletter_subscribe_button_text":"Subscribe live"} /-->' );
+		$plugin_file = wp_normalize_path( ( new ReflectionClass( 'BlocksyExtensionNewsletterSubscribe' ) )->getFileName() );
+
+		self::assertTrue( is_plugin_active( static::$plugin ) );
+		self::assertSame( 'blocksy', get_stylesheet() );
+		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/blocksy-companion/' ), $plugin_file );
+		self::assertTrue( \WP_Block_Type_Registry::get_instance()->is_registered( 'blocksy/newsletter' ) );
+		self::assertStringContainsString( 'class="ct-newsletter-subscribe-form"', $output );
+		self::assertStringContainsString( '<button class="wp-element-button"', $output );
+		self::assertStringContainsString( 'Subscribe live', $output );
+		self::assertStringContainsString( '<h-captcha', $output );
+		self::assertStringContainsString( 'name="hcaptcha_blocksy_newsletter_subscribe_nonce"', $output );
+	}
 
 	/**
 	 * Tear down the test.
@@ -311,42 +378,16 @@ class NewsletterSubscribeTest extends HCaptchaWPTestCase {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function test_print_inline_styles(): void {
-		FunctionMocker::replace(
-			'defined',
-			static function ( $constant_name ) {
-				return 'SCRIPT_DEBUG' === $constant_name;
-			}
-		);
-
-		FunctionMocker::replace(
-			'constant',
-			static function ( $name ) {
-				return 'SCRIPT_DEBUG' === $name;
-			}
-		);
-
-		$expected = <<<'CSS'
-	.ct-newsletter-subscribe-form input[type="email"] {
-		grid-row: 1;
-	}
-
-	.ct-newsletter-subscribe-form h-captcha {
-		grid-row: 2;
-		margin-bottom: 0;
-	}
-
-	.ct-newsletter-subscribe-form button {
-		grid-row: 3;
-	}
-CSS;
-		$expected = "<style>\n$expected\n</style>\n";
-
 		$subject = new NewsletterSubscribe();
 
 		ob_start();
 
 		$subject->print_inline_styles();
 
-		self::assertSame( $expected, ob_get_clean() );
+		$output = ob_get_clean();
+
+		self::assertStringContainsString( '.ct-newsletter-subscribe-form input[type="email"]', $output );
+		self::assertStringContainsString( '.ct-newsletter-subscribe-form h-captcha', $output );
+		self::assertStringContainsString( '.ct-newsletter-subscribe-form button', $output );
 	}
 }

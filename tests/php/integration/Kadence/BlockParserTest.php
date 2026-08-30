@@ -8,7 +8,7 @@
 namespace HCaptcha\Tests\Integration\Kadence;
 
 use HCaptcha\Kadence\BlockParser;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 
 /**
  * Test Kadence BlockParser.
@@ -16,7 +16,24 @@ use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
  * @group kadence
  * @group kadence-block-parser
  */
-class BlockParserTest extends HCaptchaWPTestCase {
+class BlockParserTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * Kadence Blocks plugin entry file.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'kadence-blocks/kadence-blocks.php';
+
+	/**
+	 * Hooks to replay after loading Kadence Blocks.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
 
 	/**
 	 * Set up test.
