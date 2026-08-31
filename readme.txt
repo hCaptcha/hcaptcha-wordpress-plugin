@@ -1028,6 +1028,7 @@ Instructions for popular native integrations are below:
 * Fixed Elementor Pro form submit buttons remaining disabled after client-side validation failures.
 * Fixed delayed hCaptcha loading after interaction with Beaver Builder login forms.
 * Fixed GiveWP compatibility.
+* Fixed PAid Membership Pro compatibility.
 
 = 5.2.0 =
 * Added MetForm integration.
