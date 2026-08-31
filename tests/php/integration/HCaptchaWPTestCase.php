@@ -169,11 +169,12 @@ class HCaptchaWPTestCase extends WPTestCase {
 	/**
 	 * Get a honeypot field.
 	 *
-	 * @param array $id The hCaptcha widget id.
+	 * @param array     $id       The hCaptcha widget id.
+	 * @param bool|null $honeypot Honeypot override.
 	 *
 	 * @return string
 	 */
-	protected function get_hp_field( array $id ): string {
+	protected function get_hp_field( array $id, ?bool $honeypot = null ): string {
 		$hp_name  = 'hcap_hp_test';
 		$hp_sig   = wp_create_nonce( $hp_name );
 		$hp_field = <<<HTML
@@ -191,7 +192,9 @@ HTML;
 		// This method allows/disallows honeypot and fst.
 		hcaptcha()->allow_honeypot_and_fst( true, $source, $form_id );
 
-		return hcaptcha()->settings()->is_on( 'honeypot' ) ? $hp_field : '';
+		$honeypot = null === $honeypot ? hcaptcha()->settings()->is_on( 'honeypot' ) : $honeypot;
+
+		return $honeypot ? $hp_field : '';
 	}
 
 	/**
@@ -220,7 +223,7 @@ HTML;
 			data-ajax="' . ( $args['ajax'] ? 'true' : 'false' ) . '"
 			data-force="' . ( $args['force'] ? 'true' : 'false' ) . '">
 		</h-captcha>
-		' . $nonce_field . $this->get_hp_field( $args['id'] );
+		' . $nonce_field . $this->get_hp_field( $args['id'], $args['honeypot'] );
 	}
 
 	/**
@@ -242,6 +245,7 @@ HTML;
 				'force'          => false,
 				'theme'          => '',
 				'size'           => '',
+				'honeypot'       => null,
 				'id'             => [],
 				'protect'        => true,
 			],
@@ -255,6 +259,11 @@ HTML;
 			],
 			$args['id']
 		);
+
+		if ( null !== $args['honeypot'] ) {
+			$args['honeypot']       = filter_var( $args['honeypot'], FILTER_VALIDATE_BOOLEAN );
+			$args['id']['honeypot'] = $args['honeypot'];
+		}
 
 		return $args;
 	}

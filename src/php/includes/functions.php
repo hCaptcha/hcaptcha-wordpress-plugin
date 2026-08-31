@@ -34,7 +34,8 @@ function hcap_shortcode( $atts ): string {
 	$hcaptcha_theme = $settings->get_theme() ?: 'light';
 	$hcaptcha_size  = $settings->get( 'size' ) ?: 'normal';
 
-	$atts = Utils::unflatten_array( $atts, '--' );
+	$atts         = Utils::unflatten_array( $atts, '--' );
+	$has_honeypot = array_key_exists( 'honeypot', $atts );
 
 	/**
 	 * Do not set the default size here.
@@ -43,18 +44,23 @@ function hcap_shortcode( $atts ): string {
 	 */
 	$atts = shortcode_atts(
 		[
-			'action'  => HCAPTCHA_ACTION,
-			'name'    => HCAPTCHA_NONCE,
-			'auto'    => false,
-			'ajax'    => false,
-			'force'   => $hcaptcha_force,
-			'theme'   => $hcaptcha_theme,
-			'size'    => $hcaptcha_size,
-			'id'      => [],
-			'protect' => true,
+			'action'   => HCAPTCHA_ACTION,
+			'name'     => HCAPTCHA_NONCE,
+			'auto'     => false,
+			'ajax'     => false,
+			'force'    => $hcaptcha_force,
+			'theme'    => $hcaptcha_theme,
+			'size'     => $hcaptcha_size,
+			'honeypot' => null,
+			'id'       => [],
+			'protect'  => true,
 		],
 		$atts
 	);
+
+	if ( ! $has_honeypot ) {
+		unset( $atts['honeypot'] );
+	}
 
 	/**
 	 * Filters the content of the hCaptcha form.

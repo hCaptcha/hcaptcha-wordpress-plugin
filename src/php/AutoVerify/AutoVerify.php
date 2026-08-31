@@ -139,12 +139,18 @@ class AutoVerify {
 	 * @return array
 	 */
 	private function normalize_id( array $args ): array {
-		$id = (array) ( $args['id'] ?? [] );
-
-		return [
+		$id            = (array) ( $args['id'] ?? [] );
+		$normalized_id = [
 			'source'  => empty( $id['source'] ) ? [ self::class ] : (array) $id['source'],
 			'form_id' => empty( $id['form_id'] ) ? (int) get_the_ID() : $id['form_id'],
 		];
+		$honeypot      = $id['honeypot'] ?? $args['honeypot'] ?? null;
+
+		if ( null !== $honeypot ) {
+			$normalized_id['honeypot'] = filter_var( $honeypot, FILTER_VALIDATE_BOOLEAN );
+		}
+
+		return $normalized_id;
 	}
 
 	/**
