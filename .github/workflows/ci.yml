@@ -192,6 +192,28 @@ jobs:
           path: ${{ env.wp-plugin-directory }}
           persist-credentials: false
 
+      - name: Detect latest Paid Memberships Pro release
+        id: paid_memberships_pro
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="$(gh api repos/strangerstudios/paid-memberships-pro/releases/latest --jq '.tag_name')"
+
+          if [[ ! "$version" =~ ^[0-9]+(\.[0-9]+){1,3}$ ]]; then
+            echo "Unexpected Paid Memberships Pro release tag: $version" >&2
+            exit 1
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout Paid Memberships Pro
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: strangerstudios/paid-memberships-pro
+          ref: ${{ steps.paid_memberships_pro.outputs.version }}
+          path: wordpress/wp-content/plugins/paid-memberships-pro
+          persist-credentials: false
+
       - name: Detect private test plugins access
         id: test_plugins
         env:
@@ -269,7 +291,7 @@ jobs:
       - name: Install public test plugins and themes
         working-directory: ${{ env.wp-directory }}
         run: |
-          wp plugin install acf-extended bbpress blocksy-companion buddypress coblocks contact-form-7 download-manager elementor essential-addons-for-elementor-lite essential-blocks fluentform formidable forminator give jetpack kadence-blocks mailchimp-for-wp mailin mailpoet maintenance metform ninja-forms otter-blocks paid-memberships-pro password-protected ultimate-addons-for-gutenberg ultimate-member woocommerce wordfence wpforms-lite wpforo
+          wp plugin install acf-extended bbpress blocksy-companion buddypress coblocks contact-form-7 download-manager elementor essential-addons-for-elementor-lite essential-blocks fluentform formidable forminator give jetpack kadence-blocks mailchimp-for-wp mailin mailpoet maintenance metform ninja-forms otter-blocks password-protected ultimate-addons-for-gutenberg ultimate-member woocommerce wordfence wpforms-lite wpforo
           wp theme install blocksy
           wp plugin is-installed acf-extended
           wp plugin is-installed bbpress
