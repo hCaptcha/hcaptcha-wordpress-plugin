@@ -345,7 +345,7 @@ jobs:
             integration_args+=(--skip-group beaver-builder)
           fi
 
-          composer integration -- --env github-actions "${integration_args[@]}"
+          composer integration:parallel -- --env github-actions "${integration_args[@]}"
 
       - name: Run WP tests without private test plugins
         if: steps.test_plugins.outputs.available != 'true'
@@ -357,7 +357,7 @@ jobs:
             integration_args+=(--skip-group cf7-really-simple-captcha)
           fi
 
-          composer integration -- --env github-actions "${integration_args[@]}"
+          composer integration:parallel -- --env github-actions "${integration_args[@]}"
 
   update_changelog:
     name: Update Changelog

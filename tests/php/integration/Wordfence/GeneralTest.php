@@ -39,6 +39,15 @@ class GeneralTest extends HCaptchaPluginWPTestCase {
 	protected static $plugin = 'wordfence/wordfence.php';
 
 	/**
+	 * Wordfence can expose recoverable duplicate-column migration errors on Windows MySQL.
+	 *
+	 * @var array<string, string[]>
+	 */
+	protected static array $plugin_allowed_activation_errors = [
+		'wordfence/wordfence.php' => [ 'unexpected_output' ],
+	];
+
+	/**
 	 * Set up the test.
 	 *
 	 * @return void

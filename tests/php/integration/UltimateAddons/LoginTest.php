@@ -210,7 +210,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 			}
 		);
 
-		do_action( 'wp_ajax_nopriv_uael_login_form_submit' );
+		$this->do_login_ajax_action();
 
 		self::assertSame( $user, $filter_result );
 	}
@@ -237,7 +237,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 			}
 		);
 
-		do_action( 'wp_ajax_nopriv_uael_login_form_submit' );
+		$this->do_login_ajax_action();
 
 		self::assertSame( $user, $filter_result );
 	}
@@ -283,7 +283,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 		);
 
 		ob_start();
-		do_action( 'wp_ajax_nopriv_uael_login_form_submit' );
+		$this->do_login_ajax_action();
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
 		self::assertSame( json_encode( $response ), ob_get_clean() );
@@ -336,7 +336,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 		);
 
 		ob_start();
-		do_action( 'wp_ajax_nopriv_uael_login_form_submit' );
+		$this->do_login_ajax_action();
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
 		self::assertSame( json_encode( $response ), ob_get_clean() );
@@ -413,6 +413,24 @@ CSS;
 		self::assertInstanceOf( UltimateElementorLogin::class, $widget );
 
 		return $widget;
+	}
+
+	/**
+	 * Run the login AJAX action without the native handler terminating the test process.
+	 *
+	 * @return void
+	 */
+	private function do_login_ajax_action(): void {
+		$action  = 'wp_ajax_nopriv_uael_login_form_submit';
+		$handler = [ LoginFormModule::instance(), 'get_form_data' ];
+
+		remove_action( $action, $handler );
+
+		try {
+			do_action( $action );
+		} finally {
+			add_action( $action, $handler );
+		}
 	}
 
 	/**
