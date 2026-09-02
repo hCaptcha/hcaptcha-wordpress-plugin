@@ -71,7 +71,7 @@
     "brace-expansion@npm:^2.0.2": "^2.1.2",
     "brace-expansion@npm:^5.0.5": "^5.0.8",
     "cross-spawn": "^7.0.6",
-    "fast-uri": "^3.1.5",
+    "fast-uri": "^3.1.7",
     "flatted": "^3.4.2",
     "js-yaml": "^4.3.0",
     "micromatch": "^4.0.8",
