@@ -26,6 +26,7 @@ use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use Mockery;
 use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
+use Throwable;
 use WP_Mock;
 
 /**
@@ -95,6 +96,7 @@ class GeneralTest extends HCaptchaTestCase {
 	 * @param bool $doing_ajax Whether doing AJAX.
 	 *
 	 * @dataProvider dp_test_init_hooks
+	 * @throws Throwable Throwable.
 	 */
 	public function test_init_hooks( bool $doing_ajax ): void {
 		$plugin_base_name = 'hcaptcha-for-forms-and-more/hcaptcha.php';
@@ -145,7 +147,7 @@ class GeneralTest extends HCaptchaTestCase {
 	/**
 	 * Test init_notifications().
 	 *
-	 * @throws ReflectionException ReflectionException.
+	 * @throws Throwable Throwable.
 	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_init_notifications(): void {
@@ -172,7 +174,7 @@ class GeneralTest extends HCaptchaTestCase {
 	/**
 	 * Test init_notifications() not on the option screen.
 	 *
-	 * @throws ReflectionException ReflectionException.
+	 * @throws Throwable Throwable.
 	 */
 	public function test_init_notifications_not_on_options_screen(): void {
 		$subject = Mockery::mock( General::class )->makePartial();
@@ -809,6 +811,18 @@ class GeneralTest extends HCaptchaTestCase {
 					'modeTestEnterpriseSafeEndUserSiteKey' => General::MODE_TEST_ENTERPRISE_SAFE_END_USER_SITE_KEY,
 					'modeTestEnterpriseBotDetectedSiteKey' => General::MODE_TEST_ENTERPRISE_BOT_DETECTED_SITE_KEY,
 					'badJSONError'                         => 'Bad JSON',
+					'validJSON'                            => 'Valid JSON',
+					'invalidJSON'                          => 'Invalid JSON',
+					'configMustBeObject'                   => 'Config Params must be a JSON object.',
+					'unsavedChanges'                       => 'Unsaved changes',
+					'lastValidPreview'                     => 'Showing the last valid config.',
+					'activeState'                          => 'Active',
+					'focusState'                           => 'Focus',
+					'hoverState'                           => 'Hover',
+					'mainState'                            => 'Main',
+					'reportState'                          => 'Report',
+					'selectedState'                        => 'Selected',
+					'hexValue'                             => 'hex value',
 					'checkConfigNotice'                    => $check_config_notice,
 					'checkingConfigMsg'                    => 'Checking site config...',
 					'completeHCaptchaTitle'                => 'Please complete the hCaptcha.',
@@ -860,6 +874,74 @@ class GeneralTest extends HCaptchaTestCase {
 		$expected['hcaptcha'] = [ $subject, 'print_hcaptcha_field' ];
 
 		self::assertSame( $expected, $subject->$method( $fields ) );
+	}
+
+	/**
+	 * Test field_callback() routes Config Params to the theme editor.
+	 */
+	public function test_field_callback_config_params(): void {
+		$arguments = [
+			'field_id' => 'config_params',
+		];
+		$subject   = Mockery::mock( General::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		$subject->shouldReceive( 'print_theme_editor_field' )->with( $arguments )->once();
+
+		$subject->field_callback( $arguments );
+	}
+
+	/**
+	 * Test print_theme_editor_field() normalizes textarea arguments.
+	 */
+	public function test_print_theme_editor_field_normalizes_textarea_arguments(): void {
+		$arguments = [
+			'field_id' => 'config_params',
+		];
+
+		$plugin_url = 'https://test.test/wp-content/plugins/hcaptcha-wordpress-plugin';
+		$settings   = Mockery::mock( Settings::class )->makePartial();
+		$main       = Mockery::mock( Main::class )->makePartial();
+		$subject    = Mockery::mock( General::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$settings->shouldReceive( 'get_default_theme' )->with()->once()->andReturn( [] );
+		$main->shouldReceive( 'settings' )->with()->once()->andReturn( $settings );
+		$subject->shouldReceive( 'print_textarea_field' )
+			->with(
+				Mockery::on(
+					static function ( array $textarea_arguments ): bool {
+						return false === $textarea_arguments['disabled'] &&
+							'config_params' === $textarea_arguments['field_id'] &&
+							'' === $textarea_arguments['placeholder'];
+					}
+				)
+			)
+			->once();
+
+		WP_Mock::userFunction( 'hcaptcha' )->with()->once()->andReturn( $main );
+		WP_Mock::userFunction( 'wp_json_encode' )->with( [] )->once()->andReturn( '{}' );
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) use ( $plugin_url ) {
+				return 'HCAPTCHA_URL' === $name ? $plugin_url : '';
+			}
+		);
+
+		ob_start();
+		$subject->print_theme_editor_field( $arguments );
+		$output = ob_get_clean();
+
+		self::assertStringContainsString( $plugin_url . '/assets/images/hcaptcha-div-logo.svg', $output );
+		self::assertStringContainsString( $plugin_url . '/assets/images/hcaptcha-div-logo-white.svg', $output );
+		self::assertStringContainsString( $plugin_url . '/assets/images/hcaptcha-icon.svg', $output );
+		self::assertStringNotContainsString( 'Edit colors visually or work with the complete config JSON.', $output );
+		self::assertStringNotContainsString( 'Saved config', $output );
+		self::assertStringNotContainsString( 'Changes are saved with the General settings.', $output );
+		self::assertStringContainsString( 'Open', $output );
+		self::assertStringContainsString( 'Approximate challenge preview.', $output );
+		self::assertStringContainsString( '<br>', $output );
+		self::assertStringContainsString( 'The real widget in Keys also updates live.', $output );
 	}
 
 	/**

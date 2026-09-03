@@ -7,7 +7,6 @@
 
 namespace HCaptcha\Helpers;
 
-use HCaptcha\Admin\Events\Events;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\Settings\Integrations;
 use WP_Admin_Bar;
@@ -972,8 +971,6 @@ class Playground {
 		$settings['sample_hcaptcha']              = '';
 		$settings['check_config']                 = '';
 		$settings['reset_notifications']          = '';
-		$settings['custom_prop']                  = '';
-		$settings['custom_value']                 = '';
 		$settings['hide_login_errors']            = [];
 		$settings['anonymous']                    = [];
 		$settings['protect_content']              = [];

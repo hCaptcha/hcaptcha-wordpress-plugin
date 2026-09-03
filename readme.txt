@@ -1019,9 +1019,10 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 5.3.0 =
-* Expanded delayed hCaptcha API loading on form interaction to 34 third-party integrations and WordPress Core, covering 65 protected form scenarios.
+* Added the Advanced Theme Editor with a live widget and challenge previews and direct JSON editing.
 * Added an Anti-Spam option to disable authenticated XML-RPC requests.
 * Added a honeypot argument to the hCaptcha shortcode.
+* Expanded delayed hCaptcha API loading on form interaction to 34 third-party integrations and WordPress Core, covering 65 protected form scenarios.
 * Fixed “Bad hCaptcha signature” errors on WordPress and bbPress login, registration, and lost password forms.
 * Fixed duplicate hCaptcha widgets on Profile Builder login forms that could block valid sign-ins.
 * Fixed LearnDash registrations being blocked by “Bad hCaptcha signature” errors when WordPress registration protection is also enabled.
