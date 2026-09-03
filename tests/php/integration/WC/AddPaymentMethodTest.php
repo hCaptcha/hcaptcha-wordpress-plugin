@@ -5,15 +5,17 @@
  * @package HCaptcha\Tests
  */
 
-// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
 /** @noinspection PhpUndefinedFunctionInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
 
 namespace HCaptcha\Tests\Integration\WC;
 
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use HCaptcha\WC\AddPaymentMethod;
 use tad\FunctionMocker\FunctionMocker;
+use WC_Payment_Gateway;
 
 /**
  * Test AddPaymentMethod class.
@@ -21,14 +23,7 @@ use tad\FunctionMocker\FunctionMocker;
  * @group wc
  * @group wc-add-payment-method
  */
-class AddPaymentMethodTest extends HCaptchaPluginWPTestCase {
-
-	/**
-	 * Plugin relative path.
-	 *
-	 * @var string
-	 */
-	protected static $plugin = 'woocommerce/woocommerce.php';
+class AddPaymentMethodTest extends WooCommerceTestCase {
 
 	/**
 	 * Test constructor and init hooks.
@@ -56,12 +51,11 @@ class AddPaymentMethodTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test hCaptcha insertion into the Add Payment Method template.
+	 *
+	 * @noinspection PhpUndefinedClassInspection
 	 */
 	public function test_template_part_injection(): void {
-		$template_name = 'myaccount/form-add-payment-method.php';
-		$located       = '/path/to/woocommerce/templates/myaccount/form-add-payment-method.php';
-		$row           = '<div class="form-row"><button type="submit" class="button" id="place_order">Add payment method</button></div>';
-		$hcaptcha      = $this->get_hcap_form(
+		$hcaptcha = $this->get_hcap_form(
 			[
 				'action' => 'hcaptcha_wc_add_payment_method',
 				'name'   => 'hcaptcha_wc_add_payment_method_nonce',
@@ -71,19 +65,52 @@ class AddPaymentMethodTest extends HCaptchaPluginWPTestCase {
 				],
 			]
 		);
-		$expected      = '<div class="form-row">' . $hcaptcha . "\n" . '<button type="submit" class="button" id="place_order">Add payment method</button></div>';
 
-		$subject = new AddPaymentMethod();
+		$gateway = new class() extends WC_Payment_Gateway {
+			/**
+			 * Constructor.
+			 *
+			 * @noinspection PhpDynamicFieldDeclarationInspection
+			 */
+			public function __construct() {
+				$this->id      = 'test_gateway';
+				$this->enabled = 'yes';
+				$this->title   = 'Test gateway';
+			}
+
+			/**
+			 * Whether the gateway is available.
+			 *
+			 * @return bool
+			 * @noinspection PhpUnused
+			 */
+			public function is_available(): bool {
+				return true;
+			}
+		};
+
+		add_filter(
+			'woocommerce_available_payment_gateways',
+			static function ( array $gateways ) use ( $gateway ): array {
+				$gateways[ $gateway->id ] = $gateway;
+
+				return $gateways;
+			}
+		);
+
+		WC()->init();
+		new AddPaymentMethod();
 
 		ob_start();
-		$subject->before_template_part( $template_name, '', $located, [] );
 
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		echo $row;
+		wc_get_template( 'myaccount/form-add-payment-method.php' );
 
-		$subject->after_template_part( $template_name, '', $located, [] );
+		$output = ob_get_clean();
 
-		self::assertSame( $expected, ob_get_clean() );
+		self::assertStringContainsString( 'id="add_payment_method"', $output );
+		self::assertStringContainsString( 'Test gateway', $output );
+		self::assertSame( 1, substr_count( $output, $hcaptcha ) );
+		self::assertLessThan( strpos( $output, 'id="place_order"' ), strpos( $output, $hcaptcha ) );
 	}
 
 	/**

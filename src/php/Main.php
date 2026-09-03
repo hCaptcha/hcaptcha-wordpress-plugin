@@ -167,17 +167,13 @@ class Main {
 	 * @return void
 	 */
 	public function init(): void {
-		if ( Request::is_xml_rpc() ) {
-			// @codeCoverageIgnoreStart
-			return;
-			// @codeCoverageIgnoreEnd
+		if ( ! Request::is_xml_rpc() ) {
+			$this->load( Install::class );
+			$this->load( Migrations::class );
+			$this->load( Playground::class );
+
+			$this->load( FormSubmitTime::class );
 		}
-
-		$this->load( Install::class );
-		$this->load( Migrations::class );
-		$this->load( Playground::class );
-
-		$this->load( FormSubmitTime::class );
 
 		add_action( 'plugins_loaded', [ $this, 'init_hooks' ], self::LOAD_PRIORITY );
 	}
@@ -225,6 +221,15 @@ class Main {
 				],
 			]
 		);
+
+		if ( Request::is_xml_rpc() ) {
+			// The XML-RPC server applies this filter after plugins_loaded.
+			if ( $this->settings->is_on( AntiSpamPage::DISABLE_XML_RPC_AUTH ) ) {
+				add_filter( 'xmlrpc_enabled', '__return_false', PHP_INT_MAX );
+			}
+
+			return;
+		}
 
 		if ( wp_doing_cron() ) {
 			return;

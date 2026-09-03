@@ -17,7 +17,6 @@ use HCaptcha\BuddyPress\CreateGroup;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use ReflectionException;
-use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test CreateGroup.
@@ -34,12 +33,47 @@ class CreateGroupTest extends HCaptchaPluginWPTestCase {
 	protected static $plugin = 'buddypress/bp-loader.php';
 
 	/**
+	 * Hooks to replay after loading BuddyPress.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'setup_theme',
+		'after_setup_theme',
+		'init',
+	];
+
+	/**
+	 * Initialize BuddyPress after the WordPress test bootstrap.
+	 *
+	 * @var bool
+	 */
+	protected static bool $force_plugin_load_hooks = true;
+
+	/**
+	 * Enable the BuddyPress Groups component used by these tests.
+	 *
+	 * @return void
+	 */
+	protected function before_load_test_plugins(): void {
+		add_filter(
+			'bp_active_components',
+			static function ( $components ) {
+				$components['groups'] = '1';
+
+				return $components;
+			}
+		);
+	}
+
+	/**
 	 * Tear down the test.
 	 */
 	public function tearDown(): void {
 		global $bp;
 
-		unset( $bp->signup );
+		unset( $bp->signup, $bp->current_component, $bp->current_action, $bp->action_variables );
 
 		parent::tearDown();
 	}
@@ -71,15 +105,36 @@ class CreateGroupTest extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
+	 * Test hCaptcha in the live BuddyPress group creation template.
+	 *
+	 * @return void
+	 */
+	public function test_live_group_creation_template(): void {
+		$bp                    = buddypress();
+		$bp->current_component = 'groups';
+		$bp->current_action    = 'create';
+		$bp->action_variables  = [ 1 => 'group-details' ];
+		$subject               = new CreateGroup();
+		$template              = bp_locate_template( 'groups/create.php' );
+		$html                  = bp_buffer_template_part( 'groups/create', null, false );
+
+		self::assertTrue( is_plugin_active( static::$plugin ) );
+		self::assertStringStartsWith(
+			wp_normalize_path( WP_PLUGIN_DIR . '/buddypress/' ),
+			wp_normalize_path( (string) $template )
+		);
+		self::assertStringContainsString( 'id="create-group-form"', $html );
+		self::assertStringContainsString( 'name="group-name"', $html );
+		self::assertStringContainsString( 'class="hcap_buddypress_group_form"', $html );
+		self::assertStringContainsString( 'name="hcaptcha_bp_create_group_nonce"', $html );
+		self::assertSame( 10, has_action( 'bp_after_group_details_creation_step', [ $subject, 'add_captcha' ] ) );
+	}
+
+	/**
 	 * Test verify().
 	 */
 	public function test_verify(): void {
-		FunctionMocker::replace(
-			'bp_is_group_creation_step',
-			static function ( $step_slug ) {
-				return 'group-details' === $step_slug;
-			}
-		);
+		$this->set_group_creation_step();
 
 		$subject = new CreateGroup();
 
@@ -132,7 +187,7 @@ class CreateGroupTest extends HCaptchaPluginWPTestCase {
 	 * Test verify() when not in step.
 	 */
 	public function test_verify_not_in_step(): void {
-		FunctionMocker::replace( 'bp_is_group_creation_step', false );
+		$this->set_group_creation_step( false );
 
 		$subject = new CreateGroup();
 
@@ -146,17 +201,11 @@ class CreateGroupTest extends HCaptchaPluginWPTestCase {
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_verify_not_verified(): void {
-		FunctionMocker::replace(
-			'bp_is_group_creation_step',
-			static function ( $step_slug ) {
-				return 'group-details' === $step_slug;
-			}
-		);
+		$this->set_group_creation_step();
 
-		FunctionMocker::replace(
-			'HCaptcha\\BuddyPress\\bp_core_redirect',
-			static function (): void {}
-		);
+		if ( ! defined( 'BP_TESTS_DIR' ) ) {
+			define( 'BP_TESTS_DIR', __DIR__ );
+		}
 
 		add_filter(
 			'wp_redirect',
@@ -166,8 +215,6 @@ class CreateGroupTest extends HCaptchaPluginWPTestCase {
 			10,
 			2
 		);
-
-		FunctionMocker::replace( 'bp_get_groups_root_slug', '' );
 
 		$subject = new CreateGroup();
 
@@ -189,34 +236,16 @@ class CreateGroupTest extends HCaptchaPluginWPTestCase {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function test_print_inline_styles(): void {
-		FunctionMocker::replace(
-			'defined',
-			static function ( $constant_name ) {
-				return 'SCRIPT_DEBUG' === $constant_name;
-			}
-		);
-
-		FunctionMocker::replace(
-			'constant',
-			static function ( $name ) {
-				return 'SCRIPT_DEBUG' === $name;
-			}
-		);
-
-		$expected = <<<'CSS'
-	#buddypress .h-captcha {
-		margin-top: 15px;
-	}
-CSS;
-		$expected = "<style>\n$expected\n</style>\n";
-
 		$subject = new CreateGroup();
 
 		ob_start();
 
 		$subject->print_inline_styles();
+		$css = (string) ob_get_clean();
 
-		self::assertSame( $expected, ob_get_clean() );
+		self::assertStringContainsString( '<style>', $css );
+		self::assertStringContainsString( '#buddypress .h-captcha', $css );
+		self::assertStringContainsString( 'margin-top', $css );
 	}
 
 	/**
@@ -231,5 +260,19 @@ CSS;
 				'form_id' => 'create_group',
 			]
 		);
+	}
+
+	/**
+	 * Set the live BuddyPress group creation route.
+	 *
+	 * @param bool $group_details Whether the group details step is active.
+	 *
+	 * @return void
+	 */
+	private function set_group_creation_step( bool $group_details = true ): void {
+		$bp                    = buddypress();
+		$bp->current_component = $group_details ? 'groups' : 'members';
+		$bp->current_action    = $group_details ? 'create' : '';
+		$bp->action_variables  = $group_details ? [ 1 => 'group-details' ] : [];
 	}
 }

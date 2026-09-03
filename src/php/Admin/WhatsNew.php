@@ -743,6 +743,39 @@ class WhatsNew extends NotificationsBase {
 	}
 
 	/**
+	 * What's New 5.3.0 content.
+	 *
+	 * @return void
+	 * @noinspection HtmlUnknownTarget
+	 * @noinspection PhpUnused
+	 */
+	protected function whats_new_5_3_0(): void {
+		$urls = $this->prepare_urls();
+
+		$block_theme_editor = [
+			'type'    => 'left',
+			'badge'   => __( 'New Feature', 'hcaptcha-for-forms-and-more' ),
+			'title'   => __( 'Advanced Theme Editor', 'hcaptcha-for-forms-and-more' ),
+			'message' => sprintf(
+				'<p>%1$s</p><p>%2$s</p><p>%3$s</p>',
+				__( 'Create a custom hCaptcha theme visually from the General settings page—no manual JSON editing required.', 'hcaptcha-for-forms-and-more' ),
+				__( 'Fine-tune the palette and individual component colors while live previews show how both the widget and challenge will look.', 'hcaptcha-for-forms-and-more' ),
+				__( 'Need complete control? Switch to the JSON view to edit, validate, and format the full configuration directly.', 'hcaptcha-for-forms-and-more' )
+			),
+			'button'  => [
+				'url'  => $urls['theme_editor'],
+				'text' => __( 'Open Theme Editor', 'hcaptcha-for-forms-and-more' ),
+			],
+			'image'   => [
+				'url'      => $urls['theme_editor_img'],
+				'lightbox' => true,
+			],
+		];
+
+		$this->show_block( $block_theme_editor );
+	}
+
+	/**
 	 * Show block.
 	 *
 	 * @param array $block Block.

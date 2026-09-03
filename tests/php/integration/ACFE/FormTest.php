@@ -14,18 +14,113 @@ namespace HCaptcha\Tests\Integration\ACFE;
 
 use HCaptcha\ACFE\Form;
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
-use Mockery;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use ReflectionClass;
 use ReflectionException;
-use stdClass;
-use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test ACFE class.
  *
  * @group acfe
  */
-class FormTest extends HCaptchaWPTestCase {
+class FormTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * Plugin relative paths.
+	 *
+	 * @var string[]
+	 */
+	protected static $plugin = [
+		'advanced-custom-fields-pro/acf.php',
+		'acf-extended/acf-extended.php',
+	];
+
+	/**
+	 * Hooks to replay after loading ACF and ACF Extended.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
+
+	/**
+	 * Force lifecycle hook replay after WPTestCase resets action counters.
+	 *
+	 * @var bool
+	 */
+	protected static bool $force_plugin_load_hooks = true;
+
+	/**
+	 * Expected deprecation notices from ACF Extended.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_expected_deprecated = [
+		'acfe/form/render/before_fields',
+	];
+
+	/**
+	 * Test a live ACF Extended form with its reCAPTCHA field replaced by hCaptcha.
+	 */
+	public function test_live_form_render(): void {
+		$field_group_key = 'group_hcaptcha_acfe_integration';
+
+		acf_add_local_field_group(
+			[
+				'key'      => $field_group_key,
+				'title'    => 'hCaptcha integration fields',
+				'fields'   => [
+					[
+						'key'   => 'field_hcaptcha_acfe_name',
+						'label' => 'Name',
+						'name'  => 'name',
+						'type'  => 'text',
+					],
+					[
+						'key'        => 'field_hcaptcha_acfe_captcha',
+						'label'      => 'Captcha',
+						'name'       => 'captcha',
+						'type'       => 'acfe_recaptcha',
+						'required'   => 1,
+						'version'    => 'v2',
+						'v2_theme'   => 'light',
+						'v2_size'    => 'normal',
+						'site_key'   => 'live-site-key',
+						'secret_key' => 'live-secret-key',
+					],
+				],
+				'location' => [],
+			]
+		);
+
+		acfe_register_form(
+			[
+				'name'         => 'hcaptcha-acfe-integration',
+				'title'        => 'hCaptcha integration form',
+				'field_groups' => [ $field_group_key ],
+			]
+		);
+
+		$integration = new Form();
+		$field_type  = acf_get_field_type( 'acfe_recaptcha' );
+		$plugin_file = wp_normalize_path( ( new ReflectionClass( $field_type ) )->getFileName() );
+
+		ob_start();
+		acfe_form( 'hcaptcha-acfe-integration' );
+		$html = ob_get_clean();
+
+		self::assertTrue( is_plugin_active( 'advanced-custom-fields-pro/acf.php' ) );
+		self::assertTrue( is_plugin_active( 'acf-extended/acf-extended.php' ) );
+		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/acf-extended/' ), $plugin_file );
+		self::assertInstanceOf( \acfe_field_recaptcha::class, $field_type );
+		self::assertSame( 11, has_action( Form::RENDER_HOOK, [ $integration, 'add_hcaptcha' ] ) );
+		self::assertStringContainsString( 'class="acfe-form"', $html );
+		self::assertStringContainsString( 'name="acf[field_hcaptcha_acfe_name]"', $html );
+		self::assertStringContainsString( 'class="h-captcha"', $html );
+		self::assertStringContainsString( 'id="acf-field_hcaptcha_acfe_captcha"', $html );
+	}
 
 	/**
 	 * Tear down the test.
@@ -80,10 +175,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @dataProvider dp_test_remove_recaptcha_render
 	 */
 	public function test_remove_recaptcha_render( array $field, $expected ): void {
-		$recaptcha = Mockery::mock( 'acfe_field_recaptcha' );
-		$recaptcha->shouldReceive( 'render_field' );
-
-		FunctionMocker::replace( 'acf_get_field_type', $recaptcha );
+		$recaptcha = acf_get_field_type( 'acfe_recaptcha' );
 
 		add_action( Form::RENDER_HOOK, [ $recaptcha, 'render_field' ], 9 );
 
@@ -177,10 +269,7 @@ class FormTest extends HCaptchaWPTestCase {
 		$field = [ 'type' => 'some' ];
 		$input = 'some_input_name';
 
-		$recaptcha = Mockery::mock( 'acfe_field_recaptcha' );
-		$recaptcha->shouldReceive( 'render_field' );
-
-		FunctionMocker::replace( 'acf_get_field_type', $recaptcha );
+		$recaptcha = acf_get_field_type( 'acfe_recaptcha' );
 
 		add_filter( Form::VALIDATION_HOOK, [ $recaptcha, 'validate_value' ] );
 
@@ -214,7 +303,7 @@ class FormTest extends HCaptchaWPTestCase {
 		$this->prepare_widget_id( $form_id );
 		$_POST['acf'] = [];
 
-		$this->mock_acf_form( $form_id );
+		$this->register_acf_form( $form_id );
 
 		$this->prepare_verify_request( $value, $result );
 
@@ -280,7 +369,7 @@ class FormTest extends HCaptchaWPTestCase {
 		$this->prepare_widget_id( $form_id );
 		$_POST['acf'] = [];
 
-		$this->mock_acf_form( $form_id );
+		$this->register_acf_form( $form_id );
 		$this->prepare_verify_request( $value, $result );
 
 		$subject = new Form();
@@ -305,7 +394,7 @@ class FormTest extends HCaptchaWPTestCase {
 		$_POST['_acf_form'] = 'acf-form';
 		$this->prepare_widget_id( $form_id );
 
-		$this->mock_acf_form( $form_id );
+		$this->register_acf_form( $form_id );
 		$this->prepare_verify_request( $value, false );
 
 		add_filter( 'wp_doing_ajax', '__return_true' );
@@ -334,7 +423,7 @@ class FormTest extends HCaptchaWPTestCase {
 
 		$_POST['_acf_form'] = 'acf-form';
 
-		$this->mock_acf_form( $form_id );
+		$this->register_acf_form( $form_id );
 		$this->prepare_verify_request( $value );
 
 		add_filter( 'wp_doing_ajax', '__return_true' );
@@ -362,24 +451,21 @@ class FormTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Mock an ACF form for verification.
+	 * Register an ACF form for verification.
 	 *
 	 * @param array|false|int $form Form data.
 	 *
 	 * @return void
 	 */
-	private function mock_acf_form( $form ): void {
-		$return          = is_int( $form ) ? [ 'ID' => $form ] : $form;
-		$acf             = new stdClass();
-		$acf->form_front = Mockery::mock();
-		$acf->form_front->shouldReceive( 'get_form' )->andReturn( $return );
+	private function register_acf_form( $form ): void {
+		if ( false === $form ) {
+			return;
+		}
 
-		FunctionMocker::replace(
-			'acf',
-			static function () use ( $acf ) {
-				return $acf;
-			}
-		);
+		$form = is_int( $form ) ? [ 'ID' => $form ] : $form;
+		$form = array_merge( [ 'id' => 'acf-form' ], $form );
+
+		acf()->form_front->add_form( $form );
 	}
 
 	/**
@@ -438,18 +524,21 @@ class FormTest extends HCaptchaWPTestCase {
 				'type'  => 'text',
 				'name'  => 'empty',
 			],
-			''                        => [
-				'label' => '',
-				'type'  => 'text',
-				'name'  => '',
-			],
 		];
 
-		FunctionMocker::replace(
-			'acf_get_field',
-			static function ( $field_key ) use ( $acf_fields ) {
-				return $acf_fields[ $field_key ] ?? null;
-			}
+		acf_add_local_field_group(
+			[
+				'key'      => 'group_hcaptcha_acfe_entry',
+				'title'    => 'ACFE entry fields',
+				'fields'   => array_map(
+					static function ( $field_key, $field ) {
+						return array_merge( [ 'key' => $field_key ], $field );
+					},
+					array_keys( $acf_fields ),
+					$acf_fields
+				),
+				'location' => [],
+			]
 		);
 
 		$subject = new Form();
@@ -490,17 +579,10 @@ class FormTest extends HCaptchaWPTestCase {
 		self::assertFalse( $get_form->invoke( $subject ) );
 
 		$_POST['_acf_form'] = 'acf-form';
-		$this->mock_acf_form( [ 'ID' => 55 ] );
-		self::assertSame( [ 'ID' => 55 ], $get_form->invoke( $subject ) );
+		$this->register_acf_form( [ 'ID' => 55 ] );
+		self::assertSame( 55, $get_form->invoke( $subject )['ID'] );
 
-		$_POST['_acf_form'] = 'encrypted-form';
-		$this->mock_acf_form( false );
-		FunctionMocker::replace(
-			'acf_decrypt',
-			static function () {
-				return wp_json_encode( [ 'ID' => 77 ] );
-			}
-		);
+		$_POST['_acf_form'] = acf_encrypt( wp_json_encode( [ 'ID' => 77 ] ) );
 		self::assertSame( [ 'ID' => 77 ], $get_form->invoke( $subject ) );
 	}
 

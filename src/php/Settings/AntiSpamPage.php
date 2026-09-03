@@ -23,6 +23,11 @@ use KAGG\Settings\Abstracts\SettingsBase;
 class AntiSpamPage extends PluginSettingsBase {
 
 	/**
+	 * Disable authenticated XML-RPC setting name.
+	 */
+	public const DISABLE_XML_RPC_AUTH = 'disable_xml_rpc_auth';
+
+	/**
 	 * Admin script and style handle.
 	 */
 	public const HANDLE = 'hcaptcha-anti-spam';
@@ -115,7 +120,7 @@ class AntiSpamPage extends PluginSettingsBase {
 		$trusted_ip_headers_description = $this->get_trusted_ip_headers_description();
 
 		$this->form_fields = [
-			'set_min_submit_time'     => [
+			'set_min_submit_time'      => [
 				'label'   => __( 'Token and Honeypot', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
 				'section' => self::SECTION_BOT_DETECTION,
@@ -124,7 +129,7 @@ class AntiSpamPage extends PluginSettingsBase {
 				],
 				'helper'  => __( 'Set a minimum amount of time a user must spend on a form before submitting.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'min_submit_time'         => [
+			'min_submit_time'          => [
 				'label'   => __( 'Minimum Time to Submit the Form, sec', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'number',
 				'section' => self::SECTION_BOT_DETECTION,
@@ -132,7 +137,7 @@ class AntiSpamPage extends PluginSettingsBase {
 				'min'     => 1,
 				'helper'  => __( 'Set a minimum amount of time a user must spend on a form before submitting.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'honeypot'                => [
+			'honeypot'                 => [
 				'type'    => 'checkbox',
 				'section' => self::SECTION_BOT_DETECTION,
 				'options' => [
@@ -140,7 +145,7 @@ class AntiSpamPage extends PluginSettingsBase {
 				],
 				'helper'  => __( 'Add a honeypot field to submitted forms for early bot prevention.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'antispam'                => [
+			'antispam'                 => [
 				'label'   => __( 'Anti-Spam Check', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
 				'section' => self::SECTION_BOT_DETECTION,
@@ -149,14 +154,14 @@ class AntiSpamPage extends PluginSettingsBase {
 				],
 				'helper'  => __( 'Enable anti-spam check of submitted forms.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'antispam_provider'       => [
+			'antispam_provider'        => [
 				'label'   => __( 'Anti-Spam Provider', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'select',
 				'section' => self::SECTION_BOT_DETECTION,
 				'options' => AntiSpam::get_supported_providers(),
 				'helper'  => __( 'Select anti-spam provider.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'disposable_email'        => [
+			'disposable_email'         => [
 				'label'   => __( 'Disposable Emails', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
 				'section' => self::SECTION_BOT_DETECTION,
@@ -165,33 +170,33 @@ class AntiSpamPage extends PluginSettingsBase {
 				],
 				'helper'  => __( 'Block form submissions from disposable and temporary email addresses.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'blacklisted_ips'         => [
+			'blacklisted_ips'          => [
 				'label'   => __( 'Denylisted IPs', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'textarea',
 				'section' => self::SECTION_ACCESS_CONTROL,
 				'helper'  => __( 'Block form sending from listed IP addresses. Please specify one IP, range, or CIDR per line.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'whitelisted_ips'         => [
+			'whitelisted_ips'          => [
 				'label'   => __( 'Allowlisted IPs', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'textarea',
 				'section' => self::SECTION_ACCESS_CONTROL,
 				'helper'  => __( 'Do not show hCaptcha for listed IP addresses. Please specify one IP, range, or CIDR per line.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'blacklisted_countries'   => [
+			'blacklisted_countries'    => [
 				'label'   => __( 'Denylisted Countries', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'multiple',
 				'options' => [],
 				'section' => self::SECTION_ACCESS_CONTROL,
 				'helper'  => __( 'Block form sending from selected countries.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'whitelisted_countries'   => [
+			'whitelisted_countries'    => [
 				'label'   => __( 'Allowlisted Countries', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'multiple',
 				'options' => [],
 				'section' => self::SECTION_ACCESS_CONTROL,
 				'helper'  => __( 'Do not show hCaptcha for users from selected countries.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'trusted_address_headers' => [
+			'trusted_address_headers'  => [
 				'label'        => __( 'Trusted IP Headers', 'hcaptcha-for-forms-and-more' ),
 				'type'         => 'multiple',
 				'options'      => $this->get_trusted_address_header_options(),
@@ -199,13 +204,13 @@ class AntiSpamPage extends PluginSettingsBase {
 				'helper'       => __( 'Only enable headers that your proxy or CDN overwrites or removes from direct client requests. Selected headers are scanned in the listed order. For Cloudflare, select CF-Connecting-IP only, and make sure direct access to the origin is blocked. When no headers are selected, REMOTE_ADDR is used.', 'hcaptcha-for-forms-and-more' ),
 				'supplemental' => $trusted_ip_headers_description,
 			],
-			'maxmind_key'             => [
+			'maxmind_key'              => [
 				'label'   => __( 'MaxMind License Key', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'password',
 				'section' => self::SECTION_ACCESS_CONTROL,
 				'helper'  => __( 'Needed to automatically download the GeoLite2 Country database for country allowlist/denylist checks.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'login_limit'             => [
+			'login_limit'              => [
 				'label'   => __( 'Login Attempts Before hCaptcha', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'number',
 				'section' => self::SECTION_LOGIN_PROTECTION,
@@ -213,7 +218,7 @@ class AntiSpamPage extends PluginSettingsBase {
 				'min'     => 0,
 				'helper'  => __( 'Maximum number of failed login attempts before showing hCaptcha.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'login_interval'          => [
+			'login_interval'           => [
 				'label'   => __( 'Failed Login Attempts Interval, min', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'number',
 				'section' => self::SECTION_LOGIN_PROTECTION,
@@ -221,13 +226,21 @@ class AntiSpamPage extends PluginSettingsBase {
 				'min'     => 1,
 				'helper'  => __( 'Time interval in minutes when failed login attempts are counted.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'hide_login_errors'       => [
+			'hide_login_errors'        => [
 				'type'    => 'checkbox',
 				'section' => self::SECTION_LOGIN_PROTECTION,
 				'options' => [
 					'on' => __( 'Hide Login Errors', 'hcaptcha-for-forms-and-more' ),
 				],
 				'helper'  => __( 'Avoid specifying errors like "invalid username" or "invalid password" to limit information exposure to attackers.', 'hcaptcha-for-forms-and-more' ),
+			],
+			self::DISABLE_XML_RPC_AUTH => [
+				'type'    => 'checkbox',
+				'section' => self::SECTION_LOGIN_PROTECTION,
+				'options' => [
+					'on' => __( 'Disable Authenticated XML-RPC', 'hcaptcha-for-forms-and-more' ),
+				],
+				'helper'  => __( 'Block XML-RPC methods that require authentication. Public methods, such as pingbacks, remain available.', 'hcaptcha-for-forms-and-more' ),
 			],
 		];
 

@@ -32,6 +32,25 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 	protected static $plugin = 'bbpress/bbpress.php';
 
 	/**
+	 * Hooks to replay after loading bbPress.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'setup_theme',
+		'after_setup_theme',
+		'init',
+	];
+
+	/**
+	 * Force lifecycle hook replay after WPTestCase resets action counters.
+	 *
+	 * @var bool
+	 */
+	protected static bool $force_plugin_load_hooks = true;
+
+	/**
 	 * Tear down the test.
 	 *
 	 * @noinspection PhpUndefinedFunctionInspection
@@ -65,6 +84,80 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 		$subject->add_captcha();
 
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Test hCaptcha in the live bbPress reply shortcode.
+	 *
+	 * @return void
+	 */
+	public function test_live_reply_form(): void {
+		$user_id  = $this->factory()->user->create( [ 'role' => 'administrator' ] );
+		$forum_id = bbp_insert_forum(
+			[
+				'post_title'  => 'Live forum',
+				'post_status' => 'publish',
+				'post_author' => $user_id,
+			]
+		);
+		$topic_id = bbp_insert_topic(
+			[
+				'post_title'  => 'Live topic',
+				'post_status' => 'publish',
+				'post_author' => $user_id,
+				'post_parent' => $forum_id,
+			],
+			[ 'forum_id' => $forum_id ]
+		);
+
+		bbp_add_forums_roles();
+		bbp_set_user_role( $user_id, bbp_get_keymaster_role() );
+		get_user_by( 'id', $user_id )->add_cap( 'keep_gate' );
+		wp_set_current_user( $user_id );
+
+		bbpress()->current_topic_id = $topic_id;
+
+		new Reply();
+		$this->load_bbp_templates();
+
+		$request_method = isset( $_SERVER['REQUEST_METHOD'] )
+			? sanitize_key( wp_unslash( $_SERVER['REQUEST_METHOD'] ) )
+			: null;
+
+		$_SERVER['REQUEST_METHOD'] = 'GET';
+
+		try {
+			$html = do_shortcode( '[bbp-reply-form]' );
+		} finally {
+			if ( null === $request_method ) {
+				unset( $_SERVER['REQUEST_METHOD'] );
+			} else {
+				$_SERVER['REQUEST_METHOD'] = $request_method;
+			}
+		}
+
+		self::assertTrue( is_plugin_active( static::$plugin ) );
+		self::assertStringContainsString( 'class="bbp-reply-form"', $html );
+		self::assertStringContainsString( 'name="bbp_reply_content"', $html );
+		self::assertStringContainsString( 'name="hcaptcha_bbp_reply_nonce"', $html );
+	}
+
+	/**
+	 * Load bbPress templates when WP_USE_THEMES is disabled by the test runner.
+	 *
+	 * @return void
+	 */
+	private function load_bbp_templates(): void {
+		add_action(
+			'bbp_locate_template',
+			static function ( $located, $template_name, $template_names, $template_locations, $load, $load_once ) {
+				if ( $load && $located ) {
+					load_template( $located, $load_once );
+				}
+			},
+			10,
+			6
+		);
 	}
 
 	/**

@@ -301,6 +301,8 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 		$wp_styles  = new WP_Styles();
 		// phpcs:enable WordPress.WP.GlobalVariablesOverride.Prohibited
 
+		$wp_hooks_version = $wp_scripts->registered['wp-hooks']->ver;
+
 		$hcap_form = $this->get_hcap_form(
 			[
 				'action' => 'hcaptcha_protect_content',
@@ -406,7 +408,7 @@ HTML;
 
 		if ( version_compare( $GLOBALS['wp_version'], '7.0-RC1', '>=' ) ) {
 			$expected .= <<<HTML
-<script id="wp-hooks-js" src="http://test.test/wp-includes/js/dist/hooks.min.js?ver=7496969728ca0f95732d"></script>
+<script id="wp-hooks-js" src="http://test.test/wp-includes/js/dist/hooks.min.js?ver=$wp_hooks_version"></script>
 <script id="hcaptcha-js" src="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/js/apps/hcaptcha.js?ver=$current_version"></script>
 		</body>
 		</html>
@@ -414,7 +416,7 @@ HTML;
 HTML;
 		} else {
 			$expected .= <<<HTML
-<script type="text/javascript" src="http://test.test/wp-includes/js/dist/hooks.min.js?ver=dd5603f07f9220ed27f1" id="wp-hooks-js"></script>
+<script type="text/javascript" src="http://test.test/wp-includes/js/dist/hooks.min.js?ver=$wp_hooks_version" id="wp-hooks-js"></script>
 <script type="text/javascript" src="http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/js/apps/hcaptcha.js?ver=$current_version" id="hcaptcha-js"></script>
 		</body>
 		</html>

@@ -40,6 +40,7 @@ class Register {
 	private function init_hooks(): void {
 		add_action( 'bp_before_registration_submit_buttons', [ $this, 'add_captcha' ] );
 		add_action( 'bp_signup_validate', [ $this, 'verify' ] );
+		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
 	}
 
 	/**
@@ -49,6 +50,8 @@ class Register {
 	 */
 	public function add_captcha(): void {
 		global $bp;
+
+		echo '<div class="hcap_buddypress_register_form">';
 
 		if ( ! empty( $bp->signup->errors['hcaptcha_response_verify'] ) ) {
 			$output = '<div class="error">';
@@ -69,6 +72,33 @@ class Register {
 		];
 
 		HCaptcha::form_display( $args );
+
+		echo '</div>';
+	}
+
+	/**
+	 * Print inline styles.
+	 *
+	 * @return void
+	 * @noinspection CssUnusedSymbol
+	 */
+	public function print_inline_styles(): void {
+		/* language=CSS */
+		$css = '
+	#buddypress .standard-form .hcap_buddypress_register_form {
+		clear: both;
+		margin-inline-start: 52%;
+		width: 48%;
+	}
+
+	@media screen and (max-width: 46.8em) {
+		#buddypress .standard-form .hcap_buddypress_register_form {
+			margin-inline-start: 0;
+			width: 100%;
+		}
+	}
+';
+		HCaptcha::css_display( $css );
 	}
 
 	/**

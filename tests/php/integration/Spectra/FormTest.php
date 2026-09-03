@@ -14,9 +14,10 @@ namespace HCaptcha\Tests\Integration\Spectra;
 
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Spectra\Form;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
 use ReflectionException;
+use UAGB_Forms;
 use WP_Block;
 use tad\FunctionMocker\FunctionMocker;
 
@@ -25,7 +26,24 @@ use tad\FunctionMocker\FunctionMocker;
  *
  * @group spectra
  */
-class FormTest extends HCaptchaWPTestCase {
+class FormTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * Spectra plugin entry file.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'ultimate-addons-for-gutenberg/ultimate-addons-for-gutenberg.php';
+
+	/**
+	 * Hooks to replay after loading Spectra.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
 
 	/**
 	 * Tear down the test.
@@ -33,7 +51,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function tearDown(): void {
-		unset( $_POST );
+		unset( $_POST, $_REQUEST['nonce'] );
 
 		parent::tearDown();
 	}
@@ -42,10 +60,19 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test init_hooks().
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_init_hooks(): void {
 		$subject = new Form();
 
+		self::assertTrue( is_plugin_active( static::$plugin ) );
+		self::assertTrue( class_exists( 'UAGB_Loader', false ) );
+		self::assertTrue( class_exists( 'UAGB_Forms', false ) );
+		self::assertArrayHasKey( 'uagb/forms', uagb_block()->get_blocks() );
+		self::assertSame(
+			10,
+			has_action( 'wp_ajax_nopriv_uagb_process_forms', [ UAGB_Forms::get_instance(), 'process_forms' ] )
+		);
 		self::assertSame( 9, has_filter( 'wp_ajax_uagb_process_forms', [ $subject, 'process_ajax' ] ) );
 		self::assertSame( 9, has_filter( 'wp_ajax_nopriv_uagb_process_forms', [ $subject, 'process_ajax' ] ) );
 
@@ -166,6 +193,27 @@ HTML;
 	}
 
 	/**
+	 * Test hCaptcha in a form rendered from a live Spectra block.
+	 *
+	 * @return void
+	 */
+	public function test_live_spectra_form(): void {
+		$block_id = 'f89cebda';
+
+		new Form();
+
+		$output = do_blocks( $this->get_spectra_form_content( $block_id ) );
+
+		self::assertStringContainsString( 'class="wp-block-uagb-forms ', $output );
+		self::assertStringContainsString( 'name="uagb-form-' . $block_id . '"', $output );
+		self::assertStringContainsString( 'class="uagb_forms_form_id" value="uagb-form-' . $block_id . '"', $output );
+		self::assertStringContainsString( '<h-captcha', $output );
+		self::assertStringContainsString( 'name="hcaptcha_spectra_form_nonce"', $output );
+		self::assertStringContainsString( 'name="hcaptcha-widget-id"', $output );
+		self::assertLessThan( strpos( $output, '<button type="submit"' ), strpos( $output, '<h-captcha' ) );
+	}
+
+	/**
 	 * Test process_ajax().
 	 *
 	 * @return void
@@ -237,20 +285,61 @@ HTML;
 
 		$post_id = wp_insert_post( [ 'post_content' => $post_content ] );
 
+		$spectra_nonce      = wp_create_nonce( 'uagb_forms_ajax_nonce' );
 		$_POST['post_id']   = $post_id;
 		$_POST['block_id']  = $block_id;
 		$_POST['form_data'] = $form_data;
+		$_POST['nonce']     = $spectra_nonce;
+		$_REQUEST['nonce']  = $spectra_nonce;
 
 		$this->prepare_verify_request( $hcaptcha_response );
 
 		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter( 'pre_wp_mail', '__return_true' );
 
-		$subject = Mockery::mock( Form::class )->makePartial();
+		$die_arr   = null;
+		$submitted = false;
 
-		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'has_recaptcha' )->andReturn( false );
+		add_filter(
+			'wp_die_ajax_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+		add_action(
+			'uagb_form_success',
+			static function () use ( &$submitted ) {
+				$submitted = true;
+			}
+		);
 
-		$subject->process_ajax();
+		$subject      = new Form();
+		$spectra_form = UAGB_Forms::get_instance();
+
+		self::assertSame( 9, has_action( 'wp_ajax_nopriv_uagb_process_forms', [ $subject, 'process_ajax' ] ) );
+		self::assertSame( 10, has_action( 'wp_ajax_nopriv_uagb_process_forms', [ $spectra_form, 'process_forms' ] ) );
+
+		ob_start();
+
+		do_action( 'wp_ajax_nopriv_uagb_process_forms' );
+
+		$output = ob_get_clean();
+
+		remove_filter( 'pre_wp_mail', '__return_true' );
+
+		self::assertSame(
+			wp_json_encode(
+				[
+					'success' => true,
+					'data'    => 200,
+				]
+			),
+			$output
+		);
+		self::assertSame( [ '', '', [ 'response' => null ] ], $die_arr );
+		self::assertTrue( $submitted );
 	}
 
 	/**
@@ -640,5 +729,47 @@ HTML;
 		];
 
 		return HCaptcha::widget_id_value( $id );
+	}
+
+	/**
+	 * Get saved content of a Spectra form block.
+	 *
+	 * Spectra forms are static Gutenberg blocks, so their frontend markup is saved in post content.
+	 *
+	 * @param string $block_id Block ID.
+	 *
+	 * @return string
+	 */
+	private function get_spectra_form_content( string $block_id ): string {
+		return <<<HTML
+<!-- wp:uagb/forms {"block_id":"$block_id","labelAlignment":"left","variationSelected":true} -->
+<div class="wp-block-uagb-forms uagb-forms__outer-wrap uagb-block-$block_id">
+	<form class="uagb-forms-main-form" method="post" autocomplete="on" name="uagb-form-$block_id">
+		<!-- wp:uagb/forms-name {"block_id":"046ed4b7","nameRequired":true,"name":"First Name"} -->
+		<div class="wp-block-uagb-forms-name uagb-forms-name-wrap uagb-forms-field-set uagb-block-046ed4b7">
+			<div class="uagb-forms-name-label required uagb-forms-input-label">First Name</div>
+			<input type="text" name="046ed4b7" />
+		</div>
+		<!-- /wp:uagb/forms-name -->
+		<div class="uagb-forms-form-hidden-data">
+			<input type="hidden" class="uagb_forms_form_label" value="Spectra Form" />
+			<input type="hidden" class="uagb_forms_form_id" value="uagb-form-$block_id" />
+		</div>
+		<div class="uagb-form-reacaptcha-error-$block_id"></div>
+		<div class="uagb-forms-main-submit-button-wrap wp-block-button">
+			<button type="submit" class="uagb-forms-main-submit-button wp-block-button__link">
+				<div class="uagb-forms-main-submit-button-text">Submit</div>
+			</button>
+		</div>
+	</form>
+	<div class="uagb-forms-success-message-$block_id uagb-forms-submit-message-hide">
+		<span>The form has been submitted successfully!</span>
+	</div>
+	<div class="uagb-forms-failed-message-$block_id uagb-forms-submit-message-hide">
+		<span>There has been some error while submitting the form. Please verify all form fields again.</span>
+	</div>
+</div>
+<!-- /wp:uagb/forms -->
+HTML;
 	}
 }

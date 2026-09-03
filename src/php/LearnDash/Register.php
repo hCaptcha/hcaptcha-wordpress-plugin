@@ -7,6 +7,7 @@
 
 namespace HCaptcha\LearnDash;
 
+use HCaptcha\Abstracts\RegisterBase;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
@@ -14,7 +15,7 @@ use WP_Error;
 /**
  * Class Register
  */
-class Register {
+class Register extends RegisterBase {
 
 	/**
 	 * Nonce action.
@@ -38,7 +39,9 @@ class Register {
 	 *
 	 * @return void
 	 */
-	private function init_hooks(): void {
+	protected function init_hooks(): void {
+		parent::init_hooks();
+
 		add_action( 'learndash_registration_form', [ $this, 'add_captcha' ] );
 		add_filter( 'registration_errors', [ $this, 'verify' ], 10, 3 );
 		add_filter( 'learndash_registration_errors', [ $this, 'add_registration_errors' ] );
@@ -54,10 +57,7 @@ class Register {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'register',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		HCaptcha::form_display( $args );
@@ -81,9 +81,37 @@ class Register {
 			return $errors;
 		}
 
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		$ownership = $this->get_request_ownership();
+
+		if ( false === $ownership ) {
+			return $errors;
+		}
+
+		if ( null === $ownership ) {
+			return HCaptcha::add_error_message( $errors, hcap_get_error_messages()['bad-signature'] );
+		}
+
+		$error_message = API::verify(
+			[
+				'nonce_name'   => self::NONCE,
+				'nonce_action' => self::ACTION,
+				'expected_id'  => $this->get_expected_id(),
+			]
+		);
 
 		return HCaptcha::add_error_message( $errors, $error_message );
+	}
+
+	/**
+	 * Get expected hCaptcha widget ID.
+	 *
+	 * @return array
+	 */
+	protected function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => 'register',
+		];
 	}
 
 	/**

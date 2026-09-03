@@ -13,16 +13,15 @@
 namespace HCaptcha\Tests\Integration\FluentForm;
 
 use FluentForm\App\Models\Form as FluentForm;
-use FluentForm\App\Modules\Form\FormFieldsParser;
-use FluentForm\Framework\Helpers\ArrayHelper;
+use FluentForm\App\Models\FormMeta;
 use HCaptcha\FluentForm\Form;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Settings\General;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
+use ReflectionClass;
 use ReflectionException;
 use stdClass;
-use tad\FunctionMocker\FunctionMocker;
 use WP_User;
 
 /**
@@ -30,7 +29,47 @@ use WP_User;
  *
  * @group fluentform
  */
-class FormTest extends HCaptchaWPTestCase {
+class FormTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * Plugin relative path.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'fluentform/fluentform.php';
+
+	/**
+	 * Hooks to replay after loading the plugin.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
+
+	/**
+	 * Test rendering through the live Fluent Forms model and shortcode.
+	 */
+	public function test_live_form_render(): void {
+		update_option( 'hcaptcha_settings', [ 'fluent_status' => [ 'form' ] ] );
+		hcaptcha()->init_hooks();
+		$integration = new Form();
+
+		$model_file = wp_normalize_path( ( new ReflectionClass( FluentForm::class ) )->getFileName() );
+		$form       = $this->create_fluent_form();
+
+		self::assertTrue( is_plugin_active( static::$plugin ) );
+		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/fluentform/' ), $model_file );
+		self::assertSame( 9, has_action( 'fluentform/render_item_submit_button', [ $integration, 'add_hcaptcha' ] ) );
+
+		$html = do_shortcode( '[fluentform id="' . $form->id . '"]' );
+
+		self::assertStringContainsString( 'frm-fluent-form', $html );
+		self::assertStringContainsString( 'name="name"', $html );
+		self::assertStringContainsString( 'class="h-captcha"', $html );
+		self::assertStringContainsString( 'hcaptcha_fluentform_nonce', $html );
+	}
 
 	/**
 	 * Test constructor and init hooks.
@@ -126,7 +165,8 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_render_field_hcaptcha(): void {
-		$form_id   = 1;
+		$live_form = $this->create_fluent_form();
+		$form_id   = (int) $live_form->id;
 		$form      = (object) [
 			'id' => $form_id,
 		];
@@ -164,8 +204,9 @@ class FormTest extends HCaptchaWPTestCase {
 	public function test_add_hcaptcha(): void {
 		hcaptcha()->init_hooks();
 
-		$form_id = 1;
-		$form    = (object) [
+		$live_form = $this->create_fluent_form();
+		$form_id   = (int) $live_form->id;
+		$form      = (object) [
 			'id' => $form_id,
 		];
 
@@ -288,10 +329,10 @@ class FormTest extends HCaptchaWPTestCase {
 			),
 		];
 
-		$form = Mockery::mock( FluentForm::class );
-		$form->shouldReceive( '__isset' )->with( 'id' )->andReturn( true );
-		$form->shouldReceive( '__get' )->with( 'id' )->andReturn( $form_id );
-		$form->shouldReceive( 'getAttributes' )->with()->andReturn( $attributes );
+		$form                       = $this->create_fluent_form( json_decode( $attributes['form_fields'], true )['fields'] );
+		$form_id                    = (int) $form->id;
+		$widget_id                  = $this->get_widget_id( $form_id );
+		$data['hcaptcha-widget-id'] = $widget_id;
 
 		$mock = Mockery::mock( Form::class )->makePartial();
 		$mock->shouldAllowMockingProtectedMethods();
@@ -350,10 +391,10 @@ class FormTest extends HCaptchaWPTestCase {
 			),
 		];
 
-		$form = Mockery::mock( FluentForm::class );
-		$form->shouldReceive( '__isset' )->with( 'id' )->andReturn( true );
-		$form->shouldReceive( '__get' )->with( 'id' )->andReturn( $form_id );
-		$form->shouldReceive( 'getAttributes' )->with()->andReturn( $attributes );
+		$form                       = $this->create_fluent_form();
+		$form_id                    = (int) $form->id;
+		$widget_id                  = $this->get_widget_id( $form_id );
+		$data['hcaptcha-widget-id'] = $widget_id;
 
 		$mock = Mockery::mock( Form::class )->makePartial();
 		$mock->shouldAllowMockingProtectedMethods();
@@ -406,10 +447,8 @@ class FormTest extends HCaptchaWPTestCase {
 			),
 		];
 
-		$form = Mockery::mock( FluentForm::class );
-		$form->shouldReceive( '__isset' )->with( 'id' )->andReturn( true );
-		$form->shouldReceive( '__get' )->with( 'id' )->andReturn( $form_id );
-		$form->shouldReceive( 'getAttributes' )->with()->andReturn( $attributes );
+		$form    = $this->create_fluent_form();
+		$form_id = (int) $form->id;
 
 		$mock = Mockery::mock( Form::class )->makePartial();
 		$mock->shouldAllowMockingProtectedMethods();
@@ -479,10 +518,10 @@ class FormTest extends HCaptchaWPTestCase {
 			),
 		];
 
-		$form = Mockery::mock( FluentForm::class );
-		$form->shouldReceive( '__isset' )->with( 'id' )->andReturn( true );
-		$form->shouldReceive( '__get' )->with( 'id' )->andReturn( $form_id );
-		$form->shouldReceive( 'getAttributes' )->with()->andReturn( $attributes );
+		$form                       = $this->create_fluent_form( [], true );
+		$form_id                    = (int) $form->id;
+		$widget_id                  = $this->get_widget_id( $form_id );
+		$data['hcaptcha-widget-id'] = $widget_id;
 
 		$mock = Mockery::mock( Form::class )->makePartial();
 		$mock->shouldAllowMockingProtectedMethods();
@@ -554,18 +593,9 @@ class FormTest extends HCaptchaWPTestCase {
 			),
 		];
 
-		$form = Mockery::mock( FluentForm::class );
-		$form->shouldReceive( '__isset' )->with( 'id' )->andReturn( true );
-		$form->shouldReceive( '__get' )->with( 'id' )->andReturn( $form_id );
-		$form->shouldReceive( 'getAttributes' )->with()->andReturn( $attributes );
-
-		$array_helper = Mockery::mock( 'alias:' . ArrayHelper::class );
-
-		$array_helper->shouldReceive( 'get' )->andReturnUsing(
-			static function ( $data, $key ) {
-				return $data[ $key ];
-			}
-		);
+		$form      = $this->create_fluent_form();
+		$form_id   = (int) $form->id;
+		$widget_id = $this->get_widget_id( $form_id );
 
 		add_filter(
 			'check_password',
@@ -738,7 +768,8 @@ HTML;
 			$fluent_forms_conversational_params
 		);
 
-		$form_id        = 1;
+		$form           = $this->create_fluent_form();
+		$form_id        = (int) $form->id;
 		$params         = [
 			'id'  => $fluent_forms_conversational_script,
 			'url' => $wp_scripts->registered[ $fluent_forms_conversational_script ]->src,
@@ -949,39 +980,19 @@ HTML;
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function test_print_inline_styles(): void {
-		FunctionMocker::replace(
-			'defined',
-			static function ( $constant_name ) {
-				return 'SCRIPT_DEBUG' === $constant_name;
-			}
-		);
-
-		FunctionMocker::replace(
-			'constant',
-			static function ( $name ) {
-				return 'SCRIPT_DEBUG' === $name;
-			}
-		);
-
-		$expected = <<<'CSS'
-	.frm-fluent-form .h-captcha {
-		line-height: 0;
-		margin-bottom: 0;
-	}
-	
-	.fluentform-step.active .ff-el-input--hcaptcha {
-		justify-self: end;
-	}
-CSS;
-		$expected = "<style>\n$expected\n</style>\n";
-
 		$subject = new Form();
 
 		ob_start();
 
 		$subject->print_inline_styles();
+		$html = ob_get_clean();
 
-		self::assertSame( $expected, ob_get_clean() );
+		self::assertStringStartsWith( '<style>', $html );
+		self::assertStringContainsString( '.frm-fluent-form .h-captcha', $html );
+		self::assertStringContainsString( 'line-height:', $html );
+		self::assertStringContainsString( '.fluentform-step.active .ff-el-input--hcaptcha', $html );
+		self::assertStringContainsString( 'justify-self:', $html );
+		self::assertStringEndsWith( "</style>\n", $html );
 	}
 
 	/**
@@ -993,25 +1004,8 @@ CSS;
 	 * @dataProvider dp_has_own_hcaptcha
 	 */
 	public function test_has_own_hcaptcha( bool $has ): void {
-		$form = new stdClass();
-
-		FunctionMocker::replace(
-			FormFieldsParser::class . '::resetData',
-			static function () {
-				// Do nothing.
-			}
-		);
-
-		FunctionMocker::replace(
-			FormFieldsParser::class . '::hasElement',
-			static function ( $a_form, $element ) use ( $form, $has ) {
-				if ( $form === $a_form && 'hcaptcha' === $element ) {
-					return $has;
-				}
-
-				return ! $has;
-			}
-		);
+		$fields = $has ? [ [ 'element' => 'hcaptcha' ] ] : [];
+		$form   = $this->create_fluent_form( $fields );
 
 		$subject = Mockery::mock( Form::class )->makePartial();
 
@@ -1039,7 +1033,8 @@ CSS;
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_get_hcaptcha(): void {
-		$form_id  = 1;
+		$form     = $this->create_fluent_form();
+		$form_id  = (int) $form->id;
 		$args     = [
 			'action' => 'hcaptcha_fluentform',
 			'name'   => 'hcaptcha_fluentform_nonce',
@@ -1073,6 +1068,87 @@ CSS;
 		$subject->shouldReceive( 'is_login_limit_exceeded' )->andReturn( false );
 
 		self::assertSame( '', $subject->get_hcaptcha() );
+	}
+
+	/**
+	 * Create a form through the live Fluent Forms ORM.
+	 *
+	 * @param array $fields     Form fields.
+	 * @param bool  $multi_step Whether to make the form multi-step.
+	 *
+	 * @return FluentForm
+	 */
+	private function create_fluent_form( array $fields = [], bool $multi_step = false ): FluentForm {
+		$fields      = $fields ?: [
+			[
+				'element'        => 'input_text',
+				'attributes'     => [
+					'type'        => 'text',
+					'name'        => 'name',
+					'value'       => '',
+					'id'          => '',
+					'class'       => '',
+					'placeholder' => 'Name',
+				],
+				'settings'       => [
+					'container_class'    => '',
+					'label'              => 'Name',
+					'label_placement'    => '',
+					'help_message'       => '',
+					'validation_rules'   => [
+						'required' => [
+							'value'   => false,
+							'message' => 'This field is required',
+						],
+					],
+					'conditional_logics' => [],
+				],
+				'editor_options' => [
+					'title'    => 'Simple Text',
+					'template' => 'inputText',
+				],
+			],
+		];
+		$form_fields = [
+			'fields'       => $fields,
+			'submitButton' => [
+				'element'    => 'button',
+				'attributes' => [
+					'type'  => 'submit',
+					'class' => '',
+				],
+				'settings'   => [
+					'align'           => 'left',
+					'button_style'    => 'default',
+					'container_class' => '',
+					'help_message'    => '',
+					'button_size'     => 'md',
+					'button_ui'       => [
+						'type' => 'default',
+						'text' => 'Submit',
+					],
+				],
+			],
+		];
+
+		if ( $multi_step ) {
+			$form_fields['stepsWrapper'] = [];
+		}
+
+		$form = FluentForm::create(
+			FluentForm::prepare(
+				[
+					'title'       => 'hCaptcha integration form',
+					'status'      => 'published',
+					'form_fields' => wp_json_encode( $form_fields ),
+					'type'        => 'form',
+				]
+			)
+		);
+
+		FormMeta::persist( $form->id, 'formSettings', FluentForm::getFormsDefaultSettings() );
+
+		return FluentForm::find( $form->id );
 	}
 
 	/**

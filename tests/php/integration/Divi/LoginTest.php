@@ -8,20 +8,44 @@
 namespace HCaptcha\Tests\Integration\Divi;
 
 use HCaptcha\Divi\Login;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
-use Mockery;
-use tad\FunctionMocker\FunctionMocker;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use ReflectionException;
 use WP_Block;
 
 /**
- * Class LoginTest
+ * Class LoginTest.
  *
  * @group divi
  */
-class LoginTest extends HCaptchaWPTestCase {
+class LoginTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * Theme stylesheet slug.
+	 *
+	 * @var string
+	 */
+	protected static string $theme = 'Divi';
+
+	/**
+	 * Live Divi shortcode modules used by the test.
+	 *
+	 * @var array<string, string>
+	 */
+	protected static array $theme_shortcode_classes = [
+		'et_pb_login' => 'ET_Builder_Module_Login',
+	];
+
+	/**
+	 * Expected incorrect usage notices caused by the late theme load.
+	 *
+	 * @var string[]
+	 */
+	protected static array $theme_expected_incorrect_usage = [ "add_theme_support( 'title-tag' )" ];
 
 	/**
 	 * Test constructor and init_hooks().
+	 *
+	 * @return void
 	 */
 	public function test_constructor_and_init_hooks(): void {
 		$subject = new Login();
@@ -30,279 +54,114 @@ class LoginTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test add_divi_captcha().
+	 * Test the live Divi Login module.
+	 *
+	 * @return void
 	 */
-	public function test_add_divi_captcha(): void {
-		FunctionMocker::replace( 'et_core_is_fb_enabled', false );
+	public function test_live_login_module(): void {
+		wp_set_current_user( 0 );
+		$this->enable_login_integration();
 
-		$output = '<div class="et_pb_module et_pb_login et_pb_login_0 et_pb_newsletter clearfix  et_pb_text_align_left et_pb_bg_layout_dark">
-				
-				
-				<div class="et_pb_newsletter_description"><h2 class="et_pb_module_header">Your Title Goes Here</h2><div class="et_pb_newsletter_description_content"><p>Your content goes here. Edit or remove this text inline or in the module Content settings. You can also style every aspect of this content in the module Design settings and even apply custom CSS to this text in the module Advanced settings.</p></div></div>
-				
-				<div class="et_pb_newsletter_form et_pb_login_form">
-					<form action="http://test.test/wp-login.php" method="post">
-						<p class="et_pb_contact_form_field">
-							<label class="et_pb_contact_form_label" for="user_login_61e5e64ddf4d8" style="display: none;">Username</label>
-							<input id="user_login_61e5e64ddf4d8" placeholder="Username" class="input" type="text" value="" name="log" />
-						</p>
-						<p class="et_pb_contact_form_field">
-							<label class="et_pb_contact_form_label" for="user_pass_61e5e64ddf4d8" style="display: none;">Password</label>
-							<input id="user_pass_61e5e64ddf4d8" placeholder="Password" class="input" type="password" value="" name="pwd" />
-						</p>
-						<p class="et_pb_forgot_password"><a href="http://test.test/wp-login.php?action=lostpassword">Forgot your password?</a></p>
-						<p>
-							<button type="submit" name="et_builder_submit_button" class="et_pb_newsletter_button et_pb_button">Login</button>
-							
-						</p>
-					</form>
-				</div>
-			</div>';
+		new Login();
 
-		$module_slug = 'et_pb_login';
-		$signature   = $this->get_encoded_signature( Login::class, [ 'Divi' ], 'login', true );
+		$output = do_shortcode( '[et_pb_login title="Login"][/et_pb_login]' );
 
-		$hcap_form = $this->get_hcap_form(
-			[
-				'action' => 'hcaptcha_login',
-				'name'   => 'hcaptcha_login_nonce',
-				'id'     => [
-					'source'  => [ 'Divi' ],
-					'form_id' => 'login',
-				],
-			]
-		);
-		$expected  = '<div class="et_pb_module et_pb_login et_pb_login_0 et_pb_newsletter clearfix  et_pb_text_align_left et_pb_bg_layout_dark">
-				
-				
-				<div class="et_pb_newsletter_description"><h2 class="et_pb_module_header">Your Title Goes Here</h2><div class="et_pb_newsletter_description_content"><p>Your content goes here. Edit or remove this text inline or in the module Content settings. You can also style every aspect of this content in the module Design settings and even apply custom CSS to this text in the module Advanced settings.</p></div></div>
-				
-				<div class="et_pb_newsletter_form et_pb_login_form">
-					<form action="http://test.test/wp-login.php" method="post">
-						<p class="et_pb_contact_form_field">
-							<label class="et_pb_contact_form_label" for="user_login_61e5e64ddf4d8" style="display: none;">Username</label>
-							<input id="user_login_61e5e64ddf4d8" placeholder="Username" class="input" type="text" value="" name="log" />
-						</p>
-						<p class="et_pb_contact_form_field">
-							<label class="et_pb_contact_form_label" for="user_pass_61e5e64ddf4d8" style="display: none;">Password</label>
-							<input id="user_pass_61e5e64ddf4d8" placeholder="Password" class="input" type="password" value="" name="pwd" />
-						</p>
-						<p class="et_pb_forgot_password"><a href="http://test.test/wp-login.php?action=lostpassword">Forgot your password?</a></p>
-						' . $hcap_form . '		<input
-				type="hidden"
-				class="hcaptcha-signature"
-				name="hcaptcha-signature-SENhcHRjaGFcRGl2aVxMb2dpbg=="
-				value="' . $signature . '">
-		
-<p>
-							<button type="submit" name="et_builder_submit_button" class="et_pb_newsletter_button et_pb_button">Login</button>
-							
-						</p>
-					</form>
-				</div>
-			</div>';
-
-		update_option(
-			'hcaptcha_settings',
-			[
-				'divi_status' => [ 'login' ],
-			]
-		);
-
-		add_filter(
-			'template',
-			static function () {
-				return 'Divi';
-			}
-		);
-
-		hcaptcha()->init_hooks();
-
-		$subject = new Login();
-
-		self::assertSame( $expected, $subject->add_hcaptcha_to_shortcode( $output, $module_slug ) );
+		self::assertStringContainsString( 'et_pb_login_form', $output );
+		self::assertStringContainsString( 'name="log"', $output );
+		self::assertStringContainsString( '<h-captcha', $output );
+		self::assertStringContainsString( 'name="hcaptcha_login_nonce"', $output );
+		self::assertStringContainsString( 'class="hcaptcha-signature"', $output );
 	}
 
 	/**
-	 * Test add_divi_captcha() in frontend builder.
+	 * Test the live Divi frontend builder state.
+	 *
+	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function test_add_divi_captcha_in_frontend_builder(): void {
-		FunctionMocker::replace( 'et_core_is_fb_enabled', true );
+	public function test_add_hcaptcha_in_frontend_builder(): void {
+		$output = 'some string';
 
-		$output      = 'some string';
-		$module_slug = 'et_pb_login';
+		add_filter( 'et_fb_is_enabled', '__return_true' );
 
 		$subject = new Login();
 
-		self::assertSame( $output, $subject->add_hcaptcha_to_shortcode( $output, $module_slug ) );
+		self::assertTrue( et_core_is_fb_enabled() );
+		self::assertSame( $output, $subject->add_hcaptcha_to_shortcode( $output, Login::TAG ) );
 	}
 
 	/**
-	 * Test add_divi_captcha() when the login limit is not exceeded.
+	 * Test add_hcaptcha_to_shortcode() when the login limit is not exceeded.
+	 *
+	 * @return void
 	 */
-	public function test_add_divi_captcha_when_login_limit_is_not_exceeded(): void {
-		$output      = 'some string';
-		$module_slug = 'et_pb_login';
+	public function test_add_hcaptcha_when_login_limit_is_not_exceeded(): void {
+		$output = 'some string';
 
 		add_filter( 'hcap_login_limit_exceeded', '__return_false' );
 
 		$subject = new Login();
 
-		self::assertSame( $output, $subject->add_hcaptcha_to_shortcode( $output, $module_slug ) );
+		self::assertSame( $output, $subject->add_hcaptcha_to_shortcode( $output, Login::TAG ) );
 	}
 
 	/**
-	 * Test add_hcaptcha_to_block().
-	 */
-	public function test_add_hcaptcha_to_block(): void {
-		FunctionMocker::replace( 'et_core_is_fb_enabled', false );
-
-		$output = '<div class="et_pb_module et_pb_login et_pb_login_0 et_pb_newsletter clearfix  et_pb_text_align_left et_pb_bg_layout_dark">
-				
-				
-				<div class="et_pb_newsletter_description"><h2 class="et_pb_module_header">Your Title Goes Here</h2><div class="et_pb_newsletter_description_content"><p>Your content goes here. Edit or remove this text inline or in the module Content settings. You can also style every aspect of this content in the module Design settings and even apply custom CSS to this text in the module Advanced settings.</p></div></div>
-				
-				<div class="et_pb_newsletter_form et_pb_login_form">
-					<form action="http://test.test/wp-login.php" method="post">
-						<p class="et_pb_contact_form_field">
-							<label class="et_pb_contact_form_label" for="user_login_61e5e64ddf4d8" style="display: none;">Username</label>
-							<input id="user_login_61e5e64ddf4d8" placeholder="Username" class="input" type="text" value="" name="log" />
-						</p>
-						<p class="et_pb_contact_form_field">
-							<label class="et_pb_contact_form_label" for="user_pass_61e5e64ddf4d8" style="display: none;">Password</label>
-							<input id="user_pass_61e5e64ddf4d8" placeholder="Password" class="input" type="password" value="" name="pwd" />
-						</p>
-						<p class="et_pb_forgot_password"><a href="http://test.test/wp-login.php?action=lostpassword">Forgot your password?</a></p>
-						<p>
-							<button type="submit" name="et_builder_submit_button" class="et_pb_newsletter_button et_pb_button">Login</button>
-							
-						</p>
-					</form>
-				</div>
-			</div>';
-
-		$signature = $this->get_encoded_signature( Login::class, [ 'Divi' ], 'login', true );
-
-		$hcap_form = $this->get_hcap_form(
-			[
-				'action' => 'hcaptcha_login',
-				'name'   => 'hcaptcha_login_nonce',
-				'id'     => [
-					'source'  => [ 'Divi' ],
-					'form_id' => 'login',
-				],
-			]
-		);
-		$expected  = '<div class="et_pb_module et_pb_login et_pb_login_0 et_pb_newsletter clearfix  et_pb_text_align_left et_pb_bg_layout_dark">
-				
-				
-				<div class="et_pb_newsletter_description"><h2 class="et_pb_module_header">Your Title Goes Here</h2><div class="et_pb_newsletter_description_content"><p>Your content goes here. Edit or remove this text inline or in the module Content settings. You can also style every aspect of this content in the module Design settings and even apply custom CSS to this text in the module Advanced settings.</p></div></div>
-				
-				<div class="et_pb_newsletter_form et_pb_login_form">
-					<form action="http://test.test/wp-login.php" method="post">
-						<p class="et_pb_contact_form_field">
-							<label class="et_pb_contact_form_label" for="user_login_61e5e64ddf4d8" style="display: none;">Username</label>
-							<input id="user_login_61e5e64ddf4d8" placeholder="Username" class="input" type="text" value="" name="log" />
-						</p>
-						<p class="et_pb_contact_form_field">
-							<label class="et_pb_contact_form_label" for="user_pass_61e5e64ddf4d8" style="display: none;">Password</label>
-							<input id="user_pass_61e5e64ddf4d8" placeholder="Password" class="input" type="password" value="" name="pwd" />
-						</p>
-						<p class="et_pb_forgot_password"><a href="http://test.test/wp-login.php?action=lostpassword">Forgot your password?</a></p>
-						' . $hcap_form . '		<input
-				type="hidden"
-				class="hcaptcha-signature"
-				name="hcaptcha-signature-SENhcHRjaGFcRGl2aVxMb2dpbg=="
-				value="' . $signature . '">
-		
-<p>
-							<button type="submit" name="et_builder_submit_button" class="et_pb_newsletter_button et_pb_button">Login</button>
-							
-						</p>
-					</form>
-				</div>
-			</div>';
-
-		update_option(
-			'hcaptcha_settings',
-			[
-				'divi_status' => [ 'login' ],
-			]
-		);
-
-		add_filter(
-			'template',
-			static function () {
-				return 'Divi';
-			}
-		);
-
-		hcaptcha()->init_hooks();
-
-		$subject        = new Login();
-		$dummy_wp_block = [
-			'blockName'    => 'core/paragraph',
-			'attrs'        => [],
-			'innerBlocks'  => [],
-			'innerHTML'    => '',
-			'innerContent' => [],
-		];
-
-		// Wrong block.
-		self::assertSame(
-			$output,
-			$subject->add_hcaptcha_to_block( $output, [ 'blockName' => 'core/paragraph' ], new WP_Block( $dummy_wp_block ) )
-		);
-
-		// Login block.
-		self::assertSame(
-			$expected,
-			$subject->add_hcaptcha_to_block( $output, [ 'blockName' => 'divi/login' ], new WP_Block( $dummy_wp_block ) )
-		);
-	}
-
-	/**
-	 * Test get_active_divi_component().
+	 * Test add_hcaptcha_to_block() with output from the live Login module.
 	 *
 	 * @return void
 	 */
+	public function test_add_hcaptcha_to_block(): void {
+		wp_set_current_user( 0 );
+		$this->enable_login_integration();
+
+		$output = do_shortcode( '[et_pb_login title="Login"][/et_pb_login]' );
+
+		self::assertStringNotContainsString( '<h-captcha', $output );
+
+		$subject = new Login();
+		$block   = new WP_Block(
+			[
+				'blockName'    => 'divi/login',
+				'attrs'        => [],
+				'innerBlocks'  => [],
+				'innerHTML'    => '',
+				'innerContent' => [],
+			]
+		);
+
+		self::assertSame(
+			$output,
+			$subject->add_hcaptcha_to_block( $output, [ 'blockName' => 'core/paragraph' ], $block )
+		);
+
+		$output = $subject->add_hcaptcha_to_block( $output, [ 'blockName' => 'divi/login' ], $block );
+
+		self::assertStringContainsString( 'et_pb_login_form', $output );
+		self::assertStringContainsString( '<h-captcha', $output );
+		self::assertStringContainsString( 'name="hcaptcha_login_nonce"', $output );
+	}
+
+	/**
+	 * Test get_active_divi_component() with the live theme.
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
 	public function test_get_active_divi_component(): void {
-		$builder_active = true;
+		$subject = new Login();
+		$method  = $this->set_method_accessibility( $subject, 'get_active_divi_component' );
 
-		FunctionMocker::replace(
-			'defined',
-			static function ( $constant ) use ( &$builder_active ) {
-				return ( 'ET_BUILDER_PLUGIN_VERSION' === $constant && $builder_active );
-			}
-		);
+		self::assertSame( 'Divi', get_template() );
+		self::assertSame( 'divi', $method->invoke( $subject ) );
+	}
 
-		$subject = Mockery::mock( Login::class )->makePartial();
-
-		$subject->shouldAllowMockingProtectedMethods();
-
-		// Divi Builder plugin is active.
-		self::assertSame( 'divi_builder', $subject->get_active_divi_component() );
-
-		// No Divi component is active.
-		$builder_active = false;
-
-		self::assertSame( '', $subject->get_active_divi_component() );
-
-		// Divi theme is active.
-		add_filter(
-			'template',
-			static function () use ( &$template ) {
-				return $template;
-			}
-		);
-
-		$template = 'Divi';
-
-		self::assertSame( 'divi', $subject->get_active_divi_component() );
-
-		// Extra theme is active.
-		$template = 'Extra';
-
-		self::assertSame( 'extra', $subject->get_active_divi_component() );
+	/**
+	 * Enable the Divi Login integration.
+	 *
+	 * @return void
+	 */
+	private function enable_login_integration(): void {
+		update_option( 'hcaptcha_settings', [ 'divi_status' => [ 'login' ] ] );
+		hcaptcha()->init_hooks();
 	}
 }

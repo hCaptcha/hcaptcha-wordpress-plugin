@@ -8,14 +8,36 @@
 namespace HCaptcha\Tests\Integration\Jetpack;
 
 use HCaptcha\Jetpack\Form;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 
 /**
  * Class FormTest.
  *
  * @group jetpack
  */
-class FormTest extends HCaptchaWPTestCase {
+class FormTest extends JetpackTestCase {
+
+	/**
+	 * Test hCaptcha in a form rendered by the live Jetpack plugin.
+	 *
+	 * @return void
+	 */
+	public function test_live_jetpack_form_is_protected(): void {
+		$subject = new Form();
+		$html    = do_shortcode(
+			'[contact-form id="13"][contact-field label="Name" type="name" required="1"/][contact-field label="Email" type="email" required="1"/][/contact-form]'
+		);
+
+		$hcaptcha_position = strpos( $html, 'grunion-field-hcaptcha-wrap' );
+		$submit_position   = strpos( $html, "<button type='submit'" );
+
+		self::assertNotFalse( $hcaptcha_position );
+		self::assertNotFalse( $submit_position );
+		self::assertSame( 10, has_filter( 'jetpack_contact_form_html', [ $subject, 'add_hcaptcha' ] ) );
+		self::assertLessThan( $submit_position, $hcaptcha_position );
+		self::assertStringContainsString( "class='contact-form commentsblock jetpack-contact-form__form", $html );
+		self::assertStringContainsString( 'name="hcaptcha_jetpack_nonce"', $html );
+		self::assertStringContainsString( "name='contact-form-hash'", $html );
+	}
 
 	/**
 	 * Test add_captcha().
@@ -29,6 +51,26 @@ class FormTest extends HCaptchaWPTestCase {
 		$subject = new Form();
 
 		self::assertSame( $expected, $subject->add_hcaptcha( $content ) );
+	}
+
+	/**
+	 * Test add_captcha() with built-in form interaction.
+	 *
+	 * @return void
+	 */
+	public function test_add_captcha_with_form_interaction(): void {
+		$subject = new Form();
+		$content = '<form class="wp-block-jetpack-contact-form" <div class="wp-block-jetpack-button wp-block-button" <button type="submit">Contact Us</button></form>';
+
+		add_filter( 'hcap_delay_api_event', '__return_true' );
+
+		try {
+			$actual = $subject->add_hcaptcha( $content );
+		} finally {
+			remove_filter( 'hcap_delay_api_event', '__return_true' );
+		}
+
+		self::assertStringContainsString( 'class="h-captcha hcaptcha-api-delayed"', $actual );
 	}
 
 	/**

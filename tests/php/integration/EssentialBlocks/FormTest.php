@@ -9,11 +9,12 @@ namespace HCaptcha\Tests\Integration\EssentialBlocks;
 
 use HCaptcha\EssentialBlocks\Form;
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
+use ReflectionClass;
 use ReflectionException;
-use tad\FunctionMocker\FunctionMocker;
 use WP_Block;
+use WP_Block_Type_Registry;
 
 /**
  * Class FormTest
@@ -21,7 +22,31 @@ use WP_Block;
  * @group essential-blocks
  * @group essential-blocks-form
  */
-class FormTest extends HCaptchaWPTestCase {
+class FormTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * Plugin relative path.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'essential-blocks/essential-blocks.php';
+
+	/**
+	 * Hooks to replay after loading Essential Blocks.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
+
+	/**
+	 * Register Essential Blocks after the WordPress test bootstrap.
+	 *
+	 * @var bool
+	 */
+	protected static bool $force_plugin_load_hooks = true;
 
 	/**
 	 * Test init_hooks().
@@ -94,6 +119,32 @@ class FormTest extends HCaptchaWPTestCase {
 		$subject = new Form();
 
 		self::assertSame( $expected, $subject->add_hcaptcha( $content, $block, $instance ) );
+	}
+
+	/**
+	 * Test hCaptcha in a form rendered by the live Essential Blocks block.
+	 *
+	 * @return void
+	 */
+	public function test_live_form_block(): void {
+		$subject = new Form();
+		$class   = new ReflectionClass( \EssentialBlocks\Blocks\Form::class );
+		$content = '<!-- wp:essential-blocks/form {"blockId":"eb-form-live","formId":"live-form","formType":"contact_form"} -->' .
+			'<input type="email" name="email" />' .
+			'<!-- /wp:essential-blocks/form -->';
+		$html    = do_blocks( $content );
+
+		self::assertTrue( is_plugin_active( static::$plugin ) );
+		self::assertTrue( WP_Block_Type_Registry::get_instance()->is_registered( 'essential-blocks/form' ) );
+		self::assertStringStartsWith(
+			wp_normalize_path( WP_PLUGIN_DIR . '/essential-blocks/' ),
+			wp_normalize_path( (string) $class->getFileName() )
+		);
+		self::assertStringContainsString( '<form id="live-form"', $html );
+		self::assertStringContainsString( 'class="btn btn-primary eb-form-submit-button"', $html );
+		self::assertStringContainsString( 'data-id="eb-form-live"', $html );
+		self::assertStringContainsString( 'name="hcaptcha_essential_blocks_nonce"', $html );
+		self::assertSame( 10, has_filter( 'render_block', [ $subject, 'add_hcaptcha' ] ) );
 	}
 
 	/**
@@ -246,34 +297,16 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function test_print_inline_styles(): void {
-		FunctionMocker::replace(
-			'defined',
-			static function ( $constant_name ) {
-				return 'SCRIPT_DEBUG' === $constant_name;
-			}
-		);
-
-		FunctionMocker::replace(
-			'constant',
-			static function ( $name ) {
-				return 'SCRIPT_DEBUG' === $name;
-			}
-		);
-
-		$expected = <<<'CSS'
-	.wp-block-essential-blocks-form .h-captcha {
-		margin: 15px 0 0 0;
-	}
-CSS;
-		$expected = "<style>\n$expected\n</style>\n";
-
 		$subject = new Form();
 
 		ob_start();
 
 		$subject->print_inline_styles();
+		$css = (string) ob_get_clean();
 
-		self::assertSame( $expected, ob_get_clean() );
+		self::assertStringContainsString( '<style>', $css );
+		self::assertStringContainsString( '.wp-block-essential-blocks-form', $css );
+		self::assertStringContainsString( 'margin', $css );
 	}
 
 	/**

@@ -34,7 +34,10 @@ class LoginOutTest extends HCaptchaWPTestCase {
 		$subject->init_hooks();
 
 		self::assertSame( 10, has_action( 'hcap_signature', [ $subject, 'display_signature' ] ) );
-		self::assertSame( 10, has_filter( 'login_form_middle', [ $subject, 'add_wp_login_out_hcaptcha' ] ) );
+		self::assertSame(
+			PHP_INT_MAX - 1,
+			has_filter( 'login_form_middle', [ $subject, 'add_wp_login_out_hcaptcha' ] )
+		);
 	}
 
 	/**
@@ -63,5 +66,10 @@ class LoginOutTest extends HCaptchaWPTestCase {
 
 		// A login_out_form.
 		self::assertSame( $expected, $subject->add_wp_login_out_hcaptcha( $content, $args ) );
+
+		// A form already owned by a more specific login integration.
+		$content .= '<input type="hidden" name="hcaptcha-widget-id" value="specific-widget-id">';
+
+		self::assertSame( $content, $subject->add_wp_login_out_hcaptcha( $content, $args ) );
 	}
 }

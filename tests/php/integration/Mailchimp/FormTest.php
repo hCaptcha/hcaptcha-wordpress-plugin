@@ -12,17 +12,32 @@ namespace HCaptcha\Tests\Integration\Mailchimp;
 
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Mailchimp\Form;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use MC4WP_Form;
-use MC4WP_Form_Element;
-use Mockery;
 
 /**
  * Test Form class.
  *
  * @group mailchimp
  */
-class FormTest extends HCaptchaWPTestCase {
+class FormTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * Mailchimp for WordPress plugin entry file.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'mailchimp-for-wp/mailchimp-for-wp.php';
+
+	/**
+	 * Hooks to replay after loading the plugin.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
 
 	/**
 	 * Tear down the test.
@@ -31,6 +46,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 */
 	public function tearDown(): void {
 		unset( $_REQUEST['action'], $_REQUEST['nonce'], $_GET['mc4wp_preview_form'], $_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] );
+		MC4WP_Form::$instances = [];
 
 		parent::tearDown();
 	}
@@ -41,6 +57,10 @@ class FormTest extends HCaptchaWPTestCase {
 	public function test_init_and_init_hooks(): void {
 		$subject = new Form();
 
+		self::assertTrue( is_plugin_active( static::$plugin ) );
+		self::assertTrue( function_exists( 'mc4wp_get_form' ) );
+		self::assertTrue( class_exists( MC4WP_Form::class ) );
+		self::assertTrue( shortcode_exists( 'mc4wp_form' ) );
 		self::assertSame( 10, has_filter( 'mc4wp_form_messages', [ $subject, 'add_hcap_error_messages' ] ) );
 		self::assertSame( 20, has_filter( 'mc4wp_form_content', [ $subject, 'add_hcaptcha' ] ) );
 		self::assertSame( 10, has_filter( 'mc4wp_form_errors', [ $subject, 'verify' ] ) );
@@ -51,7 +71,7 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test add_hcap_error_messages().
 	 */
 	public function test_add_hcap_error_messages(): void {
-		$form = Mockery::mock( MC4WP_Form::class );
+		$form = $this->create_form();
 
 		$messages = [
 			'foo' => [
@@ -161,9 +181,10 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test add_hcaptcha().
 	 */
 	public function test_add_hcaptcha(): void {
-		$form_id               = 5;
 		$content               = '<input type="submit">';
 		$content_with_hcaptcha = 'Some content with hCaptcha <h-captcha ... >...</h-captcha>';
+		$mc4wp_form            = $this->create_form( $content );
+		$form_id               = $mc4wp_form->ID;
 		$args                  = [
 			'action' => 'hcaptcha_mailchimp',
 			'name'   => 'hcaptcha_mailchimp_nonce',
@@ -173,11 +194,7 @@ class FormTest extends HCaptchaWPTestCase {
 			],
 		];
 		$expected              = $this->get_hcap_form( $args ) . $content;
-
-		$mc4wp_form     = Mockery::mock( MC4WP_Form::class );
-		$mc4wp_form->ID = $form_id;
-
-		$element = Mockery::mock( MC4WP_Form_Element::class );
+		$element               = $mc4wp_form->get_element();
 
 		$subject = new Form();
 
@@ -186,19 +203,39 @@ class FormTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test hCaptcha in a form rendered by the live Mailchimp plugin.
+	 *
+	 * @return void
+	 */
+	public function test_live_mailchimp_form(): void {
+		$content = '<p><label>Email <input type="email" name="EMAIL" required></label></p>' .
+			'<p><input type="submit" value="Subscribe"></p>';
+		$form    = $this->create_form( $content );
+
+		update_option( 'mc4wp', [ 'api_key' => 'test-us1' ] );
+
+		new Form();
+
+		$output = do_shortcode( sprintf( '[mc4wp_form id="%d"]', $form->ID ) );
+
+		self::assertStringContainsString( 'class="mc4wp-form mc4wp-form-' . $form->ID, $output );
+		self::assertStringContainsString( 'name="EMAIL"', $output );
+		self::assertStringContainsString( 'name="_mc4wp_form_id" value="' . $form->ID . '"', $output );
+		self::assertStringContainsString( '<h-captcha', $output );
+		self::assertStringContainsString( 'name="hcaptcha_mailchimp_nonce"', $output );
+		self::assertLessThan( strpos( $output, 'type="submit"' ), strpos( $output, '<h-captcha' ) );
+	}
+
+	/**
 	 * Test add_hcaptcha() with built-in form interaction.
 	 *
 	 * @return void
 	 */
 	public function test_add_hcaptcha_with_form_interaction(): void {
-		$form_id = 5;
-		$content = '<input type="submit">';
-
-		$mc4wp_form     = Mockery::mock( MC4WP_Form::class );
-		$mc4wp_form->ID = $form_id;
-
-		$element = Mockery::mock( MC4WP_Form_Element::class );
-		$subject = new Form();
+		$content    = '<input type="submit">';
+		$mc4wp_form = $this->create_form( $content );
+		$element    = $mc4wp_form->get_element();
+		$subject    = new Form();
 
 		add_filter( 'hcap_delay_api_event', '__return_true' );
 
@@ -215,13 +252,11 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test verify().
 	 */
 	public function test_verify(): void {
-		$form_id = 5;
+		$mc4wp_form = $this->create_form();
+		$form_id    = $mc4wp_form->ID;
 
 		$this->prepare_verify_post( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp' );
 		$this->prepare_widget_id( $form_id );
-
-		$mc4wp_form     = Mockery::mock( MC4WP_Form::class );
-		$mc4wp_form->ID = $form_id;
 
 		$subject = new Form();
 
@@ -232,17 +267,14 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test verify() with a shortcode.
 	 */
 	public function test_verify_with_shortcode(): void {
-		$form_id = 5;
-		$name    = 'some_nonce';
-		$action  = 'some';
+		$name       = 'some_nonce';
+		$action     = 'some';
+		$content    = sprintf( '[hcaptcha name="%s" action="%s"]', $name, $action );
+		$mc4wp_form = $this->create_form( $content );
+		$form_id    = $mc4wp_form->ID;
 
 		$this->prepare_verify_post( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp' );
 		$this->prepare_widget_id( $form_id );
-
-		$mc4wp_form     = Mockery::mock( MC4WP_Form::class );
-		$mc4wp_form->ID = $form_id;
-
-		$mc4wp_form->content = sprintf( '[hcaptcha name="%s" action="%s"]', $name, $action );
 
 		$subject = new Form();
 
@@ -253,13 +285,11 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test verify() not verified.
 	 */
 	public function test_verify_not_verified(): void {
-		$form_id = 5;
+		$mc4wp_form = $this->create_form();
+		$form_id    = $mc4wp_form->ID;
 
 		$this->prepare_verify_post( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp', false );
 		$this->prepare_widget_id( $form_id );
-
-		$mc4wp_form     = Mockery::mock( MC4WP_Form::class );
-		$mc4wp_form->ID = $form_id;
 
 		$subject = new Form();
 
@@ -270,7 +300,8 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test verify() with a bad widget id.
 	 */
 	public function test_verify_bad_widget_id(): void {
-		$form_id = 5;
+		$mc4wp_form = $this->create_form();
+		$form_id    = $mc4wp_form->ID;
 
 		$this->prepare_verify_post( 'hcaptcha_mailchimp_nonce', 'hcaptcha_mailchimp' );
 		$this->prepare_widget_id(
@@ -280,9 +311,6 @@ class FormTest extends HCaptchaWPTestCase {
 				'form_id' => $form_id,
 			]
 		);
-
-		$mc4wp_form     = Mockery::mock( MC4WP_Form::class );
-		$mc4wp_form->ID = $form_id;
 
 		$subject = new Form();
 
@@ -316,7 +344,7 @@ class FormTest extends HCaptchaWPTestCase {
 			'data'  => 'var HCaptchaMailchimpObject = ' . json_encode( $params, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ';',
 		];
 
-		$subject = Mockery::mock( Form::class )->makePartial();
+		$subject = new Form();
 
 		self::assertFalse( wp_script_is( $admin_handle ) );
 
@@ -336,6 +364,37 @@ class FormTest extends HCaptchaWPTestCase {
 		self::assertSame( [], $script->deps );
 		self::assertSame( HCAPTCHA_VERSION, $script->ver );
 		self::assertSame( $expected_extra, $script->extra );
+	}
+
+	/**
+	 * Create a form through the live Mailchimp plugin model.
+	 *
+	 * @param string $content Form HTML.
+	 *
+	 * @return MC4WP_Form
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	private function create_form( string $content = '<input type="submit">' ): MC4WP_Form {
+		$current_user_id = get_current_user_id();
+		$admin_user_id   = $this->factory()->user->create( [ 'role' => 'administrator' ] );
+		$post_data       = [
+			'post_title'   => 'Mailchimp Test Form',
+			'post_content' => $content,
+			'post_status'  => 'publish',
+			'post_type'    => 'mc4wp-form',
+		];
+
+		wp_set_current_user( $admin_user_id );
+
+		try {
+			$form_id = $this->factory()->post->create( $post_data );
+		} finally {
+			wp_set_current_user( $current_user_id );
+		}
+
+		unset( MC4WP_Form::$instances[ $form_id ] );
+
+		return mc4wp_get_form( $form_id );
 	}
 
 	/**

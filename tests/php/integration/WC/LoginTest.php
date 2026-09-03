@@ -8,7 +8,6 @@
 namespace HCaptcha\Tests\Integration\WC;
 
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WC\Login;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
@@ -19,7 +18,7 @@ use WP_Error;
  * @group wc-login
  * @group wc
  */
-class LoginTest extends HCaptchaWPTestCase {
+class LoginTest extends WooCommerceTestCase {
 
 	/**
 	 * Test constructor and init_hooks().
@@ -34,8 +33,13 @@ class LoginTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test add_captcha().
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
+	 * @noinspection PhpUnusedLocalVariableInspection
 	 */
 	public function test_add_captcha(): void {
+		update_option( 'woocommerce_enable_myaccount_registration', 'no' );
+
 		$args     = [
 			'action' => 'hcaptcha_login',
 			'name'   => 'hcaptcha_login_nonce',
@@ -50,9 +54,14 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		ob_start();
 
-		$subject->add_captcha();
+		wc_get_template( 'myaccount/form-login.php' );
 
-		self::assertSame( $expected, ob_get_clean() );
+		$output = ob_get_clean();
+
+		self::assertStringContainsString( 'woocommerce-form-login', $output );
+		self::assertSame( 1, substr_count( $output, $expected ) );
+
+		self::assertLessThan( strpos( $output, 'name="login"' ), strpos( $output, $expected ) );
 	}
 
 	/**

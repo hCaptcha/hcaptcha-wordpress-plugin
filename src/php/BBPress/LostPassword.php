@@ -7,12 +7,18 @@
 
 namespace HCaptcha\BBPress;
 
+use HCaptcha\Abstracts\FormOwnerBase;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
  * Class LostPassword.
  */
-class LostPassword {
+class LostPassword extends FormOwnerBase {
+
+	/**
+	 * Request owner filter.
+	 */
+	protected const OWNER_FILTER = 'hcap_lost_password_request_owner';
 
 	/**
 	 * Constructor.
@@ -27,6 +33,8 @@ class LostPassword {
 	 * @return void
 	 */
 	protected function init_hooks(): void {
+		$this->init_owner_hooks();
+
 		add_filter( 'do_shortcode_tag', [ $this, 'add_captcha' ], 10, 4 );
 	}
 
@@ -67,5 +75,26 @@ class LostPassword {
 
 		// Insert hCaptcha.
 		return $output;
+	}
+
+	/**
+	 * Get expected hCaptcha widget ID.
+	 *
+	 * @return array
+	 */
+	protected function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => 'lost_password',
+		];
+	}
+
+	/**
+	 * Whether the current request has the lost-password action.
+	 *
+	 * @return bool
+	 */
+	protected function is_owner_action(): bool {
+		return $this->is_wp_login_action( 'lostpassword' );
 	}
 }

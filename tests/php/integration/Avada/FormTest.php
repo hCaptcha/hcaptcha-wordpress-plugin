@@ -14,14 +14,47 @@ namespace HCaptcha\Tests\Integration\Avada;
 
 use HCaptcha\Avada\Form;
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 
 /**
  * Test FormTest class.
  *
  * @group avada
  */
-class FormTest extends HCaptchaWPTestCase {
+class FormTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * Avada Builder plugin entry file.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'fusion-builder/fusion-builder.php';
+
+	/**
+	 * Theme stylesheet slug.
+	 *
+	 * @var string
+	 */
+	protected static string $theme = 'Avada';
+
+	/**
+	 * Hooks to replay after loading Avada Builder.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'after_setup_theme',
+		'init',
+		'fusion_builder_before_init',
+		'wp_loaded',
+	];
+
+	/**
+	 * Expected incorrect usage notices caused by the late theme load.
+	 *
+	 * @var string[]
+	 */
+	protected static array $theme_expected_incorrect_usage = [ "add_theme_support( 'title-tag' )" ];
 
 	/**
 	 * Tear down the test.
@@ -45,10 +78,42 @@ class FormTest extends HCaptchaWPTestCase {
 	public function test_init_hooks(): void {
 		$subject = new Form();
 
+		self::assertSame( 'Avada', get_template() );
+		self::assertTrue( is_plugin_active( static::$plugin ) );
+		self::assertTrue( class_exists( 'Fusion_Form_Builder' ) );
+		self::assertTrue( shortcode_exists( 'fusion_form' ) );
 		self::assertSame( 10, has_action( 'fusion_form_after_open', [ $subject, 'form_after_open' ] ) );
 		self::assertSame( 10, has_filter( 'fusion_builder_form_submission_data', [ $subject, 'submission_data' ] ) );
 		self::assertSame( 10, has_action( 'fusion_element_form_content', [ $subject, 'add_hcaptcha' ] ) );
 		self::assertSame( 10, has_filter( 'fusion_form_demo_mode', [ $subject, 'verify' ] ) );
+	}
+
+	/**
+	 * Test the live Avada Form element.
+	 *
+	 * @return void
+	 */
+	public function test_live_avada_form(): void {
+		$form_id = $this->factory()->post->create(
+			[
+				'post_title'   => 'Avada Test Form',
+				'post_name'    => 'avada-test-form',
+				'post_content' => '[fusion_builder_container type="flex"][fusion_builder_row][fusion_builder_column type="1_1" layout="1_1"][fusion_form_text label="Text" name="text" required="yes" /][fusion_form_email label="Email" name="email" /][fusion_form_textarea label="Message" name="textarea" /][fusion_form_submit]Submit[/fusion_form_submit][/fusion_builder_column][/fusion_builder_row][/fusion_builder_container]',
+				'post_status'  => 'publish',
+				'post_type'    => 'fusion_form',
+			]
+		);
+
+		update_option( 'hcaptcha_settings', [ 'avada_status' => [ 'form' ] ] );
+		hcaptcha()->init_hooks();
+		new Form();
+
+		$output = do_shortcode( '[fusion_form form_post_id="' . $form_id . '" /]' );
+
+		self::assertStringContainsString( 'class="fusion-form', $output );
+		self::assertStringContainsString( '<button type="submit"', $output );
+		self::assertStringContainsString( '<h-captcha', $output );
+		self::assertStringContainsString( 'name="hcaptcha-widget-id"', $output );
 	}
 
 	/**

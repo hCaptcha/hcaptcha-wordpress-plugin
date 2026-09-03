@@ -8,6 +8,12 @@ describe( 'FormInteraction', () => {
 	let listener;
 
 	beforeEach( () => {
+		global.wp = {
+			hooks: {
+				applyFilters: jest.fn( ( hook, selector ) => selector ),
+			},
+		};
+
 		document.body.innerHTML = `
 			<form id="loginform">
 				<input id="user_login">
@@ -89,6 +95,10 @@ describe( 'FormInteraction', () => {
 				<input class="uagb-forms-input">
 				<h-captcha class="h-captcha hcaptcha-api-delayed"></h-captcha>
 			</form>
+			<div class="fl-login-form">
+				<input name="fl-login-form-name">
+				<h-captcha class="h-captcha hcaptcha-api-delayed"></h-captcha>
+			</div>
 			<form id="unprotected-form">
 				<input>
 			</form>
@@ -102,6 +112,7 @@ describe( 'FormInteraction', () => {
 	afterEach( () => {
 		app.destroy();
 		document.removeEventListener( eventName, listener );
+		delete global.wp;
 	} );
 
 	test.each( [
@@ -141,6 +152,21 @@ describe( 'FormInteraction', () => {
 			new KeyboardEvent( 'keydown', { bubbles: true, key: 'a' } ),
 		);
 
+		expect( listener ).toHaveBeenCalledTimes( 1 );
+	} );
+
+	test( 'uses a filtered form selector for Beaver Builder Login', () => {
+		wp.hooks.applyFilters.mockReturnValue( 'form, div.fl-login-form' );
+		app.init();
+
+		document.querySelector( '.fl-login-form input' ).dispatchEvent(
+			new Event( 'pointerdown', { bubbles: true } ),
+		);
+
+		expect( wp.hooks.applyFilters ).toHaveBeenCalledWith(
+			'hcaptcha.formSelector',
+			'form',
+		);
 		expect( listener ).toHaveBeenCalledTimes( 1 );
 	} );
 

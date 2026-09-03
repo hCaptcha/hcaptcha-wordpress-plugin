@@ -7,6 +7,7 @@
 
 namespace HCaptcha\BBPress;
 
+use HCaptcha\Abstracts\RegisterBase;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
@@ -14,7 +15,7 @@ use WP_Error;
 /**
  * Class Register.
  */
-class Register {
+class Register extends RegisterBase {
 
 	/**
 	 * Nonce action.
@@ -39,6 +40,8 @@ class Register {
 	 * @return void
 	 */
 	protected function init_hooks(): void {
+		parent::init_hooks();
+
 		add_filter( 'do_shortcode_tag', [ $this, 'add_captcha' ], 10, 4 );
 		add_filter( 'registration_errors', [ $this, 'verify' ], 10, 3 );
 	}
@@ -86,6 +89,16 @@ class Register {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $errors, string $sanitized_user_login, string $user_email ): WP_Error {
+		$ownership = $this->get_request_ownership();
+
+		if ( false === $ownership ) {
+			return $errors;
+		}
+
+		if ( null === $ownership ) {
+			return HCaptcha::add_error_message( $errors, hcap_get_error_messages()['bad-signature'] );
+		}
+
 		$error_message = API::verify( $this->get_entry() );
 
 		return HCaptcha::add_error_message( $errors, $error_message );
@@ -109,7 +122,7 @@ class Register {
 	 *
 	 * @return array
 	 */
-	private function get_expected_id(): array {
+	protected function get_expected_id(): array {
 		return [
 			'source'  => HCaptcha::get_class_source( __CLASS__ ),
 			'form_id' => 'register',

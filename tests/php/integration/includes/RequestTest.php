@@ -48,6 +48,8 @@ class RequestTest extends HCaptchaWPTestCase {
 	 * @dataProvider dp_test_hcap_get_user_ip
 	 */
 	public function test_hcap_get_user_ip( array $headers, $expected ): void {
+		update_option( 'hcaptcha_versions', [ '5.0.0' => time() ] );
+
 		$this->set_server_headers( $headers );
 
 		self::assertSame( $expected, hcap_get_user_ip() );

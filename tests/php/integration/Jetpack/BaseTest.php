@@ -7,11 +7,11 @@
 
 namespace HCaptcha\Tests\Integration\Jetpack;
 
+use Automattic\Jetpack\Forms\ContactForm\Contact_Form as JetpackForm;
+use Automattic\Jetpack\Forms\ContactForm\Contact_Form_Plugin as JetpackFormPlugin;
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Jetpack\Base;
 use HCaptcha\Jetpack\Form;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
-use Mockery;
+use ReflectionClass;
 use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
@@ -21,7 +21,34 @@ use WP_Error;
  *
  * @group jetpack
  */
-class BaseTest extends HCaptchaWPTestCase {
+class BaseTest extends JetpackTestCase {
+
+	/**
+	 * Test that the live Jetpack Forms module is loaded.
+	 *
+	 * @return void
+	 */
+	public function test_live_plugin_is_loaded(): void {
+		$plugin_dir = realpath( WP_PLUGIN_DIR . '/jetpack' );
+		$form_file  = wp_normalize_path( ( new ReflectionClass( JetpackForm::class ) )->getFileName() );
+
+		self::assertTrue( is_plugin_active( 'jetpack/jetpack.php' ) );
+		self::assertNotFalse( $plugin_dir );
+		self::assertStringStartsWith( trailingslashit( wp_normalize_path( $plugin_dir ) ), $form_file );
+		self::assertTrue( version_compare( constant( 'JETPACK__VERSION' ), '16.0.1', '>=' ) );
+		self::assertTrue( \Jetpack::is_module_active( 'contact-form' ) );
+		$shortcode_callback = $GLOBALS['shortcode_tags']['contact-form'];
+
+		self::assertSame( JetpackForm::class, ltrim( $shortcode_callback[0], '\\' ) );
+		self::assertSame( 'parse', $shortcode_callback[1] );
+		self::assertSame(
+			10,
+			has_filter(
+				'jetpack_contact_form_is_spam',
+				[ JetpackFormPlugin::init(), 'is_spam_blocklist' ]
+			)
+		);
+	}
 
 	/**
 	 * Tear down the test.
@@ -51,12 +78,16 @@ class BaseTest extends HCaptchaWPTestCase {
 	 * @dataProvider dp_test_init_hooks
 	 */
 	public function test_init_hooks( bool $is_editing_jetpack_form_post ): void {
-		$subject = Mockery::mock( Form::class )->makePartial();
+		if ( $is_editing_jetpack_form_post ) {
+			$post_id = wp_insert_post( [ 'post_content' => '<!-- wp:jetpack/contact-form' ] );
 
-		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'is_editing_jetpack_form_post' )->andReturn( $is_editing_jetpack_form_post );
+			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+			$GLOBALS['pagenow'] = 'post.php';
+			$_GET['post']       = $post_id;
+			$_GET['action']     = 'edit';
+		}
 
-		$subject->__construct();
+		$subject = new Form();
 
 		self::assertSame( 10, has_filter( 'jetpack_contact_form_html', [ $subject, 'add_hcaptcha' ] ) );
 		self::assertSame( 0, has_filter( 'widget_text', [ $subject, 'add_hcaptcha' ] ) );
@@ -107,6 +138,34 @@ class BaseTest extends HCaptchaWPTestCase {
 
 		self::assertFalse( $subject->verify() );
 		self::assertTrue( $subject->verify( true ) );
+	}
+
+	/**
+	 * Test hCaptcha verification in the live Jetpack spam pipeline.
+	 *
+	 * @return void
+	 */
+	public function test_live_jetpack_spam_pipeline(): void {
+		$this->prepare_verify_post( 'hcaptcha_jetpack_nonce', 'hcaptcha_jetpack' );
+		$this->prepare_widget_id();
+
+		$_POST['contact-form-id'] = '13';
+		$_POST['g13-name']        = 'Some name';
+		$_POST['g13-email']       = 'foo@bar.com';
+		$_POST['g13']             = 'Some message';
+
+		$subject = new Form();
+		$form    = [
+			'comment_author'       => 'Some name',
+			'comment_author_email' => 'foo@bar.com',
+			'comment_author_url'   => '',
+			'comment_content'      => 'Some message',
+			'user_ip'              => '127.0.0.1',
+			'user_agent'           => 'Jetpack integration test',
+		];
+
+		self::assertSame( 100, has_filter( 'jetpack_contact_form_is_spam', [ $subject, 'verify' ] ) );
+		self::assertFalse( apply_filters( 'jetpack_contact_form_is_spam', false, $form ) );
 	}
 
 	/**
@@ -384,40 +443,47 @@ CSS;
 	 * @return void
 	 */
 	public function test_is_editing_jetpack_form_post(): void {
-		$subject = Mockery::mock( Base::class )->makePartial();
+		$subject = new class() extends Form {
+			/**
+			 * Expose the editor-state check for testing.
+			 *
+			 * @return bool
+			 */
+			public function is_editing_jetpack_form_post_for_test(): bool {
+				return $this->is_editing_jetpack_form_post();
+			}
+		};
 
-		$subject->shouldAllowMockingProtectedMethods();
-
-		self::assertFalse( $subject->is_editing_jetpack_form_post() );
+		self::assertFalse( $subject->is_editing_jetpack_form_post_for_test() );
 
 		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 		$GLOBALS['pagenow'] = 'post.php';
 
-		self::assertFalse( $subject->is_editing_jetpack_form_post() );
+		self::assertFalse( $subject->is_editing_jetpack_form_post_for_test() );
 
 		$_GET['post'] = 1;
 
-		self::assertFalse( $subject->is_editing_jetpack_form_post() );
+		self::assertFalse( $subject->is_editing_jetpack_form_post_for_test() );
 
 		$_GET['action'] = 'some';
 
-		self::assertFalse( $subject->is_editing_jetpack_form_post() );
+		self::assertFalse( $subject->is_editing_jetpack_form_post_for_test() );
 
 		$_GET['action'] = 'edit';
 
-		self::assertFalse( $subject->is_editing_jetpack_form_post() );
+		self::assertFalse( $subject->is_editing_jetpack_form_post_for_test() );
 
 		$post_id = wp_insert_post( [ 'post_content' => 'some content' ] );
 
 		$_GET['post'] = $post_id;
 
-		self::assertFalse( $subject->is_editing_jetpack_form_post() );
+		self::assertFalse( $subject->is_editing_jetpack_form_post_for_test() );
 
 		$post_id = wp_insert_post( [ 'post_content' => '<!-- wp:jetpack/contact-form' ] );
 
 		$_GET['post'] = $post_id;
 
-		self::assertTrue( $subject->is_editing_jetpack_form_post() );
+		self::assertTrue( $subject->is_editing_jetpack_form_post_for_test() );
 	}
 
 	/**

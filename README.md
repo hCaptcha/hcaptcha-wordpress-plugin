@@ -51,6 +51,18 @@ composer phpcs
 composer integration
 ```
 
+Run integration tests in parallel (up to eight detected CPU cores by default):
+
+```
+composer integration:parallel
+composer integration:parallel -- --processes=4
+```
+
+Each integration process uses a separate `<DB_NAME>_test_<n>` database. These databases
+are recreated before every parallel run, so the configured database user must be allowed
+to create and drop databases. Use the sequential command for code coverage and targeted
+debugging.
+
 ## Run unit tests
 
 ```

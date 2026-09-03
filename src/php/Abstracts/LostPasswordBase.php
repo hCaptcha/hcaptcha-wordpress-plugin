@@ -14,7 +14,12 @@ use WP_Error;
 /**
  * Class LostPasswordBase
  */
-abstract class LostPasswordBase {
+abstract class LostPasswordBase extends FormOwnerBase {
+
+	/**
+	 * Request owner filter.
+	 */
+	protected const OWNER_FILTER = 'hcap_lost_password_request_owner';
 
 	/**
 	 * Constructor.
@@ -29,6 +34,9 @@ abstract class LostPasswordBase {
 	 * @return void
 	 */
 	protected function init_hooks(): void {
+		$this->init_owner_hooks();
+		$this->init_auto_verify_hooks();
+
 		add_action( static::ADD_CAPTCHA_ACTION, [ $this, 'add_captcha' ] );
 		add_action( 'lostpassword_post', [ $this, 'verify' ] );
 	}
@@ -56,19 +64,22 @@ abstract class LostPasswordBase {
 	 * @return void
 	 */
 	public function verify( $errors ): void {
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$post_value = isset( $_POST[ static::POST_KEY ] ) ?
-			sanitize_text_field( wp_unslash( $_POST[ static::POST_KEY ] ) ) :
-			'';
-
-		if (
-			( ! isset( $_POST[ static::POST_KEY ] ) ) ||
-			( static::POST_VALUE && static::POST_VALUE !== $post_value )
-		) {
+		if ( ! $this->can_handle_request() ) {
 			// This class cannot handle a submitted lost password form.
 			return;
 		}
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		$ownership = $this->get_request_ownership();
+
+		if ( false === $ownership ) {
+			return;
+		}
+
+		if ( null === $ownership ) {
+			HCaptcha::add_error_message( $errors, hcap_get_error_messages()['bad-signature'] );
+
+			return;
+		}
 
 		$error_message = API::verify(
 			[
@@ -91,5 +102,31 @@ abstract class LostPasswordBase {
 			'source'  => HCaptcha::get_class_source( static::class ),
 			'form_id' => 'lost_password',
 		];
+	}
+
+	/**
+	 * Whether the current request has the lost-password action.
+	 *
+	 * @return bool
+	 */
+	protected function is_owner_action(): bool {
+		return $this->is_wp_login_action( 'lostpassword' ) && $this->can_handle_request();
+	}
+
+	/**
+	 * Whether this verifier can handle the submitted lost-password form.
+	 *
+	 * @return bool
+	 */
+	private function can_handle_request(): bool {
+		// Nonce is verified later by the owning form integration.
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		$post_value = isset( $_POST[ static::POST_KEY ] ) ?
+			sanitize_text_field( wp_unslash( $_POST[ static::POST_KEY ] ) ) :
+			'';
+
+		return isset( $_POST[ static::POST_KEY ] ) &&
+			( ! static::POST_VALUE || static::POST_VALUE === $post_value );
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 	}
 }

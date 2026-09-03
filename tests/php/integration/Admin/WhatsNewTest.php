@@ -422,6 +422,7 @@ class WhatsNewTest extends HCaptchaWPTestCase {
 		self::assertStringContainsString( '<span id="hcaptcha-whats-new-version">' . $version . '</span>', $html );
 		self::assertStringContainsString( 'class="hcaptcha-whats-new-version-toggle"', $html );
 		self::assertStringContainsString( 'id="hcaptcha-whats-new-versions"', $html );
+		self::assertStringContainsString( 'data-version="5.3.0"', $html );
 		self::assertStringContainsString( 'data-version="5.2.0"', $html );
 		self::assertStringContainsString( 'data-version="5.1.0"', $html );
 		self::assertStringContainsString( 'data-version="5.0.0"', $html );
@@ -949,6 +950,47 @@ HTML;
 		self::assertStringContainsString( 'Ctrl+K or Command+K', $html );
 		self::assertStringContainsString( 'Open Settings', $html );
 		self::assertStringContainsString( 'assets/images/magnifying-glass.svg', $html );
+	}
+
+	/**
+	 * Test whats_new_5_3_0().
+	 *
+	 * @return void
+	 */
+	public function test_whats_new_5_3_0(): void {
+		add_filter(
+			'hcap_settings_init_args',
+			static function ( $args ) {
+				$args['mode'] = 'tabs';
+
+				return $args;
+			}
+		);
+
+		unset( $current_user );
+		wp_set_current_user( 1 );
+		hcaptcha()->init_hooks();
+		set_current_screen( 'hcaptcha' );
+		do_action( 'admin_menu' );
+
+		$subject = Mockery::mock( WhatsNew::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+
+		ob_start();
+
+		$subject->whats_new_5_3_0();
+
+		$html = ob_get_clean();
+
+		self::assertStringContainsString( 'Advanced Theme Editor', $html );
+		self::assertStringContainsString( 'Create a custom hCaptcha theme visually', $html );
+		self::assertStringContainsString( 'widget and challenge', $html );
+		self::assertStringContainsString( 'JSON view', $html );
+		self::assertStringContainsString( 'Open Theme Editor', $html );
+		self::assertStringContainsString( '#config_params', $html );
+		self::assertStringContainsString( 'assets/images/advanced-theme-editor.jpg', $html );
+		self::assertStringContainsString( 'class="hcaptcha-lightbox"', $html );
 	}
 
 	/**

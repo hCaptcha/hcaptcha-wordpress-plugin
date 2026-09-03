@@ -8,7 +8,7 @@
 namespace HCaptcha\Tests\Integration\Kadence;
 
 use HCaptcha\Kadence\Base;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use ReflectionException;
 
 /**
@@ -17,7 +17,24 @@ use ReflectionException;
  * @group kadence
  * @group kadence-base
  */
-class BaseTest extends HCaptchaWPTestCase {
+class BaseTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * Kadence Blocks plugin entry file.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'kadence-blocks/kadence-blocks.php';
+
+	/**
+	 * Hooks to replay after loading Kadence Blocks.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
 
 	/**
 	 * Test init_hooks().

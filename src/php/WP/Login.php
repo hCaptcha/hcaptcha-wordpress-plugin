@@ -23,7 +23,17 @@ class Login extends LoginBase {
 	 * @return bool
 	 */
 	protected function can_skip_login_verification(): bool {
-		return ! $this->is_login_limit_exceeded();
+		$can_skip = ! $this->is_login_limit_exceeded();
+
+		/**
+		 * Filters whether native WordPress login verification can be skipped.
+		 *
+		 * Another login integration may take responsibility for verifying the
+		 * same request when it submits to wp-login.php.
+		 *
+		 * @param bool $can_skip Whether native WordPress login verification can be skipped.
+		 */
+		return (bool) apply_filters( 'hcap_wp_login_can_skip_verification', $can_skip );
 	}
 
 	/**

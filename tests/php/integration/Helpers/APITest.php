@@ -203,6 +203,33 @@ class APITest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test verify() with a honeypot override in the expected widget id.
+	 */
+	public function test_verify_with_honeypot_override_in_expected_widget_id(): void {
+		$nonce_field_name  = 'some nonce field';
+		$nonce_action_name = 'some nonce action';
+		$expected_id       = [
+			'source'  => [ 'test/source' ],
+			'form_id' => 'test-form',
+		];
+		$actual_id         = array_merge( $expected_id, [ 'honeypot' => false ] );
+
+		$this->prepare_verify_post( $nonce_field_name, $nonce_action_name );
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $actual_id );
+
+		self::assertNull(
+			API::verify(
+				[
+					'nonce_name'   => $nonce_field_name,
+					'nonce_action' => $nonce_action_name,
+					'expected_id'  => $expected_id,
+				]
+			)
+		);
+	}
+
+	/**
 	 * Test verify() with unexpected widget id.
 	 */
 	public function test_verify_with_unexpected_widget_id(): void {
@@ -438,6 +465,74 @@ class APITest extends HCaptchaWPTestCase {
 
 		hcaptcha()->has_result = false;
 		$_POST['hcap_hp_test'] = [ 'nested' ];
+
+		self::assertSame( 'Anti-spam check failed.', API::verify_request( $hcaptcha_response ) );
+	}
+
+	/**
+	 * Test verify_request() with honeypot disabled by the signed widget id.
+	 */
+	public function test_verify_request_honeypot_disabled_by_widget_id(): void {
+		$hcaptcha_response = 'some response';
+
+		$this->prepare_verify_request( $hcaptcha_response );
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'   => [],
+				'form_id'  => 0,
+				'honeypot' => false,
+			]
+		);
+		$_POST['hcap_hp_test']                 = 'bot value';
+
+		self::assertNull( API::verify_request( $hcaptcha_response ) );
+	}
+
+	/**
+	 * Test verify_request() with honeypot enabled by the signed widget id.
+	 */
+	public function test_verify_request_honeypot_enabled_by_widget_id(): void {
+		$hcaptcha_response = 'some response';
+
+		$this->prepare_verify_request( $hcaptcha_response );
+
+		$settings             = (array) get_option( 'hcaptcha_settings', [] );
+		$settings['honeypot'] = [ '' ];
+
+		update_option( 'hcaptcha_settings', $settings );
+		hcaptcha()->init_hooks();
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'   => [],
+				'form_id'  => 0,
+				'honeypot' => true,
+			]
+		);
+		$_POST['hcap_hp_test']                 = 'bot value';
+
+		self::assertSame( 'Anti-spam check failed.', API::verify_request( $hcaptcha_response ) );
+	}
+
+	/**
+	 * Test verify_request() ignores a honeypot override with an invalid signature.
+	 */
+	public function test_verify_request_ignores_unsigned_honeypot_override(): void {
+		$hcaptcha_response = 'some response';
+
+		$this->prepare_verify_request( $hcaptcha_response );
+
+		$widget_id = HCaptcha::widget_id_value(
+			[
+				'source'   => [],
+				'form_id'  => 0,
+				'honeypot' => false,
+			]
+		);
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = $widget_id . 'tampered';
+		$_POST['hcap_hp_test']                 = 'bot value';
 
 		self::assertSame( 'Anti-spam check failed.', API::verify_request( $hcaptcha_response ) );
 	}

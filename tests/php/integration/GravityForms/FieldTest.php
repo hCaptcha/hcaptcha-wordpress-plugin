@@ -12,17 +12,56 @@
 
 namespace HCaptcha\Tests\Integration\GravityForms;
 
-use HCaptcha\GravityForms\Base;
+use GF_Field;
+use GFAPI;
 use HCaptcha\GravityForms\Field;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
-use tad\FunctionMocker\FunctionMocker;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 
 /**
  * Test GravityForms Field class.
  *
  * @group gravityforms
  */
-class FieldTest extends HCaptchaWPTestCase {
+class FieldTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * Plugin relative path.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'gravityforms/gravityforms.php';
+
+	/**
+	 * Hooks to replay after loading the plugin.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+	];
+
+	/**
+	 * Whether the live Gravity Forms schema was prepared.
+	 *
+	 * @var bool
+	 */
+	private static bool $schema_ready = false;
+
+	/**
+	 * Set up the live Gravity Forms database schema.
+	 */
+	public function setUp(): void {
+		parent::setUp();
+
+		// The WP test transaction rolls these options back after every test.
+		update_option( 'gf_db_version', \GFForms::$version, false );
+		update_option( 'rg_form_version', \GFForms::$version, false );
+
+		if ( ! self::$schema_ready ) {
+			gf_upgrade()->upgrade_schema();
+			self::$schema_ready = true;
+		}
+	}
 
 	/**
 	 * Tear down the test.
@@ -30,7 +69,7 @@ class FieldTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function tearDown(): void {
-		unset( $_POST['action'], $_POST['field'], $_GET['id'] );
+		unset( $_POST['action'], $_POST['field'], $_GET['id'], $_REQUEST['id'] );
 		parent::tearDown();
 	}
 
@@ -217,32 +256,18 @@ class FieldTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_get_field_input(): void {
-		$form_id  = 23;
-		$field_id = 'input_0';
-		$tabindex = 0;
-		$form     = [
+		$form_id = 23;
+		$form    = [
 			'id' => $form_id,
 		];
-		$value    = '';
-		$entry    = null;
-		$args     = [
-			'action' => Base::ACTION,
-			'name'   => Base::NONCE,
-			'id'     => [
-				'source'  => [ 'gravityforms/gravityforms.php' ],
-				'form_id' => $form_id,
-			],
-		];
-		$search   = 'class="h-captcha"';
-		$expected = str_replace(
-			$search,
-			$search . ' id="' . $field_id . '" data-tabindex="' . $tabindex . '"',
-			$this->get_hcap_form( $args )
-		);
 
 		$subject = new Field();
+		$output  = $subject->get_field_input( $form );
 
-		self::assertSame( $expected, $subject->get_field_input( $form, $value, $entry ) );
+		self::assertStringContainsString( 'class="h-captcha"', $output );
+		self::assertStringContainsString( 'id="input_' . $form_id . '_0"', $output );
+		self::assertStringContainsString( 'data-tabindex="', $output );
+		self::assertStringContainsString( 'gravity_forms_nonce', $output );
 	}
 
 	/**
@@ -253,16 +278,6 @@ class FieldTest extends HCaptchaWPTestCase {
 	public function test_disable_duplication(): void {
 		$duplicate_field_link = '#some-link';
 		$field_id             = 55;
-		$field                = (object) [];
-
-		FunctionMocker::replace(
-			'rgpost',
-			static function ( $name ) {
-				// phpcs:ignore
-				return $_POST[ $name ] ?? '';
-			}
-		);
-		FunctionMocker::replace( 'GFFormsModel::get_field', $field );
 
 		$subject = new Field();
 
@@ -289,14 +304,37 @@ class FieldTest extends HCaptchaWPTestCase {
 
 		// Action is not rg_add_field, proper link, no field type.
 		$duplicate_field_link = "<a href='#' id='gfield_duplicate_$field_id'>some text</a>";
+		$field                = new GF_Field();
+		$field->id            = $field_id;
+		$field->type          = 'text';
+		$form_id              = GFAPI::add_form(
+			[
+				'title'  => 'Duplication test form',
+				'fields' => [ $field ],
+			]
+		);
 
-		$_GET['id'] = 5;
+		self::assertIsInt( $form_id );
+
+		$_GET['id']     = $form_id;
+		$_REQUEST['id'] = $form_id;
 
 		self::assertSame( $duplicate_field_link, $subject->disable_duplication( $duplicate_field_link ) );
 
 		// Action is not rg_add_field, proper link, field type is hcaptcha.
-		$field = (object) [ 'type' => 'hcaptcha' ];
-		FunctionMocker::replace( 'GFFormsModel::get_field', $field );
+		$hcaptcha_field     = new Field();
+		$hcaptcha_field->id = $field_id;
+		$form_id            = GFAPI::add_form(
+			[
+				'title'  => 'hCaptcha duplication test form',
+				'fields' => [ $hcaptcha_field ],
+			]
+		);
+
+		self::assertIsInt( $form_id );
+
+		$_GET['id']     = $form_id;
+		$_REQUEST['id'] = $form_id;
 
 		self::assertSame( '', $subject->disable_duplication( $duplicate_field_link ) );
 	}

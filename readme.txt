@@ -291,7 +291,7 @@ Parameters:
 Full list of arguments:
 
 `
-[hcaptcha action="my_hcap_action" name="my_hcap_name" auto="true|false" ajax="true|false" force="true|false" theme="light|dark|auto" size="normal|compact|invisible"]
+[hcaptcha action="my_hcap_action" name="my_hcap_name" auto="true|false" ajax="true|false" force="true|false" theme="light|dark|auto" size="normal|compact|invisible" honeypot="true|false"]
 `
 
 The shortcode adds not only the hCaptcha div to the form but also a nonce field. You can set your own nonce action and name. For this, use arguments in the shortcode:
@@ -311,6 +311,8 @@ For the explanation of the auto="true|false" argument, see the section *"How to 
 The argument force="true|false" allows forcing verification of hCaptcha widget before submitting the form. By default, `force="false"`.
 
 The argument size="normal|compact|invisible" allows setting the size of hCaptcha widget. By default, `size="normal"`.
+
+The argument honeypot="true|false" allows enabling or disabling the honeypot for the shortcode form. By default, it follows the global Honeypot setting.
 
 = How to add hCaptcha to an arbitrary form =
 
@@ -1015,6 +1017,22 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 5.3.0 =
+* Added the Advanced Theme Editor with a live widget and challenge previews and direct JSON editing.
+* Added an Anti-Spam option to disable authenticated XML-RPC requests.
+* Added a honeypot argument to the hCaptcha shortcode.
+* Expanded delayed hCaptcha API loading on form interaction to 34 third-party integrations and WordPress Core, covering 65 protected form scenarios.
+* Fixed “Bad hCaptcha signature” errors on WordPress and bbPress login, registration, and lost password forms.
+* Fixed duplicate hCaptcha widgets on Profile Builder login forms that could block valid sign-ins.
+* Fixed LearnDash registrations being blocked by “Bad hCaptcha signature” errors when WordPress registration protection is also enabled.
+* Fixed a fatal error that prevented Affiliates registration forms from loading before their first submission.
+* Fixed hCaptcha reinitialization after Login/Signup Popup AJAX submissions using FormData.
+* Fixed misplaced hCaptcha widgets and unreadable error messages on two-column BuddyPress registration forms.
+* Fixed Elementor Pro form submit buttons remaining disabled after client-side validation failures.
+* Fixed delayed hCaptcha loading after interaction with Beaver Builder login forms.
+* Fixed GiveWP compatibility.
+* Fixed Paid Membership Pro compatibility.
 
 = 5.2.0 =
 * Added MetForm integration.

@@ -219,13 +219,17 @@ class API {
 		];
 
 		$info = HCaptcha::decode_id_info();
+		$id   = $info['id'];
+
+		// Honeypot status is signed form metadata, not part of the form identity.
+		unset( $id['honeypot'] );
 
 		if (
 			// Nonce is checked in verify().
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing
 			empty( $_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] ) ||
 			! $info['valid'] ||
-			$expected_id !== $info['id']
+			$expected_id !== $id
 		) {
 			$errors = hcap_get_error_messages();
 
@@ -466,7 +470,15 @@ class API {
 	 * @return bool True if the honeypot field is valid and empty, false otherwise.
 	 */
 	private static function check_honeypot_field(): bool {
-		if ( ! hcaptcha()->settings()->is_on( 'honeypot' ) ) {
+		$honeypot = hcaptcha()->settings()->is_on( 'honeypot' );
+		$id_info  = HCaptcha::decode_id_info();
+		$id       = $id_info['id'];
+
+		if ( $id_info['valid'] && array_key_exists( 'honeypot', $id ) && is_bool( $id['honeypot'] ) ) {
+			$honeypot = $id['honeypot'];
+		}
+
+		if ( ! $honeypot ) {
 			return true;
 		}
 

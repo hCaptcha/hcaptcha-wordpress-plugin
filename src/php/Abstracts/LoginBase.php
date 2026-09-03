@@ -85,6 +85,8 @@ abstract class LoginBase {
 		add_filter( 'login_form_middle', [ $this, 'add_signature' ], PHP_INT_MAX, 2 );
 		add_filter( 'wp_authenticate_user', [ $this, 'check_signature' ], PHP_INT_MAX, 2 );
 		add_filter( 'authenticate', [ $this, 'hide_login_error' ], 100, 3 );
+		add_filter( 'hcap_auto_verify_unmatched_form', [ $this, 'defer_auto_verification' ], 10, 3 );
+		add_filter( 'hcap_wp_login_can_skip_verification', [ $this, 'allow_wp_login_skip_verification' ] );
 
 		add_action( 'wp_login', [ $this, 'login' ], 10, 2 );
 		add_action( 'wp_login_failed', [ $this, 'login_failed' ] );
@@ -120,6 +122,47 @@ abstract class LoginBase {
 		$this->display_signature();
 
 		return $content . ob_get_clean();
+	}
+
+	/**
+	 * Defer an unmatched auto-verified request to its signed login verifier.
+	 *
+	 * @param array|null|mixed $registered_form Registered auto-verified form.
+	 * @param string           $path            Request path.
+	 * @param string           $widget_id       Submitted widget ID.
+	 *
+	 * @return array|null|mixed
+	 */
+	public function defer_auto_verification( $registered_form, string $path, string $widget_id ) {
+		$login_path = untrailingslashit( (string) wp_parse_url( wp_login_url(), PHP_URL_PATH ) );
+		$id_info    = HCaptcha::decode_id_info();
+
+		if (
+			$login_path === $path &&
+			$widget_id &&
+			$id_info['valid'] &&
+			$this->get_expected_id() === $id_info['id'] &&
+			HCaptcha::widget_id_value( $id_info['id'] ) === $widget_id &&
+			null === HCaptcha::check_signature( static::class, 'login' )
+		) {
+			return null;
+		}
+
+		return $registered_form;
+	}
+
+	/**
+	 * Allow native WordPress login verification to defer to the signed owner.
+	 *
+	 * The owner remains responsible for validating hCaptcha later in the same
+	 * wp_authenticate_user filter chain.
+	 *
+	 * @param bool|mixed $can_skip Whether native WordPress login verification can be skipped.
+	 *
+	 * @return bool
+	 */
+	public function allow_wp_login_skip_verification( $can_skip ): bool {
+		return (bool) $can_skip || null === HCaptcha::check_signature( static::class, 'login' );
 	}
 
 	/**

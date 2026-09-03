@@ -22,9 +22,11 @@ const hCaptcha = {
 };
 
 global.hCaptcha = hCaptcha;
+global.hcaptcha = {};
 
 // General object defaults
 const defaultGeneralObject = {
+	activeState: 'Active',
 	ajaxUrl: 'https://test.test/wp-admin/admin-ajax.php',
 	badJSONError: 'Bad JSON',
 	checkConfigAction: 'hcap_check_config',
@@ -33,6 +35,13 @@ const defaultGeneralObject = {
 	checkingConfigMsg: 'Checking...',
 	completeHCaptchaContent: 'Please solve hCaptcha',
 	completeHCaptchaTitle: 'hCaptcha needed',
+	configMustBeObject: 'Config Params must be a JSON object.',
+	focusState: 'Focus',
+	hexValue: 'hex value',
+	hoverState: 'Hover',
+	invalidJSON: 'Invalid JSON',
+	lastValidPreview: 'Showing the last valid config.',
+	mainState: 'Main',
 	modeLive: 'live',
 	modeTestEnterpriseBotDetected: 'test_ent_bot',
 	modeTestEnterpriseBotDetectedSiteKey: 'ent-bot-key',
@@ -40,7 +49,11 @@ const defaultGeneralObject = {
 	modeTestEnterpriseSafeEndUserSiteKey: 'ent-safe-key',
 	modeTestPublisher: 'test_pub',
 	modeTestPublisherSiteKey: 'pub-key',
+	reportState: 'Report',
+	selectedState: 'Selected',
 	siteKey: 'live-key',
+	unsavedChanges: 'Unsaved changes',
+	validJSON: 'Valid JSON',
 	OKBtnText: 'OK',
 	CancelBtnText: 'Cancel',
 };
@@ -60,6 +73,7 @@ let consoleClearSpy;
 
 // kaggDialog mock
 beforeEach( () => {
+	window.hcaptcha = window.hcaptcha || {};
 	consoleLogSpy = jest.spyOn( console, 'log' ).mockImplementation( () => {} );
 	consoleWarnSpy = jest.spyOn( console, 'warn' ).mockImplementation( () => {} );
 	consoleInfoSpy = jest.spyOn( console, 'info' ).mockImplementation( () => {} );
@@ -87,7 +101,7 @@ function getDom() {
 <div id="wpwrap">
 	<div class="hcaptcha-header-bar"></div>
 	<div id="hcaptcha-options">
-		<div class="h-captcha"></div>
+		<div class="h-captcha"><iframe></iframe></div>
 		<textarea name="h-captcha-response"></textarea>
 		<input type="hidden" name="hcaptcha-widget-id" value="wid-1" />
 	</div>
@@ -111,18 +125,54 @@ function getDom() {
 		<select name="hcaptcha_settings[size]" id="size-select"><option value="normal">normal</option><option value="invisible">invisible</option></select>
 		<div id="hcaptcha-invisible-notice" style="display:none"></div>
 		<select name="hcaptcha_settings[language]"><option value="en">en</option></select>
-		<label class="hcaptcha-general-custom-prop"><select>
-			<option value="palette=">palette group</option>
-			<option value="palette--mode=light" selected>palette--mode=light</option>
-			<option value="theme--primary=\#000000">theme--primary=#000000</option>
-		</select></label>
-		<label class="hcaptcha-general-custom-value"><input type="text" value="light" /></label>
-		<textarea name="hcaptcha_settings[config_params]">{}</textarea>
 		<label><input type="checkbox" name="hcaptcha_settings[custom_themes][]" /></label>
+		<div class="hcaptcha-theme-editor-launcher">
+			<button type="button" data-theme-editor-open aria-expanded="false">Open</button>
+			<span class="hcaptcha-theme-editor-dirty" hidden></span>
+		</div>
+		<div class="hcaptcha-theme-editor" hidden data-theme-editor-preview-only="false" data-default-theme='{"palette":{"mode":"light","grey":{"100":"#fafafa"},"primary":{"main":"#00838f"},"warn":{"main":"#eb5757"},"text":{"heading":"#555555","body":"#555555"}},"component":{"checkbox":{"main":{"fill":"#fafafa","border":"#e0e0e0"},"hover":{"fill":"#f5f5f5"}},"button":{"main":{"fill":"#ffffff","text":"#555555"}}}}'>
+			<div data-theme-editor-drag-handle>
+				<span class="hcaptcha-theme-editor-dirty" hidden></span>
+				<button type="button" data-theme-editor-close>Close</button>
+			</div>
+			<button type="button" data-theme-editor-tab="visual" class="is-active" aria-selected="true"></button>
+			<button type="button" data-theme-editor-tab="json" aria-selected="false"></button>
+			<div data-theme-editor-pane="visual" class="is-active">
+				<nav>
+					<button type="button" class="hcaptcha-theme-editor-nav-button is-active" data-theme-group="palette">Palette</button>
+					<span data-theme-editor-component-nav></span>
+				</nav>
+				<span data-theme-editor-group-title></span>
+				<span data-theme-editor-group-description></span>
+				<label data-theme-editor-mode-field><select data-theme-editor-mode><option value="light">light</option><option value="dark">dark</option></select></label>
+				<div data-theme-editor-fields></div>
+				<button type="button" data-theme-editor-reset-section>Reset section</button>
+			</div>
+			<div data-theme-editor-pane="json" hidden>
+				<span class="hcaptcha-theme-editor-json-status is-valid"></span>
+				<button type="button" data-theme-editor-format>Format</button>
+				<textarea name="hcaptcha_settings[config_params]">{}</textarea>
+				<p class="hcaptcha-theme-editor-json-error"></p>
+			</div>
+			<div data-theme-editor-preview-stage>
+				<div data-theme-preview-pane="widget">
+					<img data-theme-mock-logo="light">
+					<img data-theme-mock-logo="dark" hidden>
+				</div>
+				<div data-theme-preview-pane="challenge" hidden></div>
+			</div>
+			<button type="button" class="is-active" data-theme-preview-view="widget" aria-selected="true">Widget</button>
+			<button type="button" data-theme-preview-view="challenge" aria-selected="false">Challenge</button>
+			<button type="button" class="is-active" data-theme-preview-background="light">Light</button>
+			<button type="button" data-theme-preview-background="dark">Dark</button>
+			<p data-theme-editor-preview-note>Approximate challenge preview.<br>The real widget in Keys also updates live.</p>
+			<button type="button" data-theme-editor-show-sample>Show real hCaptcha</button>
+			<button type="button" data-theme-editor-reset-theme>Reset theme</button>
+		</div>
 		<label><input type="checkbox" name="hcaptcha_settings[recaptcha_compat_off][]" /></label>
 
 		<!-- Section toggle target -->
-		<h3 class="hcaptcha-section-keys"></h3>
+		<h3 class="togglable hcaptcha-section-keys closed"></h3>
 
 		<!-- Enterprise section marker + table with inputs -->
 		<h3 class="hcaptcha-section-enterprise"></h3>
@@ -146,14 +196,31 @@ function getDom() {
 }
 
 // Load modules after DOM is set in each test
-function bootGeneral( domOverrides = {} ) {
+function bootGeneral( domOverrides = {}, hCaptchaReady = true, initialState = {} ) {
 	jest.resetModules();
 	document.body.innerHTML = getDom();
+
+	if ( Object.prototype.hasOwnProperty.call( initialState, 'customThemes' ) ) {
+		$( "input[name='hcaptcha_settings[custom_themes][]']" ).prop( 'checked', initialState.customThemes );
+	}
+
+	if ( Object.prototype.hasOwnProperty.call( initialState, 'configParams' ) ) {
+		$( "textarea[name='hcaptcha_settings[config_params]']" ).val( initialState.configParams );
+	}
+
+	if ( Object.prototype.hasOwnProperty.call( initialState, 'previewOnly' ) ) {
+		$( '.hcaptcha-theme-editor' ).attr( 'data-theme-editor-preview-only', initialState.previewOnly ? 'true' : 'false' );
+	}
+
 	Object.assign( window.HCaptchaGeneralObject, defaultGeneralObject, domOverrides );
 	require( '../../../assets/js/settings-base.js' );
 	require( '../../../assets/js/general.js' );
 	// Trigger jQuery ready
 	window.hCaptchaGeneral( $ );
+
+	if ( hCaptchaReady ) {
+		document.dispatchEvent( new CustomEvent( 'hCaptchaLoaded' ) );
+	}
 }
 
 describe( 'general.js basics', () => {
@@ -230,12 +297,18 @@ describe( 'general.js basics', () => {
 
 	test( 'applyCustomThemes: bad JSON disables submit and shows error', () => {
 		bootGeneral();
+		$( "input[name='hcaptcha_settings[custom_themes][]']" ).prop( 'checked', true ).trigger( 'change' );
 		const $cfg = $( "textarea[name='hcaptcha_settings[config_params]']" );
+		const updateCount = hCaptcha.setParams.mock.calls.length;
+
 		$cfg.val( '{bad json' ).trigger( 'input' );
 		const submit = document.getElementById( 'submit' );
-		expect( submit.getAttribute( 'disabled' ) ).toBe( 'disabled' );
-		expect( $cfg.css( 'background-color' ) ).toBe( 'rgb(255, 171, 175)' );
-		expect( document.querySelector( '#hcaptcha-message' ).className ).toContain( 'notice-error' );
+
+		expect( submit.disabled ).toBe( true );
+		expect( $cfg.attr( 'aria-invalid' ) ).toBe( 'true' );
+		expect( $( '.hcaptcha-theme-editor-json-status' ).hasClass( 'is-invalid' ) ).toBe( true );
+		expect( $( '.hcaptcha-theme-editor-json-error' ).text() ).toContain( 'Bad JSON' );
+		expect( hCaptcha.setParams ).toHaveBeenCalledTimes( updateCount );
 	} );
 
 	test( 'applyCustomThemes: not custom themes uses base params and calls setParams', () => {
@@ -357,6 +430,26 @@ describe( 'hCaptchaUpdate branches', () => {
 		expect( $sample.attr( 'data-size' ) ).toBe( 'normal' );
 		// 'theme' (object) should NOT be set as a data attribute.
 		expect( $sample.attr( 'data-theme' ) ).not.toBe( '[object Object]' );
+	} );
+
+	test( 'updates the server-rendered placeholder with the next checkbox fill', () => {
+		const $sample = $( '#hcaptcha-options .h-captcha' );
+
+		$( "input[name='hcaptcha_settings[custom_themes][]']" ).prop( 'checked', true );
+
+		window.__generalTest.hCaptchaUpdate( {
+			theme: {
+				component: {
+					checkbox: {
+						main: {
+							fill: '#123456',
+						},
+					},
+				},
+			},
+		} );
+
+		expect( $sample[ 0 ].style.getPropertyValue( '--hcaptcha-theme-editor-background' ) ).toBe( '#123456' );
 	} );
 } );
 
@@ -646,108 +739,287 @@ describe( 'event handlers: secretKey, theme, language, size non-invisible', () =
 	} );
 } );
 
-describe( 'toggleCustomThemeFields and configParams focus', () => {
+describe( 'advanced theme editor controls', () => {
 	beforeEach( () => {
 		jest.clearAllMocks();
 		bootGeneral();
 	} );
 
-	test( 'customThemes change toggles disabled state of custom fields', () => {
+	test( 'customThemes change toggles disabled state of editor controls', () => {
 		const $custom = $( "input[name='hcaptcha_settings[custom_themes][]']" );
-		const $prop = $( '.hcaptcha-general-custom-prop select' );
-		const $val = $( '.hcaptcha-general-custom-value input' );
 		const $cfg = $( "textarea[name='hcaptcha_settings[config_params]']" );
+		const $launcher = $( '.hcaptcha-theme-editor-launcher' );
+		const $open = $( '[data-theme-editor-open]' );
 
 		// Initially, unchecked — fields should be disabled.
-		expect( $prop.prop( 'disabled' ) ).toBe( true );
-		expect( $val.prop( 'disabled' ) ).toBe( true );
 		expect( $cfg.prop( 'disabled' ) ).toBe( true );
+		expect( $launcher.hasClass( 'is-disabled' ) ).toBe( true );
+		expect( $open.prop( 'disabled' ) ).toBe( true );
 
 		// Check it.
 		$custom.prop( 'checked', true ).trigger( 'change' );
-		expect( $prop.prop( 'disabled' ) ).toBe( false );
-		expect( $val.prop( 'disabled' ) ).toBe( false );
 		expect( $cfg.prop( 'disabled' ) ).toBe( false );
+		expect( $launcher.hasClass( 'is-disabled' ) ).toBe( false );
+		expect( $open.prop( 'disabled' ) ).toBe( false );
 	} );
 
-	test( 'configParams focus resets background-color', () => {
-		const $cfg = $( "textarea[name='hcaptcha_settings[config_params]']" );
-		$cfg.css( 'background-color', 'red' );
-		$cfg.trigger( 'focus' );
-		// jsdom resolves 'unset' to computed value; check the inline style directly.
-		expect( $cfg[ 0 ].style.backgroundColor ).toBe( 'unset' );
-	} );
-} );
+	test( 'initializes editor controls before the hCaptcha API is ready', () => {
+		const api = window.hcaptcha;
 
-describe( 'custom prop/value change handlers', () => {
-	beforeEach( () => {
-		jest.clearAllMocks();
-		bootGeneral();
-		// Enable custom themes.
-		$( "input[name='hcaptcha_settings[custom_themes][]']" ).prop( 'checked', true ).trigger( 'change' );
-	} );
+		delete window.hcaptcha;
+		expect( () => bootGeneral( {}, false ) ).not.toThrow();
 
-	test( 'customProp change sets color type and value for non-palette-mode key', () => {
-		const $prop = $( '.hcaptcha-general-custom-prop select' );
-		const $val = $( '.hcaptcha-general-custom-value input' );
+		const $custom = $( "input[name='hcaptcha_settings[custom_themes][]']" );
 
-		// Select the color option.
-		$prop.find( 'option' ).eq( 2 ).prop( 'selected', true );
-		$prop.trigger( 'change' );
+		$custom.prop( 'checked', true ).trigger( 'change' );
+		expect( $( '[data-theme-editor-open]' ).prop( 'disabled' ) ).toBe( false );
 
-		expect( $val.attr( 'type' ) ).toBe( 'color' );
-	} );
-
-	test( 'customProp change sets text type for palette--mode key', () => {
-		const $prop = $( '.hcaptcha-general-custom-prop select' );
-		const $val = $( '.hcaptcha-general-custom-value input' );
-
-		// Select palette--mode option.
-		$prop.find( 'option' ).eq( 1 ).prop( 'selected', true );
-		$prop.trigger( 'change' );
-
-		expect( $val.attr( 'type' ) ).toBe( 'text' );
-		expect( $val.val() ).toBe( 'light' );
-	} );
-
-	test( 'customValue input triggers applyCustomThemes with nested params', () => {
-		const $prop = $( '.hcaptcha-general-custom-prop select' );
-		const $val = $( '.hcaptcha-general-custom-value input' );
-
-		// Select palette--mode option.
-		$prop.find( 'option' ).eq( 1 ).prop( 'selected', true );
-		$prop.trigger( 'change' );
-
-		// Change value.
-		$val.val( 'dark' ).trigger( 'input' );
-
-		// Verify setParams was called (applyCustomThemes calls hCaptchaUpdate, which calls setParams).
+		window.hcaptcha = api;
+		hCaptcha.setParams.mockClear();
+		document.dispatchEvent( new CustomEvent( 'hCaptchaLoaded' ) );
 		expect( hCaptcha.setParams ).toHaveBeenCalled();
 	} );
-} );
 
-describe( 'syncConfigParams recursion and selected prop update', () => {
-	beforeEach( () => {
-		jest.clearAllMocks();
-		bootGeneral();
-		$( "input[name='hcaptcha_settings[custom_themes][]']" ).prop( 'checked', true ).trigger( 'change' );
+	test( 'launcher opens a floating editor, expands Keys, and closes it', () => {
+		const $custom = $( "input[name='hcaptcha_settings[custom_themes][]']" );
+		const $editor = $( '.hcaptcha-theme-editor' );
+		const $open = $( '[data-theme-editor-open]' );
+
+		$custom.prop( 'checked', true ).trigger( 'change' );
+		$open.trigger( 'click' );
+
+		expect( $editor.parent().is( 'form.hcaptcha-general' ) ).toBe( true );
+		expect( $editor.find( 'textarea' ).attr( 'name' ) ).toBe( 'hcaptcha_settings[config_params]' );
+		expect( $editor.prop( 'hidden' ) ).toBe( false );
+		expect( $open.attr( 'aria-expanded' ) ).toBe( 'true' );
+		expect( $( '.hcaptcha-section-keys' ).hasClass( 'closed' ) ).toBe( false );
+
+		$( '[data-theme-editor-close]' ).trigger( 'click' );
+		expect( $editor.prop( 'hidden' ) ).toBe( true );
+		expect( $open.attr( 'aria-expanded' ) ).toBe( 'false' );
 	} );
 
-	test( 'applyCustomThemes with nested theme object updates option values and selected custom value', () => {
+	test( 'floating editor can be dragged by its title bar', () => {
+		const $editor = $( '.hcaptcha-theme-editor' );
+		const $handle = $( '[data-theme-editor-drag-handle]' );
+		const widthSpy = jest.spyOn( $.fn, 'outerWidth' ).mockReturnValue( 860 );
+		const heightSpy = jest.spyOn( $.fn, 'outerHeight' ).mockReturnValue( 600 );
+
+		$editor[ 0 ].getBoundingClientRect = jest.fn( () => ( {
+			height: 600,
+			left: 100,
+			top: 80,
+			width: 860,
+		} ) );
+		$( "input[name='hcaptcha_settings[custom_themes][]']" ).prop( 'checked', true ).trigger( 'change' );
+		$( '[data-theme-editor-open]' ).trigger( 'click' );
+
+		$handle.trigger( $.Event( 'pointerdown', { clientX: 120, clientY: 100 } ) );
+		$( document ).trigger( $.Event( 'pointermove', { clientX: 220, clientY: 180 } ) );
+		$( document ).trigger( 'pointerup' );
+
+		expect( $editor.css( 'left' ) ).toBe( '156px' );
+		expect( $editor.css( 'top' ) ).toBe( '160px' );
+
+		widthSpy.mockRestore();
+		heightSpy.mockRestore();
+	} );
+
+	test( 'tabs switch between visual and JSON panes', () => {
+		$( "input[name='hcaptcha_settings[custom_themes][]']" ).prop( 'checked', true ).trigger( 'change' );
+		$( '[data-theme-editor-tab="json"]' ).trigger( 'click' );
+
+		expect( $( '[data-theme-editor-pane="visual"]' ).prop( 'hidden' ) ).toBe( true );
+		expect( $( '[data-theme-editor-pane="json"]' ).prop( 'hidden' ) ).toBe( false );
+		expect( $( '[data-theme-editor-tab="json"]' ).attr( 'aria-selected' ) ).toBe( 'true' );
+	} );
+
+	test( 'component navigation renders grouped fields', () => {
+		$( "input[name='hcaptcha_settings[custom_themes][]']" ).prop( 'checked', true ).trigger( 'change' );
+		const $checkboxButton = $( '[data-theme-group="component--checkbox"]' );
+
+		expect( $checkboxButton.length ).toBe( 1 );
+		$checkboxButton.trigger( 'click' );
+
+		expect( $( '[data-theme-editor-group-title]' ).text() ).toBe( 'Checkbox' );
+		expect( $( '[data-theme-editor-fields] .hcaptcha-theme-editor-color-row' ).length ).toBe( 3 );
+		expect( $( '[data-theme-preview-pane="widget"]' ).prop( 'hidden' ) ).toBe( false );
+	} );
+
+	test( 'visual field labels preserve the complete property hierarchy', () => {
+		const getLabels = () => $( '[data-theme-editor-fields] .hcaptcha-theme-editor-color-label' )
+			.map( ( index, element ) => $( element ).text() )
+			.get();
+
+		$( "input[name='hcaptcha_settings[custom_themes][]']" ).prop( 'checked', true ).trigger( 'change' );
+
+		expect( getLabels() ).toEqual( expect.arrayContaining( [
+			'Grey - 100',
+			'Primary - Main',
+			'Warn - Main',
+			'Text - Heading',
+		] ) );
+
+		$( '[data-theme-group="component--checkbox"]' ).trigger( 'click' );
+
+		expect( getLabels() ).toEqual( expect.arrayContaining( [
+			'Main - Fill',
+			'Main - Border',
+			'Hover - Fill',
+		] ) );
+	} );
+
+	test( 'visual color change updates JSON and live preview', () => {
+		const $status = $( '.hcaptcha-theme-editor-dirty' ).first();
+
+		expect( $status.prop( 'hidden' ) ).toBe( true );
+		expect( $status.text() ).toBe( '' );
+
+		$( "input[name='hcaptcha_settings[custom_themes][]']" ).prop( 'checked', true ).trigger( 'change' );
+		hCaptcha.setParams.mockClear();
+
+		$( '[data-theme-color-path="palette--primary--main"]' ).val( '#123456' ).trigger( 'input' );
+
+		const config = JSON.parse( $( "textarea[name='hcaptcha_settings[config_params]']" ).val() );
+		const previewParams = hCaptcha.setParams.mock.calls.slice( -1 )[ 0 ][ 0 ];
+
+		expect( config.theme.palette.primary.main ).toBe( '#123456' );
+		expect( previewParams.theme.palette.primary.main ).toBe( '#123456' );
+		expect( $status.text() ).toBe( 'Unsaved changes' );
+		expect( $status.prop( 'hidden' ) ).toBe( false );
+		expect( $status.hasClass( 'is-dirty' ) ).toBe( true );
+		expect( $( '[data-theme-editor-preview-stage]' ).css( '--hcap-palette-primary' ) ).toBe( '#123456' );
+	} );
+
+	test( 'palette mode change uses sparse dark defaults in both previews', () => {
+		$( "input[name='hcaptcha_settings[custom_themes][]']" ).prop( 'checked', true ).trigger( 'change' );
 		const $cfg = $( "textarea[name='hcaptcha_settings[config_params]']" );
-		const $val = $( '.hcaptcha-general-custom-value input' );
-		const $prop = $( '.hcaptcha-general-custom-prop select' );
 
-		// Select a palette--mode option (which is selected by default).
-		$prop.find( 'option' ).eq( 1 ).prop( 'selected', true );
+		$cfg.val( JSON.stringify( {
+			foo: 1,
+			theme: {
+				palette: {
+					mode: 'light',
+					grey: {
+						100: '#FAFAFA',
+					},
+				},
+				component: {
+					checkbox: {
+						main: {
+							border: '#E0E0E0',
+							fill: '#123456',
+						},
+					},
+				},
+			},
+		} ) ).trigger( 'input' );
+		hCaptcha.setParams.mockClear();
 
-		// Set config with a nested theme containing palette.mode.
-		$cfg.val( '{"theme":{"palette":{"mode":"dark"}}}' ).trigger( 'input' );
+		$( '[data-theme-editor-mode]' ).val( 'dark' ).trigger( 'change' );
 
-		// The selected option value should be updated and $customValue should have the value.
-		const selectedVal = $prop.find( 'option:selected' ).val();
-		expect( selectedVal ).toContain( 'palette--mode=' );
-		expect( $val.val() ).toBe( 'dark' );
+		const config = JSON.parse( $cfg.val() );
+		const previewParams = hCaptcha.setParams.mock.calls.slice( -1 )[ 0 ][ 0 ];
+
+		expect( config.foo ).toBe( 1 );
+		expect( config.theme.palette ).toEqual( { mode: 'dark' } );
+		expect( config.theme.component.checkbox.main ).toEqual( { fill: '#123456' } );
+		expect( previewParams.theme ).toEqual( config.theme );
+		expect( $( '[data-theme-editor-preview-stage]' ).attr( 'data-theme-preview-mode' ) ).toBe( 'dark' );
+		expect( $( '[data-theme-editor-preview-stage]' ).attr( 'data-theme-preview-logo-mode' ) ).toBe( 'dark' );
+		expect( $( '[data-theme-mock-logo="light"]' ).prop( 'hidden' ) ).toBe( true );
+		expect( $( '[data-theme-mock-logo="dark"]' ).prop( 'hidden' ) ).toBe( false );
+		expect( $( '[data-theme-editor-preview-stage]' ).css( '--hcap-checkbox-fill' ) ).toBe( '#123456' );
+		expect( $( '[data-theme-editor-preview-stage]' ).css( '--hcap-widget-checkbox-fill' ) ).toBe( '#FAFAFA' );
+		expect( $( '[data-theme-editor-preview-stage]' ).css( '--hcap-widget-checkbox-border' ) ).toBe( '#F5F5F5' );
+		expect( $( '[data-theme-editor-preview-stage]' ).css( '--hcap-widget-label' ) ).toBe( '#333333' );
+		expect( $( '[data-theme-editor-preview-stage]' ).css( '--hcap-modal-fill' ) ).toBe( '#333333' );
+		expect( $( '[data-theme-editor-mode]' ).val() ).toBe( 'dark' );
+	} );
+
+	test( 'legacy config without palette mode uses the same white logo as hCaptcha', () => {
+		$( "input[name='hcaptcha_settings[custom_themes][]']" ).prop( 'checked', true ).trigger( 'change' );
+		const $cfg = $( "textarea[name='hcaptcha_settings[config_params]']" );
+
+		$cfg.val( '{"theme":{"mode":"light"}}' ).trigger( 'input' );
+
+		expect( $( '[data-theme-editor-preview-stage]' ).attr( 'data-theme-preview-mode' ) ).toBe( 'light' );
+		expect( $( '[data-theme-editor-preview-stage]' ).attr( 'data-theme-preview-logo-mode' ) ).toBe( 'dark' );
+		expect( $( '[data-theme-mock-logo="light"]' ).prop( 'hidden' ) ).toBe( true );
+		expect( $( '[data-theme-mock-logo="dark"]' ).prop( 'hidden' ) ).toBe( false );
+	} );
+
+	test( 'challenge components select the synthetic challenge preview', () => {
+		$( "input[name='hcaptcha_settings[custom_themes][]']" ).prop( 'checked', true ).trigger( 'change' );
+		$( '[data-theme-group="component--button"]' ).trigger( 'click' );
+
+		expect( $( '[data-theme-preview-pane="widget"]' ).prop( 'hidden' ) ).toBe( true );
+		expect( $( '[data-theme-preview-pane="challenge"]' ).prop( 'hidden' ) ).toBe( false );
+		expect( $( '[data-theme-preview-view="challenge"]' ).attr( 'aria-selected' ) ).toBe( 'true' );
+	} );
+
+	test( 'valid JSON updates visual controls and preserves unknown params', () => {
+		$( "input[name='hcaptcha_settings[custom_themes][]']" ).prop( 'checked', true ).trigger( 'change' );
+		const $cfg = $( "textarea[name='hcaptcha_settings[config_params]']" );
+
+		$cfg.val( '{"foo":1,"theme":{"palette":{"mode":"dark","primary":{"main":"#112233"}}}}' ).trigger( 'input' );
+
+		expect( $( '[data-theme-editor-mode]' ).val() ).toBe( 'dark' );
+		expect( $( '[data-theme-hex-path="palette--primary--main"]' ).val() ).toBe( '#112233' );
+		expect( JSON.parse( $cfg.val() ).foo ).toBe( 1 );
+	} );
+
+	test( 'valid JSON restores the preview note line break', () => {
+		$( "input[name='hcaptcha_settings[custom_themes][]']" ).prop( 'checked', true ).trigger( 'change' );
+		const $cfg = $( "textarea[name='hcaptcha_settings[config_params]']" );
+		const $note = $( '[data-theme-editor-preview-note]' );
+
+		expect( $note.find( 'br' ) ).toHaveLength( 1 );
+
+		$cfg.val( '{bad json' ).trigger( 'input' );
+
+		expect( $note.text() ).toBe( 'Showing the last valid config.' );
+		expect( $note.find( 'br' ) ).toHaveLength( 0 );
+
+		$cfg.val( '{}' ).trigger( 'input' );
+
+		expect( $note.find( 'br' ) ).toHaveLength( 1 );
+	} );
+} );
+
+describe( 'advanced theme editor preview-only mode', () => {
+	test.each( [ false, true ] )( 'allows previewing without updating or submitting the edited config when Custom Themes is %s', ( customThemes ) => {
+		const originalConfig = '{"theme":{"palette":{"primary":{"main":"#123456"}}}}';
+
+		jest.clearAllMocks();
+		bootGeneral( {}, true, {
+			configParams: originalConfig,
+			customThemes,
+			previewOnly: true,
+		} );
+
+		const $editor = $( '.hcaptcha-theme-editor' );
+		const $configParams = $editor.find( 'textarea' );
+		const $preservedConfig = $( '[data-theme-editor-original-config]' );
+
+		expect( $editor.parent().is( 'form.hcaptcha-general' ) ).toBe( true );
+		expect( $editor.attr( 'aria-disabled' ) ).toBe( 'false' );
+		expect( $( '[data-theme-editor-open]' ).prop( 'disabled' ) ).toBe( false );
+		expect( $configParams.prop( 'disabled' ) ).toBe( false );
+		expect( $configParams.attr( 'name' ) ).toBeUndefined();
+		expect( $preservedConfig.attr( 'name' ) ).toBe( 'hcaptcha_settings[config_params]' );
+		expect( $preservedConfig.val() ).toBe( originalConfig );
+
+		$( '[data-theme-editor-open]' ).trigger( 'click' );
+		expect( $editor.prop( 'hidden' ) ).toBe( false );
+
+		hCaptcha.setParams.mockClear();
+		$( '[data-theme-color-path="palette--primary--main"]' ).val( '#654321' ).trigger( 'input' );
+
+		expect( $( '[data-theme-editor-preview-stage]' ).css( '--hcap-palette-primary' ) ).toBe( '#654321' );
+		expect( $preservedConfig.val() ).toBe( originalConfig );
+		expect( hCaptcha.setParams ).not.toHaveBeenCalled();
+		expect( $( '.hcaptcha-theme-editor-dirty' ).first().prop( 'hidden' ) ).toBe( true );
 	} );
 } );
 
@@ -785,32 +1057,75 @@ describe( 'remaining branch coverage', () => {
 		expect( $( '#hcaptcha-message' ).hasClass( 'notice-error' ) ).toBe( true );
 	} );
 
-	test( 'syncConfigParams with non-selected prop does not update customValue', () => {
+	test( 'reset section removes its overrides and preserves other params', () => {
 		bootGeneral();
 		$( "input[name='hcaptcha_settings[custom_themes][]']" ).prop( 'checked', true ).trigger( 'change' );
-		const $prop = $( '.hcaptcha-general-custom-prop select' );
-		const $val = $( '.hcaptcha-general-custom-value input' );
-
-		// Select the color option (index 2), not palette--mode.
-		$prop.find( 'option' ).eq( 2 ).prop( 'selected', true );
-		$prop.find( 'option' ).eq( 1 ).prop( 'selected', false );
-
-		// Set config with palette.mode — the option exists but is NOT selected.
 		const $cfg = $( "textarea[name='hcaptcha_settings[config_params]']" );
-		$cfg.val( '{"theme":{"palette":{"mode":"dark"}}}' ).trigger( 'input' );
 
-		// customValue should NOT have been updated to 'dark' since palette--mode is not selected.
-		expect( $val.val() ).not.toBe( 'dark' );
+		$cfg.val( '{"foo":1,"theme":{"palette":{"mode":"dark"}}}' ).trigger( 'input' );
+		$( '[data-theme-editor-reset-section]' ).trigger( 'click' );
+
+		const config = JSON.parse( $cfg.val() );
+
+		expect( config.foo ).toBe( 1 );
+		expect( config.theme.palette.mode ).toBe( 'light' );
+		expect( config.theme.palette.primary.main ).toBe( '#00838f' );
 	} );
 
-	test( 'applyCustomThemes with empty configParams uses null', () => {
+	test.each( [
+		[ 'section', '[data-theme-editor-reset-section]' ],
+		[ 'theme', '[data-theme-editor-reset-theme]' ],
+	] )( 'reset %s clears the dirty status after restoring initial defaults', ( type, resetSelector ) => {
+		bootGeneral( {}, true, { customThemes: true } );
+		const $status = $( '.hcaptcha-theme-editor-dirty' ).first();
+
+		$( '[data-theme-color-path="palette--primary--main"]' ).val( '#123456' ).trigger( 'input' );
+
+		expect( $status.text() ).toBe( 'Unsaved changes' );
+		expect( $status.prop( 'hidden' ) ).toBe( false );
+
+		$( resetSelector ).trigger( 'click' );
+
+		expect( $status.text() ).toBe( '' );
+		expect( $status.prop( 'hidden' ) ).toBe( true );
+	} );
+
+	test( 'dirty comparison normalizes JSON order, formatting, hex case, and explicit defaults', () => {
+		bootGeneral( {}, true, {
+			configParams: '{"z":1,"a":{"second":2,"first":1}}',
+			customThemes: true,
+		} );
+		const $status = $( '.hcaptcha-theme-editor-dirty' ).first();
+		const $cfg = $( "textarea[name='hcaptcha_settings[config_params]']" );
+
+		$cfg.val( JSON.stringify( {
+			theme: {
+				palette: {
+					primary: {
+						main: '#00838F',
+					},
+				},
+			},
+			a: {
+				first: 1,
+				second: 2,
+			},
+			z: 1,
+		}, null, 2 ) ).trigger( 'input' );
+
+		expect( $status.text() ).toBe( '' );
+		expect( $status.prop( 'hidden' ) ).toBe( true );
+	} );
+
+	test( 'applyCustomThemes accepts empty Config Params as an object', () => {
 		bootGeneral();
 		$( "input[name='hcaptcha_settings[custom_themes][]']" ).prop( 'checked', true ).trigger( 'change' );
 		const $cfg = $( "textarea[name='hcaptcha_settings[config_params]']" );
-		// Empty string → configParamsJson becomes null → JSON.parse(null) = null.
+
 		$cfg.val( '' ).trigger( 'input' );
-		// Should not crash; setParams should still be called.
+
 		expect( hCaptcha.setParams ).toHaveBeenCalled();
+		expect( hCaptcha.setParams.mock.calls.slice( -1 )[ 0 ][ 0 ].theme ).toEqual( {} );
 	} );
 
 	test( 'credentials changed twice does not re-show notice', () => {

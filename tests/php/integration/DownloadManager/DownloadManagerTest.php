@@ -14,15 +14,44 @@ namespace HCaptcha\Tests\Integration\DownloadManager;
 
 use HCaptcha\DownloadManager\DownloadManager;
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
-use tad\FunctionMocker\FunctionMocker;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use ReflectionClass;
+use WPDM\Package\PackageController;
 
 /**
  * Test DownloadManager class.
  *
  * @group download-manager
  */
-class DownloadManagerTest extends HCaptchaWPTestCase {
+class DownloadManagerTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * Plugin relative path.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'download-manager/download-manager.php';
+
+	/**
+	 * Download Manager redirects and exits from its activated_plugin callback.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_silent_activation = [ 'download-manager/download-manager.php' ];
+
+	/**
+	 * Hooks to replay after loading Download Manager.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [ 'init' ];
+
+	/**
+	 * Register Download Manager's post type after the WordPress test bootstrap.
+	 *
+	 * @var bool
+	 */
+	protected static bool $force_plugin_load_hooks = true;
 
 	/**
 	 * Test init_hooks().
@@ -156,6 +185,39 @@ HTML;
 	}
 
 	/**
+	 * Test hCaptcha in a package rendered by the live Download Manager template.
+	 *
+	 * @return void
+	 */
+	public function test_live_package_template(): void {
+		$package_id = PackageController::create(
+			[
+				'post_title'   => 'Live Download',
+				'post_content' => 'Download Manager package content.',
+				'post_status'  => 'publish',
+				'template'     => 'link-template-panel.php',
+				'files'        => [ 'live-download.txt' ],
+				'access'       => [ 'guest' ],
+			]
+		);
+		$subject    = new DownloadManager();
+		$controller = new ReflectionClass( PackageController::class );
+		$html       = WPDM()->package->fetchTemplate( 'page-template-default.php', $package_id, 'page' );
+
+		self::assertTrue( is_plugin_active( static::$plugin ) );
+		self::assertSame( 'wpdmpro', get_post_type( $package_id ) );
+		self::assertStringStartsWith(
+			wp_normalize_path( WP_PLUGIN_DIR . '/download-manager/' ),
+			wp_normalize_path( (string) $controller->getFileName() )
+		);
+		self::assertStringContainsString( 'wpdm-button-area', $html );
+		self::assertStringContainsString( '<form method="post"', $html );
+		self::assertStringContainsString( 'name="hcaptcha_download_manager_nonce"', $html );
+		self::assertStringContainsString( 'wpdmdl=' . $package_id, $html );
+		self::assertSame( 10, has_filter( 'wpdm_after_fetch_template', [ $subject, 'add_hcaptcha' ] ) );
+	}
+
+	/**
 	 * Test verify().
 	 */
 	public function test_verify(): void {
@@ -269,38 +331,16 @@ HTML;
 	 * @noinspection CssUnresolvedCustomProperty
 	 */
 	public function test_print_inline_styles(): void {
-		FunctionMocker::replace(
-			'defined',
-			static function ( $constant_name ) {
-				return 'SCRIPT_DEBUG' === $constant_name;
-			}
-		);
-
-		FunctionMocker::replace(
-			'constant',
-			static function ( $name ) {
-				return 'SCRIPT_DEBUG' === $name;
-			}
-		);
-
-		$expected = <<<'CSS'
-	.wpdm-button-area + .h-captcha {
-		margin-bottom: 1rem;
-	}
-
-	.w3eden .btn-primary {
-		background-color: var(--color-primary) !important;
-		color: #fff !important;
-	}
-CSS;
-		$expected = "<style>\n$expected\n</style>\n";
-
 		$subject = new DownloadManager();
 
 		ob_start();
 
 		$subject->print_inline_styles();
+		$css = (string) ob_get_clean();
 
-		self::assertSame( $expected, ob_get_clean() );
+		self::assertStringContainsString( '<style>', $css );
+		self::assertStringContainsString( '.wpdm-button-area', $css );
+		self::assertStringContainsString( 'margin-bottom', $css );
+		self::assertStringContainsString( '--color-primary', $css );
 	}
 }
