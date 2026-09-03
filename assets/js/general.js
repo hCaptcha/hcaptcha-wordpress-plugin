@@ -56,6 +56,7 @@ const general = function( $ ) {
 	const $configParams = $( '[name="hcaptcha_settings[config_params]"]' );
 	const $themeEditorLauncher = $( '.hcaptcha-theme-editor-launcher' );
 	const $themeEditor = $( '.hcaptcha-theme-editor' );
+	const themeEditorPreviewOnly = 'true' === $themeEditor.attr( 'data-theme-editor-preview-only' );
 	const $themeEditorStatus = $( '.hcaptcha-theme-editor-dirty' );
 	const $themeEditorJSONStatus = $themeEditor.find( '.hcaptcha-theme-editor-json-status' );
 	const $themeEditorJSONError = $themeEditor.find( '.hcaptcha-theme-editor-json-error' );
@@ -794,7 +795,7 @@ const general = function( $ ) {
 	}
 
 	function setThemeEditorDirty( dirty ) {
-		const isDirty = dirty && themeEditorHasChanges();
+		const isDirty = ! themeEditorPreviewOnly && dirty && themeEditorHasChanges();
 
 		$themeEditorStatus
 			.text( isDirty ? HCaptchaGeneralObject.unsavedChanges : '' )
@@ -815,7 +816,7 @@ const general = function( $ ) {
 		} else {
 			$themeEditorPreviewNote.text( HCaptchaGeneralObject.lastValidPreview );
 		}
-		$submit.prop( 'disabled', ! valid && $customThemes.prop( 'checked' ) );
+		$submit.prop( 'disabled', ! valid && ! themeEditorPreviewOnly && $customThemes.prop( 'checked' ) );
 	}
 
 	function getBasePreviewParams() {
@@ -851,6 +852,10 @@ const general = function( $ ) {
 		}
 
 		renderThemePreview();
+
+		if ( themeEditorPreviewOnly ) {
+			return;
+		}
 
 		let previewParams = getBasePreviewParams();
 
@@ -1267,6 +1272,23 @@ const general = function( $ ) {
 			return;
 		}
 
+		if ( themeEditorPreviewOnly ) {
+			const configParamsName = $configParams.attr( 'name' );
+
+			if ( configParamsName && ! $themeEditorLauncher.find( '[data-theme-editor-original-config]' ).length ) {
+				$( '<input>', {
+					name: configParamsName,
+					type: 'hidden',
+					value: $configParams.val(),
+				} )
+					.attr( 'data-theme-editor-original-config', '' )
+					.appendTo( $themeEditorLauncher );
+				$configParams.removeAttr( 'name' );
+			}
+		}
+
+		$themeEditor.appendTo( $form.length ? $form : document.body );
+
 		try {
 			defaultTheme = JSON.parse( $themeEditor.attr( 'data-default-theme' ) || '{}' );
 		} catch {
@@ -1294,12 +1316,19 @@ const general = function( $ ) {
 
 	function toggleCustomThemeFields( dirty = false, updateHCaptcha = true ) {
 		const isOn = $customThemes.prop( 'checked' );
+		const editorEnabled = themeEditorPreviewOnly || isOn;
 		const $editorControls = $themeEditor.find( 'button, input, select, textarea' );
 
-		$editorControls.prop( 'disabled', ! isOn );
-		$themeEditorOpen.prop( 'disabled', ! isOn );
-		$themeEditorLauncher.toggleClass( 'is-disabled', ! isOn );
-		$themeEditor.attr( 'aria-disabled', isOn ? 'false' : 'true' );
+		$editorControls.prop( 'disabled', ! editorEnabled );
+		$themeEditorOpen.prop( 'disabled', ! editorEnabled );
+		$themeEditorLauncher.toggleClass( 'is-disabled', ! editorEnabled );
+		$themeEditor.attr( 'aria-disabled', editorEnabled ? 'false' : 'true' );
+
+		if ( themeEditorPreviewOnly ) {
+			setThemeEditorDirty( false );
+
+			return;
+		}
 
 		if ( isOn ) {
 			if ( updateHCaptcha ) {

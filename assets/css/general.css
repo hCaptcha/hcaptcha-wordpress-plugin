@@ -363,6 +363,33 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	border-bottom: 1px solid #c3c4c7;
 }
 
+.hcaptcha-theme-editor-pro-notice {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	padding: 10px 18px 10px 14px;
+	border-bottom: 1px solid #dcdcde;
+	border-left: 4px solid #dba617;
+	color: #1d2327;
+	background: #fcf9e8;
+}
+
+.hcaptcha-theme-editor-pro-notice .dashicons {
+	flex: 0 0 20px;
+	margin-top: 1px;
+	color: #996800;
+}
+
+.hcaptcha-theme-editor-pro-notice p {
+	margin: 0;
+}
+
+.hcaptcha-theme-editor-pro-notice strong {
+	display: inline;
+	margin-right: 4px;
+}
+
 .hcaptcha-theme-editor-tab {
 	margin-bottom: -1px;
 	padding: 11px 1px 9px;
@@ -573,7 +600,7 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	color: #d63638;
 }
 
-.hcaptcha-theme-editor-pane textarea[name="hcaptcha_settings[config_params]"] {
+.hcaptcha-theme-editor-pane textarea {
 	display: block;
 	width: 100%;
 	height: calc(100% - 74px);

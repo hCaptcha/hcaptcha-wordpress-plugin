@@ -906,6 +906,7 @@ class GeneralTest extends HCaptchaTestCase {
 
 		$subject->shouldAllowMockingProtectedMethods();
 		$settings->shouldReceive( 'get_default_theme' )->with()->once()->andReturn( [] );
+		$settings->shouldReceive( 'get_license' )->with()->once()->andReturn( 'pro' );
 		$main->shouldReceive( 'settings' )->with()->once()->andReturn( $settings );
 		$subject->shouldReceive( 'print_textarea_field' )
 			->with(
@@ -942,6 +943,48 @@ class GeneralTest extends HCaptchaTestCase {
 		self::assertStringContainsString( 'Approximate challenge preview.', $output );
 		self::assertStringContainsString( '<br>', $output );
 		self::assertStringContainsString( 'The real widget in Keys also updates live.', $output );
+		self::assertStringContainsString( 'data-theme-editor-preview-only="false"', $output );
+		self::assertStringNotContainsString( 'Preview only.', $output );
+	}
+
+	/**
+	 * Test print_theme_editor_field() in preview-only mode.
+	 */
+	public function test_print_theme_editor_field_preview_only(): void {
+		$arguments = [
+			'field_id' => 'config_params',
+		];
+
+		$plugin_url = 'https://test.test/wp-content/plugins/hcaptcha-wordpress-plugin';
+		$settings   = Mockery::mock( Settings::class )->makePartial();
+		$main       = Mockery::mock( Main::class )->makePartial();
+		$subject    = Mockery::mock( General::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$settings->shouldReceive( 'get_default_theme' )->with()->once()->andReturn( [] );
+		$settings->shouldReceive( 'get_license' )->with()->once()->andReturn( 'free' );
+		$main->shouldReceive( 'settings' )->with()->once()->andReturn( $settings );
+		$subject->shouldReceive( 'print_textarea_field' )->with( Mockery::type( 'array' ) )->once();
+
+		WP_Mock::userFunction( 'hcaptcha' )->with()->once()->andReturn( $main );
+		WP_Mock::userFunction( 'wp_json_encode' )->with( [] )->once()->andReturn( '{}' );
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) use ( $plugin_url ) {
+				return 'HCAPTCHA_URL' === $name ? $plugin_url : '';
+			}
+		);
+
+		ob_start();
+		$subject->print_theme_editor_field( $arguments );
+		$output = ob_get_clean();
+
+		self::assertStringContainsString( 'data-theme-editor-preview-only="true"', $output );
+		self::assertStringContainsString( 'Preview only.', $output );
+		self::assertStringContainsString( 'changes are shown only in the preview and are not saved.', $output );
+		self::assertStringContainsString( 'Changes are shown in this preview only.', $output );
+		self::assertStringNotContainsString( 'The real widget in Keys also updates live.', $output );
+		self::assertStringNotContainsString( 'Show real hCaptcha', $output );
 	}
 
 	/**

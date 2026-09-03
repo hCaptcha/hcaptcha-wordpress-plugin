@@ -130,7 +130,7 @@ function getDom() {
 			<button type="button" data-theme-editor-open aria-expanded="false">Open</button>
 			<span class="hcaptcha-theme-editor-dirty" hidden></span>
 		</div>
-		<div class="hcaptcha-theme-editor" hidden data-default-theme='{"palette":{"mode":"light","grey":{"100":"#fafafa"},"primary":{"main":"#00838f"},"warn":{"main":"#eb5757"},"text":{"heading":"#555555","body":"#555555"}},"component":{"checkbox":{"main":{"fill":"#fafafa","border":"#e0e0e0"},"hover":{"fill":"#f5f5f5"}},"button":{"main":{"fill":"#ffffff","text":"#555555"}}}}'>
+		<div class="hcaptcha-theme-editor" hidden data-theme-editor-preview-only="false" data-default-theme='{"palette":{"mode":"light","grey":{"100":"#fafafa"},"primary":{"main":"#00838f"},"warn":{"main":"#eb5757"},"text":{"heading":"#555555","body":"#555555"}},"component":{"checkbox":{"main":{"fill":"#fafafa","border":"#e0e0e0"},"hover":{"fill":"#f5f5f5"}},"button":{"main":{"fill":"#ffffff","text":"#555555"}}}}'>
 			<div data-theme-editor-drag-handle>
 				<span class="hcaptcha-theme-editor-dirty" hidden></span>
 				<button type="button" data-theme-editor-close>Close</button>
@@ -206,6 +206,10 @@ function bootGeneral( domOverrides = {}, hCaptchaReady = true, initialState = {}
 
 	if ( Object.prototype.hasOwnProperty.call( initialState, 'configParams' ) ) {
 		$( "textarea[name='hcaptcha_settings[config_params]']" ).val( initialState.configParams );
+	}
+
+	if ( Object.prototype.hasOwnProperty.call( initialState, 'previewOnly' ) ) {
+		$( '.hcaptcha-theme-editor' ).attr( 'data-theme-editor-preview-only', initialState.previewOnly ? 'true' : 'false' );
 	}
 
 	Object.assign( window.HCaptchaGeneralObject, defaultGeneralObject, domOverrides );
@@ -784,6 +788,8 @@ describe( 'advanced theme editor controls', () => {
 		$custom.prop( 'checked', true ).trigger( 'change' );
 		$open.trigger( 'click' );
 
+		expect( $editor.parent().is( 'form.hcaptcha-general' ) ).toBe( true );
+		expect( $editor.find( 'textarea' ).attr( 'name' ) ).toBe( 'hcaptcha_settings[config_params]' );
 		expect( $editor.prop( 'hidden' ) ).toBe( false );
 		expect( $open.attr( 'aria-expanded' ) ).toBe( 'true' );
 		expect( $( '.hcaptcha-section-keys' ).hasClass( 'closed' ) ).toBe( false );
@@ -978,6 +984,42 @@ describe( 'advanced theme editor controls', () => {
 		$cfg.val( '{}' ).trigger( 'input' );
 
 		expect( $note.find( 'br' ) ).toHaveLength( 1 );
+	} );
+} );
+
+describe( 'advanced theme editor preview-only mode', () => {
+	test.each( [ false, true ] )( 'allows previewing without updating or submitting the edited config when Custom Themes is %s', ( customThemes ) => {
+		const originalConfig = '{"theme":{"palette":{"primary":{"main":"#123456"}}}}';
+
+		jest.clearAllMocks();
+		bootGeneral( {}, true, {
+			configParams: originalConfig,
+			customThemes,
+			previewOnly: true,
+		} );
+
+		const $editor = $( '.hcaptcha-theme-editor' );
+		const $configParams = $editor.find( 'textarea' );
+		const $preservedConfig = $( '[data-theme-editor-original-config]' );
+
+		expect( $editor.parent().is( 'form.hcaptcha-general' ) ).toBe( true );
+		expect( $editor.attr( 'aria-disabled' ) ).toBe( 'false' );
+		expect( $( '[data-theme-editor-open]' ).prop( 'disabled' ) ).toBe( false );
+		expect( $configParams.prop( 'disabled' ) ).toBe( false );
+		expect( $configParams.attr( 'name' ) ).toBeUndefined();
+		expect( $preservedConfig.attr( 'name' ) ).toBe( 'hcaptcha_settings[config_params]' );
+		expect( $preservedConfig.val() ).toBe( originalConfig );
+
+		$( '[data-theme-editor-open]' ).trigger( 'click' );
+		expect( $editor.prop( 'hidden' ) ).toBe( false );
+
+		hCaptcha.setParams.mockClear();
+		$( '[data-theme-color-path="palette--primary--main"]' ).val( '#654321' ).trigger( 'input' );
+
+		expect( $( '[data-theme-editor-preview-stage]' ).css( '--hcap-palette-primary' ) ).toBe( '#654321' );
+		expect( $preservedConfig.val() ).toBe( originalConfig );
+		expect( hCaptcha.setParams ).not.toHaveBeenCalled();
+		expect( $( '.hcaptcha-theme-editor-dirty' ).first().prop( 'hidden' ) ).toBe( true );
 	} );
 } );
 

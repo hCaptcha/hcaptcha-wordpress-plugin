@@ -987,6 +987,8 @@ class General extends PluginSettingsBase {
 			'placeholder' => '',
 		];
 		$settings      = hcaptcha()->settings();
+		$license       = $settings ? $settings->get_license() : 'free';
+		$preview_only  = 'free' === $license;
 		$default_theme = $settings ? $settings->get_default_theme() : [];
 		$default_json  = wp_json_encode( $default_theme );
 		?>
@@ -1009,6 +1011,7 @@ class General extends PluginSettingsBase {
 				aria-modal="false"
 				aria-labelledby="hcaptcha-theme-editor-title"
 				hidden
+				data-theme-editor-preview-only="<?php echo esc_attr( $preview_only ? 'true' : 'false' ); ?>"
 				data-default-theme="<?php echo esc_attr( (string) $default_json ); ?>">
 			<div class="hcaptcha-theme-editor-header" data-theme-editor-drag-handle>
 				<div class="hcaptcha-theme-editor-title">
@@ -1031,6 +1034,16 @@ class General extends PluginSettingsBase {
 					</button>
 				</div>
 			</div>
+
+			<?php if ( $preview_only ) : ?>
+				<div class="hcaptcha-theme-editor-pro-notice" role="note">
+					<span class="dashicons dashicons-warning" aria-hidden="true"></span>
+					<p>
+						<strong><?php esc_html_e( 'Preview only.', 'hcaptcha-for-forms-and-more' ); ?></strong>
+						<?php esc_html_e( 'Custom themes require an hCaptcha Pro or Enterprise site key. You can explore every editor control, but changes are shown only in the preview and are not saved.', 'hcaptcha-for-forms-and-more' ); ?>
+					</p>
+				</div>
+			<?php endif; ?>
 
 			<div class="hcaptcha-theme-editor-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Editor mode', 'hcaptcha-for-forms-and-more' ); ?>">
 				<button
@@ -1197,16 +1210,22 @@ class General extends PluginSettingsBase {
 					</div>
 					<p class="description hcaptcha-theme-editor-preview-note" data-theme-editor-preview-note>
 						<?php esc_html_e( 'Approximate challenge preview.', 'hcaptcha-for-forms-and-more' ); ?><br>
-						<?php esc_html_e( 'The real widget in Keys also updates live.', 'hcaptcha-for-forms-and-more' ); ?>
+						<?php if ( $preview_only ) : ?>
+							<?php esc_html_e( 'Changes are shown in this preview only.', 'hcaptcha-for-forms-and-more' ); ?>
+						<?php else : ?>
+							<?php esc_html_e( 'The real widget in Keys also updates live.', 'hcaptcha-for-forms-and-more' ); ?>
+						<?php endif; ?>
 					</p>
 				</aside>
 			</div>
 
 			<div class="hcaptcha-theme-editor-footer">
 				<div class="hcaptcha-theme-editor-footer-actions">
-					<button type="button" class="button button-secondary" data-theme-editor-show-sample>
-						<?php esc_html_e( 'Show real hCaptcha', 'hcaptcha-for-forms-and-more' ); ?>
-					</button>
+					<?php if ( ! $preview_only ) : ?>
+						<button type="button" class="button button-secondary" data-theme-editor-show-sample>
+							<?php esc_html_e( 'Show real hCaptcha', 'hcaptcha-for-forms-and-more' ); ?>
+						</button>
+					<?php endif; ?>
 					<button type="button" class="button button-secondary" data-theme-editor-reset-theme>
 						<?php esc_html_e( 'Reset theme', 'hcaptcha-for-forms-and-more' ); ?>
 					</button>
