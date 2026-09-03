@@ -92,6 +92,8 @@ abstract class NotificationsBase {
 			$urls['paypal_payments_img']    = HCAPTCHA_URL . '/assets/images/woocommerce-paypal-payments.png';
 			$urls['command_palette']        = $urls['general'];
 			$urls['command_palette_img']    = HCAPTCHA_URL . '/assets/images/magnifying-glass.svg';
+			$urls['theme_editor']           = $urls['general'] . '#config_params';
+			$urls['theme_editor_img']       = HCAPTCHA_URL . '/assets/images/advanced-theme-editor.jpg';
 		}
 
 		return $urls;
