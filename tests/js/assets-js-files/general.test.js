@@ -165,7 +165,7 @@ function getDom() {
 			<button type="button" data-theme-preview-view="challenge" aria-selected="false">Challenge</button>
 			<button type="button" class="is-active" data-theme-preview-background="light">Light</button>
 			<button type="button" data-theme-preview-background="dark">Dark</button>
-			<p data-theme-editor-preview-note>Approximate challenge preview.<br>The real widget in Keys also updates live.</p>
+			<p data-theme-editor-preview-note>Approximate challenge preview.<br><span data-theme-editor-preview-behavior data-preview-only-text="Changes are shown in this preview only." data-live-text="The real widget in Keys also updates live.">The real widget in Keys also updates live.</span><span data-theme-editor-custom-themes-warning hidden><br>Enable Custom Themes for live preview.</span></p>
 			<button type="button" data-theme-editor-show-sample>Show real hCaptcha</button>
 			<button type="button" data-theme-editor-reset-theme>Reset theme</button>
 		</div>
@@ -311,18 +311,17 @@ describe( 'general.js basics', () => {
 		expect( hCaptcha.setParams ).toHaveBeenCalledTimes( updateCount );
 	} );
 
-	test( 'applyCustomThemes: not custom themes uses base params and calls setParams', () => {
+	test( 'applyCustomThemes: disabled Custom Themes changes only the editor preview', () => {
 		bootGeneral();
 		const $custom = $( "input[name='hcaptcha_settings[custom_themes][]']" );
 		$custom.prop( 'checked', false );
 		const $cfg = $( "textarea[name='hcaptcha_settings[config_params]']" );
-		$cfg.val( '{"foo":1}' ).trigger( 'input' );
-		expect( hCaptcha.setParams ).toHaveBeenCalled();
-		const lastCallArg = hCaptcha.setParams.mock.calls.slice( -1 )[ 0 ][ 0 ];
-		expect( lastCallArg ).toEqual( expect.objectContaining( {
-			sitekey: 'live-key',
-			hl: 'en',
-		} ) );
+
+		hCaptcha.setParams.mockClear();
+		$cfg.val( '{"theme":{"palette":{"primary":{"main":"#123456"}}}}' ).trigger( 'input' );
+
+		expect( hCaptcha.setParams ).not.toHaveBeenCalled();
+		expect( $( '.hcaptcha-theme-editor-json-status' ).hasClass( 'is-valid' ) ).toBe( true );
 	} );
 
 	test( 'scriptUpdate: rebuilds API script with params and clears sample', async () => {
@@ -745,22 +744,39 @@ describe( 'advanced theme editor controls', () => {
 		bootGeneral();
 	} );
 
-	test( 'customThemes change toggles disabled state of editor controls', () => {
+	test( 'editor remains available when Custom Themes is disabled', () => {
 		const $custom = $( "input[name='hcaptcha_settings[custom_themes][]']" );
 		const $cfg = $( "textarea[name='hcaptcha_settings[config_params]']" );
+		const $editor = $( '.hcaptcha-theme-editor' );
 		const $launcher = $( '.hcaptcha-theme-editor-launcher' );
 		const $open = $( '[data-theme-editor-open]' );
+		const $previewBehavior = $( '[data-theme-editor-preview-behavior]' );
+		const $customThemesWarning = $( '[data-theme-editor-custom-themes-warning]' );
 
-		// Initially, unchecked — fields should be disabled.
-		expect( $cfg.prop( 'disabled' ) ).toBe( true );
-		expect( $launcher.hasClass( 'is-disabled' ) ).toBe( true );
-		expect( $open.prop( 'disabled' ) ).toBe( true );
+		// Initially, unchecked — the editor stays available in preview-only mode.
+		expect( $cfg.prop( 'disabled' ) ).toBe( false );
+		expect( $launcher.hasClass( 'is-disabled' ) ).toBe( false );
+		expect( $open.prop( 'disabled' ) ).toBe( false );
+		expect( $editor.attr( 'aria-disabled' ) ).toBe( 'false' );
+		expect( $previewBehavior.text() ).toBe( 'Changes are shown in this preview only.' );
+		expect( $customThemesWarning.prop( 'hidden' ) ).toBe( false );
 
-		// Check it.
+		$open.trigger( 'click' );
+		expect( $editor.prop( 'hidden' ) ).toBe( false );
+
+		hCaptcha.setParams.mockClear();
+		$( '[data-theme-path="theme.palette.primary.main"]' ).val( '#123456' ).trigger( 'change' );
+		expect( hCaptcha.setParams ).not.toHaveBeenCalled();
+
+		// Enabling Custom Themes restores live updates without closing the editor.
 		$custom.prop( 'checked', true ).trigger( 'change' );
 		expect( $cfg.prop( 'disabled' ) ).toBe( false );
 		expect( $launcher.hasClass( 'is-disabled' ) ).toBe( false );
 		expect( $open.prop( 'disabled' ) ).toBe( false );
+		expect( $editor.prop( 'hidden' ) ).toBe( false );
+		expect( $previewBehavior.text() ).toBe( 'The real widget in Keys also updates live.' );
+		expect( $customThemesWarning.prop( 'hidden' ) ).toBe( true );
+		expect( hCaptcha.setParams ).toHaveBeenCalled();
 	} );
 
 	test( 'initializes editor controls before the hCaptcha API is ready', () => {
@@ -781,11 +797,9 @@ describe( 'advanced theme editor controls', () => {
 	} );
 
 	test( 'launcher opens a floating editor, expands Keys, and closes it', () => {
-		const $custom = $( "input[name='hcaptcha_settings[custom_themes][]']" );
 		const $editor = $( '.hcaptcha-theme-editor' );
 		const $open = $( '[data-theme-editor-open]' );
 
-		$custom.prop( 'checked', true ).trigger( 'change' );
 		$open.trigger( 'click' );
 
 		expect( $editor.parent().is( 'form.hcaptcha-general' ) ).toBe( true );
@@ -974,16 +988,16 @@ describe( 'advanced theme editor controls', () => {
 		const $cfg = $( "textarea[name='hcaptcha_settings[config_params]']" );
 		const $note = $( '[data-theme-editor-preview-note]' );
 
-		expect( $note.find( 'br' ) ).toHaveLength( 1 );
+		expect( $note.children( 'br' ) ).toHaveLength( 1 );
 
 		$cfg.val( '{bad json' ).trigger( 'input' );
 
 		expect( $note.text() ).toBe( 'Showing the last valid config.' );
-		expect( $note.find( 'br' ) ).toHaveLength( 0 );
+		expect( $note.children( 'br' ) ).toHaveLength( 0 );
 
 		$cfg.val( '{}' ).trigger( 'input' );
 
-		expect( $note.find( 'br' ) ).toHaveLength( 1 );
+		expect( $note.children( 'br' ) ).toHaveLength( 1 );
 	} );
 } );
 

@@ -981,16 +981,18 @@ class General extends PluginSettingsBase {
 	 * @return void
 	 */
 	protected function print_theme_editor_field( array $arguments ): void {
-		$arguments    += [
+		$arguments        += [
 			'disabled'    => false,
 			'field_id'    => 'config_params',
 			'placeholder' => '',
 		];
-		$settings      = hcaptcha()->settings();
-		$license       = $settings ? $settings->get_license() : 'free';
-		$preview_only  = 'free' === $license;
-		$default_theme = $settings ? $settings->get_default_theme() : [];
-		$default_json  = wp_json_encode( $default_theme );
+		$settings          = hcaptcha()->settings();
+		$license           = $settings ? $settings->get_license() : 'free';
+		$preview_only      = 'free' === $license;
+		$default_theme     = $settings ? $settings->get_default_theme() : [];
+		$default_json      = wp_json_encode( $default_theme );
+		$preview_only_text = __( 'Changes are shown in this preview only.', 'hcaptcha-for-forms-and-more' );
+		$live_text         = __( 'The real widget in Keys also updates live.', 'hcaptcha-for-forms-and-more' );
 		?>
 		<div class="hcaptcha-theme-editor-launcher">
 			<button
@@ -1210,10 +1212,22 @@ class General extends PluginSettingsBase {
 					</div>
 					<p class="description hcaptcha-theme-editor-preview-note" data-theme-editor-preview-note>
 						<?php esc_html_e( 'Approximate challenge preview.', 'hcaptcha-for-forms-and-more' ); ?><br>
-						<?php if ( $preview_only ) : ?>
-							<?php esc_html_e( 'Changes are shown in this preview only.', 'hcaptcha-for-forms-and-more' ); ?>
-						<?php else : ?>
-							<?php esc_html_e( 'The real widget in Keys also updates live.', 'hcaptcha-for-forms-and-more' ); ?>
+						<span
+							data-theme-editor-preview-behavior
+							data-preview-only-text="<?php echo esc_attr( $preview_only_text ); ?>"
+							<?php if ( ! $preview_only ) : ?>
+								data-live-text="<?php echo esc_attr( $live_text ); ?>"
+							<?php endif; ?>
+						>
+							<?php echo esc_html( $preview_only ? $preview_only_text : $live_text ); ?>
+						</span>
+						<?php if ( ! $preview_only ) : ?>
+							<span
+								class="hcaptcha-theme-editor-custom-themes-warning"
+								data-theme-editor-custom-themes-warning
+								hidden><br>
+								<?php esc_html_e( 'Enable Custom Themes for live preview.', 'hcaptcha-for-forms-and-more' ); ?>
+							</span>
 						<?php endif; ?>
 					</p>
 				</aside>
