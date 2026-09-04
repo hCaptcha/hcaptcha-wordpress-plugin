@@ -943,6 +943,7 @@ class GeneralTest extends HCaptchaTestCase {
 		self::assertStringContainsString( 'Approximate challenge preview.', $output );
 		self::assertStringContainsString( '<br>', $output );
 		self::assertStringContainsString( 'The real widget in Keys also updates live.', $output );
+		self::assertStringContainsString( 'Enable Custom Themes for live preview.', $output );
 		self::assertStringContainsString( 'data-theme-editor-preview-only="false"', $output );
 		self::assertStringNotContainsString( 'Preview only.', $output );
 	}
@@ -984,6 +985,7 @@ class GeneralTest extends HCaptchaTestCase {
 		self::assertStringContainsString( 'changes are shown only in the preview and are not saved.', $output );
 		self::assertStringContainsString( 'Changes are shown in this preview only.', $output );
 		self::assertStringNotContainsString( 'The real widget in Keys also updates live.', $output );
+		self::assertStringNotContainsString( 'Enable Custom Themes for live preview.', $output );
 		self::assertStringNotContainsString( 'Show real hCaptcha', $output );
 	}
 
