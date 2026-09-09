@@ -1018,6 +1018,9 @@ Instructions for popular native integrations are below:
 
 == Changelog ==
 
+= 5.4.0 =
+* Added hCaptcha protection to the WooCommerce Order Withdrawal Form.
+
 = 5.3.0 =
 * Added the Advanced Theme Editor with a live widget and challenge previews and direct JSON editing.
 * Added an Anti-Spam option to disable authenticated XML-RPC requests.
