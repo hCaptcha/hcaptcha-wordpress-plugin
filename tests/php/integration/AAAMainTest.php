@@ -2336,6 +2336,11 @@ CSS;
 				'woocommerce/woocommerce.php',
 				OrderTracking::class,
 			],
+			'WooCommerce Order Withdrawal'      => [
+				[ 'woocommerce_status', 'order_withdrawal' ],
+				'woocommerce/woocommerce.php',
+				\HCaptcha\WC\OrderWithdrawal::class,
+			],
 			'WooCommerce Register'              => [
 				[ 'woocommerce_status', 'register' ],
 				'woocommerce/woocommerce.php',

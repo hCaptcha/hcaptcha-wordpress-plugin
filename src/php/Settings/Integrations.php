@@ -797,6 +797,7 @@ class Integrations extends PluginSettingsBase {
 					'login'              => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
 					'lost_pass'          => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
 					'order_tracking'     => __( 'Order Tracking Form', 'hcaptcha-for-forms-and-more' ),
+					'order_withdrawal'   => __( 'Order Withdrawal Form', 'hcaptcha-for-forms-and-more' ),
 					'register'           => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],

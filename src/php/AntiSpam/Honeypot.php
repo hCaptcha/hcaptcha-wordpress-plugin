@@ -47,7 +47,7 @@ class Honeypot {
 		'theme_my_login_status'       => [ 'login', 'lost_pass', 'register', 'signup' ],
 		'ultimate_addons_status'      => [ 'login', 'register' ],
 		'ultimate_member_status'      => [ 'login', 'lost_pass', 'register' ],
-		'woocommerce_status'          => [ 'add_payment_method', 'checkout', 'login', 'lost_pass', 'order_tracking', 'register' ],
+		'woocommerce_status'          => [ 'add_payment_method', 'checkout', 'login', 'lost_pass', 'order_tracking', 'order_withdrawal', 'register' ],
 		'paypal_payments_status'      => [ 'button' ],
 		'wordfence_status'            => [ 'login' ],
 		'wpforms_status'              => [ 'form', 'embed' ],

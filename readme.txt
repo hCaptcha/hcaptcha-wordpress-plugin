@@ -988,7 +988,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Ultimate Addons for Elementor Login and Register Forms
 * Ultimate Member Login, Lost Password, and Member Register Forms
 * UsersWP Forgot Password, Login, and Register Forms
-* WooCommerce Login, Registration, Lost Password, Checkout, and Order Tracking Forms
+* WooCommerce Login, Registration, Lost Password, Checkout, Order Tracking, and Order Withdrawal Forms
 * WooCommerce Germanized Return Request Form
 * WooCommerce Wishlist Form
 * Wordfence Security Login Form

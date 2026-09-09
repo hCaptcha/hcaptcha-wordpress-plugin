@@ -268,6 +268,7 @@ abstract class HCaptchaTestCase extends TestCase {
 					'login',
 					'lost_pass',
 					'order_tracking',
+					'order_withdrawal',
 					'register',
 				],
 			'woocommerce_wishlists_status' =>
@@ -1343,6 +1344,7 @@ abstract class HCaptchaTestCase extends TestCase {
 							'login'              => 'Login Form',
 							'lost_pass'          => 'Lost Password Form',
 							'order_tracking'     => 'Order Tracking Form',
+							'order_withdrawal'   => 'Order Withdrawal Form',
 							'register'           => 'Register Form',
 						],
 				],

@@ -147,6 +147,7 @@ This plugin has evolved thanks to the work of many contributors. A few highlight
 * WooCommerce Lost Password Form
 * WooCommerce Checkout Form
 * WooCommerce Order Tracking Form
+* WooCommerce Order Withdrawal Form
 * WooCommerce Wishlist
 * WPForms Lite
 * wpDiscuz Comment Form

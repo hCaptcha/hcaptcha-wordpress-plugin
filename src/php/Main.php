@@ -1861,6 +1861,11 @@ class Main {
 				'woocommerce/woocommerce.php',
 				WC\OrderTracking::class,
 			],
+			'WooCommerce Order Withdrawal'         => [
+				[ 'woocommerce_status', 'order_withdrawal' ],
+				'woocommerce/woocommerce.php',
+				WC\OrderWithdrawal::class,
+			],
 			'WooCommerce Register'                 => [
 				[ 'woocommerce_status', 'register' ],
 				'woocommerce/woocommerce.php',

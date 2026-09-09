@@ -69,6 +69,14 @@ class HoneypotTest extends HCaptchaTestCase {
 		self::assertSame( $fst, [] !== $result['fst'] );
 		self::assertSame( $honeypot, isset( $result['honeypot']['wp_status'] ) );
 		self::assertSame( $fst, isset( $result['fst']['wp_status'] ) );
+
+		if ( $honeypot ) {
+			self::assertContains( 'order_withdrawal', $result['honeypot']['woocommerce_status'] );
+		}
+
+		if ( $fst ) {
+			self::assertContains( 'order_withdrawal', $result['fst']['woocommerce_status'] );
+		}
 	}
 
 	/**
