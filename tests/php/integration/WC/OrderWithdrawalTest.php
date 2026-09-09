@@ -80,7 +80,10 @@ class OrderWithdrawalTest extends WooCommerceTestCase {
 
 		self::assertStringContainsString( 'class="woocommerce-OrderWithdrawalForm"', $output );
 		self::assertSame( 1, substr_count( $output, $hcaptcha ) );
-		self::assertLessThan( strpos( $output, 'value="confirm"' ), strpos( $output, $hcaptcha ) );
+		self::assertLessThan(
+			strpos( $output, '<p class="woocommerce-order-withdrawal-content__actions">' ),
+			strpos( $output, $hcaptcha )
+		);
 	}
 
 	/**

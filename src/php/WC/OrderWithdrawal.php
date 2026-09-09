@@ -94,7 +94,7 @@ class OrderWithdrawal {
 	}
 
 	/**
-	 * Add hCaptcha before the withdrawal confirmation button.
+	 * Add hCaptcha above the withdrawal action buttons.
 	 *
 	 * @param string $template_name Template name.
 	 * @param string $template_path Template path.
@@ -116,7 +116,7 @@ class OrderWithdrawal {
 			'id'     => $this->get_expected_id(),
 		];
 
-		$search  = '~<button\b(?=[^>]*\btype=["\']submit["\'])(?=[^>]*\bname=["\']order_withdrawal_action["\'])(?=[^>]*\bvalue=["\']confirm["\'])[^>]*>~i';
+		$search  = '~<p\b(?=[^>]*\bclass=["\'][^"\']*\bwoocommerce-order-withdrawal-content__actions\b[^"\']*["\'])[^>]*>~i';
 		$updated = preg_replace( $search, HCaptcha::form( $args ) . "\n" . '$0', $output, 1 );
 		$output  = is_string( $updated ) ? $updated : $output;
 
