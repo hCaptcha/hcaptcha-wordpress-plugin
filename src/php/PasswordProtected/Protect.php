@@ -41,6 +41,7 @@ class Protect {
 	private function init_hooks(): void {
 		add_filter( 'password_protected_below_password_field', [ $this, 'add_hcaptcha' ] );
 		add_action( 'password_protected_verify_recaptcha', [ $this, 'verify' ] );
+		add_action( 'password_protected_login_head', [ hcaptcha(), 'print_inline_styles' ] );
 		add_action( 'password_protected_login_head', [ $this, 'print_inline_styles' ], 20 );
 	}
 

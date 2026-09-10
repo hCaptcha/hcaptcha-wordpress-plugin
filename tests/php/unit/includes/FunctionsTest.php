@@ -48,15 +48,16 @@ class FunctionsTest extends HCaptchaTestCase {
 	 */
 	public function test_hcap_shortcode( array $atts, array $expected ): void {
 		$pairs = [
-			'action'  => HCAPTCHA_ACTION,
-			'name'    => HCAPTCHA_NONCE,
-			'auto'    => false,
-			'ajax'    => false,
-			'force'   => false,
-			'theme'   => 'light',
-			'size'    => 'normal',
-			'id'      => [],
-			'protect' => true,
+			'action'   => HCAPTCHA_ACTION,
+			'name'     => HCAPTCHA_NONCE,
+			'auto'     => false,
+			'ajax'     => false,
+			'force'    => false,
+			'theme'    => 'light',
+			'size'     => 'normal',
+			'honeypot' => null,
+			'id'       => [],
+			'protect'  => true,
 		];
 		$form  = 'some hcaptcha form content';
 
@@ -97,7 +98,7 @@ class FunctionsTest extends HCaptchaTestCase {
 	 */
 	public function dp_test_hcap_shortcode(): array {
 		return [
-			'empty atts'  => [
+			'empty atts'     => [
 				[],
 				[
 					'action'  => HCAPTCHA_ACTION,
@@ -111,7 +112,7 @@ class FunctionsTest extends HCaptchaTestCase {
 					'protect' => true,
 				],
 			],
-			'auto truly'  => [
+			'auto truly'     => [
 				[
 					'auto' => '1',
 				],
@@ -127,7 +128,7 @@ class FunctionsTest extends HCaptchaTestCase {
 					'protect' => true,
 				],
 			],
-			'force truly' => [
+			'force truly'    => [
 				[
 					'force' => true,
 				],
@@ -143,7 +144,24 @@ class FunctionsTest extends HCaptchaTestCase {
 					'protect' => true,
 				],
 			],
-			'some atts'   => [
+			'honeypot false' => [
+				[
+					'honeypot' => 'false',
+				],
+				[
+					'action'   => HCAPTCHA_ACTION,
+					'name'     => HCAPTCHA_NONCE,
+					'auto'     => false,
+					'ajax'     => false,
+					'force'    => false,
+					'theme'    => 'light',
+					'size'     => 'normal',
+					'honeypot' => 'false',
+					'id'       => [],
+					'protect'  => true,
+				],
+			],
+			'some atts'      => [
 				[
 					'some' => 'some attribute',
 				],

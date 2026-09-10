@@ -10,11 +10,12 @@
 
 namespace HCaptcha\Tests\Integration\BeaverBuilder;
 
-use FLBuilderModule;
+use FLBuilderModel;
 use HCaptcha\BeaverBuilder\Login;
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
+use ReflectionClass;
 use WP_Error;
 use WP_User;
 
@@ -24,7 +25,31 @@ use WP_User;
  * @group beaver-builder
  * @group beaver-builder-login
  */
-class LoginTest extends HCaptchaWPTestCase {
+class LoginTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * Plugin relative path.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'bb-plugin/fl-builder.php';
+
+	/**
+	 * Hooks to replay after loading Beaver Builder.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
+
+	/**
+	 * Load Beaver Builder modules after the WordPress test bootstrap.
+	 *
+	 * @var bool
+	 */
+	protected static bool $force_plugin_load_hooks = true;
 
 	/**
 	 * Tear down the test.
@@ -83,7 +108,7 @@ class LoginTest extends HCaptchaWPTestCase {
 		$hcap_form = $this->get_hcap_form( $args );
 		$hcaptcha  = '<div class="fl-input-group fl-hcaptcha">' . $hcap_form . '</div>';
 		$expected  = 'some output <div class="fl-login-form ">' . $hcaptcha . $button . '</div> more';
-		$module    = Mockery::mock( 'alias:' . FLBuilderModule::class );
+		$module    = FLBuilderModel::$modules['login-form'];
 
 		add_filter( 'hcap_login_limit_exceeded', '__return_true' );
 
@@ -109,13 +134,47 @@ class LoginTest extends HCaptchaWPTestCase {
 	 */
 	public function test_add_beaver_builder_captcha_when_login_limit_not_exceeded(): void {
 		$some_out = 'some output';
-		$module   = Mockery::mock( 'alias:' . FLBuilderModule::class );
+		$module   = FLBuilderModel::$modules['login-form'];
 
 		add_filter( 'hcap_login_limit_exceeded', '__return_false' );
 
 		$subject = new Login();
 
 		self::assertSame( $some_out, $subject->add_beaver_builder_captcha( $some_out, $module ) );
+	}
+
+	/**
+	 * Test hCaptcha in a form rendered by the live Beaver Builder module.
+	 *
+	 * @return void
+	 */
+	public function test_live_login_form(): void {
+		$subject  = new Login();
+		$module   = clone FLBuilderModel::$modules['login-form'];
+		$settings = FLBuilderModel::get_module_defaults( 'login-form' );
+		$class    = new ReflectionClass( $module );
+
+		$module->node     = 'login-test';
+		$module->settings = $settings;
+		$id               = $module->node;
+
+		add_filter( 'hcap_login_limit_exceeded', '__return_true' );
+
+		ob_start();
+		include $module->dir . 'includes/frontend.php';
+		$html = (string) ob_get_clean();
+		$html = apply_filters( 'fl_builder_render_module_content', $html, $module );
+
+		self::assertTrue( is_plugin_active( static::$plugin ) );
+		self::assertStringStartsWith(
+			wp_normalize_path( WP_PLUGIN_DIR . '/bb-plugin/' ),
+			wp_normalize_path( (string) $class->getFileName() )
+		);
+		self::assertStringContainsString( 'class="fl-login-form', $html );
+		self::assertStringContainsString( 'name="fl-login-form-name"', $html );
+		self::assertStringContainsString( 'class="fl-input-group fl-hcaptcha"', $html );
+		self::assertStringContainsString( 'name="hcaptcha_login_nonce"', $html );
+		self::assertSame( 10, has_filter( 'fl_builder_render_module_content', [ $subject, 'add_beaver_builder_captcha' ] ) );
 	}
 
 	/**

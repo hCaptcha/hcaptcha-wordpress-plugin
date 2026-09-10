@@ -8,14 +8,67 @@
 namespace HCaptcha\Tests\Integration\Sendinblue;
 
 use HCaptcha\Sendinblue\Sendinblue;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use ReflectionMethod;
 
 /**
  * Test Sendinblue class.
  *
  * @group sendinblue
  */
-class SendinblueTest extends HCaptchaWPTestCase {
+class SendinblueTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * Plugin relative path.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'mailin/sendinblue.php';
+
+	/**
+	 * Hooks to replay after loading Brevo.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
+
+	/**
+	 * Force lifecycle hook replay after WPTestCase resets action counters.
+	 *
+	 * @var bool
+	 */
+	protected static bool $force_plugin_load_hooks = true;
+
+	/**
+	 * Configure Brevo to register its frontend form shortcode.
+	 *
+	 * @return void
+	 */
+	protected function before_load_test_plugins(): void {
+		update_option( 'sib_api_key_v3', 'integration-test-key' );
+		update_option( 'sib_main_option', [ 'access_key' => 'integration-test-key' ] );
+		update_option(
+			'sib_home_option',
+			[
+				'activate_email' => 'no',
+				'activate_ma'    => 'no',
+			]
+		);
+		update_option( 'sib_use_apiv2', '1' );
+		set_transient(
+			'sib_list_' . md5( 'integration-test-key' ),
+			[
+				[
+					'id'   => 1,
+					'name' => 'Integration List',
+				],
+			],
+			900
+		);
+	}
 
 	/**
 	 * Test constructor and init_hooks().
@@ -69,6 +122,38 @@ class SendinblueTest extends HCaptchaWPTestCase {
 		self::assertStringContainsString( 'h-captcha', $result );
 		self::assertStringContainsString( 'hcaptcha_sendinblue_nonce', $result );
 		self::assertStringContainsString( '<button class="sib" type="submit">Send</button>', $result );
+	}
+
+	/**
+	 * Test hCaptcha in a form rendered by the live Brevo shortcode.
+	 *
+	 * @return void
+	 */
+	public function test_live_form_shortcode(): void {
+		\SIB_Forms::createTable();
+
+		$forms = \SIB_Forms::getForms();
+
+		if ( ! $forms ) {
+			\SIB_Forms::createDefaultForm();
+			$forms = \SIB_Forms::getForms();
+		}
+
+		$form_id = (int) $forms[0]['id'];
+		$subject = new Sendinblue();
+		$method  = new ReflectionMethod( \SIB_Manager::class, 'sibwp_form_shortcode' );
+		$html    = do_shortcode( '[sibwp_form id="' . $form_id . '"]' );
+
+		self::assertTrue( is_plugin_active( static::$plugin ) );
+		self::assertStringStartsWith(
+			wp_normalize_path( WP_PLUGIN_DIR . '/mailin/' ),
+			wp_normalize_path( (string) $method->getFileName() )
+		);
+		self::assertTrue( shortcode_exists( 'sibwp_form' ) );
+		self::assertStringContainsString( 'id="sib_signup_form_' . $form_id . '"', $html );
+		self::assertStringContainsString( 'name="sib_form_action"', $html );
+		self::assertStringContainsString( 'name="hcaptcha_sendinblue_nonce"', $html );
+		self::assertSame( 10, has_filter( 'do_shortcode_tag', [ $subject, 'add_hcaptcha' ] ) );
 	}
 
 	/**

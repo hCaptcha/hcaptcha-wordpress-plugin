@@ -8,7 +8,7 @@
 namespace HCaptcha\Tests\Integration\BeaverBuilder;
 
 use HCaptcha\BeaverBuilder\Base;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
 
 /**
@@ -17,7 +17,31 @@ use Mockery;
  * @group beaver-builder
  * @group beaver-builder-base
  */
-class BaseTest extends HCaptchaWPTestCase {
+class BaseTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * Plugin relative path.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'bb-plugin/fl-builder.php';
+
+	/**
+	 * Hooks to replay after loading Beaver Builder.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
+
+	/**
+	 * Load Beaver Builder modules after the WordPress test bootstrap.
+	 *
+	 * @var bool
+	 */
+	protected static bool $force_plugin_load_hooks = true;
 
 	/**
 	 * Test init_hooks().

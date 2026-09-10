@@ -161,7 +161,18 @@ class HCaptcha {
 			wp_nonce_field( $args['action'], $args['name'] );
 		}
 
-		self::honeypot_display();
+		self::honeypot_display( self::get_honeypot_override( $args ) );
+	}
+
+	/**
+	 * Get a honeypot override from form arguments.
+	 *
+	 * @param array $args Form arguments.
+	 *
+	 * @return bool|null
+	 */
+	private static function get_honeypot_override( array $args ): ?bool {
+		return $args['honeypot'] ?? null;
 	}
 
 	/**
@@ -202,25 +213,36 @@ class HCaptcha {
 		$allowed_themes = [ 'light', 'dark', 'auto' ];
 		$allowed_sizes  = [ 'normal', 'compact', 'invisible' ];
 
-		$args['action']  = (string) $args['action'];
-		$args['name']    = (string) $args['name'];
-		$args['sign']    = (string) $args['sign'];
-		$auto            = filter_var( $args['auto'], FILTER_VALIDATE_BOOLEAN );
-		$args['ajax']    = filter_var( $args['ajax'], FILTER_VALIDATE_BOOLEAN );
-		$args['auto']    = $args['ajax'] ? true : $auto;
-		$args['force']   = filter_var( $args['force'], FILTER_VALIDATE_BOOLEAN );
-		$args['theme']   = in_array( (string) $args['theme'], $allowed_themes, true )
+		$args['action'] = (string) $args['action'];
+		$args['name']   = (string) $args['name'];
+		$args['sign']   = (string) $args['sign'];
+		$auto           = filter_var( $args['auto'], FILTER_VALIDATE_BOOLEAN );
+		$args['ajax']   = filter_var( $args['ajax'], FILTER_VALIDATE_BOOLEAN );
+		$args['auto']   = $args['ajax'] ? true : $auto;
+		$args['force']  = filter_var( $args['force'], FILTER_VALIDATE_BOOLEAN );
+		$args['theme']  = in_array( (string) $args['theme'], $allowed_themes, true )
 			? (string) $args['theme']
 			: $hcaptcha_theme;
-		$args['theme']   = $bg ? 'custom' : $args['theme'];
-		$args['size']    = in_array( (string) $args['size'], $allowed_sizes, true )
+		$args['theme']  = $bg ? 'custom' : $args['theme'];
+		$args['size']   = in_array( (string) $args['size'], $allowed_sizes, true )
 			? (string) $args['size']
 			: $hcaptcha_size;
-		$args['id']      = (array) $args['id'];
-		$args['id']      = [
+		$honeypot       = array_key_exists( 'honeypot', $args )
+			? filter_var( $args['honeypot'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE )
+			: null;
+		$args['id']     = (array) $args['id'];
+		$args['id']     = [
 			'source'  => (array) ( empty( $args['id']['source'] ) ? self::$default_id['source'] : $args['id']['source'] ),
 			'form_id' => $args['id']['form_id'] ?? self::$default_id['form_id'],
 		];
+
+		if ( null !== $honeypot ) {
+			$args['honeypot']       = $honeypot;
+			$args['id']['honeypot'] = $honeypot;
+		} else {
+			unset( $args['honeypot'] );
+		}
+
 		$args['protect'] = filter_var( $args['protect'], FILTER_VALIDATE_BOOLEAN );
 
 		return $args;
@@ -231,12 +253,20 @@ class HCaptcha {
 	 *
 	 * This method injects a honeypot field with a dynamic name and a signature.
 	 *
+	 * @param bool|null $honeypot Honeypot override.
+	 *
 	 * @return void
 	 */
-	private static function honeypot_display(): void {
+	private static function honeypot_display( ?bool $honeypot ): void {
 		$settings = hcaptcha()->settings();
 
-		if ( ! $settings || ! $settings->is_on( 'honeypot' ) ) {
+		if ( ! $settings ) {
+			return;
+		}
+
+		$honeypot = null === $honeypot ? $settings->is_on( 'honeypot' ) : $honeypot;
+
+		if ( ! $honeypot ) {
 			return;
 		}
 

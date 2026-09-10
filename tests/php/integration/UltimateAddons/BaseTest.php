@@ -12,7 +12,7 @@
 
 namespace HCaptcha\Tests\Integration\UltimateAddons;
 
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use HCaptcha\UltimateAddons\Base;
 use Mockery;
 
@@ -22,7 +22,27 @@ use Mockery;
  * @group ultimate-addons
  * @group ultimate-addons-base
  */
-class BaseTest extends HCaptchaWPTestCase {
+class BaseTest extends HCaptchaPluginWPTestCase {
+	/**
+	 * Plugin relative paths.
+	 *
+	 * @var string[]
+	 */
+	protected static $plugin = [
+		'elementor/elementor.php',
+		'ultimate-elementor/ultimate-elementor.php',
+	];
+
+	/**
+	 * Hooks to replay after loading the plugins.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'elementor/init',
+		'init',
+	];
 
 	/**
 	 * Test enqueue_scripts().

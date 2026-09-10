@@ -13,7 +13,7 @@
 namespace HCaptcha\Tests\Integration\EssentialAddons;
 
 use HCaptcha\EssentialAddons\Base;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
 
 /**
@@ -22,7 +22,26 @@ use Mockery;
  * @group essential-addons
  * @group essential-addons-login
  */
-class BaseTest extends HCaptchaWPTestCase {
+class BaseTest extends HCaptchaPluginWPTestCase {
+	/**
+	 * Plugin relative paths.
+	 *
+	 * @var string[]
+	 */
+	protected static $plugin = [
+		'elementor/elementor.php',
+		'essential-addons-for-elementor-lite/essential_adons_elementor.php',
+	];
+
+	/**
+	 * Hooks to replay after loading the plugins.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
 
 	/**
 	 * Tear down the test.

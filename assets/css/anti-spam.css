@@ -275,7 +275,7 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	grid-template-columns: repeat(2, 1fr);
 	grid-template-areas:
 		"login-limit login-interval"
-		"hide-login-errors .";
+		"hide-login-errors disable-xml-rpc-auth";
 	gap: 0 20px;
 	padding: 15px 20px;
 }
@@ -294,12 +294,17 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	grid-area: hide-login-errors;
 }
 
+.hcaptcha-section-login-protection + table tbody tr.hcaptcha-anti-spam-disable-xml-rpc-auth {
+	grid-area: disable-xml-rpc-auth;
+}
+
 .hcaptcha-section-login-protection + table tbody tr th {
 	padding: 0 0 10px 0;
 	width: auto;
 }
 
-.hcaptcha-section-login-protection + table tbody tr.hcaptcha-anti-spam-hide-login-errors th {
+.hcaptcha-section-login-protection + table tbody tr.hcaptcha-anti-spam-hide-login-errors th,
+.hcaptcha-section-login-protection + table tbody tr.hcaptcha-anti-spam-disable-xml-rpc-auth th {
 	padding: 0;
 }
 
@@ -353,7 +358,8 @@ h3.closed .hcaptcha-section-header-toggle:after {
 		grid-template-areas:
 		"login-limit"
 		"login-interval"
-		"hide-login-errors";
+		"hide-login-errors"
+		"disable-xml-rpc-auth";
 	}
 
 	.hcaptcha-section-login-protection + table tbody tr td {

@@ -15,7 +15,7 @@ namespace HCaptcha\Tests\Integration\ElementorPro;
 use Elementor\Element_Base;
 use HCaptcha\ElementorPro\Login;
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
 use ElementorPro\Modules\Forms\Widgets\Login as ElementorLogin;
 use tad\FunctionMocker\FunctionMocker;
@@ -26,7 +26,26 @@ use tad\FunctionMocker\FunctionMocker;
  * @group elementor-pro
  * @group elementor-pro-login
  */
-class LoginTest extends HCaptchaWPTestCase {
+class LoginTest extends HCaptchaPluginWPTestCase {
+	/**
+	 * Plugin relative paths.
+	 *
+	 * @var string[]
+	 */
+	protected static $plugin = [
+		'elementor/elementor.php',
+		'elementor-pro/elementor-pro.php',
+	];
+
+	/**
+	 * Hooks to replay after loading the plugins.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
 
 	/**
 	 * Test init_hooks().
@@ -57,10 +76,11 @@ class LoginTest extends HCaptchaWPTestCase {
 	 * Test before_render() and add_elementor_login_hcaptcha().
 	 *
 	 * @return void
+	 * @noinspection PhpParamsInspection
 	 */
 	public function test_render(): void {
-		$element    = new ElementorLogin();
-		$form       = <<<'HTML'
+		$element = new ElementorLogin();
+		$form    = <<<'HTML'
 <div class="elementor-element elementor-element-fb88da3 elementor-widget elementor-widget-login" data-id="fb88da3" data-element_type="widget" data-widget_type="login.default">
 	<div class="elementor-widget-container">
 		<form class="elementor-login elementor-form" method="post" action="https://test.test/wp-login.php">
@@ -98,7 +118,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	</div>
 </div>
 HTML;
-		$args       = [
+		$args    = [
 			'action' => 'hcaptcha_login',
 			'name'   => 'hcaptcha_login_nonce',
 			'id'     => [
@@ -106,12 +126,6 @@ HTML;
 				'form_id' => 'login',
 			],
 		];
-		$hcaptcha   = $this->get_hcap_form( $args );
-		$hcaptcha   = '<div class="elementor-field-group elementor-column elementor-col-100">' . $hcaptcha . '</div>';
-		$signatures = HCaptcha::get_signature( Login::class, 'login', true );
-		$submit_div = '<div class="elementor-field-group elementor-column elementor-field-type-submit elementor-col-100">';
-		$expected   = str_replace( $submit_div, $hcaptcha . $signatures . "\n" . $submit_div, $form );
-
 		update_option(
 			'hcaptcha_settings',
 			[
@@ -120,6 +134,13 @@ HTML;
 		);
 
 		hcaptcha()->init_hooks();
+		remove_all_actions( 'hcap_signature' );
+
+		$hcaptcha   = $this->get_hcap_form( $args );
+		$hcaptcha   = '<div class="elementor-field-group elementor-column elementor-col-100">' . $hcaptcha . '</div>';
+		$signatures = HCaptcha::get_signature( Login::class, 'login', true );
+		$submit_div = '<div class="elementor-field-group elementor-column elementor-field-type-submit elementor-col-100">';
+		$expected   = str_replace( $submit_div, $hcaptcha . $signatures . "\n" . $submit_div, $form );
 
 		$subject = new Login();
 
@@ -159,9 +180,10 @@ HTML;
 	}
 
 	/**
-	 * Test before_render() and add_elementor_login_hcaptcha() when login limit is not exceeded.
+	 * Test before_render() and add_elementor_login_hcaptcha() when the login limit is not exceeded.
 	 *
 	 * @return void
+	 * @noinspection PhpParamsInspection
 	 */
 	public function test_render_when_login_limit_is_not_exceeded(): void {
 		$element = new ElementorLogin();

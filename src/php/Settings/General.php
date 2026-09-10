@@ -577,31 +577,10 @@ class General extends PluginSettingsBase {
 					)
 				),
 			],
-			'custom_prop'          => [
-				'label'   => __( 'Property', 'hcaptcha-for-forms-and-more' ),
-				'type'    => 'select',
-				'options' => [],
-				'section' => self::SECTION_CUSTOM,
-				'helper'  => __( 'Select custom theme property.', 'hcaptcha-for-forms-and-more' ),
-			],
-			'custom_value'         => [
-				'label'   => __( 'Value', 'hcaptcha-for-forms-and-more' ),
-				'type'    => 'text',
-				'section' => self::SECTION_CUSTOM,
-				'helper'  => __( 'Set property value.', 'hcaptcha-for-forms-and-more' ),
-			],
 			'config_params'        => [
-				'label'   => __( 'Config Params', 'hcaptcha-for-forms-and-more' ),
+				'label'   => __( 'Advanced Theme Editor', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'textarea',
 				'section' => self::SECTION_CUSTOM,
-				'helper'  => sprintf(
-					/* translators: 1: hCaptcha render params doc link. */
-					__( 'hCaptcha render %s (optional). Must be a valid JSON.', 'hcaptcha-for-forms-and-more' ),
-					sprintf(
-						'<a href="https://docs.hcaptcha.com/configuration/#hcaptcharendercontainer-params?utm_source=wordpress&utm_medium=wpplugin&utm_campaign=docs" target="_blank">%s</a>',
-						__( 'parameters', 'hcaptcha-for-forms-and-more' )
-					)
-				),
 			],
 			'api_host'             => [
 				'label'   => __( 'API Host', 'hcaptcha-for-forms-and-more' ),
@@ -770,28 +749,6 @@ class General extends PluginSettingsBase {
 			// @codeCoverageIgnoreEnd
 		}
 
-		$config_params = $settings->get_config_params();
-		$custom_theme  = $config_params['theme'] ?? [];
-		$default_theme = $settings->get_default_theme();
-		$custom_theme  = array_replace_recursive( $default_theme, $custom_theme );
-		$custom_theme  = $this->flatten_array( $custom_theme );
-		$custom_theme  = array_merge(
-			[ esc_html__( '- Select Property -', 'hcaptcha-for-forms-and-more' ) => '' ],
-			$custom_theme
-		);
-		$options       = [];
-
-		foreach ( $custom_theme as $key => $value ) {
-			$key_arr = explode( '--', $key );
-			$level   = count( $key_arr ) - 1;
-			$prefix  = $level ? str_repeat( '–', $level ) . ' ' : '';
-			$option  = $prefix . ucfirst( end( $key_arr ) );
-
-			$options[ $key . '=' . $value ] = $option;
-		}
-
-		$this->form_fields['custom_prop']['options'] = $options;
-
 		$license = $settings->get_license();
 
 		if ( 'free' === $license ) {
@@ -901,7 +858,17 @@ class General extends PluginSettingsBase {
 	 * @return void
 	 */
 	public function admin_enqueue_scripts(): void {
-		$settings = hcaptcha()->settings();
+		$settings       = hcaptcha()->settings();
+		$script_version = constant( 'HCAPTCHA_VERSION' );
+		$style_version  = constant( 'HCAPTCHA_VERSION' );
+
+		if ( '' === $this->min_suffix ) {
+			$script_mtime = filemtime( constant( 'HCAPTCHA_PATH' ) . '/assets/js/general.js' );
+			$style_mtime  = filemtime( constant( 'HCAPTCHA_PATH' ) . '/assets/css/general.css' );
+
+			$script_version .= false === $script_mtime ? '' : '-' . $script_mtime;
+			$style_version  .= false === $style_mtime ? '' : '-' . $style_mtime;
+		}
 
 		wp_enqueue_script(
 			self::DIALOG_HANDLE,
@@ -922,7 +889,7 @@ class General extends PluginSettingsBase {
 			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/js/general$this->min_suffix.js",
 			[ 'jquery', 'lodash', self::DIALOG_HANDLE ],
-			constant( 'HCAPTCHA_VERSION' ),
+			$script_version,
 			true
 		);
 
@@ -946,6 +913,18 @@ class General extends PluginSettingsBase {
 				'modeTestEnterpriseSafeEndUserSiteKey' => self::MODE_TEST_ENTERPRISE_SAFE_END_USER_SITE_KEY,
 				'modeTestEnterpriseBotDetectedSiteKey' => self::MODE_TEST_ENTERPRISE_BOT_DETECTED_SITE_KEY,
 				'badJSONError'                         => __( 'Bad JSON', 'hcaptcha-for-forms-and-more' ),
+				'validJSON'                            => __( 'Valid JSON', 'hcaptcha-for-forms-and-more' ),
+				'invalidJSON'                          => __( 'Invalid JSON', 'hcaptcha-for-forms-and-more' ),
+				'configMustBeObject'                   => __( 'Config Params must be a JSON object.', 'hcaptcha-for-forms-and-more' ),
+				'unsavedChanges'                       => __( 'Unsaved changes', 'hcaptcha-for-forms-and-more' ),
+				'lastValidPreview'                     => __( 'Showing the last valid config.', 'hcaptcha-for-forms-and-more' ),
+				'activeState'                          => __( 'Active', 'hcaptcha-for-forms-and-more' ),
+				'focusState'                           => __( 'Focus', 'hcaptcha-for-forms-and-more' ),
+				'hoverState'                           => __( 'Hover', 'hcaptcha-for-forms-and-more' ),
+				'mainState'                            => __( 'Main', 'hcaptcha-for-forms-and-more' ),
+				'reportState'                          => __( 'Report', 'hcaptcha-for-forms-and-more' ),
+				'selectedState'                        => __( 'Selected', 'hcaptcha-for-forms-and-more' ),
+				'hexValue'                             => __( 'hex value', 'hcaptcha-for-forms-and-more' ),
 				'checkConfigNotice'                    => $check_config_notice,
 				'checkingConfigMsg'                    => __( 'Checking site config...', 'hcaptcha-for-forms-and-more' ),
 				'completeHCaptchaTitle'                => __( 'Please complete the hCaptcha.', 'hcaptcha-for-forms-and-more' ),
@@ -959,7 +938,7 @@ class General extends PluginSettingsBase {
 			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/css/general$this->min_suffix.css",
 			[ static::PREFIX . '-' . SettingsBase::HANDLE, self::DIALOG_HANDLE ],
-			constant( 'HCAPTCHA_VERSION' )
+			$style_version
 		);
 	}
 
@@ -975,6 +954,299 @@ class General extends PluginSettingsBase {
 		$fields['hcaptcha'] = [ $this, 'print_hcaptcha_field' ];
 
 		return $fields;
+	}
+
+	/**
+	 * Output settings field.
+	 *
+	 * @param array $arguments Field arguments.
+	 *
+	 * @return void
+	 */
+	public function field_callback( array $arguments ): void {
+		if ( 'config_params' !== ( $arguments['field_id'] ?? '' ) ) {
+			parent::field_callback( $arguments );
+
+			return;
+		}
+
+		$this->print_theme_editor_field( $arguments );
+	}
+
+	/**
+	 * Print the advanced theme editor.
+	 *
+	 * @param array $arguments Field arguments.
+	 *
+	 * @return void
+	 */
+	protected function print_theme_editor_field( array $arguments ): void {
+		$arguments        += [
+			'disabled'    => false,
+			'field_id'    => 'config_params',
+			'placeholder' => '',
+		];
+		$settings          = hcaptcha()->settings();
+		$license           = $settings ? $settings->get_license() : 'free';
+		$preview_only      = 'free' === $license;
+		$default_theme     = $settings ? $settings->get_default_theme() : [];
+		$default_json      = wp_json_encode( $default_theme );
+		$preview_only_text = __( 'Changes are shown in this preview only.', 'hcaptcha-for-forms-and-more' );
+		$live_text         = __( 'The real widget in Keys also updates live.', 'hcaptcha-for-forms-and-more' );
+		?>
+		<div class="hcaptcha-theme-editor-launcher">
+			<button
+					type="button"
+					class="button button-secondary"
+					aria-controls="hcaptcha-theme-editor-window"
+					aria-expanded="false"
+					data-theme-editor-open>
+				<?php esc_html_e( 'Open', 'hcaptcha-for-forms-and-more' ); ?>
+			</button>
+			<span class="hcaptcha-theme-editor-dirty" aria-live="polite" hidden></span>
+		</div>
+
+		<div
+				class="hcaptcha-theme-editor"
+				id="hcaptcha-theme-editor-window"
+				role="dialog"
+				aria-modal="false"
+				aria-labelledby="hcaptcha-theme-editor-title"
+				hidden
+				data-theme-editor-preview-only="<?php echo esc_attr( $preview_only ? 'true' : 'false' ); ?>"
+				data-default-theme="<?php echo esc_attr( (string) $default_json ); ?>">
+			<div class="hcaptcha-theme-editor-header" data-theme-editor-drag-handle>
+				<div class="hcaptcha-theme-editor-title">
+					<img
+							class="hcaptcha-theme-editor-icon"
+							src="<?php echo esc_url( constant( 'HCAPTCHA_URL' ) . '/assets/images/hcaptcha-icon.svg' ); ?>"
+							alt="">
+					<div>
+						<strong id="hcaptcha-theme-editor-title">
+							<?php esc_html_e( 'Advanced Theme Editor', 'hcaptcha-for-forms-and-more' ); ?>
+						</strong>
+						<span><?php esc_html_e( 'Drag this bar to move the window', 'hcaptcha-for-forms-and-more' ); ?></span>
+					</div>
+				</div>
+				<div class="hcaptcha-theme-editor-window-actions">
+					<span class="hcaptcha-theme-editor-dirty" aria-live="polite" hidden></span>
+					<button type="button" class="hcaptcha-theme-editor-close" data-theme-editor-close>
+						<span class="screen-reader-text"><?php esc_html_e( 'Close theme editor', 'hcaptcha-for-forms-and-more' ); ?></span>
+						<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>
+					</button>
+				</div>
+			</div>
+
+			<?php if ( $preview_only ) : ?>
+				<div class="hcaptcha-theme-editor-pro-notice" role="note">
+					<span class="dashicons dashicons-warning" aria-hidden="true"></span>
+					<p>
+						<strong><?php esc_html_e( 'Preview only.', 'hcaptcha-for-forms-and-more' ); ?></strong>
+						<?php esc_html_e( 'Custom themes require an hCaptcha Pro or Enterprise site key. You can explore every editor control, but changes are shown only in the preview and are not saved.', 'hcaptcha-for-forms-and-more' ); ?>
+					</p>
+				</div>
+			<?php endif; ?>
+
+			<div class="hcaptcha-theme-editor-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Editor mode', 'hcaptcha-for-forms-and-more' ); ?>">
+				<button
+						type="button"
+						class="hcaptcha-theme-editor-tab is-active"
+						id="hcaptcha-theme-editor-visual-tab"
+						role="tab"
+						aria-controls="hcaptcha-theme-editor-visual"
+						aria-selected="true"
+						data-theme-editor-tab="visual">
+					<?php esc_html_e( 'Visual', 'hcaptcha-for-forms-and-more' ); ?>
+				</button>
+				<button
+						type="button"
+						class="hcaptcha-theme-editor-tab"
+						id="hcaptcha-theme-editor-json-tab"
+						role="tab"
+						aria-controls="hcaptcha-theme-editor-json"
+						aria-selected="false"
+						data-theme-editor-tab="json">
+					<?php esc_html_e( 'JSON', 'hcaptcha-for-forms-and-more' ); ?>
+				</button>
+			</div>
+
+			<div class="hcaptcha-theme-editor-workspace">
+				<div class="hcaptcha-theme-editor-panes">
+					<div
+							class="hcaptcha-theme-editor-pane is-active"
+							id="hcaptcha-theme-editor-visual"
+							role="tabpanel"
+							aria-labelledby="hcaptcha-theme-editor-visual-tab"
+							data-theme-editor-pane="visual">
+						<nav class="hcaptcha-theme-editor-nav" aria-label="<?php esc_attr_e( 'Theme sections', 'hcaptcha-for-forms-and-more' ); ?>">
+							<span class="hcaptcha-theme-editor-nav-label">
+								<?php esc_html_e( 'Foundation', 'hcaptcha-for-forms-and-more' ); ?>
+							</span>
+							<button type="button" class="hcaptcha-theme-editor-nav-button is-active" data-theme-group="palette">
+								<?php esc_html_e( 'Palette', 'hcaptcha-for-forms-and-more' ); ?>
+							</button>
+							<span class="hcaptcha-theme-editor-nav-label">
+								<?php esc_html_e( 'Components', 'hcaptcha-for-forms-and-more' ); ?>
+							</span>
+							<span data-theme-editor-component-nav></span>
+						</nav>
+
+						<div class="hcaptcha-theme-editor-fields">
+							<div class="hcaptcha-theme-editor-fields-header">
+								<div>
+									<strong data-theme-editor-group-title><?php esc_html_e( 'Palette', 'hcaptcha-for-forms-and-more' ); ?></strong>
+									<p class="description" data-theme-editor-group-description></p>
+								</div>
+								<button type="button" class="button-link" data-theme-editor-reset-section>
+									<?php esc_html_e( 'Reset section', 'hcaptcha-for-forms-and-more' ); ?>
+								</button>
+							</div>
+							<label class="hcaptcha-theme-editor-mode" data-theme-editor-mode-field>
+								<span><?php esc_html_e( 'Mode', 'hcaptcha-for-forms-and-more' ); ?></span>
+								<select data-theme-editor-mode>
+									<option value="light"><?php esc_html_e( 'Light', 'hcaptcha-for-forms-and-more' ); ?></option>
+									<option value="dark"><?php esc_html_e( 'Dark', 'hcaptcha-for-forms-and-more' ); ?></option>
+								</select>
+							</label>
+							<div data-theme-editor-fields></div>
+						</div>
+					</div>
+
+					<div
+							class="hcaptcha-theme-editor-pane"
+							id="hcaptcha-theme-editor-json"
+							role="tabpanel"
+							aria-labelledby="hcaptcha-theme-editor-json-tab"
+							data-theme-editor-pane="json"
+							hidden>
+						<div class="hcaptcha-theme-editor-json-header">
+							<div>
+								<strong><?php esc_html_e( 'Complete config', 'hcaptcha-for-forms-and-more' ); ?></strong>
+								<p class="description">
+									<?php esc_html_e( 'Unknown render parameters are preserved.', 'hcaptcha-for-forms-and-more' ); ?>
+								</p>
+							</div>
+							<div class="hcaptcha-theme-editor-json-actions">
+								<span class="hcaptcha-theme-editor-json-status is-valid" aria-live="polite">
+									<?php esc_html_e( 'Valid JSON', 'hcaptcha-for-forms-and-more' ); ?>
+								</span>
+								<button type="button" class="button button-secondary" data-theme-editor-format>
+									<?php esc_html_e( 'Format', 'hcaptcha-for-forms-and-more' ); ?>
+								</button>
+							</div>
+						</div>
+						<?php $this->print_textarea_field( $arguments ); ?>
+						<p class="hcaptcha-theme-editor-json-error" role="alert"></p>
+					</div>
+				</div>
+
+				<aside class="hcaptcha-theme-editor-preview" aria-label="<?php esc_attr_e( 'Theme preview', 'hcaptcha-for-forms-and-more' ); ?>">
+					<div class="hcaptcha-theme-editor-preview-header">
+						<strong><?php esc_html_e( 'Preview', 'hcaptcha-for-forms-and-more' ); ?></strong>
+						<div class="hcaptcha-theme-editor-preview-background" aria-label="<?php esc_attr_e( 'Preview background', 'hcaptcha-for-forms-and-more' ); ?>">
+							<button type="button" class="is-active" data-theme-preview-background="light">
+								<?php esc_html_e( 'Light', 'hcaptcha-for-forms-and-more' ); ?>
+							</button>
+							<button type="button" data-theme-preview-background="dark">
+								<?php esc_html_e( 'Dark', 'hcaptcha-for-forms-and-more' ); ?>
+							</button>
+						</div>
+					</div>
+					<div class="hcaptcha-theme-editor-preview-switch" role="tablist" aria-label="<?php esc_attr_e( 'Preview type', 'hcaptcha-for-forms-and-more' ); ?>">
+						<button type="button" class="is-active" role="tab" aria-selected="true" data-theme-preview-view="widget">
+							<?php esc_html_e( 'Widget', 'hcaptcha-for-forms-and-more' ); ?>
+						</button>
+						<button type="button" role="tab" aria-selected="false" data-theme-preview-view="challenge">
+							<?php esc_html_e( 'Challenge', 'hcaptcha-for-forms-and-more' ); ?>
+						</button>
+					</div>
+					<div class="hcaptcha-theme-editor-preview-stage" data-theme-editor-preview-stage>
+						<div class="hcaptcha-theme-mock-widget" data-theme-preview-pane="widget">
+							<span class="hcaptcha-theme-mock-checkbox" aria-hidden="true"></span>
+							<span class="hcaptcha-theme-mock-widget-label"><?php esc_html_e( 'I am human', 'hcaptcha-for-forms-and-more' ); ?></span>
+							<span class="hcaptcha-theme-mock-brand">
+								<img
+										class="hcaptcha-theme-mock-logo"
+										data-theme-mock-logo="light"
+										src="<?php echo esc_url( constant( 'HCAPTCHA_URL' ) . '/assets/images/hcaptcha-div-logo.svg' ); ?>"
+										alt="">
+								<img
+										class="hcaptcha-theme-mock-logo"
+										data-theme-mock-logo="dark"
+										src="<?php echo esc_url( constant( 'HCAPTCHA_URL' ) . '/assets/images/hcaptcha-div-logo-white.svg' ); ?>"
+										alt=""
+										hidden>
+								<small><?php esc_html_e( 'Privacy - Terms', 'hcaptcha-for-forms-and-more' ); ?></small>
+							</span>
+						</div>
+
+						<div class="hcaptcha-theme-mock-challenge" data-theme-preview-pane="challenge" hidden>
+							<div class="hcaptcha-theme-mock-prompt">
+								<span><?php esc_html_e( 'Please click on the object that does not belong', 'hcaptcha-for-forms-and-more' ); ?></span>
+							</div>
+							<div class="hcaptcha-theme-mock-breadcrumbs" aria-hidden="true">
+								<span class="is-active"></span><span></span><span></span>
+							</div>
+							<div class="hcaptcha-theme-mock-tasks" aria-hidden="true">
+								<span></span><span class="is-selected"></span><span></span>
+								<span></span><span class="is-hovered"></span><span></span>
+								<span></span><span></span><span class="is-reported"></span>
+							</div>
+							<div class="hcaptcha-theme-mock-answer" aria-hidden="true">
+								<span class="hcaptcha-theme-mock-radio"></span>
+								<span class="hcaptcha-theme-mock-answer-text"><?php esc_html_e( 'Example answer', 'hcaptcha-for-forms-and-more' ); ?></span>
+								<span class="hcaptcha-theme-mock-slider"><i></i></span>
+							</div>
+							<div class="hcaptcha-theme-mock-challenge-footer">
+								<div class="hcaptcha-theme-mock-tools" aria-hidden="true">
+									<span>↻</span><span>◉</span><span>⋮</span>
+								</div>
+								<button type="button" tabindex="-1" class="hcaptcha-theme-mock-skip">
+									<?php esc_html_e( 'Skip', 'hcaptcha-for-forms-and-more' ); ?>
+								</button>
+								<button type="button" tabindex="-1" class="hcaptcha-theme-mock-verify">
+									<?php esc_html_e( 'Verify', 'hcaptcha-for-forms-and-more' ); ?>
+								</button>
+							</div>
+						</div>
+					</div>
+					<p class="description hcaptcha-theme-editor-preview-note" data-theme-editor-preview-note>
+						<?php esc_html_e( 'Approximate challenge preview.', 'hcaptcha-for-forms-and-more' ); ?><br>
+						<span
+							data-theme-editor-preview-behavior
+							data-preview-only-text="<?php echo esc_attr( $preview_only_text ); ?>"
+							<?php if ( ! $preview_only ) : ?>
+								data-live-text="<?php echo esc_attr( $live_text ); ?>"
+							<?php endif; ?>
+						>
+							<?php echo esc_html( $preview_only ? $preview_only_text : $live_text ); ?>
+						</span>
+						<?php if ( ! $preview_only ) : ?>
+							<span
+								class="hcaptcha-theme-editor-custom-themes-warning"
+								data-theme-editor-custom-themes-warning
+								hidden><br>
+								<?php esc_html_e( 'Enable Custom Themes for live preview.', 'hcaptcha-for-forms-and-more' ); ?>
+							</span>
+						<?php endif; ?>
+					</p>
+				</aside>
+			</div>
+
+			<div class="hcaptcha-theme-editor-footer">
+				<div class="hcaptcha-theme-editor-footer-actions">
+					<?php if ( ! $preview_only ) : ?>
+						<button type="button" class="button button-secondary" data-theme-editor-show-sample>
+							<?php esc_html_e( 'Show real hCaptcha', 'hcaptcha-for-forms-and-more' ); ?>
+						</button>
+					<?php endif; ?>
+					<button type="button" class="button button-secondary" data-theme-editor-reset-theme>
+						<?php esc_html_e( 'Reset theme', 'hcaptcha-for-forms-and-more' ); ?>
+					</button>
+				</div>
+			</div>
+		</div>
+		<?php
 	}
 
 	/**
@@ -1119,34 +1391,5 @@ class General extends PluginSettingsBase {
 		}
 
 		wp_send_json_error( esc_html( $prefix . $error ) );
-	}
-
-	/**
-	 * Flatten array.
-	 *
-	 * @param array $arr Multidimensional array.
-	 *
-	 * @return array
-	 */
-	private function flatten_array( array $arr ): array {
-		static $level = [], $result = [];
-
-		foreach ( $arr as $key => $value ) {
-			$level[] = $key;
-
-			if ( is_array( $value ) ) {
-				$result[] = [ implode( '--', $level ) => '' ];
-				$result[] = $this->flatten_array( $value );
-
-				array_pop( $level );
-				continue;
-			}
-
-			$result[] = [ implode( '--', $level ) => $value ];
-
-			array_pop( $level );
-		}
-
-		return array_merge( [], ...$result );
 	}
 }

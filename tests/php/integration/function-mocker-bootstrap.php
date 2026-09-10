@@ -21,7 +21,12 @@ use tad\FunctionMocker\FunctionMocker;
  * @noinspection PhpUnused
  */
 function hcaptcha_init_function_mocker( string $hcaptcha_path, array $extra_whitelist = [] ): void {
-	$cache_path = $hcaptcha_path . '/.codeception/_output/function-mocker-cache';
+	$parallel_cache_path = getenv( 'HCAPTCHA_FUNCTION_MOCKER_CACHE' );
+	$cache_path          = false !== $parallel_cache_path && '' !== $parallel_cache_path
+		? $parallel_cache_path
+		: $hcaptcha_path . '/.codeception/_output/function-mocker-cache';
+	$lock_path           = getenv( 'HCAPTCHA_FUNCTION_MOCKER_LOCK' );
+	$lock_handle         = false;
 
 	// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_mkdir
 	if ( ! is_dir( $cache_path ) && ! mkdir( $cache_path, 0777, true ) && ! is_dir( $cache_path ) ) {
@@ -29,16 +34,33 @@ function hcaptcha_init_function_mocker( string $hcaptcha_path, array $extra_whit
 		throw new RuntimeException( sprintf( 'Directory "%s" was not created', $cache_path ) );
 	}
 
-	FunctionMocker::init(
-		[
-			'blacklist'             => [
-				hcaptcha_get_filesystem_root( $hcaptcha_path ),
-			],
-			'cache-path'            => $cache_path,
-			'whitelist'             => hcaptcha_get_function_mocker_whitelist( $hcaptcha_path, $extra_whitelist ),
-			'redefinable-internals' => hcaptcha_get_redefinable_internals(),
-		]
-	);
+	if ( false !== $lock_path && '' !== $lock_path ) {
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Parallel test lock.
+		$lock_handle = fopen( $lock_path, 'c' );
+
+		if ( false === $lock_handle || ! flock( $lock_handle, LOCK_EX ) ) {
+			throw new RuntimeException( 'Could not acquire the FunctionMocker initialization lock.' );
+		}
+	}
+
+	try {
+		FunctionMocker::init(
+			[
+				'blacklist'             => [
+					hcaptcha_get_filesystem_root( $hcaptcha_path ),
+				],
+				'cache-path'            => $cache_path,
+				'whitelist'             => hcaptcha_get_function_mocker_whitelist( $hcaptcha_path, $extra_whitelist ),
+				'redefinable-internals' => hcaptcha_get_redefinable_internals(),
+			]
+		);
+	} finally {
+		if ( false !== $lock_handle ) {
+			flock( $lock_handle, LOCK_UN );
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Parallel test lock.
+			fclose( $lock_handle );
+		}
+	}
 }
 
 /**

@@ -145,6 +145,38 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test form_display() with an explicit honeypot override.
+	 */
+	public function test_form_display_with_honeypot_override(): void {
+		$form = HCaptcha::form( [ 'honeypot' => false ] );
+
+		self::assertStringNotContainsString( 'name="hcap_hp_test"', $form );
+		self::assertMatchesRegularExpression( '/name="hcaptcha-widget-id"\s+value="([^"]+)"/', $form );
+
+		preg_match( '/name="hcaptcha-widget-id"\s+value="([^"]+)"/', $form, $matches );
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = $matches[1];
+
+		self::assertSame(
+			[
+				'source'   => [],
+				'form_id'  => 0,
+				'honeypot' => false,
+			],
+			HCaptcha::get_widget_id()
+		);
+
+		$settings             = (array) get_option( 'hcaptcha_settings', [] );
+		$settings['honeypot'] = [ '' ];
+
+		update_option( 'hcaptcha_settings', $settings );
+		hcaptcha()->init_hooks();
+
+		$form = HCaptcha::form( [ 'honeypot' => true ] );
+
+		self::assertStringContainsString( 'name="hcap_hp_test"', $form );
+	}
+
+	/**
 	 * Test HCaptcha::form_display() with a delay API event.
 	 *
 	 * @return void

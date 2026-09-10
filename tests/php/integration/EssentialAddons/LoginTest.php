@@ -12,13 +12,15 @@
 
 namespace HCaptcha\Tests\Integration\EssentialAddons;
 
+use Elementor\Plugin as ElementorPlugin;
+use Essential_Addons_Elementor\Classes\Bootstrap;
+use Essential_Addons_Elementor\Elements\Login_Register as EssentialAddonsLoginRegister;
 use HCaptcha\EssentialAddons\Login;
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
-use Essential_Addons_Elementor\Classes\Bootstrap;
+use ReflectionClass;
 use tad\FunctionMocker\FunctionMocker;
-use Elementor\Widget_Base;
 
 /**
  * Class LoginTest
@@ -26,7 +28,45 @@ use Elementor\Widget_Base;
  * @group essential-addons
  * @group essential-addons-login
  */
-class LoginTest extends HCaptchaWPTestCase {
+class LoginTest extends HCaptchaPluginWPTestCase {
+	/**
+	 * Plugin relative paths.
+	 *
+	 * @var string[]
+	 */
+	protected static $plugin = [
+		'elementor/elementor.php',
+		'essential-addons-for-elementor-lite/essential_adons_elementor.php',
+	];
+
+	/**
+	 * Hooks to replay after loading the plugin.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
+
+	/**
+	 * Test that live Elementor and Essential Addons plugins are loaded.
+	 *
+	 * @return void
+	 */
+	public function test_live_plugins_are_loaded(): void {
+		$elementor_file        = wp_normalize_path( ( new ReflectionClass( ElementorPlugin::class ) )->getFileName() );
+		$essential_addons_file = wp_normalize_path( ( new ReflectionClass( EssentialAddonsLoginRegister::class ) )->getFileName() );
+
+		self::assertTrue( is_plugin_active( 'elementor/elementor.php' ) );
+		self::assertTrue( is_plugin_active( 'essential-addons-for-elementor-lite/essential_adons_elementor.php' ) );
+		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/elementor/' ), $elementor_file );
+		self::assertStringStartsWith(
+			wp_normalize_path( WP_PLUGIN_DIR . '/essential-addons-for-elementor-lite/' ),
+			$essential_addons_file
+		);
+		self::assertInstanceOf( Bootstrap::class, Bootstrap::instance() );
+	}
 
 	/**
 	 * Tear down the test.
@@ -76,9 +116,10 @@ class LoginTest extends HCaptchaWPTestCase {
 	 * Test add_login_hcaptcha().
 	 *
 	 * @return void
+	 * @noinspection PhpParamsInspection
 	 */
 	public function test_add_login_hcaptcha(): void {
-		$widget   = Mockery::mock( Widget_Base::class );
+		$widget   = $this->get_login_register_widget();
 		$args     = [
 			'action' => 'hcaptcha_login',
 			'name'   => 'hcaptcha_login_nonce',
@@ -105,9 +146,10 @@ class LoginTest extends HCaptchaWPTestCase {
 	 * Test add_login_hcaptcha() with built-in form interaction.
 	 *
 	 * @return void
+	 * @noinspection PhpParamsInspection
 	 */
 	public function test_add_login_hcaptcha_with_form_interaction(): void {
-		$widget  = Mockery::mock( Widget_Base::class );
+		$widget  = $this->get_login_register_widget();
 		$subject = new Login();
 		$level   = ob_get_level();
 
@@ -136,7 +178,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	public function test_verify(): void {
 		$post      = [ 'some post data' ];
 		$settings  = [ 'some Elementor widget settings' ];
-		$bootstrap = Mockery::mock( Bootstrap::class );
+		$bootstrap = Bootstrap::instance();
 
 		$this->prepare_verify_post( 'hcaptcha_login_nonce', 'hcaptcha_login' );
 		$this->prepare_widget_id();
@@ -154,7 +196,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	public function test_verify_when_login_limit_is_not_exceeded(): void {
 		$post      = [ 'some post data' ];
 		$settings  = [ 'some Elementor widget settings' ];
-		$bootstrap = Mockery::mock( Bootstrap::class );
+		$bootstrap = Bootstrap::instance();
 
 		add_filter( 'hcap_login_limit_exceeded', '__return_false' );
 
@@ -174,7 +216,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	public function test_verify_not_verified( bool $has_referer ): void {
 		$post          = [ 'some post data' ];
 		$settings      = [ 'some Elementor widget settings' ];
-		$bootstrap     = Mockery::mock( Bootstrap::class );
+		$bootstrap     = Bootstrap::instance();
 		$widget_id     = 'some_id';
 		$error_message = 'The hCaptcha is invalid.';
 		$referer       = 'some-referer';
@@ -265,7 +307,7 @@ class LoginTest extends HCaptchaWPTestCase {
 	public function test_verify_bad_widget_id(): void {
 		$post          = [ 'some post data' ];
 		$settings      = [ 'some Elementor widget settings' ];
-		$bootstrap     = Mockery::mock( Bootstrap::class );
+		$bootstrap     = Bootstrap::instance();
 		$widget_id     = 'some_id';
 		$error_message = 'Bad hCaptcha signature!';
 		$die_arr       = [];
@@ -313,6 +355,25 @@ class LoginTest extends HCaptchaWPTestCase {
 		self::assertSame( '{"success":false,"data":"' . $error_message . '"}', $json );
 		self::assertSame( 'eael_login_error_' . $widget_id, $setcookie[0] );
 		self::assertSame( $error_message, $setcookie[1] );
+	}
+
+	/**
+	 * Get the live Essential Addons login/register widget.
+	 *
+	 * @return EssentialAddonsLoginRegister
+	 */
+	private function get_login_register_widget(): EssentialAddonsLoginRegister {
+		$widgets_manager = ElementorPlugin::instance()->widgets_manager;
+		$widget          = $widgets_manager->get_widget_types( 'eael-login-register' );
+
+		if ( ! $widget ) {
+			Bootstrap::instance()->register_elements( $widgets_manager );
+			$widget = $widgets_manager->get_widget_types( 'eael-login-register' );
+		}
+
+		self::assertInstanceOf( EssentialAddonsLoginRegister::class, $widget );
+
+		return $widget;
 	}
 
 	/**

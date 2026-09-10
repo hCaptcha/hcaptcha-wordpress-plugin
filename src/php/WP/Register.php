@@ -7,6 +7,7 @@
 
 namespace HCaptcha\WP;
 
+use HCaptcha\Abstracts\RegisterBase;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
@@ -14,7 +15,7 @@ use WP_Error;
 /**
  * Class Register
  */
-class Register {
+class Register extends RegisterBase {
 	use Base;
 
 	/**
@@ -44,7 +45,9 @@ class Register {
 	 *
 	 * @return void
 	 */
-	private function init_hooks(): void {
+	protected function init_hooks(): void {
+		parent::init_hooks();
+
 		add_action( 'register_form', [ $this, 'add_captcha' ] );
 		add_filter( 'registration_errors', [ $this, 'verify' ], 10, 3 );
 	}
@@ -84,6 +87,16 @@ class Register {
 			return $errors;
 		}
 
+		$ownership = $this->get_request_ownership();
+
+		if ( false === $ownership ) {
+			return $errors;
+		}
+
+		if ( null === $ownership ) {
+			return HCaptcha::add_error_message( $errors, hcap_get_error_messages()['bad-signature'] );
+		}
+
 		$error_message = API::verify(
 			[
 				'nonce_name'   => self::NONCE,
@@ -100,7 +113,7 @@ class Register {
 	 *
 	 * @return array
 	 */
-	private function get_expected_id(): array {
+	protected function get_expected_id(): array {
 		return [
 			'source'  => HCaptcha::get_class_source( __CLASS__ ),
 			'form_id' => 'register',

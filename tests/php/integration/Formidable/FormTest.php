@@ -15,8 +15,9 @@ namespace HCaptcha\Tests\Integration\Formidable;
 use FrmSettings;
 use HCaptcha\FormidableForms\Form;
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
+use ReflectionClass;
 use ReflectionException;
 use stdClass;
 use tad\FunctionMocker\FunctionMocker;
@@ -26,7 +27,69 @@ use tad\FunctionMocker\FunctionMocker;
  *
  * @group formidable
  */
-class FormTest extends HCaptchaWPTestCase {
+class FormTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * Plugin relative path.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'formidable/formidable.php';
+
+	/**
+	 * Hooks to replay after loading Formidable Forms.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
+
+	/**
+	 * Force lifecycle hook replay after WPTestCase resets action counters.
+	 *
+	 * @var bool
+	 */
+	protected static bool $force_plugin_load_hooks = true;
+
+	/**
+	 * Test a form created and rendered by the live Formidable Forms plugin.
+	 */
+	public function test_live_form_render(): void {
+		global $frm_settings, $wpdb;
+
+		$settings                 = \FrmAppHelper::get_settings();
+		$settings->active_captcha = 'hcaptcha';
+		$settings->store();
+
+		$integration  = new Form();
+		$frm_settings = null;
+
+		$form_id = $this->create_formidable_form();
+
+		$name_field         = \FrmFieldsHelper::setup_new_vars( 'text', $form_id );
+		$name_field['name'] = 'Name';
+
+		self::assertIsInt( \FrmField::create( $name_field ), $wpdb->last_error );
+
+		$captcha_field         = \FrmFieldsHelper::setup_new_vars( 'captcha', $form_id );
+		$captcha_field['name'] = 'Captcha';
+
+		self::assertIsInt( \FrmField::create( $captcha_field ), $wpdb->last_error );
+
+		$model_file = wp_normalize_path( ( new ReflectionClass( \FrmForm::class ) )->getFileName() );
+		$html       = do_shortcode( '[formidable id="' . $form_id . '"]' );
+
+		self::assertTrue( is_plugin_active( static::$plugin ) );
+		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/formidable/' ), $model_file );
+		self::assertTrue( shortcode_exists( 'formidable' ) );
+		self::assertSame( 10, has_filter( 'frm_replace_shortcodes', [ $integration, 'add_hcaptcha' ] ) );
+		self::assertStringContainsString( 'class="frm-show-form', $html );
+		self::assertStringContainsString( 'type="text"', $html );
+		self::assertStringContainsString( 'class="h-captcha"', $html );
+		self::assertStringContainsString( 'hcaptcha_formidable_forms_nonce', $html );
+	}
 
 	/**
 	 * Tear down the test.
@@ -34,6 +97,8 @@ class FormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function tearDown(): void {
+		$GLOBALS['frm_settings'] = null;
+
 		unset( $GLOBALS['current_screen'] );
 
 		parent::tearDown();
@@ -127,16 +192,9 @@ HTML;
 		$html                         = str_replace( $hcaptcha_div, '', $html_with_hcaptcha );
 		$field                        = [ 'type' => 'some' ];
 		$atts                         = [ 'form' => (object) [ 'id' => $form_id ] ];
-		$frm_settings                 = new FrmSettings();
+		$frm_settings                 = \FrmAppHelper::get_settings();
 		$frm_settings->active_captcha = 'recaptcha';
 		$expected                     = str_replace( $hcaptcha_div, $hcap_form, $html_with_hcaptcha );
-
-		FunctionMocker::replace(
-			'FrmAppHelper::get_settings',
-			static function () use ( &$frm_settings ) {
-				return $frm_settings;
-			}
-		);
 
 		$subject = new Form();
 
@@ -170,15 +228,8 @@ HTML;
 			'type' => 'some',
 		];
 		$post                         = [ 'some past data' ];
-		$frm_settings                 = new FrmSettings();
+		$frm_settings                 = \FrmAppHelper::get_settings();
 		$frm_settings->active_captcha = 'recaptcha';
-
-		FunctionMocker::replace(
-			'FrmAppHelper::get_settings',
-			static function () use ( &$frm_settings ) {
-				return $frm_settings;
-			}
-		);
 
 		$subject = Mockery::mock( Form::class )->makePartial();
 
@@ -202,10 +253,11 @@ HTML;
 	 * @return void
 	 */
 	public function test_verify_no_success(): void {
+		$form_id       = $this->create_formidable_form();
 		$errors        = [ 'some error' => 'some message' ];
 		$values        = [
 			'h-captcha-response' => 'some-token',
-			'form_id'            => 1,
+			'form_id'            => $form_id,
 			'item_meta'          => [
 				10 => 'John',
 				11 => 'Doe',
@@ -226,11 +278,6 @@ HTML;
 		$_POST[ $entry['nonce_name'] ] = wp_create_nonce( $entry['nonce_action'] );
 
 		FunctionMocker::replace( 'HCaptcha\Helpers\API::verify', $error_message );
-
-		$form             = new stdClass();
-		$form->updated_at = $entry['form_date_gmt'];
-
-		FunctionMocker::replace( [ 'FrmForm', 'getOne' ], $form );
 
 		$subject = new Form();
 
@@ -257,7 +304,8 @@ HTML;
 	 * @return void
 	 */
 	public function test_verify(): void {
-		$errors = [ 'some error' => 'some message' ];
+		$form_id = $this->create_formidable_form();
+		$errors  = [ 'some error' => 'some message' ];
 
 		// Create field objects for posted_fields.
 		$name_field       = new stdClass();
@@ -283,7 +331,7 @@ HTML;
 
 		$values = [
 			'h-captcha-response' => 'some-token',
-			'form_id'            => 1,
+			'form_id'            => $form_id,
 			'item_meta'          => [
 				10 => [ 'John', 'Doe' ],
 				11 => 'john@doe.com',
@@ -296,19 +344,10 @@ HTML;
 			'posted_fields' => [ $name_field, $email_field, $text_field, $empty_field ],
 		];
 
-		$entry = [
-			'form_date_gmt' => '2023-01-01 10:00:00',
-		];
-
 		$this->prepare_verify(
 			'hcaptcha_formidable_forms_nonce',
 			'hcaptcha_formidable_forms'
 		);
-
-		$form             = new stdClass();
-		$form->updated_at = $entry['form_date_gmt'];
-
-		FunctionMocker::replace( [ 'FrmForm', 'getOne' ], $form );
 
 		$subject = new Form();
 
@@ -321,7 +360,7 @@ HTML;
 	 * @return void
 	 */
 	public function test_verify_missing_widget_id(): void {
-		$form_id       = 5;
+		$form_id       = $this->create_formidable_form();
 		$errors        = [];
 		$values        = [
 			'h-captcha-response' => 'some response',
@@ -338,11 +377,6 @@ HTML;
 		);
 
 		unset( $_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] );
-
-		$form             = new stdClass();
-		$form->created_at = '2023-01-01 10:00:00';
-
-		FunctionMocker::replace( [ 'FrmForm', 'getOne' ], $form );
 
 		$subject = new Form();
 
@@ -457,5 +491,26 @@ HTML;
 
 			self::assertTrue( $subject->is_formidable_forms_admin_page() );
 		}
+	}
+
+	/**
+	 * Create a form through the live Formidable Forms model.
+	 *
+	 * @return int
+	 */
+	private function create_formidable_form(): int {
+		\FrmAppController::install();
+
+		$form_id = \FrmForm::create(
+			[
+				'form_key'    => uniqid( 'hcaptcha-form-', false ),
+				'name'        => 'hCaptcha integration form',
+				'description' => '',
+			]
+		);
+
+		self::assertIsInt( $form_id );
+
+		return $form_id;
 	}
 }

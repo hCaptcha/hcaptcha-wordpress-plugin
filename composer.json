@@ -37,6 +37,7 @@
   },
   "require-dev": {
     "ext-fileinfo": "*",
+    "ext-mysqli": "*",
     "10up/wp_mock": "^1.1.1",
     "antecedent/patchwork": "^2.2.3",
     "behat/gherkin": "<=v4.12.0",
@@ -76,6 +77,7 @@
     "post-package-uninstall": "HCaptcha\\Scoper\\Scoper::post_package_uninstall",
     "phpcs": "vendor/bin/phpcs --colors --standard=phpcs.xml",
     "integration": "codecept run integration -c codeception.yml",
+    "integration:parallel": "@php tests/php/run-parallel.php integration",
     "unit": "codecept run unit -c codeception.yml"
   },
   "extra": {

@@ -13,11 +13,12 @@
 namespace HCaptcha\Tests\Integration\WC;
 
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use HCaptcha\WC\Checkout;
 use Mockery;
+use ReflectionClass;
 use ReflectionException;
 use WC_Payment_Gateway;
+use WooCommerce;
 use WP_Error;
 use WP_REST_Request;
 
@@ -27,14 +28,19 @@ use WP_REST_Request;
  * @group    wc-checkout
  * @group    wc
  */
-class CheckoutTest extends HCaptchaPluginWPTestCase {
+class CheckoutTest extends WooCommerceTestCase {
 
 	/**
-	 * Plugin relative path.
+	 * Test that the live WooCommerce plugin is loaded.
 	 *
-	 * @var string
+	 * @return void
 	 */
-	protected static $plugin = 'woocommerce/woocommerce.php';
+	public function test_live_plugin_is_loaded(): void {
+		$woocommerce_file = wp_normalize_path( ( new ReflectionClass( WooCommerce::class ) )->getFileName() );
+
+		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/woocommerce/' ), $woocommerce_file );
+		self::assertNotEmpty( constant( 'WC_VERSION' ) );
+	}
 
 	/**
 	 * Test tear down.
@@ -82,6 +88,8 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Tests add_captcha().
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_add_captcha(): void {
 		$args     = [
@@ -92,15 +100,26 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 				'form_id' => 'checkout',
 			],
 		];
-		$expected = $this->get_hcap_form( $args );
+		$hcaptcha = $this->get_hcap_form( $args );
 
-		$subject = new Checkout();
+		WC()->init();
+		new Checkout();
 
 		ob_start();
 
-		$subject->add_captcha();
+		wc_get_template(
+			'checkout/payment.php',
+			[
+				'available_gateways' => [],
+				'order_button_text'  => 'Place order',
+			]
+		);
 
-		self::assertSame( $expected, ob_get_clean() );
+		$output = ob_get_clean();
+
+		self::assertStringContainsString( 'woocommerce-checkout-payment', $output );
+		self::assertSame( 1, substr_count( $output, $hcaptcha ) );
+		self::assertLessThan( strpos( $output, 'id="place_order"' ), strpos( $output, $hcaptcha ) );
 	}
 
 	/**

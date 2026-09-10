@@ -23,10 +23,11 @@ class FunctionsTest extends HCaptchaWPTestCase {
 	 * @param string $action Action name for wp_nonce_field.
 	 * @param string $name   Nonce name for wp_nonce_field.
 	 * @param string $auto   Auto argument.
+	 * @param string $honeypot Honeypot argument.
 	 *
 	 * @dataProvider dp_test_hcap_shortcode
 	 */
-	public function test_hcap_shortcode( string $action, string $name, string $auto ): void {
+	public function test_hcap_shortcode( string $action, string $name, string $auto, string $honeypot ): void {
 		$filtered = ' filtered ';
 
 		$form_action = empty( $action ) ? 'hcaptcha_action' : $action;
@@ -43,6 +44,14 @@ class FunctionsTest extends HCaptchaWPTestCase {
 				'source'  => [ AutoVerify::class ],
 				'form_id' => 0,
 			];
+		}
+
+		if ( '' !== $honeypot ) {
+			$form_honeypot = filter_var( $honeypot, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE );
+
+			if ( null !== $form_honeypot ) {
+				$form_args['honeypot'] = $form_honeypot;
+			}
 		}
 
 		hcaptcha()->init_hooks();
@@ -63,6 +72,7 @@ class FunctionsTest extends HCaptchaWPTestCase {
 		$shortcode .= empty( $action ) ? '' : ' action="' . $action . '"';
 		$shortcode .= empty( $name ) ? '' : ' name="' . $name . '"';
 		$shortcode .= empty( $auto ) ? '' : ' auto="' . $auto . '"';
+		$shortcode .= empty( $honeypot ) ? '' : ' honeypot="' . $honeypot . '"';
 
 		$shortcode .= ']';
 
@@ -76,15 +86,19 @@ class FunctionsTest extends HCaptchaWPTestCase {
 	 */
 	public function dp_test_hcap_shortcode(): array {
 		return [
-			'no arguments'   => [ '', '', '' ],
-			'action only'    => [ 'some_action', '', '' ],
-			'name only'      => [ '', 'some_name', '' ],
-			'with arguments' => [ 'some_action', 'some_name', '' ],
-			'auto false'     => [ 'some_action', 'some_name', 'false' ],
-			'auto 0'         => [ 'some_action', 'some_name', '0' ],
-			'auto wrong'     => [ 'some_action', 'some_name', 'wrong' ],
-			'auto true'      => [ 'some_action', 'some_name', 'true' ],
-			'auto 1'         => [ 'some_action', 'some_name', '1' ],
+			'no arguments'   => [ '', '', '', '' ],
+			'action only'    => [ 'some_action', '', '', '' ],
+			'name only'      => [ '', 'some_name', '', '' ],
+			'with arguments' => [ 'some_action', 'some_name', '', '' ],
+			'auto false'     => [ 'some_action', 'some_name', 'false', '' ],
+			'auto 0'         => [ 'some_action', 'some_name', '0', '' ],
+			'auto wrong'     => [ 'some_action', 'some_name', 'wrong', '' ],
+			'auto true'      => [ 'some_action', 'some_name', 'true', '' ],
+			'auto 1'         => [ 'some_action', 'some_name', '1', '' ],
+			'honeypot false' => [ 'some_action', 'some_name', '', 'false' ],
+			'honeypot true'  => [ 'some_action', 'some_name', '', 'true' ],
+			'honeypot wrong' => [ 'some_action', 'some_name', '', 'wrong' ],
+			'auto honeypot'  => [ 'some_action', 'some_name', 'true', 'false' ],
 		];
 	}
 }

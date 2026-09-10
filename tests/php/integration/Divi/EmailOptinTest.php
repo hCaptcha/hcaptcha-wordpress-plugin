@@ -14,8 +14,7 @@ namespace HCaptcha\Tests\Integration\Divi;
 
 use HCaptcha\Divi\EmailOptin;
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
-use tad\FunctionMocker\FunctionMocker;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 
 /**
  * Class EmailOptinTest
@@ -23,7 +22,30 @@ use tad\FunctionMocker\FunctionMocker;
  * @group divi
  * @group divi-email-optin
  */
-class EmailOptinTest extends HCaptchaWPTestCase {
+class EmailOptinTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * Theme stylesheet slug.
+	 *
+	 * @var string
+	 */
+	protected static string $theme = 'Divi';
+
+	/**
+	 * Live Divi shortcode modules used by the test.
+	 *
+	 * @var array<string, string>
+	 */
+	protected static array $theme_shortcode_classes = [
+		'et_pb_signup' => 'ET_Builder_Module_Signup',
+	];
+
+	/**
+	 * Expected incorrect usage notices caused by the late theme load.
+	 *
+	 * @var string[]
+	 */
+	protected static array $theme_expected_incorrect_usage = [ "add_theme_support( 'title-tag' )" ];
 
 	/**
 	 * Tear down the test.
@@ -47,33 +69,24 @@ class EmailOptinTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test add_captcha().
+	 * Test the live Divi Email Opt-in module.
+	 *
+	 * @return void
 	 */
-	public function test_add_captcha(): void {
-		$wrap              = '<p class="et_pb_newsletter_button_wrap">';
-		$html              = <<<HTML
-<form>
-	$wrap
-</form>
-HTML;
-		$hcap_form         = $this->get_hcap_form(
-			[
-				'action' => EmailOptin::ACTION,
-				'name'   => EmailOptin::NONCE,
-				'id'     => [
-					'source'  => [ 'Divi' ],
-					'form_id' => 'email_optin',
-				],
-			]
+	public function test_live_email_optin_module(): void {
+		update_option( 'hcaptcha_settings', [ 'divi_status' => [ 'email_optin' ] ] );
+		hcaptcha()->init_hooks();
+
+		new EmailOptin();
+
+		$output = do_shortcode(
+			'[et_pb_signup provider="feedburner" feedburner_uri="hcaptcha-test"][/et_pb_signup]'
 		);
-		$expected          = str_replace( $wrap, $hcap_form . "\n" . $wrap, $html );
-		$single_name_field = 'some';
 
-		FunctionMocker::replace( 'et_core_is_fb_enabled', false );
-
-		$subject = new EmailOptin();
-
-		self::assertSame( $expected, $subject->add_captcha( $html, $single_name_field ) );
+		self::assertStringContainsString( 'et_pb_feedburner_form', $output );
+		self::assertStringContainsString( 'feedburner.google.com/fb/a/mailverify', $output );
+		self::assertStringContainsString( '<h-captcha', $output );
+		self::assertStringContainsString( 'name="hcaptcha_divi_email_optin_nonce"', $output );
 	}
 
 	/**

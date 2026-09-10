@@ -18,6 +18,13 @@ use WP_User;
 class Login extends LoginBase {
 
 	/**
+	 * Whether Profile Builder is rendering its login form.
+	 *
+	 * @var bool
+	 */
+	private bool $profile_builder_login_form = false;
+
+	/**
 	 * Init hooks.
 	 *
 	 * @return void
@@ -25,39 +32,58 @@ class Login extends LoginBase {
 	protected function init_hooks(): void {
 		parent::init_hooks();
 
-		add_filter( 'wppb_login_form_before_content_output', [ $this, 'add_wppb_captcha' ], 10, 2 );
+		add_filter( 'wppb_login_form_args', [ $this, 'mark_profile_builder_login_form' ], PHP_INT_MAX );
+		add_filter( 'login_form_middle', [ $this, 'add_wppb_captcha' ], 10, 2 );
+		add_filter( 'wppb_login_form_before_content_output', [ $this, 'finish_profile_builder_login_form' ], PHP_INT_MAX, 2 );
 		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
 	}
 
 	/**
+	 * Mark the beginning of Profile Builder login form rendering.
+	 *
+	 * @param array|mixed $form_args Form arguments.
+	 *
+	 * @return array
+	 */
+	public function mark_profile_builder_login_form( $form_args ): array {
+		$this->profile_builder_login_form = true;
+
+		return (array) $form_args;
+	}
+
+	/**
 	 * Add captcha.
 	 *
-	 * @param string|mixed $login_form Login form html.
+	 * @param string|mixed $content   Content to display in the middle of the login form.
 	 * @param array        $form_args  Form arguments.
 	 *
 	 * @return string|mixed
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function add_wppb_captcha( $login_form, array $form_args ) {
-		if ( ! $this->is_login_limit_exceeded() ) {
-			return $login_form;
+	public function add_wppb_captcha( $content, array $form_args ) {
+		$content = (string) $content;
+
+		if ( ! $this->profile_builder_login_form || ! $this->is_login_limit_exceeded() ) {
+			return $content;
 		}
 
-		$login_form = (string) $login_form;
+		return $content . $this->get_hcaptcha();
+	}
 
-		$args = [
-			'action' => self::ACTION,
-			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'login',
-			],
-		];
+	/**
+	 * Finish Profile Builder login form rendering.
+	 *
+	 * @param string|mixed $login_form Login form HTML.
+	 * @param array        $form_args  Form arguments.
+	 *
+	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function finish_profile_builder_login_form( $login_form, array $form_args ): string {
+		$this->profile_builder_login_form = false;
 
-		$search = '<p class="login-submit">';
-
-		return str_replace( $search, HCaptcha::form( $args ) . $search, $login_form );
+		return (string) $login_form;
 	}
 
 	/**

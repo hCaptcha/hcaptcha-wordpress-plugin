@@ -105,6 +105,35 @@ class AutoVerifyTest extends HCaptchaTestCase {
 			$result
 		);
 	}
+
+	/**
+	 * Test add_default_id() with a honeypot override.
+	 */
+	public function test_add_default_id_with_honeypot_override(): void {
+		$args = [
+			'auto'     => true,
+			'honeypot' => 'false',
+		];
+
+		WP_Mock::userFunction( 'get_the_ID' )->with()->once()->andReturn( 7 );
+
+		$subject = new AutoVerify();
+		$result  = $subject->add_default_id( $args );
+
+		self::assertSame(
+			[
+				'auto'     => true,
+				'honeypot' => 'false',
+				'id'       => [
+					'source'   => [ AutoVerify::class ],
+					'form_id'  => 7,
+					'honeypot' => false,
+				],
+			],
+			$result
+		);
+	}
+
 	/**
 	 * Test content_filter() on the frontend.
 	 */

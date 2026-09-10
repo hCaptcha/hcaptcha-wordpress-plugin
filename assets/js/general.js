@@ -2,6 +2,7 @@
 
 /**
  * @param HCaptchaGeneralObject.ajaxUrl
+ * @param HCaptchaGeneralObject.activeState
  * @param HCaptchaGeneralObject.badJSONError
  * @param HCaptchaGeneralObject.checkConfigAction
  * @param HCaptchaGeneralObject.checkConfigNonce
@@ -9,6 +10,13 @@
  * @param HCaptchaGeneralObject.checkingConfigMsg
  * @param HCaptchaGeneralObject.completeHCaptchaContent
  * @param HCaptchaGeneralObject.completeHCaptchaTitle
+ * @param HCaptchaGeneralObject.configMustBeObject
+ * @param HCaptchaGeneralObject.focusState
+ * @param HCaptchaGeneralObject.hexValue
+ * @param HCaptchaGeneralObject.hoverState
+ * @param HCaptchaGeneralObject.invalidJSON
+ * @param HCaptchaGeneralObject.lastValidPreview
+ * @param HCaptchaGeneralObject.mainState
  * @param HCaptchaGeneralObject.modeLive
  * @param HCaptchaGeneralObject.modeTestEnterpriseBotDetected
  * @param HCaptchaGeneralObject.modeTestEnterpriseBotDetectedSiteKey
@@ -16,7 +24,11 @@
  * @param HCaptchaGeneralObject.modeTestEnterpriseSafeEndUserSiteKey
  * @param HCaptchaGeneralObject.modeTestPublisher
  * @param HCaptchaGeneralObject.modeTestPublisherSiteKey
+ * @param HCaptchaGeneralObject.reportState
+ * @param HCaptchaGeneralObject.selectedState
  * @param HCaptchaGeneralObject.siteKey
+ * @param HCaptchaGeneralObject.unsavedChanges
+ * @param HCaptchaGeneralObject.validJSON
  */
 
 /* eslint-disable no-console */
@@ -41,17 +53,30 @@ const general = function( $ ) {
 	const $language = $( '[name="hcaptcha_settings[language]"]' );
 	const $mode = $( '[name="hcaptcha_settings[mode]"]' );
 	const $customThemes = $( '[name="hcaptcha_settings[custom_themes][]"]' );
-	const $customProp = $( '.hcaptcha-general-custom-prop select' );
-	const $customValue = $( '.hcaptcha-general-custom-value input' );
 	const $configParams = $( '[name="hcaptcha_settings[config_params]"]' );
+	const $themeEditorLauncher = $( '.hcaptcha-theme-editor-launcher' );
+	const $themeEditor = $( '.hcaptcha-theme-editor' );
+	const themeEditorPreviewOnly = 'true' === $themeEditor.attr( 'data-theme-editor-preview-only' );
+	const $themeEditorStatus = $( '.hcaptcha-theme-editor-dirty' );
+	const $themeEditorJSONStatus = $themeEditor.find( '.hcaptcha-theme-editor-json-status' );
+	const $themeEditorJSONError = $themeEditor.find( '.hcaptcha-theme-editor-json-error' );
+	const $themeEditorPreviewNote = $themeEditor.find( '[data-theme-editor-preview-note]' );
+	const $themeEditorPreviewDefaultContent = $themeEditorPreviewNote.contents().clone();
+	const $themeEditorOpen = $themeEditorLauncher.find( '[data-theme-editor-open]' );
 	const $enterpriseInputs = $( '.hcaptcha-section-enterprise + table input' );
 	const $recaptchaCompatOff = $( '[name="hcaptcha_settings[recaptcha_compat_off][]"]' );
 	const $submit = $form.find( '#submit' );
 	const modes = {};
-	const dataErrorBgColor = '#ffabaf';
 	let siteKeyInitVal = $siteKey.val();
 	let secretKeyInitVal = $secretKey.val();
 	let enterpriseInitValues = getEnterpriseValues();
+	let defaultTheme = {};
+	let lastValidConfigParams = {};
+	let initialNormalizedConfigParams = null;
+	let initialCustomThemes = false;
+	let activeThemeGroup = 'palette';
+	let pendingHCaptchaParams = null;
+	let hCaptchaApiReady = false;
 
 	modes[ HCaptchaGeneralObject.modeLive ] = HCaptchaGeneralObject.siteKey;
 	modes[ HCaptchaGeneralObject.modeTestPublisher ] = HCaptchaGeneralObject.modeTestPublisherSiteKey;
@@ -202,7 +227,35 @@ const general = function( $ ) {
 		showMessage( message, 'notice-error' );
 	}
 
+	function getHCaptchaThemeBackground( theme ) {
+		if ( ! isObject( theme ) ) {
+			return '';
+		}
+
+		const checkboxFill = getNestedValue( theme, [ 'component', 'checkbox', 'main', 'fill' ] );
+
+		if ( typeof checkboxFill === 'string' && checkboxFill ) {
+			return checkboxFill;
+		}
+
+		const mode = getNestedValue( theme, [ 'palette', 'mode' ] ) || theme.mode || 'light';
+		const greyShade = 'dark' === mode ? '800' : '100';
+		const paletteFill = getNestedValue( theme, [ 'palette', 'grey', greyShade ] );
+
+		if ( typeof paletteFill === 'string' && paletteFill ) {
+			return paletteFill;
+		}
+
+		return 'dark' === mode ? '#333333' : '#FAFAFA';
+	}
+
 	function hCaptchaUpdate( params = {} ) {
+		if ( ! hCaptchaApiReady ) {
+			pendingHCaptchaParams = Object.assign( {}, pendingHCaptchaParams || {}, params );
+
+			return;
+		}
+
 		const globalParams = Object.assign( {}, hCaptcha.getParams(), params );
 		const isCustomThemeActive = $customThemes.prop( 'checked' );
 		const isModeLive = 'live' === $mode.val();
@@ -222,6 +275,16 @@ const general = function( $ ) {
 			globalParams.theme = hCaptcha.getParams().theme;
 		}
 
+		const themeBackground = getHCaptchaThemeBackground( globalParams.theme );
+
+		if ( $sampleHCaptcha[ 0 ] ) {
+			if ( themeBackground ) {
+				$sampleHCaptcha[ 0 ].style.setProperty( '--hcaptcha-theme-editor-background', themeBackground );
+			} else {
+				$sampleHCaptcha[ 0 ].style.removeProperty( '--hcaptcha-theme-editor-background' );
+			}
+		}
+
 		hCaptcha.setParams( globalParams );
 
 		$sampleHCaptcha.html( '' );
@@ -237,9 +300,11 @@ const general = function( $ ) {
 		hCaptcha.bindEvents();
 	}
 
-	function deepMerge( target, source ) {
-		const isObject = ( obj ) => obj && typeof obj === 'object';
+	function isObject( value ) {
+		return value !== null && typeof value === 'object' && ! Array.isArray( value );
+	}
 
+	function deepMerge( target, source ) {
 		if ( ! isObject( target ) || ! isObject( source ) ) {
 			return source;
 		}
@@ -260,65 +325,578 @@ const general = function( $ ) {
 		return target;
 	}
 
-	function syncConfigParams( configParams, parentKey = '' ) {
-		for ( const key in configParams ) {
-			// Construct the full key path.
-			const fullKey = parentKey ? `${ parentKey }--${ key }` : key;
-
-			// If the value is an object, recursively print its keys.
-			if ( typeof configParams[ key ] === 'object' && configParams[ key ] !== null ) {
-				syncConfigParams( configParams[ key ], fullKey );
-			} else {
-				// Update the custom property selector.
-				const value = configParams[ key ];
-				const propKey = fullKey.replace( /theme--/g, '' );
-				const newValue = `${ propKey }=${ value }`;
-				const $prop = $customProp.find( `option[value*="${ propKey }="]` );
-
-				if ( $prop.length === 1 ) {
-					$prop.attr( 'value', newValue );
-					if ( $prop.is( ':selected' ) ) {
-						$customValue.val( value );
-					}
-				}
-			}
-		}
+	function deepClone( value ) {
+		return JSON.parse( JSON.stringify( value ) );
 	}
 
-	function applyCustomThemes( params = {} ) {
-		let configParamsJson = $configParams.val().trim();
-		let configParams;
+	function themeValuesMatch( value, defaultValue ) {
+		if ( typeof value === 'string' && typeof defaultValue === 'string' ) {
+			return value.toLowerCase() === defaultValue.toLowerCase();
+		}
 
-		configParamsJson = configParamsJson ? configParamsJson : null;
+		return value === defaultValue;
+	}
 
-		try {
-			configParams = JSON.parse( configParamsJson );
-		} catch {
-			$configParams.css( 'background-color', dataErrorBgColor );
-			$submit.attr( 'disabled', true );
-			showErrorMessage( HCaptchaGeneralObject.badJSONError );
+	function pruneDefaultThemeValues( theme, defaults ) {
+		Object.keys( theme ).forEach( ( key ) => {
+			const value = theme[ key ];
+			const defaultValue = defaults[ key ];
 
+			if ( isObject( value ) && isObject( defaultValue ) ) {
+				pruneDefaultThemeValues( value, defaultValue );
+
+				if ( 0 === Object.keys( value ).length ) {
+					delete theme[ key ];
+				}
+
+				return;
+			}
+
+			if ( themeValuesMatch( value, defaultValue ) ) {
+				delete theme[ key ];
+			}
+		} );
+	}
+
+	function sortConfigValue( value ) {
+		if ( Array.isArray( value ) ) {
+			return value.map( sortConfigValue );
+		}
+
+		if ( ! isObject( value ) ) {
+			return value;
+		}
+
+		return Object.keys( value ).sort().reduce( ( result, key ) => {
+			result[ key ] = sortConfigValue( value[ key ] );
+
+			return result;
+		}, {} );
+	}
+
+	function normalizeConfigParams( configParams ) {
+		const normalized = deepClone( configParams );
+
+		if ( isObject( normalized.theme ) ) {
+			const defaultMode = getNestedValue( defaultTheme, [ 'palette', 'mode' ] ) || 'light';
+			const mode = getNestedValue( normalized.theme, [ 'palette', 'mode' ] ) || defaultMode;
+
+			pruneDefaultThemeValues( normalized.theme, getDefaultThemeForMode( mode ) );
+
+			if ( mode !== defaultMode ) {
+				setNestedValue( normalized.theme, [ 'palette', 'mode' ], mode );
+			}
+
+			if ( 0 === Object.keys( normalized.theme ).length ) {
+				delete normalized.theme;
+			}
+		}
+
+		return sortConfigValue( normalized );
+	}
+
+	function getDefaultThemeForMode( mode ) {
+		const theme = deepClone( defaultTheme );
+
+		if ( 'dark' !== mode ) {
+			return theme;
+		}
+
+		return deepMerge( theme, {
+			palette: {
+				mode: 'dark',
+				text: {
+					body: '#F5F5F5',
+					heading: '#F5F5F5',
+				},
+			},
+			component: {
+				checkbox: {
+					main: {
+						border: '#F5F5F5',
+						fill: '#333333',
+					},
+					hover: {
+						fill: '#555555',
+					},
+				},
+				challenge: {
+					main: {
+						border: '#555555',
+						fill: '#333333',
+					},
+					hover: {
+						fill: '#555555',
+					},
+				},
+				modal: {
+					main: {
+						border: '#555555',
+						fill: '#333333',
+					},
+					hover: {
+						fill: '#555555',
+					},
+				},
+				breadcrumb: {
+					main: {
+						fill: '#555555',
+					},
+				},
+				button: {
+					main: {
+						fill: '#555555',
+						icon: '#F5F5F5',
+						text: '#F5F5F5',
+					},
+					hover: {
+						fill: '#919191',
+					},
+				},
+				list: {
+					main: {
+						border: '#555555',
+						fill: '#333333',
+					},
+				},
+				listItem: {
+					main: {
+						fill: '#333333',
+						line: '#555555',
+						text: '#F5F5F5',
+					},
+					hover: {
+						fill: '#555555',
+					},
+					selected: {
+						fill: '#555555',
+					},
+				},
+				input: {
+					main: {
+						border: '#919191',
+						fill: '#333333',
+					},
+					focus: {
+						border: '#F5F5F5',
+						fill: '#555555',
+					},
+				},
+				radio: {
+					main: {
+						border: '#BFBFBF',
+						check: '#555555',
+						file: '#555555',
+					},
+				},
+				task: {
+					main: {
+						fill: '#555555',
+					},
+				},
+				slider: {
+					main: {
+						bar: '#919191',
+					},
+				},
+			},
+		} );
+	}
+
+	function parseConfigParams() {
+		const configParamsJSON = $configParams.val().trim();
+		const configParams = configParamsJSON ? JSON.parse( configParamsJSON ) : {};
+
+		if ( ! isObject( configParams ) ) {
+			throw new TypeError( HCaptchaGeneralObject.configMustBeObject );
+		}
+
+		return configParams;
+	}
+
+	function getNestedValue( object, path ) {
+		return path.reduce( ( value, key ) => {
+			return isObject( value ) && Object.prototype.hasOwnProperty.call( value, key )
+				? value[ key ]
+				: undefined;
+		}, object );
+	}
+
+	function setNestedValue( object, path, value ) {
+		let target = object;
+
+		path.forEach( ( key, index ) => {
+			if ( index === path.length - 1 ) {
+				target[ key ] = value;
+				return;
+			}
+
+			if ( ! isObject( target[ key ] ) ) {
+				target[ key ] = {};
+			}
+
+			target = target[ key ];
+		} );
+	}
+
+	function humanizeThemeKey( key ) {
+		const words = String( key )
+			.replace( /([a-z0-9])([A-Z])/g, '$1 $2' )
+			.replace( /[_-]+/g, ' ' );
+
+		return words.charAt( 0 ).toUpperCase() + words.slice( 1 );
+	}
+
+	function formatThemeFieldLabel( path ) {
+		const stateLabels = {
+			active: HCaptchaGeneralObject.activeState,
+			focus: HCaptchaGeneralObject.focusState,
+			hover: HCaptchaGeneralObject.hoverState,
+			main: HCaptchaGeneralObject.mainState,
+			report: HCaptchaGeneralObject.reportState,
+			selected: HCaptchaGeneralObject.selectedState,
+		};
+		const parts = path.map( ( key ) => stateLabels[ key ] || humanizeThemeKey( key ) );
+
+		return parts.join( ' - ' );
+	}
+
+	function flattenThemeLeaves( object, path = [], result = [] ) {
+		Object.keys( object || {} ).forEach( ( key ) => {
+			const value = object[ key ];
+			const valuePath = path.concat( key );
+
+			if ( isObject( value ) ) {
+				flattenThemeLeaves( value, valuePath, result );
+			} else {
+				result.push( { path: valuePath, value } );
+			}
+		} );
+
+		return result;
+	}
+
+	function getActiveThemeGroupPath() {
+		return activeThemeGroup.split( '--' );
+	}
+
+	function getMergedTheme() {
+		const customTheme = isObject( lastValidConfigParams.theme )
+			? lastValidConfigParams.theme
+			: {};
+		const mode = getNestedValue( customTheme, [ 'palette', 'mode' ] ) || 'light';
+
+		return deepMerge( getDefaultThemeForMode( mode ), deepClone( customTheme ) );
+	}
+
+	function getThemePreviewValue( theme, path, fallback ) {
+		const value = getNestedValue( theme, path );
+
+		return typeof value === 'string' ? value : fallback;
+	}
+
+	function renderThemePreview() {
+		const $stage = $themeEditor.find( '[data-theme-editor-preview-stage]' );
+
+		if ( ! $stage.length ) {
 			return;
 		}
 
-		$submit.attr( 'disabled', false );
+		const customTheme = isObject( lastValidConfigParams.theme )
+			? lastValidConfigParams.theme
+			: {};
+		const configuredMode = getNestedValue( customTheme, [ 'palette', 'mode' ] );
+		const mode = configuredMode || 'light';
+		const logoMode = configuredMode ? mode : 'dark';
+		const theme = getMergedTheme();
+		const isDark = 'dark' === mode;
+		const widgetFillFallback = getThemePreviewValue(
+			customTheme,
+			[ 'palette', 'grey', isDark ? '800' : '100' ],
+			isDark ? '#333333' : '#FAFAFA',
+		);
+		const widgetBorderFallback = getThemePreviewValue(
+			customTheme,
+			[ 'palette', 'grey', isDark ? '200' : '300' ],
+			isDark ? '#F5F5F5' : '#E0E0E0',
+		);
+		const previewValues = {
+			'--hcap-palette-heading': getThemePreviewValue( theme, [ 'palette', 'text', 'heading' ], '#555555' ),
+			'--hcap-palette-body': getThemePreviewValue( theme, [ 'palette', 'text', 'body' ], '#555555' ),
+			'--hcap-palette-primary': getThemePreviewValue( theme, [ 'palette', 'primary', 'main' ], '#00838F' ),
+			'--hcap-checkbox-fill': getThemePreviewValue( customTheme, [ 'component', 'checkbox', 'main', 'fill' ], widgetFillFallback ),
+			'--hcap-checkbox-border': getThemePreviewValue( customTheme, [ 'component', 'checkbox', 'main', 'border' ], widgetBorderFallback ),
+			'--hcap-widget-checkbox-fill': getThemePreviewValue( customTheme, [ 'palette', 'grey', '100' ], '#FAFAFA' ),
+			'--hcap-widget-checkbox-border': getThemePreviewValue(
+				customTheme,
+				[ 'palette', 'grey', isDark ? '200' : '700' ],
+				isDark ? '#F5F5F5' : '#555555',
+			),
+			'--hcap-widget-label': getThemePreviewValue( customTheme, [ 'palette', 'text', 'body' ], '#333333' ),
+			'--hcap-widget-brand': getThemePreviewValue(
+				customTheme,
+				[ 'palette', 'grey', isDark ? '200' : '700' ],
+				isDark ? '#F5F5F5' : '#555555',
+			),
+			'--hcap-challenge-fill': getThemePreviewValue( theme, [ 'component', 'challenge', 'main', 'fill' ], '#FAFAFA' ),
+			'--hcap-challenge-border': getThemePreviewValue( theme, [ 'component', 'challenge', 'main', 'border' ], '#E0E0E0' ),
+			'--hcap-modal-fill': getThemePreviewValue( theme, [ 'component', 'modal', 'main', 'fill' ], '#FFFFFF' ),
+			'--hcap-modal-border': getThemePreviewValue( theme, [ 'component', 'modal', 'main', 'border' ], '#E0E0E0' ),
+			'--hcap-breadcrumb-fill': getThemePreviewValue( theme, [ 'component', 'breadcrumb', 'main', 'fill' ], '#F5F5F5' ),
+			'--hcap-breadcrumb-active': getThemePreviewValue( theme, [ 'component', 'breadcrumb', 'active', 'fill' ], '#00838F' ),
+			'--hcap-button-fill': getThemePreviewValue( theme, [ 'component', 'button', 'main', 'fill' ], '#FFFFFF' ),
+			'--hcap-button-icon': getThemePreviewValue( theme, [ 'component', 'button', 'main', 'icon' ], '#555555' ),
+			'--hcap-list-fill': getThemePreviewValue( theme, [ 'component', 'list', 'main', 'fill' ], '#FFFFFF' ),
+			'--hcap-list-border': getThemePreviewValue( theme, [ 'component', 'list', 'main', 'border' ], '#D7D7D7' ),
+			'--hcap-list-item-fill': getThemePreviewValue( theme, [ 'component', 'listItem', 'main', 'fill' ], '#FFFFFF' ),
+			'--hcap-list-item-line': getThemePreviewValue( theme, [ 'component', 'listItem', 'main', 'line' ], '#F5F5F5' ),
+			'--hcap-list-item-text': getThemePreviewValue( theme, [ 'component', 'listItem', 'main', 'text' ], '#555555' ),
+			'--hcap-list-item-selected': getThemePreviewValue( theme, [ 'component', 'listItem', 'selected', 'fill' ], '#E0E0E0' ),
+			'--hcap-radio-file': getThemePreviewValue( theme, [ 'component', 'radio', 'main', 'file' ], '#F5F5F5' ),
+			'--hcap-radio-border': getThemePreviewValue( theme, [ 'component', 'radio', 'main', 'border' ], '#919191' ),
+			'--hcap-radio-check': getThemePreviewValue( theme, [ 'component', 'radio', 'selected', 'check' ], '#00838F' ),
+			'--hcap-task-fill': getThemePreviewValue( theme, [ 'component', 'task', 'main', 'fill' ], '#F5F5F5' ),
+			'--hcap-task-selected': getThemePreviewValue( theme, [ 'component', 'task', 'selected', 'border' ], '#00838F' ),
+			'--hcap-task-report': getThemePreviewValue( theme, [ 'component', 'task', 'report', 'border' ], '#EB5757' ),
+			'--hcap-prompt-fill': getThemePreviewValue( theme, [ 'component', 'prompt', 'main', 'fill' ], '#00838F' ),
+			'--hcap-prompt-border': getThemePreviewValue( theme, [ 'component', 'prompt', 'main', 'border' ], '#00838F' ),
+			'--hcap-prompt-text': getThemePreviewValue( theme, [ 'component', 'prompt', 'main', 'text' ], '#FFFFFF' ),
+			'--hcap-skip-fill': getThemePreviewValue( theme, [ 'component', 'skipButton', 'main', 'fill' ], '#919191' ),
+			'--hcap-skip-border': getThemePreviewValue( theme, [ 'component', 'skipButton', 'main', 'border' ], '#919191' ),
+			'--hcap-skip-text': getThemePreviewValue( theme, [ 'component', 'skipButton', 'main', 'text' ], '#FFFFFF' ),
+			'--hcap-verify-fill': getThemePreviewValue( theme, [ 'component', 'verifyButton', 'main', 'fill' ], '#00838F' ),
+			'--hcap-verify-border': getThemePreviewValue( theme, [ 'component', 'verifyButton', 'main', 'border' ], '#00838F' ),
+			'--hcap-verify-text': getThemePreviewValue( theme, [ 'component', 'verifyButton', 'main', 'text' ], '#FFFFFF' ),
+			'--hcap-slider-bar': getThemePreviewValue( theme, [ 'component', 'slider', 'main', 'bar' ], '#C4C4C4' ),
+			'--hcap-slider-handle': getThemePreviewValue( theme, [ 'component', 'slider', 'main', 'handle' ], '#0F8390' ),
+		};
 
-		configParams = deepMerge( configParams, params );
+		$stage
+			.attr( 'data-theme-preview-mode', mode )
+			.attr( 'data-theme-preview-logo-mode', logoMode )
+			.css( previewValues );
+		$stage.find( '[data-theme-mock-logo]' ).each( function() {
+			const $logo = $( this );
 
-		$configParams.val( JSON.stringify( configParams, null, 2 ) );
+			$logo.prop( 'hidden', logoMode !== $logo.attr( 'data-theme-mock-logo' ) );
+		} );
+	}
 
-		syncConfigParams( configParams );
+	function setThemePreviewView( view ) {
+		$themeEditor.find( '[data-theme-preview-view]' ).each( function() {
+			const $button = $( this );
+			const isActive = view === $button.attr( 'data-theme-preview-view' );
 
-		if ( ! $customThemes.prop( 'checked' ) ) {
-			configParams = {
-				sitekey: $siteKey.val(),
-				theme: $theme.val(),
-				size: $size.val(),
-				hl: $language.val(),
-			};
+			$button.toggleClass( 'is-active', isActive );
+			$button.attr( 'aria-selected', isActive ? 'true' : 'false' );
+		} );
+
+		$themeEditor.find( '[data-theme-preview-pane]' ).each( function() {
+			const $pane = $( this );
+			const isActive = view === $pane.attr( 'data-theme-preview-pane' );
+
+			$pane.prop( 'hidden', ! isActive );
+		} );
+	}
+
+	function renderThemeNavigation() {
+		const $componentNav = $themeEditor.find( '[data-theme-editor-component-nav]' );
+		const components = isObject( defaultTheme.component ) ? defaultTheme.component : {};
+
+		$componentNav.empty();
+
+		Object.keys( components ).forEach( ( component ) => {
+			const $button = $( '<button>', {
+				class: 'hcaptcha-theme-editor-nav-button',
+				text: humanizeThemeKey( component ),
+				type: 'button',
+			} ).attr( 'data-theme-group', `component--${ component }` );
+
+			$componentNav.append( $button );
+		} );
+	}
+
+	function createThemeColorRow( leaf, groupPath ) {
+		const fullPath = groupPath.concat( leaf.path );
+		const fieldPath = `theme.${ fullPath.join( '.' ) }`;
+		const value = String( leaf.value );
+		const colorValue = /^#[0-9a-f]{6}$/i.test( value ) ? value : '#000000';
+		const $row = $( '<div>', { class: 'hcaptcha-theme-editor-color-row' } );
+		const $label = $( '<div>' );
+		const $controls = $( '<div>', { class: 'hcaptcha-theme-editor-color-controls' } );
+		const $color = $( '<input>', {
+			class: 'hcaptcha-theme-editor-color',
+			type: 'color',
+			value: colorValue,
+		} ).attr( {
+			'aria-label': formatThemeFieldLabel( leaf.path ),
+			'data-theme-color-path': fullPath.join( '--' ),
+		} );
+		const $hex = $( '<input>', {
+			class: 'hcaptcha-theme-editor-hex',
+			type: 'text',
+			value: value.toUpperCase(),
+		} ).attr( {
+			'aria-label': `${ formatThemeFieldLabel( leaf.path ) } ${ HCaptchaGeneralObject.hexValue }`,
+			'data-theme-hex-path': fullPath.join( '--' ),
+		} );
+
+		$( '<span>', {
+			class: 'hcaptcha-theme-editor-color-label',
+			text: formatThemeFieldLabel( leaf.path ),
+		} ).appendTo( $label );
+		$( '<code>', {
+			class: 'hcaptcha-theme-editor-color-path',
+			text: fieldPath,
+		} ).appendTo( $label );
+
+		$controls.append( $color, $hex );
+		$row.append( $label, $controls );
+
+		return $row;
+	}
+
+	function renderThemeGroup() {
+		if ( ! $themeEditor.length ) {
+			return;
 		}
 
-		hCaptchaUpdate( configParams );
+		const mergedTheme = getMergedTheme();
+		const groupPath = getActiveThemeGroupPath();
+		const group = getNestedValue( mergedTheme, groupPath ) || {};
+		const groupTitle = humanizeThemeKey( groupPath[ groupPath.length - 1 ] );
+		const $fields = $themeEditor.find( '[data-theme-editor-fields]' );
+		const leaves = flattenThemeLeaves( group ).filter( ( leaf ) => {
+			return ! ( 'palette' === activeThemeGroup && 'mode' === leaf.path.join( '--' ) );
+		} );
+
+		$themeEditor.find( '[data-theme-editor-group-title]' ).text( groupTitle );
+		$themeEditor.find( '[data-theme-editor-group-description]' ).text( `theme.${ groupPath.join( '.' ) }` );
+		$themeEditor.find( '[data-theme-editor-mode-field]' ).toggle( 'palette' === activeThemeGroup );
+		$themeEditor.find( '[data-theme-editor-mode]' ).val( getNestedValue( mergedTheme, [ 'palette', 'mode' ] ) || 'light' );
+		$fields.empty();
+
+		leaves.forEach( ( leaf ) => {
+			$fields.append( createThemeColorRow( leaf, groupPath ) );
+		} );
+	}
+
+	function themeEditorHasChanges() {
+		if ( initialCustomThemes !== $customThemes.prop( 'checked' ) || initialNormalizedConfigParams === null ) {
+			return true;
+		}
+
+		try {
+			return JSON.stringify( normalizeConfigParams( parseConfigParams() ) ) !==
+				JSON.stringify( initialNormalizedConfigParams );
+		} catch {
+			return true;
+		}
+	}
+
+	function setThemeEditorDirty( dirty ) {
+		const isDirty = ! themeEditorPreviewOnly && dirty && themeEditorHasChanges();
+
+		$themeEditorStatus
+			.text( isDirty ? HCaptchaGeneralObject.unsavedChanges : '' )
+			.toggleClass( 'is-dirty', isDirty )
+			.prop( 'hidden', ! isDirty );
+	}
+
+	function updateThemeEditorPreviewNote() {
+		const $behavior = $themeEditorPreviewNote.find( '[data-theme-editor-preview-behavior]' );
+
+		if ( ! $behavior.length || themeEditorPreviewOnly ) {
+			return;
+		}
+
+		const $customThemesWarning = $themeEditorPreviewNote.find( '[data-theme-editor-custom-themes-warning]' );
+		const customThemesEnabled = $customThemes.prop( 'checked' );
+		const attribute = customThemesEnabled ? 'data-live-text' : 'data-preview-only-text';
+
+		$behavior.text( $behavior.attr( attribute ) );
+		$customThemesWarning.prop( 'hidden', customThemesEnabled );
+	}
+
+	function setConfigValidationState( valid, error = '' ) {
+		$configParams.attr( 'aria-invalid', valid ? 'false' : 'true' );
+		$themeEditorJSONStatus
+			.toggleClass( 'is-valid', valid )
+			.toggleClass( 'is-invalid', ! valid )
+			.text( valid ? HCaptchaGeneralObject.validJSON : HCaptchaGeneralObject.invalidJSON );
+		$themeEditorJSONError.text( error );
+
+		if ( valid ) {
+			$themeEditorPreviewNote.empty().append( $themeEditorPreviewDefaultContent.clone() );
+			updateThemeEditorPreviewNote();
+		} else {
+			$themeEditorPreviewNote.text( HCaptchaGeneralObject.lastValidPreview );
+		}
+		$submit.prop( 'disabled', ! valid && ! themeEditorPreviewOnly );
+	}
+
+	function getBasePreviewParams() {
+		return {
+			hl: $language.val(),
+			sitekey: $siteKey.val(),
+			size: $size.val(),
+			theme: $theme.val(),
+		};
+	}
+
+	function applyValidatedConfig( configParams, options = {} ) {
+		const settings = Object.assign(
+			{
+				dirty: false,
+				format: false,
+				render: true,
+			},
+			options,
+		);
+
+		lastValidConfigParams = deepClone( configParams );
+
+		if ( settings.format ) {
+			$configParams.val( JSON.stringify( configParams, null, 2 ) );
+		}
+
+		setConfigValidationState( true );
+		setThemeEditorDirty( settings.dirty );
+
+		if ( settings.render ) {
+			renderThemeGroup();
+		}
+
+		renderThemePreview();
+
+		if ( themeEditorPreviewOnly || ! $customThemes.prop( 'checked' ) ) {
+			return;
+		}
+
+		const previewParams = deepClone( configParams );
+
+		if ( ! isObject( previewParams.theme ) ) {
+			previewParams.theme = {};
+		}
+
+		hCaptchaUpdate( previewParams );
+	}
+
+	function applyCustomThemes( params = {}, options = {} ) {
+		let configParams;
+
+		try {
+			configParams = parseConfigParams();
+			configParams = deepMerge( configParams, params );
+		} catch ( error ) {
+			setConfigValidationState( false, `${ HCaptchaGeneralObject.badJSONError }: ${ error.message }` );
+
+			return false;
+		}
+
+		applyValidatedConfig( configParams, options );
+
+		return true;
 	}
 
 	function checkConfig() {
@@ -499,7 +1077,15 @@ const general = function( $ ) {
 	}
 
 	document.addEventListener( 'hCaptchaLoaded', function() {
+		hCaptchaApiReady = true;
 		showErrorMessage();
+
+		if ( pendingHCaptchaParams !== null ) {
+			const params = pendingHCaptchaParams;
+
+			pendingHCaptchaParams = null;
+			hCaptchaUpdate( params );
+		}
 	} );
 
 	$checkConfig.on( 'click', function( event ) {
@@ -583,27 +1169,337 @@ const general = function( $ ) {
 
 	$mode.on( 'change', syncKeysWithMode );
 
-	function toggleCustomThemeFields() {
-		const isOn = $customThemes.prop( 'checked' );
+	function expandKeysSection() {
+		const $keysSection = $( '.hcaptcha-section-keys' );
 
-		$customProp.prop( 'disabled', ! isOn );
-		$customValue.prop( 'disabled', ! isOn );
-		$configParams.prop( 'disabled', ! isOn );
+		if ( $keysSection.hasClass( 'closed' ) ) {
+			$keysSection.trigger( 'click' );
+			$keysSection.removeClass( 'closed' );
+		}
 	}
 
-	toggleCustomThemeFields();
+	function clampThemeEditorPosition() {
+		if ( ! $themeEditor.is( ':visible' ) || window.innerWidth <= 760 ) {
+			return;
+		}
+
+		const editor = $themeEditor[ 0 ];
+		const bounds = editor.getBoundingClientRect();
+		const left = Math.max( 8, Math.min( bounds.left, window.innerWidth - bounds.width - 8 ) );
+		const top = Math.max( 40, Math.min( bounds.top, window.innerHeight - bounds.height - 8 ) );
+
+		$themeEditor.css( {
+			left: `${ left }px`,
+			right: 'auto',
+			top: `${ top }px`,
+		} );
+	}
+
+	function openThemeEditor() {
+		if ( $themeEditorOpen.prop( 'disabled' ) ) {
+			return;
+		}
+
+		expandKeysSection();
+		$themeEditor.prop( 'hidden', false );
+		$themeEditorOpen.attr( 'aria-expanded', 'true' );
+		clampThemeEditorPosition();
+		$themeEditor.find( '[data-theme-editor-close]' ).trigger( 'focus' );
+	}
+
+	function closeThemeEditor() {
+		const wasOpen = ! $themeEditor.prop( 'hidden' );
+
+		$themeEditor.prop( 'hidden', true );
+		$themeEditorOpen.attr( 'aria-expanded', 'false' );
+		$( document ).off( '.hcaptchaThemeEditorDrag' );
+
+		if ( wasOpen ) {
+			$themeEditorOpen.trigger( 'focus' );
+		}
+	}
+
+	function showRealHCaptcha() {
+		expandKeysSection();
+
+		const $sample = $( '.hcaptcha-general-sample-hcaptcha' );
+
+		if ( ! $sample.length ) {
+			return;
+		}
+
+		$( 'html, body' ).stop().animate(
+			{
+				scrollTop: $sample.offset().top - hCaptchaSettingsBase.getStickyHeight() - 20,
+			},
+			300,
+		);
+	}
+
+	function initThemeEditorDragging() {
+		$themeEditor.on( 'pointerdown', '[data-theme-editor-drag-handle]', function( event ) {
+			if ( $( event.target ).closest( 'button' ).length || window.innerWidth <= 900 ) {
+				return;
+			}
+
+			event.preventDefault();
+
+			const bounds = $themeEditor[ 0 ].getBoundingClientRect();
+			const startX = event.clientX;
+			const startY = event.clientY;
+
+			$themeEditor.css( {
+				left: `${ bounds.left }px`,
+				right: 'auto',
+				top: `${ bounds.top }px`,
+			} );
+
+			$( document )
+				.on( 'pointermove.hcaptchaThemeEditorDrag', function( moveEvent ) {
+					const maxLeft = Math.max( 8, window.innerWidth - $themeEditor.outerWidth() - 8 );
+					const maxTop = Math.max( 40, window.innerHeight - $themeEditor.outerHeight() - 8 );
+					const left = Math.max( 8, Math.min( bounds.left + moveEvent.clientX - startX, maxLeft ) );
+					const top = Math.max( 40, Math.min( bounds.top + moveEvent.clientY - startY, maxTop ) );
+
+					$themeEditor.css( { left: `${ left }px`, top: `${ top }px` } );
+				} )
+				.one( 'pointerup.hcaptchaThemeEditorDrag pointercancel.hcaptchaThemeEditorDrag', function() {
+					$( document ).off( '.hcaptchaThemeEditorDrag' );
+					clampThemeEditorPosition();
+				} );
+		} );
+
+		$( window ).on( 'resize.hcaptchaThemeEditor', lodash.debounce( function() {
+			if ( window.innerWidth <= 760 ) {
+				$themeEditor.css( { left: '', right: '', top: '' } );
+				return;
+			}
+
+			clampThemeEditorPosition();
+		}, 100 ) );
+	}
+
+	function initThemeEditor() {
+		if ( ! $themeEditor.length ) {
+			return;
+		}
+
+		if ( themeEditorPreviewOnly ) {
+			const configParamsName = $configParams.attr( 'name' );
+
+			if ( configParamsName && ! $themeEditorLauncher.find( '[data-theme-editor-original-config]' ).length ) {
+				$( '<input>', {
+					name: configParamsName,
+					type: 'hidden',
+					value: $configParams.val(),
+				} )
+					.attr( 'data-theme-editor-original-config', '' )
+					.appendTo( $themeEditorLauncher );
+				$configParams.removeAttr( 'name' );
+			}
+		}
+
+		$themeEditor.appendTo( $form.length ? $form : document.body );
+
+		try {
+			defaultTheme = JSON.parse( $themeEditor.attr( 'data-default-theme' ) || '{}' );
+		} catch {
+			defaultTheme = {};
+		}
+
+		renderThemeNavigation();
+		initialCustomThemes = $customThemes.prop( 'checked' );
+
+		try {
+			lastValidConfigParams = parseConfigParams();
+			initialNormalizedConfigParams = normalizeConfigParams( lastValidConfigParams );
+			setConfigValidationState( true );
+		} catch ( error ) {
+			lastValidConfigParams = {};
+			initialNormalizedConfigParams = null;
+			setConfigValidationState( false, `${ HCaptchaGeneralObject.badJSONError }: ${ error.message }` );
+		}
+
+		setThemeEditorDirty( false );
+		renderThemeGroup();
+		renderThemePreview();
+		initThemeEditorDragging();
+	}
+
+	function toggleCustomThemeFields( dirty = false, updateHCaptcha = true ) {
+		const $editorControls = $themeEditor.find( 'button, input, select, textarea' );
+
+		$editorControls.prop( 'disabled', false );
+		$themeEditorOpen.prop( 'disabled', false );
+		$themeEditorLauncher.removeClass( 'is-disabled' );
+		$themeEditor.attr( 'aria-disabled', 'false' );
+		updateThemeEditorPreviewNote();
+
+		if ( themeEditorPreviewOnly ) {
+			setThemeEditorDirty( false );
+
+			return;
+		}
+
+		const isOn = $customThemes.prop( 'checked' );
+
+		if ( isOn ) {
+			if ( updateHCaptcha ) {
+				applyCustomThemes( {}, { dirty, render: true } );
+			}
+		} else {
+			setThemeEditorDirty( dirty );
+
+			if ( updateHCaptcha ) {
+				hCaptchaUpdate( getBasePreviewParams() );
+			}
+		}
+	}
+
+	initThemeEditor();
+	toggleCustomThemeFields( false, false );
 
 	$customThemes.on( 'change', function() {
-		toggleCustomThemeFields();
-		applyCustomThemes();
+		toggleCustomThemeFields( true );
+	} );
+
+	$themeEditorOpen.on( 'click', openThemeEditor );
+	$themeEditor.on( 'click', '[data-theme-editor-close]', closeThemeEditor );
+	$themeEditor.on( 'click', '[data-theme-editor-show-sample]', showRealHCaptcha );
+
+	$( document ).on( 'keydown.hcaptchaThemeEditor', function( event ) {
+		if ( 'Escape' === event.key && ! $themeEditor.prop( 'hidden' ) ) {
+			closeThemeEditor();
+		}
 	} );
 
 	$configParams.on( 'input', lodash.debounce( function() {
-		applyCustomThemes();
+		setThemeEditorDirty( true );
+		applyCustomThemes( {}, { dirty: true, render: true } );
 	}, 300 ) );
 
-	$configParams.on( 'focus', function() {
-		$configParams.css( 'background-color', 'unset' );
+	$themeEditor.on( 'click', '[data-theme-editor-tab]', function() {
+		const $tab = $( this );
+		const tabName = $tab.attr( 'data-theme-editor-tab' );
+
+		$themeEditor.find( '[data-theme-editor-tab]' ).each( function() {
+			const $candidate = $( this );
+			const isActive = $candidate.is( $tab );
+
+			$candidate.toggleClass( 'is-active', isActive );
+			$candidate.attr( 'aria-selected', isActive ? 'true' : 'false' );
+		} );
+
+		$themeEditor.find( '[data-theme-editor-pane]' ).each( function() {
+			const $pane = $( this );
+			const isActive = tabName === $pane.attr( 'data-theme-editor-pane' );
+
+			$pane.toggleClass( 'is-active', isActive );
+			$pane.prop( 'hidden', ! isActive );
+		} );
+	} );
+
+	$themeEditor.on( 'click', '[data-theme-group]', function() {
+		const $button = $( this );
+
+		activeThemeGroup = $button.attr( 'data-theme-group' );
+		$themeEditor.find( '[data-theme-group]' ).removeClass( 'is-active' );
+		$button.addClass( 'is-active' );
+		renderThemeGroup();
+
+		if ( 'palette' !== activeThemeGroup ) {
+			setThemePreviewView( 'component--checkbox' === activeThemeGroup ? 'widget' : 'challenge' );
+		}
+	} );
+
+	function updateVisualThemeValue( path, value ) {
+		const configParams = deepClone( lastValidConfigParams );
+
+		if ( ! isObject( configParams.theme ) ) {
+			configParams.theme = {};
+		}
+
+		setNestedValue( configParams.theme, path, value );
+		applyValidatedConfig( configParams, { dirty: true, format: true, render: false } );
+	}
+
+	$themeEditor.on( 'input', '[data-theme-color-path]', function() {
+		const $color = $( this );
+		const value = $color.val().toUpperCase();
+		const path = $color.attr( 'data-theme-color-path' ).split( '--' );
+
+		$color.closest( '.hcaptcha-theme-editor-color-controls' )
+			.find( '[data-theme-hex-path]' )
+			.val( value )
+			.attr( 'aria-invalid', 'false' );
+		updateVisualThemeValue( path, value );
+	} );
+
+	$themeEditor.on( 'input', '[data-theme-hex-path]', function() {
+		const $hex = $( this );
+		const value = $hex.val().trim();
+
+		if ( ! /^#[0-9a-f]{6}$/i.test( value ) ) {
+			$hex.attr( 'aria-invalid', 'true' );
+			return;
+		}
+
+		const path = $hex.attr( 'data-theme-hex-path' ).split( '--' );
+
+		$hex.attr( 'aria-invalid', 'false' );
+		$hex.closest( '.hcaptcha-theme-editor-color-controls' )
+			.find( '[data-theme-color-path]' )
+			.val( value );
+		updateVisualThemeValue( path, value.toUpperCase() );
+	} );
+
+	$themeEditor.on( 'change', '[data-theme-editor-mode]', function() {
+		const configParams = deepClone( lastValidConfigParams );
+
+		if ( ! isObject( configParams.theme ) ) {
+			configParams.theme = {};
+		}
+
+		pruneDefaultThemeValues( configParams.theme, defaultTheme );
+		setNestedValue( configParams.theme, [ 'palette', 'mode' ], $( this ).val() );
+		applyValidatedConfig( configParams, { dirty: true, format: true, render: true } );
+	} );
+
+	$themeEditor.on( 'click', '[data-theme-editor-reset-section]', function() {
+		const configParams = deepClone( lastValidConfigParams );
+		const groupPath = getActiveThemeGroupPath();
+		const defaultGroup = getNestedValue( defaultTheme, groupPath );
+
+		if ( ! isObject( configParams.theme ) ) {
+			configParams.theme = {};
+		}
+
+		setNestedValue( configParams.theme, groupPath, deepClone( defaultGroup ) );
+		applyValidatedConfig( configParams, { dirty: true, format: true, render: true } );
+	} );
+
+	$themeEditor.on( 'click', '[data-theme-editor-reset-theme]', function() {
+		const configParams = deepClone( lastValidConfigParams );
+
+		configParams.theme = deepClone( defaultTheme );
+		applyValidatedConfig( configParams, { dirty: true, format: true, render: true } );
+	} );
+
+	$themeEditor.on( 'click', '[data-theme-editor-format]', function() {
+		applyCustomThemes( {}, { dirty: true, format: true, render: true } );
+	} );
+
+	$themeEditor.on( 'click', '[data-theme-preview-background]', function() {
+		const $button = $( this );
+		const isDark = 'dark' === $button.attr( 'data-theme-preview-background' );
+
+		$themeEditor.find( '[data-theme-preview-background]' ).removeClass( 'is-active' );
+		$button.addClass( 'is-active' );
+		$themeEditor.find( '[data-theme-editor-preview-stage]' ).toggleClass( 'is-dark', isDark );
+	} );
+
+	$themeEditor.on( 'click', '[data-theme-preview-view]', function() {
+		setThemePreviewView( $( this ).attr( 'data-theme-preview-view' ) );
 	} );
 
 	function forceHttps( host ) {
@@ -687,60 +1583,6 @@ const general = function( $ ) {
 	// Prevent saving values of some form elements.
 	$checkConfig.removeAttr( 'name' );
 	$resetNotifications.removeAttr( 'name' );
-	$customProp.removeAttr( 'name' );
-	$customValue.removeAttr( 'name' );
-
-	// Disable group keys.
-	$customProp.find( 'option' ).each( function() {
-		const $option = $( this );
-		const value = $option.val().split( '=' )[ 1 ];
-
-		if ( ! value ) {
-			$option.attr( 'disabled', true );
-		}
-	} );
-
-	// Clear custom value.
-	$customValue.val( '' );
-
-	// On Custom Prop change.
-	$customProp.on( 'change', function() {
-		const $selected = $( this ).find( 'option:selected' );
-		const option = $selected.val().split( '=' );
-		const key = option[ 0 ];
-		const value = option[ 1 ];
-
-		if ( key === 'palette--mode' ) {
-			$customValue.attr( 'type', 'text' );
-			$customValue.val( value );
-		} else {
-			$customValue.val( value );
-			$customValue.attr( 'type', 'color' );
-		}
-	} );
-
-	// On Custom Value change (debounced for live color-picker updates).
-	function customValueChange() {
-		const value = $customValue.val();
-		const $selected = $customProp.find( 'option:selected' );
-		const option = $selected.val().split( '=' );
-		let key = option[ 0 ];
-		let params = value;
-
-		$selected.val( key + '=' + value );
-
-		key = 'theme--' + option[ 0 ];
-		params = key.split( '--' ).reverse().reduce( function( acc, curr ) {
-			const newObj = {};
-			newObj[ curr ] = acc;
-
-			return newObj;
-		}, params );
-
-		applyCustomThemes( params );
-	}
-
-	$customValue.on( 'input', lodash.debounce( customValueChange, 300 ) );
 };
 
 window.hCaptchaGeneral = general;

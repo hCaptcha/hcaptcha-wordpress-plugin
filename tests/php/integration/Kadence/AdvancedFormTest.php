@@ -13,8 +13,7 @@ namespace HCaptcha\Tests\Integration\Kadence;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Kadence\BlockParser;
 use HCaptcha\Kadence\AdvancedForm;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
-use KB_Ajax_Advanced_Form;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
 use ReflectionException;
 use ReflectionMethod;
@@ -25,7 +24,31 @@ use ReflectionMethod;
  * @group kadence
  * @group kadence-advanced-form
  */
-class AdvancedFormTest extends HCaptchaWPTestCase {
+class AdvancedFormTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * Kadence Blocks plugin entry file.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'kadence-blocks/kadence-blocks.php';
+
+	/**
+	 * Hooks to replay after loading Kadence Blocks.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
+
+	/**
+	 * Expected notice from Kadence's late-loaded dependency registry.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_expected_incorrect_usage = [ '_lw_harbor_instance_registry' ];
 
 	/**
 	 * Tear down the test.
@@ -178,13 +201,30 @@ class AdvancedFormTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_render_nested_forms_with_different_ids(): void {
-		$document = '<!-- wp:kadence/rowlayout --><!-- wp:kadence/column --><!-- wp:kadence/advanced-form {"id":123} --><!-- wp:kadence/advanced-form-submit --><div class="kb-adv-form-field kb-submit-field"></div><!-- /wp:kadence/advanced-form-submit --><!-- /wp:kadence/advanced-form --><!-- /wp:kadence/column --><!-- wp:kadence/column --><!-- wp:kadence/advanced-form {"id":456} --><!-- wp:kadence/advanced-form-submit --><div class="kb-adv-form-field kb-submit-field"></div><!-- /wp:kadence/advanced-form-submit --><!-- /wp:kadence/advanced-form --><!-- /wp:kadence/column --><!-- /wp:kadence/rowlayout -->';
+		$form_ids = [];
+
+		foreach ( [ 'first', 'second' ] as $index => $slug ) {
+			$form_ids[] = wp_insert_post(
+				[
+					'post_type'    => 'kadence_form',
+					'post_status'  => 'publish',
+					'post_title'   => ucfirst( $slug ) . ' form',
+					'post_content' => '<!-- wp:kadence/advanced-form --><!-- wp:kadence/advanced-form-submit {"uniqueID":"submit-' . $slug . '","text":"Submit"} /--><!-- /wp:kadence/advanced-form -->',
+				]
+			);
+		}
+
+		$document = '';
+
+		foreach ( $form_ids as $index => $form_id ) {
+			$document .= '<!-- wp:kadence/advanced-form {"id":' . $form_id . ',"uniqueID":"embedded-' . $index . '"} /-->';
+		}
 
 		new AdvancedForm();
 
 		$output = do_blocks( $document );
 
-		foreach ( [ 123, 456 ] as $form_id ) {
+		foreach ( $form_ids as $form_id ) {
 			$widget_id = HCaptcha::widget_id_value(
 				[
 					'source'  => [ 'kadence-blocks/kadence-blocks.php' ],
@@ -195,7 +235,9 @@ class AdvancedFormTest extends HCaptchaWPTestCase {
 			self::assertSame( 1, substr_count( $output, esc_attr( $widget_id ) ) );
 		}
 
-		self::assertSame( 456, BlockParser::$form_id );
+		self::assertStringContainsString( 'class="wp-block-kadence-advanced-form', $output );
+		self::assertStringContainsString( 'class="kb-button kt-button button kb-adv-form-submit-button', $output );
+		self::assertSame( end( $form_ids ), BlockParser::$form_id );
 	}
 
 	/**
@@ -319,15 +361,18 @@ HTML;
 			}
 		);
 
-		$kb_ajax_advanced_form = Mockery::mock( 'alias:KB_Ajax_Advanced_Form' );
-		$kb_ajax_advanced_form->shouldReceive( 'get_instance' )->once()->andReturn( $kb_ajax_advanced_form );
-		$kb_ajax_advanced_form->shouldReceive( 'process_bail' )
-			->once()->with( $error_message, 'hCaptcha Failed' );
-
 		$subject = Mockery::mock( AdvancedForm::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 
+		ob_start();
+		ob_start();
 		$subject->process_ajax();
+		$json = ob_get_clean();
+		$data = json_decode( $json, true );
+
+		self::assertFalse( $data['success'] );
+		self::assertSame( $error_message, $data['data']['message'] );
+		self::assertSame( 'hCaptcha Failed', $data['data']['console'] );
 	}
 
 	/**
@@ -351,15 +396,18 @@ HTML;
 			}
 		);
 
-		$kb_ajax_advanced_form = Mockery::mock( 'alias:KB_Ajax_Advanced_Form' );
-		$kb_ajax_advanced_form->shouldReceive( 'get_instance' )->once()->andReturn( $kb_ajax_advanced_form );
-		$kb_ajax_advanced_form->shouldReceive( 'process_bail' )
-			->once()->with( $error_message, 'hCaptcha Failed' );
-
 		$subject = Mockery::mock( AdvancedForm::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 
+		ob_start();
+		ob_start();
 		$subject->process_ajax();
+		$json = ob_get_clean();
+		$data = json_decode( $json, true );
+
+		self::assertFalse( $data['success'] );
+		self::assertSame( $error_message, $data['data']['message'] );
+		self::assertSame( 'hCaptcha Failed', $data['data']['console'] );
 	}
 
 	/**

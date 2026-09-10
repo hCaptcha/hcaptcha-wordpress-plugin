@@ -14,8 +14,9 @@ namespace HCaptcha\Tests\Integration\Kadence;
 
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Kadence\Form;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
+use ReflectionClass;
 use ReflectionException;
 
 /**
@@ -24,7 +25,37 @@ use ReflectionException;
  * @group kadence
  * @group kadence-form
  */
-class FormTest extends HCaptchaWPTestCase {
+class FormTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * Kadence Blocks plugin entry file.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'kadence-blocks/kadence-blocks.php';
+
+	/**
+	 * Hooks to replay after loading Kadence Blocks.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
+
+	/**
+	 * Test that the live Kadence form block is registered.
+	 *
+	 * @return void
+	 */
+	public function test_live_plugin_is_loaded(): void {
+		$plugin_file = wp_normalize_path( ( new ReflectionClass( 'Kadence_Blocks_Form_Block' ) )->getFileName() );
+
+		self::assertTrue( is_plugin_active( static::$plugin ) );
+		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/kadence-blocks/' ), $plugin_file );
+		self::assertTrue( \WP_Block_Type_Registry::get_instance()->is_registered( 'kadence/form' ) );
+	}
 
 	/**
 	 * Tear down the test.

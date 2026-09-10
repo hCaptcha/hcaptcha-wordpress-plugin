@@ -192,12 +192,64 @@ jobs:
           path: ${{ env.wp-plugin-directory }}
           persist-credentials: false
 
+      - name: Detect latest Paid Memberships Pro release
+        id: paid_memberships_pro
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="$(gh api repos/strangerstudios/paid-memberships-pro/releases/latest --jq '.tag_name')"
+
+          if [[ ! "$version" =~ ^[0-9]+(\.[0-9]+){1,3}$ ]]; then
+            echo "Unexpected Paid Memberships Pro release tag: $version" >&2
+            exit 1
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout Paid Memberships Pro
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: strangerstudios/paid-memberships-pro
+          ref: ${{ steps.paid_memberships_pro.outputs.version }}
+          path: wordpress/wp-content/plugins/paid-memberships-pro
+          persist-credentials: false
+
+      - name: Detect private test plugins access
+        id: test_plugins
+        env:
+          HCAPTCHA_TEST_PLUGINS_TOKEN: ${{ secrets.ELEMENTOR_PRO_CI_TOKEN }}
+        run: |
+          if [[ -n "$HCAPTCHA_TEST_PLUGINS_TOKEN" ]]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout private test plugins
+        if: steps.test_plugins.outputs.available == 'true'
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: kagg-design/hcaptcha-test-plugins
+          ref: main
+          token: ${{ secrets.ELEMENTOR_PRO_CI_TOKEN }}
+          path: hcaptcha-test-plugins
+          persist-credentials: false
+
       - name: Setup PHP
         uses: hCaptcha/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2.37.0
         with:
           php-version: ${{ matrix.php-version }}
           extensions: json, mysqli, mbstring, zip
           ini-values: register_argc_argv=On
+
+      - name: Detect Really Simple CAPTCHA support
+        id: really_simple_captcha
+        run: |
+          if php -r 'exit(version_compare(PHP_VERSION, "8.3", ">=") ? 0 : 1);'; then
+            echo "supported=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "supported=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Install dependencies with caching
         uses: hCaptcha/composer-install@65e4f84970763564f46a70b8a54b90d033b3bdda # v4.0.0
@@ -236,13 +288,98 @@ jobs:
           wp db create
           wp core install --url="${{ env.WP_URL }}" --title="Test" --admin_user="${{ env.WP_ADMIN_USERNAME }}" --admin_password="${{ env.WP_ADMIN_PASSWORD }}" --admin_email="${{ env.WP_ADMIN_EMAIL }}" --skip-email
 
-      - name: Install plugins
+      - name: Install public test plugins and themes
         working-directory: ${{ env.wp-directory }}
-        run: wp plugin install bbpress buddypress contact-form-7 ninja-forms ultimate-member woocommerce wpforms-lite wpforo
+        run: |
+          wp plugin install acf-extended bbpress blocksy-companion buddypress coblocks contact-form-7 download-manager elementor essential-addons-for-elementor-lite essential-blocks fluentform formidable forminator give jetpack kadence-blocks mailchimp-for-wp mailin mailpoet maintenance metform ninja-forms otter-blocks password-protected ultimate-addons-for-gutenberg ultimate-member woocommerce wordfence wpforms-lite wpforo
+          wp theme install blocksy
+          wp plugin is-installed acf-extended
+          wp plugin is-installed bbpress
+          wp plugin is-installed blocksy-companion
+          wp plugin is-installed buddypress
+          wp plugin is-installed coblocks
+          wp plugin is-installed download-manager
+          wp plugin is-installed essential-blocks
+          wp plugin is-installed formidable
+          wp plugin is-installed give
+          wp plugin is-installed kadence-blocks
+          wp plugin is-installed mailin
+          wp plugin is-installed mailpoet
+          wp plugin is-installed otter-blocks
+          wp plugin is-installed paid-memberships-pro
+          wp plugin is-installed password-protected
+          wp plugin is-installed ultimate-member
+          wp theme is-installed blocksy
 
-      - name: Run WP tests
+      - name: Install Really Simple CAPTCHA
+        if: steps.really_simple_captcha.outputs.supported == 'true'
+        working-directory: ${{ env.wp-directory }}
+        run: |
+          wp plugin install really-simple-captcha
+          wp plugin is-installed really-simple-captcha
+
+      - name: Install private test plugins and themes
+        if: steps.test_plugins.outputs.available == 'true'
+        working-directory: ${{ env.wp-directory }}
+        run: |
+          wp plugin install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/elementor-pro-4.2.1.zip"
+          wp plugin install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/advanced-custom-fields-pro-6.8.0.1.zip"
+          wp plugin install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/gravityforms-3.0.2.zip"
+          wp plugin install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/ultimate-elementor-1.39.5.zip"
+          wp plugin install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/fusion-builder-3.11.2.zip"
+          wp theme install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/Avada-7.11.2.zip"
+          wp theme install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/Divi-4.27.6.zip"
+          wp plugin is-installed elementor-pro
+          wp plugin is-installed advanced-custom-fields-pro
+          wp plugin is-installed gravityforms
+          wp plugin is-installed ultimate-elementor
+          wp plugin is-installed fusion-builder
+          wp theme is-installed Avada
+          wp theme is-installed Divi
+
+      - name: Install Beaver Builder
+        if: steps.test_plugins.outputs.available == 'true'
+        id: beaver_builder
+        working-directory: ${{ env.wp-directory }}
+        run: |
+          beaver_builder_archive="$(find "$GITHUB_WORKSPACE/hcaptcha-test-plugins" -maxdepth 1 -type f \( -iname 'bb-plugin*.zip' -o -iname 'beaver-builder*.zip' \) | sort -V | tail -n 1)"
+
+          if [[ -z "$beaver_builder_archive" ]]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          wp plugin install "$beaver_builder_archive"
+          wp plugin is-installed bb-plugin
+          echo "available=true" >> "$GITHUB_OUTPUT"
+
+      - name: Run WP tests with private test plugins
+        if: steps.test_plugins.outputs.available == 'true'
         working-directory: ${{ env.wp-plugin-directory }}
-        run: composer integration -- --env github-actions
+        run: |
+          integration_args=()
+
+          if [[ "${{ steps.really_simple_captcha.outputs.supported }}" != "true" ]]; then
+            integration_args+=(--skip-group cf7-really-simple-captcha)
+          fi
+
+          if [[ "${{ steps.beaver_builder.outputs.available }}" != "true" ]]; then
+            integration_args+=(--skip-group beaver-builder)
+          fi
+
+          composer integration:parallel -- --env github-actions "${integration_args[@]}"
+
+      - name: Run WP tests without private test plugins
+        if: steps.test_plugins.outputs.available != 'true'
+        working-directory: ${{ env.wp-plugin-directory }}
+        run: |
+          integration_args=(--skip-group beaver-builder --skip-group elementor-pro --skip-group gravityforms --skip-group ultimate-addons)
+
+          if [[ "${{ steps.really_simple_captcha.outputs.supported }}" != "true" ]]; then
+            integration_args+=(--skip-group cf7-really-simple-captcha)
+          fi
+
+          composer integration:parallel -- --env github-actions "${integration_args[@]}"
 
   update_changelog:
     name: Update Changelog

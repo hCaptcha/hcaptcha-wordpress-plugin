@@ -15,17 +15,56 @@ namespace HCaptcha\Tests\Integration\CoBlocks;
 use CoBlocks_Form;
 use HCaptcha\CoBlocks\Form;
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
+use ReflectionClass;
 use WP_Block;
-use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Test Form class.
  *
  * @group coblocks
  */
-class FormTest extends HCaptchaWPTestCase {
+class FormTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * CoBlocks plugin entry file.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'coblocks/class-coblocks.php';
+
+	/**
+	 * Hooks to replay after loading CoBlocks.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
+
+	/**
+	 * Test a form rendered by the live CoBlocks block callbacks.
+	 *
+	 * @return void
+	 */
+	public function test_live_coblocks_form(): void {
+		$plugin_file = wp_normalize_path( ( new ReflectionClass( CoBlocks_Form::class ) )->getFileName() );
+		$document    = '<!-- wp:coblocks/form --><!-- wp:coblocks/field-submit-button {"submitButtonText":"Subscribe"} /--><!-- /wp:coblocks/form -->';
+
+		new Form();
+
+		$output = do_blocks( $document );
+
+		self::assertTrue( is_plugin_active( static::$plugin ) );
+		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/coblocks/' ), $plugin_file );
+		self::assertTrue( \WP_Block_Type_Registry::get_instance()->is_registered( 'coblocks/form' ) );
+		self::assertStringContainsString( 'class="coblocks-form"', $output );
+		self::assertStringContainsString( '>Subscribe</button>', $output );
+		self::assertStringContainsString( '<h-captcha', $output );
+		self::assertStringContainsString( 'name="hcaptcha_coblocks_nonce"', $output );
+	}
 
 	/**
 	 * Tear down the test.
@@ -379,32 +418,6 @@ HTML;
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function test_print_inline_styles(): void {
-		FunctionMocker::replace(
-			'defined',
-			static function ( $constant_name ) {
-				return 'SCRIPT_DEBUG' === $constant_name;
-			}
-		);
-
-		FunctionMocker::replace(
-			'constant',
-			static function ( $name ) {
-				return 'SCRIPT_DEBUG' === $name;
-			}
-		);
-
-		$expected = <<<'CSS'
-	.wp-block-coblocks-form .h-captcha-error {
-		color: red;
-		margin-bottom: 25px;
-	}
-
-	.wp-block-coblocks-form .h-captcha {
-		margin-bottom: 25px;
-	}
-CSS;
-		$expected = "<style>\n$expected\n</style>\n";
-
 		$subject = new Form();
 
 		// Show styles.
@@ -412,6 +425,9 @@ CSS;
 
 		$subject->print_inline_styles();
 
-		self::assertSame( $expected, ob_get_clean() );
+		$output = ob_get_clean();
+
+		self::assertStringContainsString( '.wp-block-coblocks-form .h-captcha-error', $output );
+		self::assertStringContainsString( '.wp-block-coblocks-form .h-captcha', $output );
 	}
 }

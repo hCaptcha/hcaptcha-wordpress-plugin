@@ -139,12 +139,18 @@ class AutoVerify {
 	 * @return array
 	 */
 	private function normalize_id( array $args ): array {
-		$id = (array) ( $args['id'] ?? [] );
-
-		return [
+		$id            = (array) ( $args['id'] ?? [] );
+		$normalized_id = [
 			'source'  => empty( $id['source'] ) ? [ self::class ] : (array) $id['source'],
 			'form_id' => empty( $id['form_id'] ) ? (int) get_the_ID() : $id['form_id'],
 		];
+		$honeypot      = $id['honeypot'] ?? $args['honeypot'] ?? null;
+
+		if ( null !== $honeypot ) {
+			$normalized_id['honeypot'] = filter_var( $honeypot, FILTER_VALIDATE_BOOLEAN );
+		}
+
+		return $normalized_id;
 	}
 
 	/**
@@ -761,7 +767,19 @@ class AutoVerify {
 			}
 		}
 
-		return [];
+		/**
+		 * Filters an unmatched request for an action that has auto-verified forms.
+		 *
+		 * A dedicated integration may return null to defer verification when it
+		 * owns the submitted signed widget ID and verifies the request itself.
+		 *
+		 * @param array|null $registered_form Empty array by default.
+		 * @param string     $path            Request path.
+		 * @param string     $widget_id       Submitted widget ID.
+		 */
+		$registered_form = apply_filters( 'hcap_auto_verify_unmatched_form', [], $path, $widget_id );
+
+		return is_array( $registered_form ) ? $registered_form : null;
 	}
 
 	/**

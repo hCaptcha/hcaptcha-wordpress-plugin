@@ -38,6 +38,7 @@ use HCaptcha\ElementorPro\HCaptchaHandler;
 use HCaptcha\NF\NF;
 use HCaptcha\Quform\Quform;
 use HCaptcha\Sendinblue\Sendinblue;
+use HCaptcha\Settings\AntiSpamPage;
 use HCaptcha\Settings\Settings;
 use HCaptcha\WC\Checkout;
 use HCaptcha\WC\OrderTracking;
@@ -70,6 +71,43 @@ require_once __DIR__ . '/CLI/WPCLI.php';
  * @group subscriber
  */
 class AAAMainTest extends HCaptchaWPTestCase {
+
+	/**
+	 * Test authenticated XML-RPC setting.
+	 *
+	 * @param bool $disabled Whether authenticated XML-RPC is disabled.
+	 *
+	 * @dataProvider dp_test_authenticated_xml_rpc_setting
+	 * @return void
+	 */
+	public function test_authenticated_xml_rpc_setting( bool $disabled ): void {
+		update_option(
+			AntiSpamPage::OPTION_NAME,
+			[ AntiSpamPage::DISABLE_XML_RPC_AUTH => $disabled ? [ 'on' ] : [] ]
+		);
+
+		FunctionMocker::replace( 'HCaptcha\Helpers\Request::is_xml_rpc', true );
+
+		$subject = new Main();
+		$subject->init_hooks();
+
+		self::assertSame( ! $disabled, apply_filters( 'xmlrpc_enabled', true ) );
+		self::assertFalse( has_action( 'plugins_loaded', [ $subject, 'load_modules' ] ) );
+
+		remove_filter( 'xmlrpc_enabled', '__return_false', PHP_INT_MAX );
+	}
+
+	/**
+	 * Data provider for test_authenticated_xml_rpc_setting().
+	 *
+	 * @return array[]
+	 */
+	public function dp_test_authenticated_xml_rpc_setting(): array {
+		return [
+			'enabled'  => [ true ],
+			'disabled' => [ false ],
+		];
+	}
 
 	/**
 	 * Included components in test_load_modules().
@@ -1760,6 +1798,8 @@ CSS;
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_load_modules( array $module ): void {
+		$this->skip_mocked_gravity_forms_module_test( $module );
+
 		[ $option_name, $option_value ] = $module[0];
 
 		update_option(
@@ -1891,6 +1931,17 @@ CSS;
 		foreach ( $loaded_classes as $class_name => $loaded_class ) {
 			self::assertInstanceOf( $class_name, $loaded_class );
 			self::assertSame( $loaded_class, $subject->get( $class_name ) );
+		}
+	}
+
+	/**
+	 * Skip the mocked Gravity Forms module test superseded by live integration tests.
+	 *
+	 * @param array $module Module to load.
+	 */
+	private function skip_mocked_gravity_forms_module_test( array $module ): void {
+		if ( 'gravityforms/gravityforms.php' === $module[1] ) {
+			self::markTestSkipped( 'Covered by the live Gravity Forms integration tests.' );
 		}
 	}
 

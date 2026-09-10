@@ -583,31 +583,10 @@ abstract class HCaptchaTestCase extends TestCase {
 					)
 				),
 			],
-			'custom_prop'              => [
-				'label'   => 'Property',
-				'type'    => 'select',
-				'options' => [],
-				'section' => 'custom',
-				'helper'  => 'Select custom theme property.',
-			],
-			'custom_value'             => [
-				'label'   => 'Value',
-				'type'    => 'text',
-				'section' => 'custom',
-				'helper'  => 'Set property value.',
-			],
 			'config_params'            => [
-				'label'   => 'Config Params',
+				'label'   => 'Advanced Theme Editor',
 				'type'    => 'textarea',
 				'section' => General::SECTION_CUSTOM,
-				'helper'  => sprintf(
-				/* translators: 1: hCaptcha render params doc link. */
-					'hCaptcha render %s (optional). Must be a valid JSON.',
-					sprintf(
-						'<a href="https://docs.hcaptcha.com/configuration/#hcaptcharendercontainer-params?utm_source=wordpress&utm_medium=wpplugin&utm_campaign=docs" target="_blank">%s</a>',
-						'parameters'
-					)
-				),
 			],
 			'api_host'                 => [
 				'label'   => 'API Host',

@@ -14,8 +14,9 @@ namespace HCaptcha\Tests\Integration\Otter;
 
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Otter\Form;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
+use ReflectionClass;
 use ReflectionException;
 use ThemeIsle\GutenbergBlocks\Integration\Form_Data_Request;
 use WP_Block;
@@ -27,7 +28,100 @@ use WP_REST_Response;
  *
  * @group otter
  */
-class FormTest extends HCaptchaWPTestCase {
+class FormTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * Plugin relative path.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'otter-blocks/otter-blocks.php';
+
+	/**
+	 * Hooks to replay after loading Otter Blocks.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
+
+	/**
+	 * Force lifecycle hook replay after WPTestCase resets action counters.
+	 *
+	 * @var bool
+	 */
+	protected static bool $force_plugin_load_hooks = true;
+
+	/**
+	 * Test a live Otter form block and request object.
+	 */
+	public function test_live_form_block(): void {
+		$form_id = 'live-form';
+		$content = <<<HTML
+<!-- wp:themeisle-blocks/form {"id":"wp-block-themeisle-blocks-form-$form_id"} -->
+<div id="wp-block-themeisle-blocks-form-$form_id" class="wp-block-themeisle-blocks-form has-captcha"><form class="otter-form__container"><div class="wp-block-themeisle-blocks-form-input"><input type="text" class="otter-form-input" /></div><div class="wp-block-button"><button class="wp-block-button__link" type="submit">Submit</button></div></form></div>
+<!-- /wp:themeisle-blocks/form -->
+HTML;
+
+		$integration = new Form();
+		$class_file  = wp_normalize_path( ( new ReflectionClass( Form_Data_Request::class ) )->getFileName() );
+		$html        = do_blocks( $content );
+
+		self::assertTrue( is_plugin_active( static::$plugin ) );
+		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/otter-blocks/' ), $class_file );
+		self::assertTrue( \WP_Block_Type_Registry::get_instance()->is_registered( 'themeisle-blocks/form' ) );
+		self::assertSame( 10, has_filter( 'otter_form_anti_spam_validation', [ $integration, 'verify' ] ) );
+		self::assertStringContainsString( 'otter-form__container', $html );
+		self::assertStringContainsString( 'class="h-captcha"', $html );
+		self::assertStringContainsString( 'hcaptcha_otter_nonce', $html );
+		self::assertStringNotContainsString( 'has-captcha', $html );
+
+		$this->prepare_verify_post( 'hcaptcha_otter_nonce', 'hcaptcha_otter' );
+
+		$request_data = [
+			'payload'            => [
+				'formId'           => 'wp-block-themeisle-blocks-form-' . $form_id,
+				'antiSpamTime'     => 5000,
+				'antiSpamHoneyPot' => '',
+				'postId'           => wp_insert_post(
+					[
+						'post_title'  => 'Otter form page',
+						'post_status' => 'publish',
+					]
+				),
+				'formInputsData'   => [
+					[
+						'id'    => 'name',
+						'label' => 'Name',
+						'type'  => 'text',
+						'value' => 'John Doe',
+					],
+				],
+			],
+			'h-captcha-response' => 'some response',
+			'hcaptcha-widget-id' => HCaptcha::widget_id_value(
+				[
+					'source'  => [ static::$plugin ],
+					'form_id' => $form_id,
+				]
+			),
+		];
+
+		foreach ( [ 'hcaptcha_otter_nonce', 'hcap_fst_token', 'hcap_hp_test', 'hcap_hp_sig' ] as $key ) {
+			$request_data[ $key ] = sanitize_text_field( wp_unslash( $_POST[ $key ] ?? '' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		}
+
+		$request = new WP_REST_Request( 'POST', '/otter/v1/form/frontend' );
+		$request->set_body( wp_json_encode( $request_data ) );
+
+		$form_data = new Form_Data_Request( $request );
+		$result    = apply_filters( 'otter_form_anti_spam_validation', $form_data );
+
+		self::assertSame( $form_data, $result );
+		self::assertFalse( $result->has_error() );
+	}
 
 	/**
 	 * Test init_hooks().

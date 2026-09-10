@@ -10,11 +10,11 @@
 
 namespace HCaptcha\Tests\Integration\BeaverBuilder;
 
-use FLBuilderModule;
+use FLBuilderModel;
 use HCaptcha\BeaverBuilder\Contact;
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
-use Mockery;
+use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use ReflectionClass;
 
 /**
  * Class ContactTest
@@ -22,7 +22,32 @@ use Mockery;
  * @group beaver-builder
  * @group beaver-builder-contact
  */
-class ContactTest extends HCaptchaWPTestCase {
+class ContactTest extends HCaptchaPluginWPTestCase {
+
+	/**
+	 * Plugin relative path.
+	 *
+	 * @var string
+	 */
+	protected static $plugin = 'bb-plugin/fl-builder.php';
+
+	/**
+	 * Hooks to replay after loading Beaver Builder.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_load_hooks = [
+		'plugins_loaded',
+		'init',
+	];
+
+	/**
+	 * Load Beaver Builder modules after the WordPress test bootstrap.
+	 *
+	 * @var bool
+	 */
+	protected static bool $force_plugin_load_hooks = true;
+
 	/**
 	 * Tear down.
 	 *
@@ -84,7 +109,7 @@ class ContactTest extends HCaptchaWPTestCase {
 		$hcap_form = $this->get_hcap_form( $args );
 		$hcaptcha  = '<div class="fl-input-group fl-hcaptcha">' . $hcap_form . '</div>';
 		$expected  = 'some output <form class="fl-contact-form" id="some">' . $hcaptcha . $button . '</form> more';
-		$module    = Mockery::mock( 'alias:' . FLBuilderModule::class );
+		$module    = FLBuilderModel::$modules['contact-form'];
 
 		$subject = new Contact();
 
@@ -93,6 +118,42 @@ class ContactTest extends HCaptchaWPTestCase {
 
 		// Contact form in output.
 		self::assertSame( $expected, $subject->add_beaver_builder_captcha( $form_out, $module ) );
+	}
+
+	/**
+	 * Test hCaptcha in a form rendered by the live Beaver Builder module.
+	 *
+	 * @return void
+	 */
+	public function test_live_contact_form(): void {
+		global $post;
+
+		$subject  = new Contact();
+		$module   = clone FLBuilderModel::$modules['contact-form'];
+		$settings = FLBuilderModel::get_module_defaults( 'contact-form' );
+		$class    = new ReflectionClass( $module );
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- The live module reads the current post.
+		$post = get_post( $this->factory()->post->create() );
+
+		$module->node     = 'contact-test';
+		$module->settings = $settings;
+		$id               = $module->node;
+
+		ob_start();
+		include $module->dir . 'includes/frontend.php';
+		$html = (string) ob_get_clean();
+		$html = apply_filters( 'fl_builder_render_module_content', $html, $module );
+
+		self::assertTrue( is_plugin_active( static::$plugin ) );
+		self::assertStringStartsWith(
+			wp_normalize_path( WP_PLUGIN_DIR . '/bb-plugin/' ),
+			wp_normalize_path( (string) $class->getFileName() )
+		);
+		self::assertStringContainsString( '<form class="fl-contact-form"', $html );
+		self::assertStringContainsString( 'name="fl-email"', $html );
+		self::assertStringContainsString( 'class="fl-input-group fl-hcaptcha"', $html );
+		self::assertStringContainsString( 'name="hcaptcha_beaver_builder_nonce"', $html );
+		self::assertSame( 10, has_filter( 'fl_builder_render_module_content', [ $subject, 'add_beaver_builder_captcha' ] ) );
 	}
 
 	/**
