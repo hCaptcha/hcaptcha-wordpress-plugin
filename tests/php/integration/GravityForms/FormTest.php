@@ -609,6 +609,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		$subject->enqueue_scripts();
 
 		self::assertTrue( wp_script_is( Form::HANDLE ) );
+		self::assertContains( 'wp-hooks', wp_scripts()->registered[ Form::HANDLE ]->deps );
 	}
 
 	/**
