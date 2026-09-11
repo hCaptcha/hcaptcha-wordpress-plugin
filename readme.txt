@@ -1033,6 +1033,7 @@ Instructions for popular native integrations are below:
 * Fixed delayed hCaptcha loading after interaction with Beaver Builder login forms.
 * Fixed GiveWP compatibility.
 * Fixed Paid Membership Pro compatibility.
+* Fixed Gravity Forms block submissions to prevent the “Unsupported submission flow” warning.
 
 = 5.2.0 =
 * Added MetForm integration.

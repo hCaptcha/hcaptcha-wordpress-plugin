@@ -307,7 +307,7 @@ class Form extends Base {
 		wp_enqueue_script(
 			self::HANDLE,
 			HCAPTCHA_URL . "/assets/js/hcaptcha-gravity-forms$min.js",
-			[ 'jquery' ],
+			[ 'jquery', 'wp-hooks' ],
 			HCAPTCHA_VERSION,
 			true
 		);
