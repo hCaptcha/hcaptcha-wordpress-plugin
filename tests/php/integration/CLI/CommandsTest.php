@@ -67,6 +67,7 @@ class CommandsTest extends HCaptchaWPTestCase {
 	 * Test export() prints compact JSON without keys.
 	 *
 	 * @return void
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_export_prints_json_without_keys(): void {
 		update_option(
@@ -101,6 +102,7 @@ class CommandsTest extends HCaptchaWPTestCase {
 	 * Test export() writes pretty JSON with keys.
 	 *
 	 * @return void
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_export_writes_file_with_keys(): void {
 		update_option(
@@ -185,7 +187,7 @@ class CommandsTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test import() reports missing file argument.
+	 * Test import() reports a missing file argument.
 	 *
 	 * @return void
 	 */
@@ -214,6 +216,8 @@ class CommandsTest extends HCaptchaWPTestCase {
 	 * Test import() reports invalid JSON.
 	 *
 	 * @return void
+	 * @noinspection JsonStandardCompliance
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_import_reports_invalid_json(): void {
 		$file = $this->create_temp_file( '{invalid json' );
@@ -358,6 +362,7 @@ class CommandsTest extends HCaptchaWPTestCase {
 	 * @param bool  $include_keys Whether to include keys.
 	 *
 	 * @return array
+	 * @noinspection PhpSameParameterValueInspection
 	 */
 	private function build_export_payload( array $settings, bool $include_keys ): array {
 		update_option( PluginSettingsBase::OPTION_NAME, $settings );
@@ -417,6 +422,7 @@ class CommandsTest extends HCaptchaWPTestCase {
 	 * @param string $filename File name.
 	 *
 	 * @return string
+	 * @noinspection PhpSameParameterValueInspection
 	 */
 	private function new_file_path_in_new_dir( string $filename ): string {
 		$directory    = wp_normalize_path( sys_get_temp_dir() ) . '/' . uniqid( 'hcap-cli-', true );

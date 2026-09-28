@@ -8,6 +8,7 @@
 namespace HCaptcha\Abstracts;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use WP_Error;
@@ -141,7 +142,7 @@ abstract class CommentBase {
 	 *
 	 * @return WP_Error
 	 */
-	private function invalid_captcha_error( $approved, string $error_message = '' ) {
+	private function invalid_captcha_error( $approved, string $error_message = '' ): WP_Error {
 		$error_message = $error_message ?: __( 'Invalid Captcha', 'hcaptcha-for-forms-and-more' );
 		$approved      = is_wp_error( $approved ) ? $approved : new WP_Error();
 
@@ -161,17 +162,18 @@ abstract class CommentBase {
 		$post_id = $comment_data['comment_post_ID'];
 		$post    = get_post( $post_id );
 
+		$data            = EntryData::from_post( [] );
+		$data['name']    = $comment_data['comment_author'];
+		$data['email']   = $comment_data['comment_author_email'];
+		$data['url']     = $comment_data['comment_author_url'];
+		$data['content'] = $comment_data['comment_content'];
+		$data['ip']      = $comment_data['comment_author_IP'];
+		$data['agent']   = $comment_data['comment_agent'];
+
 		return [
 			'form_date_gmt' => $post->post_modified_gmt ?? null,
 			'expected_id'   => $this->get_expected_id( (int) $post_id ),
-			'data'          => [
-				'name'    => $comment_data['comment_author'],
-				'email'   => $comment_data['comment_author_email'],
-				'url'     => $comment_data['comment_author_url'],
-				'content' => $comment_data['comment_content'],
-				'ip'      => $comment_data['comment_author_IP'],
-				'agent'   => $comment_data['comment_agent'],
-			],
+			'data'          => $data,
 		];
 	}
 

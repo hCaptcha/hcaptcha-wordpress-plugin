@@ -33,8 +33,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	 * Tear down the test.
 	 */
 	public function tearDown(): void {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		unset( $_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI'] );
+		unset( $GLOBALS['wpdb'], $_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI'] );
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		foreach ( array_keys( $_POST ) as $key ) {
@@ -309,9 +308,11 @@ class AutoVerifyTest extends HCaptchaTestCase {
 			}
 		);
 		WP_Mock::userFunction( 'hcap_min_suffix' )->andReturn( $min );
-		WP_Mock::userFunction( '__' )
-			->with( 'The form was submitted successfully.', 'hcaptcha-for-forms-and-more' )
-			->andReturn( 'The form was submitted successfully.' );
+		WP_Mock::userFunction( '__' )->andReturnUsing(
+			static function ( string $message ): string {
+				return $message;
+			}
+		);
 
 		WP_Mock::userFunction( 'wp_enqueue_script' )
 			->with(
@@ -328,7 +329,10 @@ class AutoVerifyTest extends HCaptchaTestCase {
 				AutoVerify::HANDLE,
 				AutoVerify::OBJECT,
 				[
-					'successMsg' => 'The form was submitted successfully.',
+					'successMsg'      => 'The form was submitted successfully.',
+					'submittingMsg'   => 'Submitting the form...',
+					'errorMsg'        => 'The form could not be submitted. Please try again.',
+					'networkErrorMsg' => 'Could not confirm whether the form was submitted. Check before trying again.',
 				]
 			)
 			->times( $times );
@@ -782,6 +786,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 				'action'    => $action,
 				'inputs'    => [ 'test_input' ],
 				'widget_id' => self::WIDGET_ID_VALUE,
+				'source'    => 'post:123',
 				'args'      => $args,
 			],
 		];
@@ -803,6 +808,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 				return parse_url( $url, $component );
 			}
 		);
+		WP_Mock::userFunction( 'get_queried_object_id' )->andReturn( 123 );
 
 		$subject = Mockery::mock( AutoVerify::class )->makePartial();
 
@@ -873,6 +879,9 @@ class AutoVerifyTest extends HCaptchaTestCase {
 			->with( AutoVerify::TRANSIENT )
 			->once()
 			->andReturn( $transient );
+		WP_Mock::userFunction( 'get_option' )->andReturn( false );
+		WP_Mock::userFunction( 'update_option' )->andReturn( true );
+		WP_Mock::userFunction( 'delete_option' )->andReturn( true );
 		WP_Mock::userFunction( 'set_transient' )
 			->with( AutoVerify::TRANSIENT, $expected, $day_in_seconds )
 			->once();
@@ -936,6 +945,8 @@ class AutoVerifyTest extends HCaptchaTestCase {
 			->with( AutoVerify::TRANSIENT )
 			->once()
 			->andReturn( $transient );
+		WP_Mock::userFunction( 'get_option' )->andReturn( false );
+		WP_Mock::userFunction( 'update_option' )->andReturn( true );
 		WP_Mock::onFilter( 'hcap_auto_verify_transient_max_size' )
 			->with( AutoVerify::MAX_TRANSIENT_SIZE )
 			->reply( $max_size );
@@ -1156,6 +1167,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 			->with( AutoVerify::TRANSIENT )
 			->once()
 			->andReturn( $transient );
+		WP_Mock::userFunction( 'get_option' )->andReturn( false );
 		FunctionMocker::replace(
 			'\HCaptcha\Helpers\Request::filter_input',
 			static function ( int $type, string $var_name ) {
@@ -1365,5 +1377,203 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	<input type="hidden" id="hcaptcha_nonce" name="hcaptcha_nonce" value="' . $nonce . '"/>
 	<input type="hidden" name="_wp_http_referer" value="' . $request_uri . '"/>
 </form>';
+	}
+
+	/**
+	 * Call a private AutoVerify method.
+	 *
+	 * @param AutoVerify $subject Subject.
+	 * @param string     $name    Method name.
+	 * @param array      $args    Arguments.
+	 *
+	 * @return mixed
+	 * @throws ReflectionException Reflection exception.
+	 */
+	private function call_private( AutoVerify $subject, string $name, array $args = [] ) {
+		return $this->set_method_accessibility( $subject, $name )->invokeArgs( $subject, $args );
+	}
+
+	/**
+	 * Test deleting persistent registrations and the transient.
+	 */
+	public function test_delete_all(): void {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$wpdb          = Mockery::mock( 'wpdb' );
+		$wpdb->options = 'wp_options';
+		$wpdb->shouldReceive( 'esc_like' )
+			->once()
+			->with( 'hcaptcha_auto_verify_form_' )
+			->andReturn( 'escaped-prefix' );
+		$wpdb->shouldReceive( 'prepare' )
+			->once()
+			->with( 'SELECT option_name FROM wp_options WHERE option_name LIKE %s', 'escaped-prefix%' )
+			->andReturn( 'prepared-query' );
+		$wpdb->shouldReceive( 'get_col' )
+			->once()
+			->with( 'prepared-query' )
+			->andReturn( [ 'first-option', 'second-option' ] );
+		WP_Mock::userFunction( 'delete_option' )->with( 'first-option' )->once();
+		WP_Mock::userFunction( 'delete_option' )->with( 'second-option' )->once();
+		WP_Mock::userFunction( 'delete_transient' )->with( AutoVerify::TRANSIENT )->once();
+
+		AutoVerify::delete_all();
+	}
+
+	/**
+	 * Mock WordPress URL handling for canonical path tests.
+	 */
+	private function mock_url_helpers(): void {
+		WP_Mock::userFunction( 'wp_parse_url' )
+			->andReturnUsing(
+				static function ( $url, $component ) {
+					// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
+					return parse_url( $url, $component );
+				}
+			);
+		WP_Mock::userFunction( 'untrailingslashit' )
+			->andReturnUsing(
+				static function ( $path ) {
+					return rtrim( $path, '/' );
+				}
+			);
+	}
+
+	/**
+	 * Find a registered form through the canonical page permalink.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_registered_form_uses_canonical_path(): void {
+		$_SERVER['REQUEST_URI'] = '/raw-path/';
+		$this->mock_url_helpers();
+		WP_Mock::passthruFunction( 'wp_unslash' );
+		FunctionMocker::replace( '\HCaptcha\Helpers\Request::current_url', 'https://test.test/raw-path/' );
+		FunctionMocker::replace(
+			'\HCaptcha\Helpers\Request::filter_input',
+			static function ( $type ) {
+				return INPUT_GET === $type ? 'page-slug' : 'widget-id';
+			}
+		);
+		WP_Mock::userFunction( 'url_to_postid' )->with( 'https://test.test/raw-path/' )->once()->andReturn( 0 );
+		WP_Mock::userFunction( 'get_page_by_path' )->with( 'page-slug' )->once()->andReturn( (object) [ 'ID' => 123 ] );
+		WP_Mock::userFunction( 'get_permalink' )->with( 123 )->once()->andReturn( 'https://test.test/canonical/' );
+
+		$form = [
+			'args'      => [ 'auto' => true ],
+			'inputs'    => [],
+			'widget_id' => 'widget-id',
+		];
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = 'widget-id';
+		WP_Mock::userFunction( 'get_option' )
+			->with( 'hcaptcha_auto_verify_form_' . hash( 'sha256', '/raw-path' ), false )
+			->once()
+			->andReturn( false );
+		WP_Mock::userFunction( 'get_option' )
+			->with( 'hcaptcha_auto_verify_form_' . hash( 'sha256', '/canonical' ), false )
+			->once()
+			->andReturn( [ $form ] );
+		WP_Mock::userFunction( 'get_transient' )->with( AutoVerify::TRANSIENT )->once()->andReturn( false );
+
+		self::assertSame( $form, $this->call_private( new AutoVerify(), 'get_registered_form_for_request' ) );
+	}
+
+	/**
+	 * Ignore a canonical page with an invalid permalink.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_canonical_path_rejects_non_string_permalink(): void {
+		FunctionMocker::replace( '\HCaptcha\Helpers\Request::current_url', 'https://test.test/page/' );
+		WP_Mock::userFunction( 'url_to_postid' )->with( 'https://test.test/page/' )->once()->andReturn( 123 );
+		WP_Mock::userFunction( 'get_permalink' )->with( 123 )->once()->andReturn( false );
+
+		self::assertSame( '', $this->call_private( new AutoVerify(), 'get_canonical_request_path' ) );
+	}
+
+	/**
+	 * Reject an empty registered form with the bad-signature error.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_verify_submission_rejects_empty_registration(): void {
+		WP_Mock::userFunction( 'hcap_get_error_messages' )
+			->once()
+			->andReturn( [ 'bad-signature' => 'Bad signature' ] );
+		FunctionMocker::replace(
+			'\HCaptcha\Helpers\API::filtered_result',
+			static function ( $message, $codes ) {
+				self::assertSame( 'Bad signature', $message );
+				self::assertSame( [ 'bad-signature' ], $codes );
+
+				return 'Rejected';
+			}
+		);
+
+		self::assertSame( 'Rejected', $this->call_private( new AutoVerify(), 'verify_submission', [ [] ] ) );
+	}
+
+	/**
+	 * Normalize a protocol-relative URL as a path.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_get_path_normalizes_protocol_relative_url(): void {
+		$this->mock_url_helpers();
+
+		self::assertSame( '/example', $this->call_private( new AutoVerify(), 'get_path', [ '//example/' ] ) );
+	}
+
+	/**
+	 * Handle forms without input fields and inputs without a type or name.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_visible_input_names_with_missing_attributes(): void {
+		$subject = new AutoVerify();
+
+		self::assertSame( [], $this->call_private( $subject, 'get_visible_input_names', [ '<form></form>' ] ) );
+		self::assertSame(
+			[ 'email' ],
+			$this->call_private( $subject, 'get_visible_input_names', [ '<input name="email"><input type="text">' ] )
+		);
+	}
+
+	/**
+	 * Keep registrations that do not match the current source.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_remove_form_registration_preserves_other_source(): void {
+		$subject          = new AutoVerify();
+		$registered_forms = [ '/form' => [ [ 'source' => 'post:1' ] ] ];
+		$action_forms     = $registered_forms['/form'];
+		$method           = $this->set_method_accessibility( $subject, 'remove_form_registration' );
+
+		$method->invokeArgs( $subject, [ &$registered_forms, [ 'source' => 'post:2' ], '/form', $action_forms, 0 ] );
+
+		self::assertSame( [ '/form' => [ [ 'source' => 'post:1' ] ] ], $registered_forms );
+	}
+
+	/**
+	 * Persist remaining registrations after one is removed.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_remove_form_registration_updates_remaining_forms(): void {
+		$subject          = new AutoVerify();
+		$registered_forms = [ '/form' => [ [ 'source' => 'post:1' ], [ 'source' => 'post:2' ] ] ];
+		$action_forms     = $registered_forms['/form'];
+		$option_name      = 'hcaptcha_auto_verify_form_' . hash( 'sha256', '/form' );
+		WP_Mock::userFunction( 'update_option' )
+			->with( $option_name, [ [ 'source' => 'post:2' ] ], false )
+			->once();
+
+		$method = $this->set_method_accessibility( $subject, 'remove_form_registration' );
+		$method->invokeArgs( $subject, [ &$registered_forms, [ 'source' => 'post:1' ], '/form', $action_forms, 0 ] );
+
+		self::assertSame( [ '/form' => [ [ 'source' => 'post:2' ] ] ], $registered_forms );
 	}
 }

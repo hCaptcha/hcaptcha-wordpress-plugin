@@ -62,6 +62,9 @@ class SurfaceMapping {
 		'elementor_form'            => [ 'elementor_pro_status', 'form', 'Elementor Pro Form' ],
 		'elementor_login'           => [ 'elementor_pro_status', 'login', 'Elementor Pro Login' ],
 
+		// Essential Blocks.
+		'essential_blocks_form'     => [ 'essential_blocks_status', 'form', 'Essential Blocks Form' ],
+
 		// Fluent Forms.
 		'fluent_form'               => [ 'fluent_status', 'form', 'Fluent Forms' ],
 
@@ -101,15 +104,16 @@ class SurfaceMapping {
 		'memberpress_login'         => [ 'memberpress_status', 'login', 'MemberPress Login' ],
 		'memberpress_register'      => [ 'memberpress_status', 'register', 'MemberPress Register' ],
 
-		// Paid Memberships Pro.
-		'pmp_checkout'              => [ 'paid_memberships_pro_status', 'checkout', 'Paid Memberships Pro Checkout' ],
-		'pmp_login'                 => [ 'paid_memberships_pro_status', 'login', 'Paid Memberships Pro Login' ],
-
 		// Brevo.
 		'sendinblue_form'           => [ 'sendinblue_status', 'form', 'Brevo' ],
 
 		// Spectra.
 		'spectra_form'              => [ 'spectra_status', 'form', 'Spectra Form' ],
+
+		// Tutor LMS.
+		'tutor_login'               => [ 'tutor_status', 'login', 'Tutor LMS Login' ],
+		'tutor_lost_password'       => [ 'tutor_status', 'lost_pass', 'Tutor LMS Lost Password' ],
+		'tutor_register'            => [ 'tutor_status', 'register', 'Tutor LMS Register' ],
 
 		// Ultimate Member.
 		'ultimate_member_login'     => [ 'ultimate_member_status', 'login', 'Ultimate Member Login' ],

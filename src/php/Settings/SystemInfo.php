@@ -175,6 +175,8 @@ class SystemInfo extends PluginSettingsBase {
 		$data .= $this->data( 'Config Params', $this->is_empty( $settings->get( 'config_params' ) ) );
 
 		// Enterprise section.
+		$data .= $this->data( 'Risk Score Enforcement', $this->is_on( General::RISK_SCORE ) );
+		$data .= $this->data( 'Risk Score Threshold', $settings->get_risk_score_threshold() );
 		$data .= $this->data( 'API Host', $settings->get( 'api_host' ) );
 		$data .= $this->data( 'Asset Host', $settings->get( 'asset_host' ) );
 		$data .= $this->data( 'Endpoint', $settings->get( 'endpoint' ) );

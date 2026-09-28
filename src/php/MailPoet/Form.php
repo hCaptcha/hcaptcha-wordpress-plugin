@@ -13,6 +13,7 @@
 namespace HCaptcha\MailPoet;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use MailPoet\API\JSON\API as MailPoetAPI;
@@ -171,11 +172,7 @@ class Form {
 	private function get_entry(): array {
 		global $wpdb;
 
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$data = isset( $_POST['data'] )
-			? array_map( 'sanitize_text_field', wp_unslash( $_POST['data'] ) )
-			: [];
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
+		$data = (array) Request::filter_input( INPUT_POST, 'data' );
 
 		$form_id = (int) ( $data['form_id'] ?? 0 );
 		$fields  = [];
@@ -186,10 +183,14 @@ class Form {
 			}
 
 			// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
-			$hash_name       = (string) base64_decode( str_replace( 'form_field_', '', $key ) );
-			$hash_name_arr   = explode( '_', $hash_name );
-			$name            = (string) end( $hash_name_arr );
-			$fields[ $name ] = $value;
+			$hash_name     = (string) base64_decode( str_replace( 'form_field_', '', $key ) );
+			$hash_name_arr = explode( '_', $hash_name );
+			$name          = (string) end( $hash_name_arr );
+			$fields[]      = [
+				'name'  => $name,
+				'value' => $value,
+				'id'    => $key,
+			];
 		}
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -206,17 +207,20 @@ class Form {
 			'expected_id'        => $this->get_expected_id( $form_id ),
 		];
 
-		$name = [];
+		foreach ( $fields as $field ) {
+			$type  = $field['name'];
+			$value = $field['value'];
 
-		foreach ( $fields as $type => $value ) {
+			if ( EntryData::is_sensitive_field( (string) $type ) ) {
+				continue;
+			}
+
 			if ( 'email' === $type ) {
 				$entry['data']['email'] = $value;
 			}
 
-			$entry['data'][ $type ] = $value;
+			EntryData::add_field( $entry['data'], (string) $type, $value, (string) $field['id'] );
 		}
-
-		$entry['data']['name'] = implode( ' ', $name ) ?: null;
 
 		return $entry;
 	}

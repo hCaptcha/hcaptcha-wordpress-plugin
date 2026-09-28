@@ -11,6 +11,9 @@
  * @param HCaptchaGeneralObject.completeHCaptchaContent
  * @param HCaptchaGeneralObject.completeHCaptchaTitle
  * @param HCaptchaGeneralObject.configMustBeObject
+ * @param HCaptchaGeneralObject.detailsState
+ * @param HCaptchaGeneralObject.disabledState
+ * @param HCaptchaGeneralObject.errorState
  * @param HCaptchaGeneralObject.focusState
  * @param HCaptchaGeneralObject.hexValue
  * @param HCaptchaGeneralObject.hoverState
@@ -190,7 +193,7 @@ const general = function( $ ) {
 	}
 
 	function showMessage( message = '', msgClass = '' ) {
-		message = message === undefined ? '' : String( message );
+		message = String( message );
 
 		const logs = getCleanConsoleLogs();
 
@@ -431,7 +434,6 @@ const general = function( $ ) {
 				},
 				modal: {
 					main: {
-						border: '#555555',
 						fill: '#333333',
 					},
 					hover: {
@@ -482,6 +484,19 @@ const general = function( $ ) {
 						fill: '#555555',
 					},
 				},
+				field: {
+					label: '#F5F5F5',
+					input: {
+						main: {
+							border: '#555555',
+							fill: '#333333',
+							text: '#F5F5F5',
+						},
+						focus: {
+							fill: '#555555',
+						},
+					},
+				},
 				radio: {
 					main: {
 						border: '#BFBFBF',
@@ -492,6 +507,10 @@ const general = function( $ ) {
 				task: {
 					main: {
 						fill: '#555555',
+					},
+					details: {
+						heading: '#F5F5F5',
+						text: '#F5F5F5',
 					},
 				},
 				slider: {
@@ -540,6 +559,10 @@ const general = function( $ ) {
 	}
 
 	function humanizeThemeKey( key ) {
+		if ( 'mfaButton' === key ) {
+			return 'MFA Button';
+		}
+
 		const words = String( key )
 			.replace( /([a-z0-9])([A-Z])/g, '$1 $2' )
 			.replace( /[_-]+/g, ' ' );
@@ -550,6 +573,9 @@ const general = function( $ ) {
 	function formatThemeFieldLabel( path ) {
 		const stateLabels = {
 			active: HCaptchaGeneralObject.activeState,
+			details: HCaptchaGeneralObject.detailsState,
+			disabled: HCaptchaGeneralObject.disabledState,
+			error: HCaptchaGeneralObject.errorState,
 			focus: HCaptchaGeneralObject.focusState,
 			hover: HCaptchaGeneralObject.hoverState,
 			main: HCaptchaGeneralObject.mainState,
@@ -562,7 +588,7 @@ const general = function( $ ) {
 	}
 
 	function flattenThemeLeaves( object, path = [], result = [] ) {
-		Object.keys( object || {} ).forEach( ( key ) => {
+		Object.keys( object ).forEach( ( key ) => {
 			const value = object[ key ];
 			const valuePath = path.concat( key );
 
@@ -641,7 +667,7 @@ const general = function( $ ) {
 			'--hcap-challenge-fill': getThemePreviewValue( theme, [ 'component', 'challenge', 'main', 'fill' ], '#FAFAFA' ),
 			'--hcap-challenge-border': getThemePreviewValue( theme, [ 'component', 'challenge', 'main', 'border' ], '#E0E0E0' ),
 			'--hcap-modal-fill': getThemePreviewValue( theme, [ 'component', 'modal', 'main', 'fill' ], '#FFFFFF' ),
-			'--hcap-modal-border': getThemePreviewValue( theme, [ 'component', 'modal', 'main', 'border' ], '#E0E0E0' ),
+			'--hcap-modal-border': getThemePreviewValue( theme, [ 'palette', 'grey', isDark ? '700' : '300' ], isDark ? '#555555' : '#E0E0E0' ),
 			'--hcap-breadcrumb-fill': getThemePreviewValue( theme, [ 'component', 'breadcrumb', 'main', 'fill' ], '#F5F5F5' ),
 			'--hcap-breadcrumb-active': getThemePreviewValue( theme, [ 'component', 'breadcrumb', 'active', 'fill' ], '#00838F' ),
 			'--hcap-button-fill': getThemePreviewValue( theme, [ 'component', 'button', 'main', 'fill' ], '#FFFFFF' ),
@@ -656,8 +682,8 @@ const general = function( $ ) {
 			'--hcap-radio-border': getThemePreviewValue( theme, [ 'component', 'radio', 'main', 'border' ], '#919191' ),
 			'--hcap-radio-check': getThemePreviewValue( theme, [ 'component', 'radio', 'selected', 'check' ], '#00838F' ),
 			'--hcap-task-fill': getThemePreviewValue( theme, [ 'component', 'task', 'main', 'fill' ], '#F5F5F5' ),
-			'--hcap-task-selected': getThemePreviewValue( theme, [ 'component', 'task', 'selected', 'border' ], '#00838F' ),
-			'--hcap-task-report': getThemePreviewValue( theme, [ 'component', 'task', 'report', 'border' ], '#EB5757' ),
+			'--hcap-task-selected': getThemePreviewValue( theme, [ 'component', 'task', 'selected', 'outline' ], '#00838F' ),
+			'--hcap-task-report': getThemePreviewValue( theme, [ 'component', 'task', 'report', 'outline' ], '#EB5757' ),
 			'--hcap-prompt-fill': getThemePreviewValue( theme, [ 'component', 'prompt', 'main', 'fill' ], '#00838F' ),
 			'--hcap-prompt-border': getThemePreviewValue( theme, [ 'component', 'prompt', 'main', 'border' ], '#00838F' ),
 			'--hcap-prompt-text': getThemePreviewValue( theme, [ 'component', 'prompt', 'main', 'text' ], '#FFFFFF' ),
@@ -722,6 +748,7 @@ const general = function( $ ) {
 		const value = String( leaf.value );
 		const colorValue = /^#[0-9a-f]{6}$/i.test( value ) ? value : '#000000';
 		const $row = $( '<div>', { class: 'hcaptcha-theme-editor-color-row' } );
+		/* language=HTML */
 		const $label = $( '<div>' );
 		const $controls = $( '<div>', { class: 'hcaptcha-theme-editor-color-controls' } );
 		const $color = $( '<input>', {
@@ -844,7 +871,7 @@ const general = function( $ ) {
 		};
 	}
 
-	function applyValidatedConfig( configParams, options = {} ) {
+	function applyValidatedConfig( configParams, options ) {
 		const settings = Object.assign(
 			{
 				dirty: false,
@@ -882,7 +909,7 @@ const general = function( $ ) {
 		hCaptchaUpdate( previewParams );
 	}
 
-	function applyCustomThemes( params = {}, options = {} ) {
+	function applyCustomThemes( params, options ) {
 		let configParams;
 
 		try {
@@ -1064,7 +1091,7 @@ const general = function( $ ) {
 
 	// Test hook: expose internals for isolated unit tests
 	// noinspection JSUnresolvedReference
-	if ( typeof jest !== 'undefined' ) {
+	if ( window.__hCaptchaTestMode ) {
 		// Expose only read-only references; no state is mutated here beyond normal function effects
 		window.__generalTest = {
 			getCleanConsoleLogs,
@@ -1326,7 +1353,7 @@ const general = function( $ ) {
 		initThemeEditorDragging();
 	}
 
-	function toggleCustomThemeFields( dirty = false, updateHCaptcha = true ) {
+	function toggleCustomThemeFields( dirty, updateHCaptcha = true ) {
 		const $editorControls = $themeEditor.find( 'button, input, select, textarea' );
 
 		$editorControls.prop( 'disabled', false );

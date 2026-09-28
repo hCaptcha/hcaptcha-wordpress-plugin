@@ -8,11 +8,13 @@
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Utils;
 
+// This bootstrap guard runs before per-test coverage starts.
+// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
+// @codeCoverageIgnoreStart
 if ( ! defined( 'ABSPATH' ) ) {
-	// @codeCoverageIgnoreStart
 	exit;
-	// @codeCoverageIgnoreEnd
 }
+// @codeCoverageIgnoreEnd
 
 /**
  * Display hCaptcha shortcode.
@@ -36,6 +38,7 @@ function hcap_shortcode( $atts ): string {
 
 	$atts         = Utils::unflatten_array( $atts, '--' );
 	$has_honeypot = array_key_exists( 'honeypot', $atts );
+	$has_auto     = array_key_exists( 'auto', $atts );
 
 	/**
 	 * Do not set the default size here.
@@ -58,6 +61,11 @@ function hcap_shortcode( $atts ): string {
 		$atts
 	);
 
+	// Keep the documented ajax shortcode shorthand compatible with earlier versions.
+	if ( ! $has_auto && filter_var( $atts['ajax'], FILTER_VALIDATE_BOOLEAN ) ) {
+		$atts['auto'] = true;
+	}
+
 	if ( ! $has_honeypot ) {
 		unset( $atts['honeypot'] );
 	}
@@ -71,7 +79,11 @@ function hcap_shortcode( $atts ): string {
 	return (string) apply_filters( 'hcap_hcaptcha_content', HCaptcha::form( $atts ), $atts );
 }
 
+// Registration is asserted in FunctionsTest::setUpBeforeClass(), before coverage starts.
+// phpcs:ignore Squiz.Commenting.InlineComment.InvalidEndChar
+// @codeCoverageIgnoreStart
 add_shortcode( 'hcaptcha', 'hcap_shortcode' );
+// @codeCoverageIgnoreEnd
 
 /**
  * Get min suffix.

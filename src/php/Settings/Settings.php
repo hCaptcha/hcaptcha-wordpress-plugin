@@ -151,12 +151,12 @@ class Settings implements SettingsInterface {
 	}
 
 	/**
-	 * Check if it is a Pro account.
+	 * Check if it is a Pro or Enterprise account.
 	 *
 	 * @return false
 	 */
 	public function is_pro(): bool {
-		return 'pro' === $this->get_license();
+		return in_array( $this->get_license(), [ 'pro', 'enterprise' ], true );
 	}
 
 	/**
@@ -193,14 +193,44 @@ class Settings implements SettingsInterface {
 			$bg = $this->get_config_params()['theme']['component']['checkbox']['main']['fill'] ?? $bg;
 		}
 
-		if ( ! is_string( $bg ) ) {
+		return $this->sanitize_custom_theme_color( $bg );
+	}
+
+	/**
+	 * Get custom text color.
+	 *
+	 * @return string
+	 */
+	public function get_custom_theme_color(): string {
+		$color = '';
+
+		if (
+			$this->is_on( 'custom_themes' ) &&
+			$this->is_pro_or_general() &&
+			General::MODE_LIVE === $this->get_mode()
+		) {
+			$color = $this->get_config_params()['theme']['palette']['text']['body'] ?? $color;
+		}
+
+		return $this->sanitize_custom_theme_color( $color );
+	}
+
+	/**
+	 * Sanitize a custom theme color for inline CSS.
+	 *
+	 * @param mixed $color Color.
+	 *
+	 * @return string
+	 */
+	private function sanitize_custom_theme_color( $color ): string {
+		if ( ! is_string( $color ) ) {
 			return '';
 		}
 
-		$bg = trim( $bg );
+		$color = trim( $color );
 
-		// Keep the value inside the background-color declaration and inline style block.
-		return 1 === preg_match( '~\A[a-zA-Z0-9#(),.%\s/-]+\z~', $bg ) ? $bg : '';
+		// Keep the value inside the CSS declaration and inline style block.
+		return 1 === preg_match( '~\A[a-zA-Z0-9#(),.%\s/-]+\z~', $color ) ? $color : '';
 	}
 
 	/**
@@ -342,6 +372,24 @@ class Settings implements SettingsInterface {
 	}
 
 	/**
+	 * Get the Enterprise risk score threshold.
+	 *
+	 * @return float
+	 */
+	public function get_risk_score_threshold(): float {
+		$general = $this->get_tab( General::class );
+		$value   = $general
+			? $general->get( General::RISK_SCORE_THRESHOLD, General::DEFAULT_RISK_SCORE_THRESHOLD )
+			: General::DEFAULT_RISK_SCORE_THRESHOLD;
+
+		if ( ! is_numeric( $value ) ) {
+			return General::DEFAULT_RISK_SCORE_THRESHOLD;
+		}
+
+		return max( 0, min( 1, (float) $value ) );
+	}
+
+	/**
 	 * Get keys.
 	 *
 	 * @return array
@@ -461,11 +509,21 @@ class Settings implements SettingsInterface {
 	}
 
 	/**
-	 * Get license level.
+	 * Get the effective license level for the current mode.
 	 *
 	 * @return string
 	 */
 	public function get_license(): string {
+		switch ( $this->get_mode() ) {
+			case General::MODE_TEST_ENTERPRISE_SAFE_END_USER:
+			case General::MODE_TEST_ENTERPRISE_BOT_DETECTED:
+				return 'enterprise';
+			case General::MODE_LIVE:
+				break;
+			default:
+				return 'free';
+		}
+
 		$license = (string) $this->get( 'license' );
 
 		return in_array( $license, self::EXISTING_LICENSES, true ) ? $license : 'free';
@@ -473,6 +531,8 @@ class Settings implements SettingsInterface {
 
 	/**
 	 * Get the default hCaptcha theme.
+	 *
+	 * @see https://docs.hcaptcha.com/custom_themes#schema
 	 *
 	 * @return array
 	 */
@@ -524,14 +584,13 @@ class Settings implements SettingsInterface {
 				],
 				'modal'        => [
 					'main'  => [
-						'fill'   => '#ffffff',
-						'border' => '#e0e0e0',
+						'fill' => '#ffffff',
 					],
 					'hover' => [
 						'fill' => '#f5f5f5',
 					],
 					'focus' => [
-						'border' => '#0074bf',
+						'outline' => '#0074bf',
 					],
 				],
 				'breadcrumb'   => [
@@ -552,13 +611,19 @@ class Settings implements SettingsInterface {
 						'fill' => '#f5f5f5',
 					],
 					'focus'  => [
-						'icon' => '#00838f',
-						'text' => '#00838f',
+						'icon'    => '#00838f',
+						'text'    => '#00838f',
+						'outline' => '#0074bf',
 					],
 					'active' => [
 						'fill' => '#f5f5f5',
 						'icon' => '#555555',
 						'text' => '#555555',
+					],
+				],
+				'link'         => [
+					'focus' => [
+						'outline' => '#0074bf',
 					],
 				],
 				'list'         => [
@@ -579,6 +644,9 @@ class Settings implements SettingsInterface {
 					'selected' => [
 						'fill' => '#e0e0e0',
 					],
+					'focus'    => [
+						'outline' => '#0074bf',
+					],
 				],
 				'input'        => [
 					'main'  => [
@@ -586,8 +654,27 @@ class Settings implements SettingsInterface {
 						'border' => '#919191',
 					],
 					'focus' => [
-						'fill'   => '#f5f5f5',
-						'border' => '#333333',
+						'fill'    => '#f5f5f5',
+						'border'  => '#333333',
+						'outline' => '#0074bf',
+					],
+				],
+				'field'        => [
+					'label' => '#222222',
+					'input' => [
+						'main'  => [
+							'border' => '#d7d7d7',
+							'fill'   => '#ffffff',
+							'text'   => '#14191f',
+						],
+						'focus' => [
+							'outline' => '#00838f',
+							'fill'    => '#f5f5f5',
+						],
+						'error' => [
+							'border' => '#bf1722',
+							'text'   => '#bf1722',
+						],
 					],
 				],
 				'radio'        => [
@@ -599,16 +686,29 @@ class Settings implements SettingsInterface {
 					'selected' => [
 						'check' => '#00838f',
 					],
+					'focus'    => [
+						'outline' => '#0074bf',
+					],
 				],
 				'task'         => [
 					'main'     => [
 						'fill' => '#f5f5f5',
 					],
 					'selected' => [
-						'border' => '#00838f',
+						'badge'   => '#00838f',
+						'outline' => '#00838f',
 					],
 					'report'   => [
-						'border' => '#eb5757',
+						'badge'   => '#eb5757',
+						'outline' => '#eb5757',
+					],
+					'details'  => [
+						'heading' => '#222222',
+						'text'    => '#222222',
+					],
+					'focus'    => [
+						'badge'   => '#00838f',
+						'outline' => '#00838f',
 					],
 				],
 				'prompt'       => [
@@ -634,8 +734,31 @@ class Settings implements SettingsInterface {
 						'border' => '#919191',
 						'text'   => '#ffffff',
 					],
+					'focus' => [
+						'outline' => '#0074bf',
+					],
 				],
 				'verifyButton' => [
+					'main'     => [
+						'fill'   => '#00838f',
+						'border' => '#00838f',
+						'text'   => '#ffffff',
+					],
+					'hover'    => [
+						'fill'   => '#00838f',
+						'border' => '#00838f',
+						'text'   => '#ffffff',
+					],
+					'focus'    => [
+						'outline' => '#0074bf',
+					],
+					'disabled' => [
+						'fill'   => '#919191',
+						'border' => '#919191',
+						'text'   => '#ffffff',
+					],
+				],
+				'mfaButton'    => [
 					'main'  => [
 						'fill'   => '#00838f',
 						'border' => '#00838f',
@@ -646,10 +769,8 @@ class Settings implements SettingsInterface {
 						'border' => '#00838f',
 						'text'   => '#ffffff',
 					],
-				],
-				'expandButton' => [
-					'main' => [
-						'fill' => '#00838f',
+					'focus' => [
+						'outline' => '#0074bf',
 					],
 				],
 				'slider'       => [
@@ -659,6 +780,19 @@ class Settings implements SettingsInterface {
 					],
 					'focus' => [
 						'handle' => '#0f8390',
+					],
+				],
+				'textarea'     => [
+					'main'     => [
+						'fill'   => '#c4c4c4',
+						'border' => '#919191',
+					],
+					'focus'    => [
+						'fill'    => '#c4c4c4',
+						'outline' => '#0074bf',
+					],
+					'disabled' => [
+						'fill' => '#919191',
 					],
 				],
 			],

@@ -22,6 +22,20 @@ use Mockery;
 class LoginTest extends HCaptchaWPTestCase {
 
 	/**
+	 * Set up the test.
+	 *
+	 * @return void
+	 */
+	public function setUp(): void {
+		parent::setUp();
+
+		hcaptcha()->settings()->set( 'honeypot', 'on' );
+		hcaptcha()->settings()->set( 'set_min_submit_time', 'on' );
+		hcaptcha()->settings()->set( 'profile_builder_status', 'login' );
+		$this->set_protected_property( hcaptcha(), 'supported_forms', null );
+	}
+
+	/**
 	 * Test init hooks.
 	 *
 	 * @return void
@@ -66,6 +80,8 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		self::assertSame( 1, substr_count( $content, 'name="hcaptcha-widget-id"' ) );
 		self::assertStringContainsString( HCaptcha::widget_id_value( $id ), $content );
+		self::assertStringContainsString( 'name="hcap_hp_test"', $content );
+		self::assertStringContainsString( 'name="hcap_hp_sig"', $content );
 
 		self::assertSame( 'form', $subject->finish_profile_builder_login_form( 'form', [] ) );
 	}

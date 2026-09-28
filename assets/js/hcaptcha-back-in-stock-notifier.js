@@ -29,3 +29,32 @@ jQuery( document ).on( 'ajaxSuccess', function( event, xhr, settings ) {
 
 	window.hCaptchaBindEvents();
 } );
+
+jQuery( document ).on( 'cwginstock_success_ajax cwginstock_error_ajax', function( event, data ) {
+	if ( ! data?.product_id ) {
+		return;
+	}
+
+	const forms = document.querySelectorAll( '.cwginstock-subscribe-form' );
+	const form = Array.from( forms ).find( ( currentForm ) => {
+		const productId = currentForm.querySelector( '.cwg-product-id' )?.value;
+
+		return String( productId ) === String( data.product_id );
+	} );
+
+	if ( ! form ) {
+		return;
+	}
+
+	if ( typeof window.hCaptchaReset === 'function' ) {
+		window.hCaptchaReset( form );
+	}
+
+	form.querySelectorAll( '[name="h-captcha-response"], [name="g-recaptcha-response"]' ).forEach( ( response ) => {
+		response.value = '';
+	} );
+
+	if ( window.hCaptchaFST ) {
+		window.hCaptchaFST.getToken();
+	}
+} );

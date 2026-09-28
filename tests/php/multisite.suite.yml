@@ -1,0 +1,19 @@
+bootstrap: ./_bootstrap.php
+modules:
+    enabled:
+        - WPLoader
+    config:
+        WPLoader:
+            wpRootFolder: '%WP_ROOT_PATH%'
+            WPMU_PLUGIN_DIR: '%WP_ROOT_PATH%/_empty_mu_plugins'
+            WP_PLUGIN_DIR: '%PLUGIN_ROOT_PATH%'
+            dbName: '%DB_NAME%'
+            dbHost: '%DB_HOST%'
+            dbUser: '%DB_USER%'
+            dbPassword: '%DB_PASSWORD%'
+            wpDebug: true
+            tablePrefix: '%DB_TABLE_PREFIX%'
+            domain: '%WP_URL%'
+            multisite: true
+            plugins:
+                - hcaptcha.php

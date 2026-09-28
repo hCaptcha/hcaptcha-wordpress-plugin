@@ -94,6 +94,10 @@ abstract class NotificationsBase {
 			$urls['command_palette_img']    = HCAPTCHA_URL . '/assets/images/magnifying-glass.svg';
 			$urls['theme_editor']           = $urls['general'] . '#config_params';
 			$urls['theme_editor_img']       = HCAPTCHA_URL . '/assets/images/advanced-theme-editor.jpg';
+			$urls['anti_spam_checks']       = $urls['anti_spam_page'] . '#antispam_1';
+			$urls['anti_spam_checks_img']   = HCAPTCHA_URL . '/assets/images/smarter-anti-spam-checks.png';
+			$urls['risk_score']             = $urls['general'] . '#risk_score_1';
+			$urls['risk_score_img']         = HCAPTCHA_URL . '/assets/images/enterprise-risk-score-threshold.png';
 		}
 
 		return $urls;

@@ -18,6 +18,7 @@ use FluentForm\Framework\Helpers\ArrayHelper;
 use HCaptcha\Abstracts\LoginBase;
 use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Utils;
 use HCaptcha\Main;
@@ -221,7 +222,7 @@ class Form extends LoginBase {
 	}
 
 	/**
-	 * Filter print hCaptcha scripts status.
+	 * Filters print hCaptcha scripts status.
 	 *
 	 * @param bool|mixed $status Print scripts status.
 	 *
@@ -742,8 +743,12 @@ class Form extends LoginBase {
 			if ( ! isset( $fields_map[ $key ] ) ) {
 				continue;
 			}
+			if ( ! EntryData::is_content_field_type( (string) $fields_map[ $key ]['type'] ) ||
+				EntryData::has_sensitive_field( (string) $fields_map[ $key ]['source_name'], (string) $key ) ) {
+				continue;
+			}
 
-			$filtered[ $fields_map[ $key ]['source_name'] ] = $value;
+			EntryData::add_field( $filtered, (string) $fields_map[ $key ]['source_name'], $value, (string) $key );
 		}
 
 		return $filtered;

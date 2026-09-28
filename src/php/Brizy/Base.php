@@ -14,7 +14,6 @@ use Brizy_Editor_Project;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Utils;
-use JsonException;
 use WP_Post;
 
 /**
@@ -88,25 +87,24 @@ abstract class Base {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$data = isset( $_POST['data'] ) ? sanitize_text_field( wp_unslash( $_POST['data'] ) ) : '';
 
-		$data_arr = Utils::json_decode_arr( $data );
-
-		$hcaptcha_response = '';
+		$data_arr  = Utils::json_decode_arr( $data );
+		$post_data = [];
 
 		foreach ( $data_arr as $item ) {
-			if ( ! isset( $item['name'], $item['value'] ) ) {
+			if ( ! isset( $item['name'], $item['value'] ) || ! is_string( $item['name'] ) ) {
 				continue;
 			}
 
-			if ( 'g-recaptcha-response' === $item['name'] || 'h-captcha-response' === $item['name'] ) {
-				$hcaptcha_response = $item['value'];
+			if ( 'g-recaptcha-response' === $item['name'] ) {
+				$post_data['h-captcha-response'] = $post_data['h-captcha-response'] ?? $item['value'];
+
+				continue;
 			}
 
-			if ( 'hcaptcha-widget-id' === $item['name'] ) {
-				$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = $item['value'];
-			}
+			$post_data[ $item['name'] ] = $item['value'];
 		}
 
-		$error_message = API::verify_request( $hcaptcha_response );
+		$error_message = API::verify_post_data( static::NAME, static::ACTION, $post_data );
 
 		if ( null !== $error_message ) {
 			wp_send_json_error(
@@ -168,7 +166,7 @@ abstract class Base {
 	}
 
 	/**
-	 * Add type="module" attribute to script tag.
+	 * Add the type="module" attribute to the script tag.
 	 *
 	 * @param string|mixed $tag    Script tag.
 	 * @param string       $handle Script handle.

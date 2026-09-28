@@ -15,6 +15,7 @@ namespace HCaptcha\Tests\Integration\Divi;
 use HCaptcha\Divi\EmailOptin;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use Mockery;
 
 /**
  * Class EmailOptinTest
@@ -48,6 +49,19 @@ class EmailOptinTest extends HCaptchaPluginWPTestCase {
 	protected static array $theme_expected_incorrect_usage = [ "add_theme_support( 'title-tag' )" ];
 
 	/**
+	 * Set up the test.
+	 *
+	 * @return void
+	 */
+	public function setUp(): void {
+		parent::setUp();
+
+		hcaptcha()->settings()->set( 'honeypot', 'on' );
+		hcaptcha()->settings()->set( 'set_min_submit_time', 'on' );
+		$this->set_protected_property( hcaptcha(), 'supported_forms', null );
+	}
+
+	/**
 	 * Tear down the test.
 	 */
 	public function tearDown(): void {
@@ -69,6 +83,28 @@ class EmailOptinTest extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
+	 * Test Divi's submitted signup fields reach the anti-spam entry.
+	 *
+	 * @return void
+	 * @noinspection PhpArrayWriteIsNotUsedInspection
+	 */
+	public function test_entry_data(): void {
+		$_POST = [
+			'et_email'     => 'subscriber@example.com',
+			'et_firstname' => 'Jane',
+			'et_lastname'  => 'Doe',
+			'et_token'     => 'do-not-copy',
+		];
+
+		$subject = new EmailOptin();
+		$entry   = $this->set_method_accessibility( $subject, 'get_entry' )->invoke( $subject );
+
+		self::assertSame( 'subscriber@example.com', $entry['data']['email'] );
+		self::assertSame( 'Jane Doe', $entry['data']['name'] );
+		self::assertArrayNotHasKey( 'et_token', $entry['data'] );
+	}
+
+	/**
 	 * Test the live Divi Email Opt-in module.
 	 *
 	 * @return void
@@ -87,6 +123,96 @@ class EmailOptinTest extends HCaptchaPluginWPTestCase {
 		self::assertStringContainsString( 'feedburner.google.com/fb/a/mailverify', $output );
 		self::assertStringContainsString( '<h-captcha', $output );
 		self::assertStringContainsString( 'name="hcaptcha_divi_email_optin_nonce"', $output );
+	}
+
+	/**
+	 * Test honeypot output and widget source for a Divi component.
+	 *
+	 * @param string $component Active Divi component.
+	 * @param string $source    Expected source.
+	 *
+	 * @dataProvider dp_test_honeypot_for_component
+	 * @return void
+	 */
+	public function test_honeypot_for_component( string $component, string $source ): void {
+		$subject = Mockery::mock( EmailOptin::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'get_active_divi_component' )->andReturn( $component );
+
+		$output = $subject->add_captcha( '<p class="et_pb_newsletter_button_wrap"></p>', 'off' );
+		$id     = HCaptcha::widget_id_value(
+			[
+				'source'  => [ $source ],
+				'form_id' => 'email_optin',
+			]
+		);
+
+		self::assertStringContainsString( 'value="' . esc_attr( $id ) . '"', $output );
+		self::assertStringContainsString( 'name="hcap_hp_test"', $output );
+		self::assertStringContainsString( 'name="hcap_hp_sig"', $output );
+	}
+
+	/**
+	 * Test that a filled Divi component email opt-in honeypot is rejected.
+	 *
+	 * @param string $component Active Divi component.
+	 * @param string $source    Expected source.
+	 *
+	 * @dataProvider dp_test_honeypot_for_component
+	 * @return void
+	 */
+	public function test_filled_honeypot_for_component( string $component, string $source ): void {
+		$die_arr  = [];
+		$expected = [
+			'',
+			'',
+			[ 'response' => null ],
+		];
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter(
+			'wp_die_ajax_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		$this->prepare_verify_post( EmailOptin::NONCE, EmailOptin::ACTION );
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ $source ],
+				'form_id' => 'email_optin',
+			]
+		);
+		$_POST['hcap_hp_test']                 = 'bot';
+
+		$subject = Mockery::mock( EmailOptin::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'get_active_divi_component' )->andReturn( $component );
+
+		ob_start();
+		$subject->verify();
+		$json = ob_get_clean();
+
+		self::assertSame( '{"error":"Anti-spam check failed."}', $json );
+		self::assertSame( $expected, $die_arr );
+	}
+
+	/**
+	 * Data provider for Divi component honeypot tests.
+	 *
+	 * @return array
+	 */
+	public function dp_test_honeypot_for_component(): array {
+		return [
+			'Divi Builder' => [ 'divi_builder', 'divi-builder/divi-builder.php' ],
+			'Extra theme'  => [ 'extra', 'Extra' ],
+		];
 	}
 
 	/**

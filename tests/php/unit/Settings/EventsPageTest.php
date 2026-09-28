@@ -45,7 +45,8 @@ class EventsPageTest extends HCaptchaTestCase {
 	 * Test page_title().
 	 */
 	public function test_page_title(): void {
-		$subject = Mockery::mock( EventsPage::class )->makePartial()->shouldAllowMockingProtectedMethods();
+		$subject = Mockery::mock( EventsPage::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
 
 		$method = 'page_title';
 		self::assertSame( 'Events', $subject->$method() );
@@ -55,7 +56,8 @@ class EventsPageTest extends HCaptchaTestCase {
 	 * Test section_title().
 	 */
 	public function test_section_title(): void {
-		$subject = Mockery::mock( EventsPage::class )->makePartial()->shouldAllowMockingProtectedMethods();
+		$subject = Mockery::mock( EventsPage::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
 
 		$method = 'section_title';
 		self::assertSame( 'events', $subject->$method() );
@@ -65,7 +67,8 @@ class EventsPageTest extends HCaptchaTestCase {
 	 * Test tab_name().
 	 */
 	public function test_tab_name(): void {
-		$subject = Mockery::mock( EventsPage::class )->makePartial()->shouldAllowMockingProtectedMethods();
+		$subject = Mockery::mock( EventsPage::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
 
 		$method = 'tab_name';
 		self::assertSame( 'Events', $subject->$method() );
@@ -392,7 +395,8 @@ class EventsPageTest extends HCaptchaTestCase {
 			</div>
 			';
 
-		$subject = Mockery::mock( EventsPage::class )->makePartial()->shouldAllowMockingProtectedMethods();
+		$subject = Mockery::mock( EventsPage::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
 
 		WP_Mock::passthruFunction( 'admin_url' );
 		WP_Mock::passthruFunction( 'wp_kses_post' );
@@ -414,8 +418,10 @@ class EventsPageTest extends HCaptchaTestCase {
 	public function test_prepare_chart_data( array $items, array $expected ): void {
 		$gmt_offset = 3.0;
 
-		$list_table = Mockery::mock( EventsTable::class )->makePartial()->shouldAllowMockingProtectedMethods();
-		$subject    = Mockery::mock( EventsPage::class )->makePartial()->shouldAllowMockingProtectedMethods();
+		$list_table = Mockery::mock( EventsTable::class )->makePartial();
+		$list_table->shouldAllowMockingProtectedMethods();
+		$subject = Mockery::mock( EventsPage::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
 
 		$list_table->shouldReceive( 'prepare_items' )->once();
 		$this->set_protected_property( $list_table, 'items', $items );
@@ -746,8 +752,10 @@ class EventsPageTest extends HCaptchaTestCase {
 		$items      = [];
 		$gmt_offset = 3.0;
 
-		$list_table = Mockery::mock( EventsTable::class )->makePartial()->shouldAllowMockingProtectedMethods();
-		$subject    = Mockery::mock( EventsPage::class )->makePartial()->shouldAllowMockingProtectedMethods();
+		$list_table = Mockery::mock( EventsTable::class )->makePartial();
+		$list_table->shouldAllowMockingProtectedMethods();
+		$subject = Mockery::mock( EventsPage::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
 
 		$list_table->shouldReceive( 'prepare_items' )->once();
 		$this->set_protected_property( $list_table, 'items', $items );
@@ -1006,7 +1014,8 @@ class EventsPageTest extends HCaptchaTestCase {
 	public function test_column_name_with_malformed_source_data(): void {
 		new WP_List_Table();
 
-		$subject = Mockery::mock( EventsTable::class )->makePartial()->shouldAllowMockingProtectedMethods();
+		$subject = Mockery::mock( EventsTable::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
 
 		WP_Mock::passthruFunction( 'esc_attr' );
 		WP_Mock::passthruFunction( 'esc_html' );

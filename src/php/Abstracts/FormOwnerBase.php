@@ -68,10 +68,10 @@ abstract class FormOwnerBase {
 		$id_info    = HCaptcha::decode_id_info();
 
 		if (
-			$login_path === $path &&
-			$this->is_owner_action() &&
 			$widget_id &&
 			$id_info['valid'] &&
+			$login_path === $path &&
+			$this->is_owner_action() &&
 			HCaptcha::widget_id_value( $id_info['id'] ) === $widget_id &&
 			true === $this->get_request_ownership()
 		) {
@@ -94,6 +94,8 @@ abstract class FormOwnerBase {
 			return null;
 		}
 
+		// The child classes define hcap-prefixed owner filters.
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound
 		$owner = (string) apply_filters( static::OWNER_FILTER, '', $id_info['id'] );
 
 		if ( ! $owner ) {
@@ -127,7 +129,7 @@ abstract class FormOwnerBase {
 	abstract protected function is_owner_action(): bool;
 
 	/**
-	 * Get expected hCaptcha widget ID.
+	 * Get the expected hCaptcha widget ID.
 	 *
 	 * @return array
 	 */

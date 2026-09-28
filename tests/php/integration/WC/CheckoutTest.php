@@ -87,6 +87,55 @@ class CheckoutTest extends WooCommerceTestCase {
 	}
 
 	/**
+	 * Test checkout entry data for classic and block requests.
+	 *
+	 * @return void
+	 */
+	public function test_checkout_entry_data(): void {
+		$subject = new Checkout();
+		$_POST   = [
+			'billing_email'      => 'buyer@example.com',
+			'billing_first_name' => 'Jane',
+			'billing_last_name'  => 'Doe',
+			'billing_address_1'  => 'Main Street',
+			'customer_opinion'   => 'Great shop',
+			'payment_method'     => 'card',
+		];
+
+		$classic = $this->set_method_accessibility( $subject, 'get_entry' )->invoke( $subject );
+		$block   = $this->set_method_accessibility( $subject, 'get_block_entry' )->invoke(
+			$subject,
+			[
+				'billing_address'   => [
+					'email'      => 'block@example.com',
+					'first_name' => 'John',
+					'last_name'  => 'Smith',
+					'address_1'  => 'Oak Street',
+				],
+				'shipping_address'  => [ 'address_1' => 'Pine Street' ],
+				'additional_fields' => [ 'customer_opinion' => 'Very good' ],
+				'customer_note'     => 'Please call first',
+				'payment_data'      => [ 'card_number' => 'do-not-copy' ],
+			]
+		);
+
+		self::assertSame( 'buyer@example.com', $classic['data']['email'] );
+		self::assertSame( 'Jane Doe', $classic['data']['name'] );
+		self::assertSame( 'Main Street', $classic['data']['billing_address_1'] );
+		self::assertSame( 'Great shop', $classic['data']['customer_opinion'] );
+		self::assertArrayNotHasKey( 'payment_method', $classic['data'] );
+		self::assertSame( 'block@example.com', $block['data']['email'] );
+		self::assertSame( 'John Smith', $block['data']['name'] );
+		self::assertSame( 'Oak Street', $block['data']['address_1'] );
+		self::assertSame( 'Pine Street', $block['data']['shipping_address']['address_1'] );
+		self::assertSame( 'Very good', $block['data']['additional_fields']['customer_opinion'] );
+		self::assertSame( 'Please call first', $block['data']['customer_note'] );
+		self::assertArrayNotHasKey( 'payment_data', $block['data'] );
+
+		unset( $_POST['billing_email'], $_POST['billing_first_name'], $_POST['billing_last_name'], $_POST['billing_address_1'], $_POST['customer_opinion'], $_POST['payment_method'] );
+	}
+
+	/**
 	 * Tests add_captcha().
 	 *
 	 * @noinspection PhpUndefinedFunctionInspection
@@ -308,13 +357,21 @@ class CheckoutTest extends WooCommerceTestCase {
 		$this->prepare_verify_request( $hcaptcha_response );
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		$hp_sig = $_POST[ $hp_sig_name ];
+		$token  = $_POST[ $token_name ];
+
 		$request->set_param( $widget_id_name, $this->get_test_widget_id() );
 		$request->set_param( $hcaptcha_response_name, $hcaptcha_response );
-		$request->set_param( $hp_sig_name, $_POST[ $hp_sig_name ] );
-		$request->set_param( $token_name, $_POST[ $token_name ] );
+		$request->set_param( $hp_sig_name, $hp_sig );
+		$request->set_param( $token_name, $token );
 		$request->set_param( $hp_name, '' );
 
 		self::assertSame( $response, $subject->verify_block( $response, $handler, $request ) );
+		self::assertArrayNotHasKey( $widget_id_name, $_POST );
+		self::assertArrayNotHasKey( $hcaptcha_response_name, $_POST );
+		self::assertArrayNotHasKey( $hp_sig_name, $_POST );
+		self::assertArrayNotHasKey( $token_name, $_POST );
+		self::assertArrayNotHasKey( $hp_name, $_POST );
 
 		// Checkout route, express payment type.
 		$request = new WP_REST_Request( '', '/wc/store/v1/checkout' );
@@ -333,8 +390,8 @@ class CheckoutTest extends WooCommerceTestCase {
 		);
 		$request->set_param( $widget_id_name, $this->get_test_widget_id() );
 		$request->set_param( $hcaptcha_response_name, $hcaptcha_response );
-		$request->set_param( $hp_sig_name, $_POST[ $hp_sig_name ] );
-		$request->set_param( $token_name, $_POST[ $token_name ] );
+		$request->set_param( $hp_sig_name, $hp_sig );
+		$request->set_param( $token_name, $token );
 		$request->set_param( $hp_name, '' );
 
 		self::assertSame( $response, $subject->verify_block( $response, $handler, $request ) );
@@ -348,8 +405,8 @@ class CheckoutTest extends WooCommerceTestCase {
 		$this->prepare_verify_request( $hcaptcha_response, false );
 		$request->set_param( $widget_id_name, $this->get_test_widget_id() );
 		$request->set_param( $hcaptcha_response_name, $hcaptcha_response );
-		$request->set_param( $hp_sig_name, $_POST[ $hp_sig_name ] );
-		$request->set_param( $token_name, $_POST[ $token_name ] );
+		$request->set_param( $hp_sig_name, $hp_sig );
+		$request->set_param( $token_name, $token );
 		$request->set_param( $hp_name, '' );
 		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 

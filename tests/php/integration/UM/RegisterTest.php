@@ -75,6 +75,28 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
+	 * Test registration email reaches anti-spam entry without the password.
+	 *
+	 * @return void
+	 */
+	public function test_entry_data(): void {
+		$subject = $this->get_subject();
+		$entry   = $this->set_method_accessibility( $subject, 'get_entry' )->invoke(
+			$subject,
+			[
+				'user_email'    => 'new@example.com',
+				'first_name'    => 'Jane',
+				'last_name'     => 'Doe',
+				'user_password' => 'do-not-copy',
+			]
+		);
+
+		self::assertSame( 'new@example.com', $entry['data']['email'] );
+		self::assertSame( 'Jane Doe', $entry['data']['name'] );
+		self::assertArrayNotHasKey( 'user_password', $entry['data'] );
+	}
+
+	/**
 	 * Get subject.
 	 *
 	 * @return Register

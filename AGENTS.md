@@ -15,13 +15,13 @@ When `cwd` is the plugin root, treat paths such as `src/**`, `assets/**`, `tests
 for another nested `wp-content/plugins/hcaptcha-wordpress-plugin` folder inside it.
 
 ## File Access Policy
-- Files allowed to be modified: only project files inside the hCaptcha plugin root.
+- Files are allowed to be modified: only project files inside the hCaptcha plugin root.
   If the workspace is opened from a WordPress root, this means `wp-content/plugins/hcaptcha-wordpress-plugin/**`.
   If the workspace is opened from the plugin root, this means the current working directory (`./**`).
 - Reading/searching outside this folder is allowed only when strictly necessary for integration context
   (for example, WordPress core behavior, hooks, or third-party plugin integration points).
 - Any out-of-scope search must be minimal and targeted.
-- `.aiassistant/rules/*.md` may be read as rules source.
+- `.aiassistant/rules/*.md` may be read as a rule source.
 
 ## Rules Source
 For all work in the project scope, always apply all rules from:
@@ -47,3 +47,17 @@ When rules conflict, use this order:
 - Keep compatibility targets from the rules (`PHP 7.4+`, `WordPress 6.0+`).
 - Follow WordPress security/i18n/escaping/sanitization practices from the rules.
 - Do not modify files outside the hCaptcha plugin root.
+
+## Mockery in Unit Tests
+- When a partial mock needs protected-method mocking, call `shouldAllowMockingProtectedMethods()`
+  separately after assigning the result of `makePartial()`. Chaining these calls causes the
+  analyzer to report that protected methods cannot be mocked.
+
+```php
+$subject = Mockery::mock( Integrations::class )->makePartial();
+$subject->shouldAllowMockingProtectedMethods();
+```
+
+## Changelog
+- When adding release notes about completed work, update the current version under `== Changelog ==` in `readme.txt`.
+- Do not edit `changelog.txt` manually. CI generates and updates it from the changelog in `readme.txt`.

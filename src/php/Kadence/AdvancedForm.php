@@ -11,6 +11,7 @@
 namespace HCaptcha\Kadence;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use KB_Ajax_Advanced_Form;
@@ -105,7 +106,6 @@ class AdvancedForm extends Base {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection HtmlUnknownAttribute
-	 * @noinspection UnnecessaryCastingInspection
 	 */
 	public function render_block( $block_content, array $block, WP_Block $instance ): string {
 		$block_content = (string) $block_content;
@@ -290,37 +290,52 @@ class AdvancedForm extends Base {
 		$fields = $this->get_fields( $blocks );
 
 		foreach ( $fields as $field ) {
-			if ( ! preg_match( '#kadence/advanced-form-(.+)#', $field['blockName'] ?? '', $m ) ) {
-				continue;
-			}
-
-			$type = $m[1];
-
-			if ( ! in_array( $type, [ 'text', 'email', 'textarea' ], true ) ) {
-				continue;
-			}
-
-			$attrs = $field['attrs'] ?? [];
-			$attrs = wp_parse_args(
-				$attrs,
-				[
-					'label'    => '',
-					'uniqueID' => '',
-				]
-			);
-
-			$label     = $attrs['label'];
-			$unique_id = $attrs['uniqueID'];
-			$value     = Request::filter_input( INPUT_POST, "field$unique_id" );
-
-			if ( 'email' === $type ) {
-				$entry['data']['email'] = $value;
-			}
-
-			$entry['data'][ $label ] = $value;
+			$this->add_form_field( $entry['data'], $field );
 		}
 
 		return $entry;
+	}
+
+	/**
+	 * Add one submitted advanced form field to the entry.
+	 *
+	 * @param array $data  Entry data.
+	 * @param array $field Form block.
+	 *
+	 * @return void
+	 */
+	private function add_form_field( array &$data, array $field ): void {
+		if ( ! preg_match( '#kadence/advanced-form-(.+)#', $field['blockName'] ?? '', $matches ) ) {
+			return;
+		}
+
+		$type = $matches[1];
+
+		if ( ! EntryData::is_content_field_type( (string) $type ) ) {
+			return;
+		}
+
+		$attrs     = wp_parse_args(
+			$field['attrs'] ?? [],
+			[
+				'label'    => '',
+				'uniqueID' => '',
+			]
+		);
+		$label     = (string) $attrs['label'];
+		$unique_id = (string) $attrs['uniqueID'];
+
+		if ( EntryData::has_sensitive_field( $label, $unique_id ) ) {
+			return;
+		}
+
+		$value = Request::filter_input( INPUT_POST, "field$unique_id" );
+
+		if ( 'email' === $type ) {
+			$data['email'] = $value;
+		}
+
+		EntryData::add_field( $data, $label, $value, $unique_id );
 	}
 
 	/**

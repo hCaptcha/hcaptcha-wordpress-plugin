@@ -14,14 +14,21 @@ describe( 'hCaptcha Icegram Express', () => {
 			} ),
 		};
 		global.HCaptchaIcegramExpressObject = window.HCaptchaIcegramExpressObject;
+		window.hCaptchaBindEvents = jest.fn();
+		window.hCaptchaFST = {
+			getToken: jest.fn(),
+		};
 		delete window.hCaptchaIcegramExpress;
 	} );
 
 	afterEach( () => {
 		$( window ).off( 'init.icegram' );
+		$( window ).off( 'es.send_response' );
 		delete window.HCaptchaIcegramExpressObject;
 		delete global.HCaptchaIcegramExpressObject;
 		delete window.hCaptchaIcegramExpress;
+		delete window.hCaptchaBindEvents;
+		delete window.hCaptchaFST;
 		document.body.innerHTML = '';
 		jest.restoreAllMocks();
 	} );
@@ -71,5 +78,36 @@ describe( 'hCaptcha Icegram Express', () => {
 
 		expect( window.hCaptchaIcegramExpress ).toBe( existingApp );
 		expect( existingApp.init ).toHaveBeenCalledTimes( 1 );
+	} );
+
+	test( 'refreshes hCaptcha and FST after a protected subscription response', () => {
+		document.body.innerHTML = '<form class="es_ajax_subscription_form"><div class="h-captcha"></div></form>';
+		require( '../../../assets/js/hcaptcha-icegram-express.js' );
+
+		$( window ).trigger( 'es.send_response', [ $( 'form' ), { status: 'ERROR' } ] );
+
+		expect( window.hCaptchaBindEvents ).toHaveBeenCalledTimes( 1 );
+		expect( window.hCaptchaFST.getToken ).toHaveBeenCalledTimes( 1 );
+	} );
+
+	test( 'ignores unprotected subscription responses', () => {
+		document.body.innerHTML = '<form class="es_ajax_subscription_form"></form>';
+		require( '../../../assets/js/hcaptcha-icegram-express.js' );
+
+		$( window ).trigger( 'es.send_response', [ $( 'form' ), { status: 'ERROR' } ] );
+
+		expect( window.hCaptchaBindEvents ).not.toHaveBeenCalled();
+		expect( window.hCaptchaFST.getToken ).not.toHaveBeenCalled();
+	} );
+
+	test( 'refreshes hCaptcha when FST is disabled', () => {
+		document.body.innerHTML = '<form class="es_ajax_subscription_form"><div class="h-captcha"></div></form>';
+		delete window.hCaptchaFST;
+		require( '../../../assets/js/hcaptcha-icegram-express.js' );
+
+		expect( () => {
+			$( window ).trigger( 'es.send_response', [ $( 'form' ), { status: 'ERROR' } ] );
+		} ).not.toThrow();
+		expect( window.hCaptchaBindEvents ).toHaveBeenCalledTimes( 1 );
 	} );
 } );

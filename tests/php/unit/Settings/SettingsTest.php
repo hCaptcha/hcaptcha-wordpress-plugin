@@ -46,7 +46,8 @@ class SettingsTest extends HCaptchaTestCase {
 	public function test_constructor( $menu_groups ): void {
 		$class_name = Settings::class;
 
-		$subject = Mockery::mock( $class_name )->makePartial()->shouldAllowMockingProtectedMethods();
+		$subject = Mockery::mock( $class_name )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'init' )->once();
 
 		$constructor = ( new ReflectionClass( $class_name ) )->getConstructor();
@@ -83,8 +84,9 @@ class SettingsTest extends HCaptchaTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_init(): void {
-		$subject = Mockery::mock( Settings::class )->makePartial()->shouldAllowMockingProtectedMethods();
-		$method  = 'init';
+		$subject = Mockery::mock( Settings::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$method = 'init';
 
 		$menu_groups = [
 			'hCaptcha' => [
@@ -212,6 +214,10 @@ class SettingsTest extends HCaptchaTestCase {
 		self::assertFalse( $subject->is_pro() );
 
 		$license = 'pro';
+
+		self::assertTrue( $subject->is_pro() );
+
+		$license = 'enterprise';
 
 		self::assertTrue( $subject->is_pro() );
 	}
@@ -354,6 +360,51 @@ class SettingsTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test get_custom_theme_color().
+	 *
+	 * @return void
+	 * @noinspection PhpArrayIndexImmediatelyRewrittenInspection
+	 * @noinspection JSDeprecatedSymbols
+	 */
+	public function test_get_custom_theme_color(): void {
+		$config_params = [
+			'theme' => [
+				'palette' => [
+					'text' => [
+						'body' => '#123456',
+					],
+				],
+			],
+		];
+
+		$subject = Mockery::mock( Settings::class )->makePartial();
+
+		$subject->shouldReceive( 'is_on' )->with( 'custom_themes' )->andReturn( true );
+		$subject->shouldReceive( 'is_pro_or_general' )->with()->andReturn( true );
+		$subject->shouldReceive( 'get_mode' )->with()->andReturn( General::MODE_LIVE );
+		$subject->shouldReceive( 'get_config_params' )->with()->andReturnUsing(
+			static function () use ( &$config_params ) {
+				return $config_params;
+			}
+		);
+
+		self::assertSame( '#123456', $subject->get_custom_theme_color() );
+
+		$config_params['theme']['palette']['text']['body'] =
+			'red}</style><script>alert(document.domain)</script><style>a{color:red';
+
+		self::assertSame( '', $subject->get_custom_theme_color() );
+
+		$config_params['theme']['palette']['text']['body'] = [ '#fff' ];
+
+		self::assertSame( '', $subject->get_custom_theme_color() );
+
+		unset( $config_params['theme']['palette']['text']['body'] );
+
+		self::assertSame( '', $subject->get_custom_theme_color() );
+	}
+
+	/**
 	 * Test get_raw_settings().
 	 *
 	 * @throws ReflectionException ReflectionException.
@@ -441,7 +492,8 @@ class SettingsTest extends HCaptchaTestCase {
 			'hCaptcha' => [ General::class, Integrations::class ],
 		];
 
-		$subject = Mockery::mock( Settings::class )->makePartial()->shouldAllowMockingProtectedMethods();
+		$subject = Mockery::mock( Settings::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
 
 		$tabs = [ $general, $integrations ];
 		$this->set_protected_property( $subject, 'tabs', $tabs );
@@ -747,18 +799,46 @@ class SettingsTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test get_risk_score_threshold().
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_get_risk_score_threshold(): void {
+		$general = Mockery::mock( General::class )->makePartial();
+		$subject = Mockery::mock( Settings::class )->makePartial();
+
+		$general->shouldReceive( 'get' )
+			->with( General::RISK_SCORE_THRESHOLD, General::DEFAULT_RISK_SCORE_THRESHOLD )
+			->andReturn( '0', '0.4', '2', 'invalid' );
+
+		$this->set_protected_property( $subject, 'tabs', [ $general ] );
+
+		self::assertSame( 0.0, $subject->get_risk_score_threshold() );
+		self::assertSame( 0.4, $subject->get_risk_score_threshold() );
+		self::assertSame( 1.0, $subject->get_risk_score_threshold() );
+		self::assertSame( General::DEFAULT_RISK_SCORE_THRESHOLD, $subject->get_risk_score_threshold() );
+	}
+
+	/**
 	 * Test get_license().
 	 *
-	 * @param string $license  Saved license.
-	 * @param string $expected Expected license.
+	 * @param string $mode     Mode.
+	 * @param string $license  Saved Live license.
+	 * @param string $expected Expected effective license.
 	 *
 	 * @dataProvider dp_test_get_license
 	 * @return void
 	 */
-	public function test_get_license( string $license, string $expected ): void {
+	public function test_get_license( string $mode, string $license, string $expected ): void {
 		$subject = Mockery::mock( Settings::class )->makePartial();
 
-		$subject->shouldReceive( 'get' )->with( 'license' )->andReturn( $license );
+		$subject->shouldReceive( 'get_mode' )->with()->andReturn( $mode );
+
+		if ( General::MODE_LIVE === $mode ) {
+			$subject->shouldReceive( 'get' )->with( 'license' )->andReturn( $license );
+		} else {
+			$subject->shouldNotReceive( 'get' )->with( 'license' );
+		}
 
 		self::assertSame( $expected, $subject->get_license() );
 	}
@@ -770,10 +850,14 @@ class SettingsTest extends HCaptchaTestCase {
 	 */
 	public function dp_test_get_license(): array {
 		return [
-			[ 'free', 'free' ],
-			[ 'pro', 'pro' ],
-			[ 'enterprise', 'enterprise' ],
-			[ 'wrong', 'free' ],
+			'Live Free'            => [ General::MODE_LIVE, 'free', 'free' ],
+			'Live Pro'             => [ General::MODE_LIVE, 'pro', 'pro' ],
+			'Live Enterprise'      => [ General::MODE_LIVE, 'enterprise', 'enterprise' ],
+			'Live invalid license' => [ General::MODE_LIVE, 'wrong', 'free' ],
+			'Test Publisher'       => [ General::MODE_TEST_PUBLISHER, 'enterprise', 'free' ],
+			'Test Enterprise safe' => [ General::MODE_TEST_ENTERPRISE_SAFE_END_USER, 'free', 'enterprise' ],
+			'Test Enterprise bot'  => [ General::MODE_TEST_ENTERPRISE_BOT_DETECTED, 'free', 'enterprise' ],
+			'Unknown mode'         => [ 'wrong', 'enterprise', 'free' ],
 		];
 	}
 
@@ -828,14 +912,13 @@ class SettingsTest extends HCaptchaTestCase {
 				],
 				'modal'        => [
 					'main'  => [
-						'fill'   => '#ffffff',
-						'border' => '#e0e0e0',
+						'fill' => '#ffffff',
 					],
 					'hover' => [
 						'fill' => '#f5f5f5',
 					],
 					'focus' => [
-						'border' => '#0074bf',
+						'outline' => '#0074bf',
 					],
 				],
 				'breadcrumb'   => [
@@ -856,13 +939,19 @@ class SettingsTest extends HCaptchaTestCase {
 						'fill' => '#f5f5f5',
 					],
 					'focus'  => [
-						'icon' => '#00838f',
-						'text' => '#00838f',
+						'icon'    => '#00838f',
+						'text'    => '#00838f',
+						'outline' => '#0074bf',
 					],
 					'active' => [
 						'fill' => '#f5f5f5',
 						'icon' => '#555555',
 						'text' => '#555555',
+					],
+				],
+				'link'         => [
+					'focus' => [
+						'outline' => '#0074bf',
 					],
 				],
 				'list'         => [
@@ -883,6 +972,9 @@ class SettingsTest extends HCaptchaTestCase {
 					'selected' => [
 						'fill' => '#e0e0e0',
 					],
+					'focus'    => [
+						'outline' => '#0074bf',
+					],
 				],
 				'input'        => [
 					'main'  => [
@@ -890,8 +982,27 @@ class SettingsTest extends HCaptchaTestCase {
 						'border' => '#919191',
 					],
 					'focus' => [
-						'fill'   => '#f5f5f5',
-						'border' => '#333333',
+						'fill'    => '#f5f5f5',
+						'border'  => '#333333',
+						'outline' => '#0074bf',
+					],
+				],
+				'field'        => [
+					'label' => '#222222',
+					'input' => [
+						'main'  => [
+							'border' => '#d7d7d7',
+							'fill'   => '#ffffff',
+							'text'   => '#14191f',
+						],
+						'focus' => [
+							'outline' => '#00838f',
+							'fill'    => '#f5f5f5',
+						],
+						'error' => [
+							'border' => '#bf1722',
+							'text'   => '#bf1722',
+						],
 					],
 				],
 				'radio'        => [
@@ -903,16 +1014,29 @@ class SettingsTest extends HCaptchaTestCase {
 					'selected' => [
 						'check' => '#00838f',
 					],
+					'focus'    => [
+						'outline' => '#0074bf',
+					],
 				],
 				'task'         => [
 					'main'     => [
 						'fill' => '#f5f5f5',
 					],
 					'selected' => [
-						'border' => '#00838f',
+						'badge'   => '#00838f',
+						'outline' => '#00838f',
 					],
 					'report'   => [
-						'border' => '#eb5757',
+						'badge'   => '#eb5757',
+						'outline' => '#eb5757',
+					],
+					'details'  => [
+						'heading' => '#222222',
+						'text'    => '#222222',
+					],
+					'focus'    => [
+						'badge'   => '#00838f',
+						'outline' => '#00838f',
 					],
 				],
 				'prompt'       => [
@@ -938,8 +1062,31 @@ class SettingsTest extends HCaptchaTestCase {
 						'border' => '#919191',
 						'text'   => '#ffffff',
 					],
+					'focus' => [
+						'outline' => '#0074bf',
+					],
 				],
 				'verifyButton' => [
+					'main'     => [
+						'fill'   => '#00838f',
+						'border' => '#00838f',
+						'text'   => '#ffffff',
+					],
+					'hover'    => [
+						'fill'   => '#00838f',
+						'border' => '#00838f',
+						'text'   => '#ffffff',
+					],
+					'focus'    => [
+						'outline' => '#0074bf',
+					],
+					'disabled' => [
+						'fill'   => '#919191',
+						'border' => '#919191',
+						'text'   => '#ffffff',
+					],
+				],
+				'mfaButton'    => [
 					'main'  => [
 						'fill'   => '#00838f',
 						'border' => '#00838f',
@@ -950,10 +1097,8 @@ class SettingsTest extends HCaptchaTestCase {
 						'border' => '#00838f',
 						'text'   => '#ffffff',
 					],
-				],
-				'expandButton' => [
-					'main' => [
-						'fill' => '#00838f',
+					'focus' => [
+						'outline' => '#0074bf',
 					],
 				],
 				'slider'       => [
@@ -963,6 +1108,19 @@ class SettingsTest extends HCaptchaTestCase {
 					],
 					'focus' => [
 						'handle' => '#0f8390',
+					],
+				],
+				'textarea'     => [
+					'main'     => [
+						'fill'   => '#c4c4c4',
+						'border' => '#919191',
+					],
+					'focus'    => [
+						'fill'    => '#c4c4c4',
+						'outline' => '#0074bf',
+					],
+					'disabled' => [
+						'fill' => '#919191',
 					],
 				],
 			],

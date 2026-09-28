@@ -73,6 +73,23 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
+	 * Test bbPress registration fields reach the anti-spam entry.
+	 *
+	 * @return void
+	 */
+	public function test_entry_data(): void {
+		$subject = new Register();
+		$entry   = $this->set_method_accessibility( $subject, 'get_entry' )->invoke(
+			$subject,
+			'guest',
+			'guest@example.com'
+		);
+
+		self::assertSame( 'guest', $entry['data']['username'] );
+		self::assertSame( 'guest@example.com', $entry['data']['email'] );
+	}
+
+	/**
 	 * Test add_captcha().
 	 *
 	 * @return void

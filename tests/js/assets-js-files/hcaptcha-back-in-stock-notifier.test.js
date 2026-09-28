@@ -30,17 +30,26 @@ describe( 'hCaptcha Back In Stock Notifier', () => {
 	beforeEach( () => {
 		ajaxPrefilterCallback = null;
 		window.hCaptchaBindEvents = jest.fn();
+		window.hCaptchaReset = jest.fn();
+		window.hCaptchaFST = {
+			getToken: jest.fn(),
+		};
 		document.body.innerHTML = `
-			<form class="cwginstock-subscribe-form"></form>
-			<input name="cwg-product-id" value="123">
+			<form class="cwginstock-subscribe-form">
+				<input class="cwg-product-id" name="cwg-product-id" value="123">
+				<textarea name="h-captcha-response">response</textarea>
+				<textarea name="g-recaptcha-response">response</textarea>
+			</form>
 		`;
 	} );
 
 	afterEach( () => {
-		$( document ).off( 'ajaxSuccess' );
+		$( document ).off( 'ajaxSuccess cwginstock_success_ajax cwginstock_error_ajax' );
 		$.ajaxPrefilter = originalAjaxPrefilter;
 		jest.dontMock( '../../../assets/js/hcaptcha-helper.js' );
 		delete window.hCaptchaBindEvents;
+		delete window.hCaptchaReset;
+		delete window.hCaptchaFST;
 		document.body.innerHTML = '';
 		jest.restoreAllMocks();
 	} );
@@ -86,5 +95,30 @@ describe( 'hCaptcha Back In Stock Notifier', () => {
 		$( document ).trigger( 'ajaxSuccess', [ {}, { data: 'action=cwg_trigger_popup_ajax&product_id=123' } ] );
 
 		expect( window.hCaptchaBindEvents ).toHaveBeenCalledTimes( 1 );
+	} );
+
+	test.each( [ 'cwginstock_success_ajax', 'cwginstock_error_ajax' ] )(
+		'resets hCaptcha and refreshes FST after %s',
+		( eventName ) => {
+			loadNotifier();
+
+			$( document ).trigger( eventName, [ { product_id: 123 } ] );
+
+			const form = document.querySelector( '.cwginstock-subscribe-form' );
+
+			expect( window.hCaptchaReset ).toHaveBeenCalledWith( form );
+			expect( form.querySelector( '[name="h-captcha-response"]' ).value ).toBe( '' );
+			expect( form.querySelector( '[name="g-recaptcha-response"]' ).value ).toBe( '' );
+			expect( window.hCaptchaFST.getToken ).toHaveBeenCalledTimes( 1 );
+		},
+	);
+
+	test( 'does not refresh tokens when the submitted product form is missing', () => {
+		loadNotifier();
+
+		$( document ).trigger( 'cwginstock_error_ajax', [ { product_id: 456 } ] );
+
+		expect( window.hCaptchaReset ).not.toHaveBeenCalled();
+		expect( window.hCaptchaFST.getToken ).not.toHaveBeenCalled();
 	} );
 } );

@@ -32,11 +32,21 @@ class ProtectContent {
 	private const COOKIE_NAME = 'hcaptcha_content_protection';
 
 	/**
+	 * Browser session cookie name.
+	 */
+	private const SESSION_COOKIE_NAME = 'hcaptcha_content_protection_session';
+
+	/**
 	 * Cookie expiration.
 	 *
 	 * 5 minutes in seconds.
 	 */
 	private const COOKIE_EXPIRATION = 5 * MINUTE_IN_SECONDS;
+
+	/**
+	 * Number of random bytes in a clearance or session token.
+	 */
+	private const TOKEN_BYTES = 32;
 
 	/**
 	 * Error message.
@@ -53,11 +63,24 @@ class ProtectContent {
 	protected string $request_uri = '';
 
 	/**
+	 * Matched protected URL rule.
+	 *
+	 * Each configured rule is an authorization scope. The longest matching rule
+	 * allows refreshes and navigation within that set without unlocking another
+	 * configured set.
+	 *
+	 * @var string
+	 */
+	protected string $resource_scope = '';
+
+	/**
 	 * Init class.
 	 *
 	 * @return void
 	 */
 	public function init(): void {
+		$this->resource_scope = '';
+
 		if ( ! Request::is_frontend() ) {
 			return;
 		}
@@ -84,17 +107,16 @@ class ProtectContent {
 		$protected_urls = array_filter( array_map( 'trim', $protected_urls ) );
 		$protected_urls = $protected_urls ?: [ '/' ]; // Protect all URLs by default.
 
-		$found = false;
-
 		foreach ( $protected_urls as $url ) {
-			if ( preg_match( '!' . preg_quote( $url, '!' ) . '!i', $request_uri ) ) {
-				$found = true;
-
-				break;
+			if (
+				preg_match( '!' . preg_quote( $url, '!' ) . '!i', $request_uri ) &&
+				strlen( $url ) > strlen( $this->resource_scope )
+			) {
+				$this->resource_scope = $url;
 			}
 		}
 
-		if ( ! $found ) {
+		if ( '' === $this->resource_scope ) {
 			return;
 		}
 
@@ -120,6 +142,8 @@ class ProtectContent {
 			return;
 		}
 
+		$this->ensure_session_cookie();
+
 		if ( 'post' === strtolower( Request::filter_input( INPUT_SERVER, 'REQUEST_METHOD' ) ) ) {
 			$this->error_message = $this->verify();
 		}
@@ -141,8 +165,14 @@ class ProtectContent {
 		$error_message = API::verify_post( self::NONCE, self::ACTION );
 
 		if ( null === $error_message ) {
+			$session_id = $this->get_session_id();
+
+			if ( '' === $session_id || '' === $this->resource_scope ) {
+				return __( 'Your browser session could not be established. Please try again.', 'hcaptcha-for-forms-and-more' );
+			}
+
 			$time   = time();
-			$cookie = $time . '|' . wp_hash( $time );
+			$cookie = $this->create_clearance( $session_id, $time );
 
 			$this->setcookie(
 				self::COOKIE_NAME,
@@ -152,6 +182,7 @@ class ProtectContent {
 					'path'     => '/',
 					'secure'   => is_ssl(),
 					'httponly' => true,
+					'samesite' => 'Lax',
 				]
 			);
 
@@ -167,17 +198,155 @@ class ProtectContent {
 	 * @return bool
 	 */
 	protected function is_valid_cookie(): bool {
-		$cookie     = Request::filter_input( INPUT_COOKIE, self::COOKIE_NAME );
-		$cookie_arr = explode( '|', $cookie );
+		$cookie     = $this->get_cookie( self::COOKIE_NAME );
+		$session_id = $this->get_session_id();
+		$parts      = explode( '.', $cookie );
 
-		$time        = (int) $cookie_arr[0];
-		$hashed_time = (string) ( $cookie_arr[1] ?? '' );
-
-		if ( wp_hash( $time ) !== $hashed_time ) {
+		if (
+			6 !== count( $parts ) ||
+			'v2' !== $parts[0] ||
+			'' === $session_id ||
+			'' === $this->resource_scope
+		) {
 			return false;
 		}
 
-		return time() - $time < self::COOKIE_EXPIRATION;
+		[ , $expires, $token, $session_binding, $scope_binding, $signature ] = $parts;
+
+		if (
+			! preg_match( '/^[0-9]{1,12}$/D', $expires ) ||
+			! preg_match( '/^[a-f0-9]{64}$/D', $token ) ||
+			! preg_match( '/^[a-f0-9]{64}$/D', $session_binding ) ||
+			! preg_match( '/^[a-f0-9]{64}$/D', $scope_binding ) ||
+			! preg_match( '/^[a-f0-9]{64}$/D', $signature )
+		) {
+			return false;
+		}
+
+		$payload = implode( '.', array_slice( $parts, 0, 5 ) );
+
+		if ( ! hash_equals( $this->sign_clearance( $payload ), $signature ) ) {
+			return false;
+		}
+
+		$expires = (int) $expires;
+		$now     = time();
+
+		if ( $expires <= $now || $expires > $now + self::COOKIE_EXPIRATION ) {
+			return false;
+		}
+
+		return hash_equals( $this->hash_binding( 'session', $session_id ), $session_binding ) &&
+			hash_equals( $this->hash_binding( 'scope', $this->resource_scope ), $scope_binding );
+	}
+
+	/**
+	 * Establish the independent browser credential before a challenge succeeds.
+	 *
+	 * Copying a later clearance response does not copy this credential. Theft of
+	 * both cookies is equivalent to theft of the browser session and is outside
+	 * the clearance-only replay protection model.
+	 *
+	 * @return void
+	 */
+	protected function ensure_session_cookie(): void {
+		if ( '' !== $this->get_session_id() ) {
+			return;
+		}
+
+		$this->setcookie(
+			self::SESSION_COOKIE_NAME,
+			'v1.' . $this->generate_token(),
+			[
+				'expires'  => 0,
+				'path'     => '/',
+				'secure'   => is_ssl(),
+				'httponly' => true,
+				'samesite' => 'Lax',
+			]
+		);
+	}
+
+	/**
+	 * Get the browser session ID from the request.
+	 *
+	 * @return string
+	 */
+	private function get_session_id(): string {
+		$session_id = $this->get_cookie( self::SESSION_COOKIE_NAME );
+
+		return preg_match( '/^v1\.[a-f0-9]{64}$/D', $session_id ) ? $session_id : '';
+	}
+
+	/**
+	 * Get a scalar cookie value.
+	 *
+	 * @param string $name Cookie name.
+	 *
+	 * @return string
+	 */
+	private function get_cookie( string $name ): string {
+		$value = Request::filter_input( INPUT_COOKIE, $name );
+
+		return is_string( $value ) ? $value : '';
+	}
+
+	/**
+	 * Generate an unpredictable token.
+	 *
+	 * @return string
+	 */
+	protected function generate_token(): string {
+		return bin2hex( random_bytes( self::TOKEN_BYTES ) );
+	}
+
+	/**
+	 * Create a signed, session- and resource-bound clearance.
+	 *
+	 * The payload is stateless on the server and cannot outlive its embedded
+	 * five-minute expiry, so successful challenges create no records to prune.
+	 *
+	 * @param string $session_id Browser session ID.
+	 * @param int    $time       Issuance time.
+	 *
+	 * @return string
+	 */
+	private function create_clearance( string $session_id, int $time ): string {
+		$payload = implode(
+			'.',
+			[
+				'v2',
+				(string) ( $time + self::COOKIE_EXPIRATION ),
+				$this->generate_token(),
+				$this->hash_binding( 'session', $session_id ),
+				$this->hash_binding( 'scope', $this->resource_scope ),
+			]
+		);
+
+		return $payload . '.' . $this->sign_clearance( $payload );
+	}
+
+	/**
+	 * Hash a session or resource binding.
+	 *
+	 * @param string $type  Binding type.
+	 * @param string $value Binding value.
+	 *
+	 * @return string
+	 */
+	private function hash_binding( string $type, string $value ): string {
+		return hash_hmac( 'sha256', $type . '|' . $value, wp_salt( 'auth' ) );
+	}
+
+	/**
+	 * Sign a clearance payload.
+	 *
+	 * @param string $payload Clearance payload.
+	 *
+	 * @return string
+	 */
+	private function sign_clearance( string $payload ): string {
+		return hash_hmac( 'sha256', 'clearance|' . $payload, wp_salt( 'auth' ) );
 	}
 
 	/**
@@ -552,6 +721,7 @@ class ProtectContent {
 				'domain'   => '',
 				'secure'   => false,
 				'httponly' => false,
+				'samesite' => 'Lax',
 			]
 		);
 

@@ -12,13 +12,11 @@
 
 namespace HCaptcha\Scoper;
 
-use Composer\DependencyResolver\Operation\InstallOperation;
-use Composer\DependencyResolver\Operation\UninstallOperation;
-use Composer\DependencyResolver\Operation\UpdateOperation;
 use Composer\EventDispatcher\Event as BaseEvent;
-use Composer\Installer\PackageEvent;
 use Composer\Script\Event;
 use Isolated\Symfony\Component\Finder\Finder;
+use JsonException;
+use RuntimeException;
 
 /**
  * Class Scoper.
@@ -33,17 +31,22 @@ class Scoper {
 	/**
 	 * Vendor prefixed dir.
 	 */
-	private const VENDOR_PREFIXED = '/vendors';
+	private const VENDOR_PREFIXED = '/vendor_prefixed';
 
 	/**
-	 * Do scope, as some scope-packages were updated.
+	 * Create the classmap directory before Composer scans it.
 	 *
-	 * @var bool
+	 * @param Event $event Composer event.
+	 *
+	 * @return void
+	 * @noinspection PhpUnused
 	 */
-	private static bool $do_scope = false;
+	public static function pre_autoload_dump( Event $event ): void {
+		self::ensure_vendor_prefixed_dir();
+	}
 
 	/**
-	 * Post-update composer command.
+	 * Post-install and post-update Composer command.
 	 *
 	 * @param Event $event Composer event.
 	 *
@@ -54,26 +57,28 @@ class Scoper {
 	public static function post_cmd( Event $event ): void {
 		$scope_packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
 
-		if ( self::$do_scope ) {
+		$packages_to_scope = self::get_unscoped_packages( $scope_packages );
+
+		if ( $packages_to_scope ) {
 			self::prepare_scope( $event );
-			self::scope( $event );
-		} else {
-			$lock_data       = $event->getComposer()->getLocker()->getLockData();
-			$locked_packages = array_unique(
-				array_map(
-					static function ( $package ) {
-						return $package['name'] ?? '';
-					},
-					array_merge( $lock_data['packages'], $lock_data['packages-dev'] )
-				)
-			);
+			self::scope( $packages_to_scope );
+		}
 
-			$removed_packages = array_diff( $scope_packages, $locked_packages );
-			$vendor_prefixed  = self::get_vendor_prefixed_dir();
+		$lock_data       = $event->getComposer()->getLocker()->getLockData();
+		$locked_packages = array_unique(
+			array_map(
+				static function ( $package ) {
+					return $package['name'] ?? '';
+				},
+				array_merge( $lock_data['packages'], $lock_data['packages-dev'] )
+			)
+		);
 
-			foreach ( $removed_packages as $removed_package ) {
-				self::delete_package( $vendor_prefixed, $removed_package );
-			}
+		$removed_packages = array_diff( $scope_packages, $locked_packages );
+		$vendor_prefixed  = self::get_vendor_prefixed_dir();
+
+		foreach ( $removed_packages as $removed_package ) {
+			self::delete_package( $vendor_prefixed, $removed_package );
 		}
 
 		// Always delete scoped packages from vendor.
@@ -84,82 +89,40 @@ class Scoper {
 	}
 
 	/**
-	 * Post-package-install composer command.
+	 * Check whether Composer installed or updated a package to scope.
 	 *
-	 * @param PackageEvent $package_event Composer event.
+	 * Composer leaves changed package sources in the vendor until this script runs.
 	 *
-	 * @return void
-	 * @noinspection PhpUnused
+	 * @param array<string> $scope_packages Packages to scope.
+	 *
+	 * @return array<string>
 	 */
-	public static function post_package_install( PackageEvent $package_event ): void {
-		$scope_packages = $package_event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
-		$operation      = $package_event->getOperation();
+	private static function get_unscoped_packages( array $scope_packages ): array {
+		$packages_to_scope = [];
 
-		/**
-		 * Current operation.
-		 *
-		 * @var InstallOperation $operation
-		 */
-		$package = $operation->getPackage()->getName();
-
-		if ( ! in_array( $package, $scope_packages, true ) ) {
-			return;
+		foreach ( $scope_packages as $package ) {
+			if ( self::is_not_empty_dir( self::get_vendor_dir( $package ) ) ) {
+				$packages_to_scope[] = $package;
+			}
 		}
 
-		// Do not run scoper after installation if we already have the package scoped.
-		self::$do_scope = self::$do_scope || ! self::is_not_empty_dir( self::get_vendor_prefixed_dir( $package ) );
+		return $packages_to_scope;
 	}
 
 	/**
-	 * Post-package-update composer command.
-	 *
-	 * @param PackageEvent $event Composer event.
+	 * Ensure Composer's classmap directory exists.
 	 *
 	 * @return void
-	 * @noinspection PhpUnused
+	 * @throws RuntimeException RuntimeException.
 	 */
-	public static function post_package_update( PackageEvent $event ): void {
-		$scope_packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
-		$operation      = $event->getOperation();
+	private static function ensure_vendor_prefixed_dir(): void {
+		$vendor_prefixed = self::get_vendor_prefixed_dir();
 
-		/**
-		 * Current operation.
-		 *
-		 * @var UpdateOperation $operation
-		 */
-		$package = $operation->getInitialPackage()->getName();
-
-		if ( ! in_array( $package, $scope_packages, true ) ) {
-			return;
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_mkdir
+		if ( ! is_dir( $vendor_prefixed ) && ! mkdir( $vendor_prefixed ) && ! is_dir( $vendor_prefixed ) ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+			throw new RuntimeException( sprintf( 'Directory "%s" was not created', $vendor_prefixed ) );
 		}
-
-		self::$do_scope = true;
-	}
-
-	/**
-	 * Post-package-uninstall composer command.
-	 *
-	 * @param PackageEvent $event Composer event.
-	 *
-	 * @return void
-	 * @noinspection PhpUnused
-	 */
-	public static function post_package_uninstall( PackageEvent $event ): void {
-		$scope_packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
-		$operation      = $event->getOperation();
-
-		/**
-		 * Current operation.
-		 *
-		 * @var UninstallOperation $operation
-		 */
-		$package = $operation->getPackage()->getName();
-
-		if ( ! in_array( $package, $scope_packages, true ) ) {
-			return;
-		}
-
-		self::delete_package( self::get_vendor_prefixed_dir(), $package );
 	}
 
 	/**
@@ -169,6 +132,7 @@ class Scoper {
 	 * @param Event $event Composer event.
 	 *
 	 * @return void
+	 * @throws RuntimeException RuntimeException.
 	 */
 	private static function prepare_scope( Event $event ): void {
 		$scope_packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
@@ -177,16 +141,11 @@ class Scoper {
 			return;
 		}
 
+		self::ensure_vendor_prefixed_dir();
+
 		// Bail if .php-scoper/vendor dir already exists and not empty.
 		if ( self::is_not_empty_dir( self::get_scoper_dir( self::VENDOR ) ) ) {
 			return;
-		}
-
-		$vendor_prefixed = self::get_vendor_prefixed_dir();
-
-		if ( ! is_dir( $vendor_prefixed ) ) {
-			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_mkdir
-			mkdir( $vendor_prefixed );
 		}
 
 		$composer_cmd = 'composer --working-dir="' . self::get_scoper_dir() . '" --no-plugins --no-scripts --no-dev install';
@@ -199,52 +158,62 @@ class Scoper {
 	/**
 	 * Scope libraries.
 	 *
-	 * @param Event $event Composer event.
+	 * @param array<string> $packages Packages with source files in vendor.
 	 *
 	 * @return void
+	 * @throws RuntimeException RuntimeException.
 	 */
-	private static function scope( Event $event ): void {
-		$scope_packages = $event->getComposer()->getPackage()->getExtra()['scope-packages'] ?? [];
-
-		if ( ! $scope_packages ) {
-			return;
-		}
-
-		$slug       = basename( getcwd() );
-		$output_dir = self::get_vendor_prefixed_dir();
+	private static function scope( array $packages ): void {
+		$slug        = basename( getcwd() );
+		$staging_dir = self::get_vendor_dir( '.hcaptcha-scoper-output-' . bin2hex( random_bytes( 8 ) ) );
+		$output_dir  = $staging_dir;
 
 		$vendors = array_unique(
 			array_map(
-				static function ( $scope_package ) {
-					return explode( '/', $scope_package )[0];
+				static function ( $package ) {
+					return explode( '/', $package )[0];
 				},
-				$scope_packages
+				$packages
 			)
 		);
 
 		/**
-		 * PHP Scoper has a bug.
-		 * Packages to scope have directory structure like vendor-name/package-name.
-		 * When all packages have the same vendor-name,
-		 * PHP Scoper creates only package-name-dirs, without the common vendor-name dir.
-		 * If it is the case, we should add the vendor-name dir to the output dir.
+		 * PHP-Scoper removes the common source path from output files.
+		 * Restore that path in the staging directory before publishing packages.
 		 */
-		if ( 1 === count( $vendors ) ) {
-			$output_dir .= '/' . $vendors[0];
+		if ( 1 === count( $packages ) ) {
+			$output_dir .= '/' . $packages[0];
+		} elseif ( 1 === count( $vendors ) ) {
+			$output_dir .= '/' . reset( $vendors );
 		}
 
-		self::fix_logo_on_windows();
-
 		$scoper_file = self::get_scoper_dir( self::VENDOR . '/humbug/php-scoper/bin/php-scoper' );
-		$scoper_args =
-			'" add-prefix' .
+		$scoper_cmd  = 'php "' . $scoper_file . '" add-prefix' .
 			' --config=.php-scoper/' . $slug . '-scoper.php' .
-			' --output-dir=' . $output_dir .
-			' --force';
-		$scoper_cmd  = 'php "' . $scoper_file . $scoper_args;
+			' --output-dir="' . $output_dir . '" --force 2>&1';
+		$exit_code   = 0;
 
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.system_calls_shell_exec, WordPress.Security.EscapeOutput.OutputNotEscaped
-		echo shell_exec( $scoper_cmd );
+		// phpcs:disable WordPress.PHP.DiscouragedPHPFunctions.system_calls_passthru, WordPress.Security.EscapeOutput.OutputNotEscaped
+		passthru( $scoper_cmd, $exit_code );
+		// phpcs:enable WordPress.PHP.DiscouragedPHPFunctions.system_calls_passthru, WordPress.Security.EscapeOutput.OutputNotEscaped
+
+		if ( 0 !== $exit_code ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+			throw new RuntimeException( 'PHP-Scoper failed with exit code ' . $exit_code );
+		}
+
+		foreach ( $packages as $package ) {
+			if ( ! self::is_not_empty_dir( $staging_dir . '/' . $package ) ) {
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+				throw new RuntimeException( 'PHP-Scoper did not create ' . $package );
+			}
+		}
+
+		foreach ( $packages as $package ) {
+			self::publish_scoped_package( $staging_dir, $package );
+		}
+
+		self::delete_all( $staging_dir );
 	}
 
 	/**
@@ -348,15 +317,19 @@ class Scoper {
 	 * Get finders for the scoper.
 	 *
 	 * @return array<string, Finder>
-	 * @noinspection PhpUndefinedMethodInspection
 	 */
 	public static function get_finders(): array {
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		$composer_json = json_decode( file_get_contents( getcwd() . '/composer.json' ), true );
-		$packages      = $composer_json['extra']['scope-packages'] ?? [];
-		$vendor_dir    = self::get_vendor_dir();
-		$filenames     = [ '*.php', 'LICENSE', 'CHANGELOG.md', 'README.md' ];
-		$finders       = [];
+		try {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+			$composer_json = json_decode( file_get_contents( getcwd() . '/composer.json' ), true, 512, JSON_THROW_ON_ERROR );
+		} catch ( JsonException $e ) {
+			$composer_json = [];
+		}
+
+		$packages   = $composer_json['extra']['scope-packages'] ?? [];
+		$vendor_dir = self::get_vendor_dir();
+		$filenames  = [ '*.php', 'LICENSE', 'CHANGELOG.md', 'README.md' ];
+		$finders    = [];
 
 		foreach ( $packages as $package ) {
 			$package_dir = $vendor_dir . '/' . $package;
@@ -389,22 +362,48 @@ class Scoper {
 	}
 
 	/**
-	 * Fix scoper logo on Windows.
-	 * On Windows, we have to replace EOLs to output Scoper logo properly.
+	 * Replace one scoped package after PHP-Scoper has completed successfully.
+	 *
+	 * @param string $staging_dir Staging directory.
+	 * @param string $package     Package name.
+	 *
+	 * @return void
+	 * @throws RuntimeException RuntimeException.
 	 */
-	private static function fix_logo_on_windows(): void {
-		if ( PHP_OS_FAMILY !== 'Windows' ) {
-			return;
+	private static function publish_scoped_package( string $staging_dir, string $package ): void {
+		$source      = $staging_dir . '/' . $package;
+		$destination = self::get_vendor_prefixed_dir( $package );
+		$parent      = dirname( $destination );
+		$backup      = $staging_dir . '/.backup-' . str_replace( '/', '-', $package );
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_mkdir
+		if ( ! is_dir( $parent ) && ! mkdir( $parent, 0777, true ) && ! is_dir( $parent ) ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+			throw new RuntimeException( 'Could not create directory for ' . $package );
 		}
 
-		$file = self::get_scoper_dir( self::VENDOR . '/humbug/php-scoper/src/Console/Application.php' );
+		if ( file_exists( $destination ) ) {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename
+			if ( ! is_dir( $destination ) || ! rename( $destination, $backup ) ) {
+				// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+				throw new RuntimeException( 'Could not back up scoped package ' . $package );
+			}
+		}
 
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		$contents = file_get_contents( $file );
-		$contents = str_replace( "\n", "\r\n", $contents );
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename
+		if ( ! rename( $source, $destination ) ) {
+			if ( is_dir( $backup ) ) {
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename
+				rename( $backup, $destination );
+			}
 
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
-		file_put_contents( $file, $contents, LOCK_EX );
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+			throw new RuntimeException( 'Could not publish scoped package ' . $package );
+		}
+
+		if ( is_dir( $backup ) ) {
+			self::delete_all( $backup );
+		}
 	}
 
 	/**
@@ -489,7 +488,6 @@ class Scoper {
 	 * @param string $path Path relative to the vendor prefixed dir.
 	 *
 	 * @return string
-	 * @noinspection PhpSameParameterValueInspection
 	 */
 	private static function get_vendor_dir( string $path = '' ): string {
 		return self::add_path_to_dir( getcwd() . self::VENDOR, $path );
@@ -501,6 +499,7 @@ class Scoper {
 	 * @param string $path Path relative to the vendor prefixed dir.
 	 *
 	 * @return string
+	 * @noinspection PhpSameParameterValueInspection
 	 */
 	private static function get_vendor_prefixed_dir( string $path = '' ): string {
 		return self::add_path_to_dir( getcwd() . self::VENDOR_PREFIXED, $path );

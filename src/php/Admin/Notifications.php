@@ -1,12 +1,14 @@
 <?php
 /**
- * Notifications class file.
+ * Notification class file.
  *
  * @package hcaptcha-wp
  */
 
-// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedNamespaceInspection */
 /** @noinspection PhpUndefinedClassInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
 
 namespace HCaptcha\Admin;
 
@@ -197,7 +199,7 @@ class Notifications extends NotificationsBase {
 				'title'   => __( 'Events admin page', 'hcaptcha-for-forms-and-more' ),
 				'message' => sprintf(
 				/* translators: 1: statistics switch link, 2: Pro link, 3: the 'forms' page link. */
-					__( '%1$s events statistics and %2$s to %3$s complete statistics on form events.', 'hcaptcha-for-forms-and-more' ),
+					__( '%1$s events statistics and %2$s to %3$s retained statistics on form events.', 'hcaptcha-for-forms-and-more' ),
 					sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
 						$urls['statistics'],
@@ -369,6 +371,15 @@ class Notifications extends NotificationsBase {
 				'button'  => [
 					'url'  => $urls['trusted_ip_headers'],
 					'text' => __( 'Review headers', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
+			// Added in 5.4.0.
+			'enterprise-risk'     => [
+				'title'   => __( 'Enterprise Risk Score Support', 'hcaptcha-for-forms-and-more' ),
+				'message' => __( 'hCaptcha for WordPress now supports Enterprise risk score enforcement. Set a threshold to block high-risk form submissions.', 'hcaptcha-for-forms-and-more' ),
+				'button'  => [
+					'url'  => $urls['risk_score'],
+					'text' => __( 'Review Enterprise settings', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
 		];
@@ -635,7 +646,7 @@ class Notifications extends NotificationsBase {
 	}
 
 	/**
-	 * Remove dismissed status for all notifications.
+	 * Remove the dismissed status for all notifications.
 	 *
 	 * @return bool
 	 */
@@ -720,6 +731,7 @@ class Notifications extends NotificationsBase {
 			'force'               => 'force',
 			'protect_content'     => 'protect-content',
 			'antispam'            => 'antispam',
+			'risk_score'          => 'enterprise-risk',
 			'set_min_submit_time' => 'antispam-token',
 			'honeypot'            => 'antispam-honeypot',
 		];

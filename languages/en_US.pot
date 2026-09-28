@@ -485,6 +485,10 @@ msgstr ""
 msgid "Order Tracking Form"
 msgstr ""
 
+#: Settings/Integrations.php:410
+msgid "Order Withdrawal Form"
+msgstr ""
+
 #: Settings/Integrations.php:417
 msgid "Create List Form"
 msgstr ""

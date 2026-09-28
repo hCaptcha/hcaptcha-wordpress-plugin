@@ -10,6 +10,7 @@ namespace HCaptcha\Tests\Unit\MigrationWizard\Detectors;
 use HCaptcha\MigrationWizard\DetectionResult;
 use HCaptcha\MigrationWizard\Detectors\WordfenceDetector;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
+use Mockery;
 use WP_Mock;
 
 /**
@@ -93,12 +94,16 @@ class WordfenceDetectorTest extends HCaptchaTestCase {
 	 *
 	 * @return void
 	 */
-	private function setup_wpdb( $rows ): void {
+	private function setup_wpdb( ?array $rows ): void {
 		global $wpdb;
 
 		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
-		$wpdb              = \Mockery::mock( 'wpdb' );
+		$wpdb              = Mockery::mock( 'wpdb' );
 		$wpdb->base_prefix = 'wp_';
+
+		WP_Mock::userFunction( 'esc_sql' )
+			->with( 'wp_wfls_settings' )
+			->andReturn( 'wp_wfls_settings' );
 
 		$wpdb->shouldReceive( 'prepare' )->once()->andReturnUsing(
 			function () {
@@ -145,7 +150,7 @@ class WordfenceDetectorTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test detect with keys but captcha not enabled.
+	 * Test detect with keys, but captcha not enabled.
 	 *
 	 * @return void
 	 */
@@ -185,7 +190,7 @@ class WordfenceDetectorTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test detect when DB query fails.
+	 * Test detect when a DB query fails.
 	 *
 	 * @return void
 	 */

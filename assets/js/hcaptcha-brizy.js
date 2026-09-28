@@ -18,17 +18,39 @@ import { helper } from './hcaptcha-helper.js';
 		const hCaptchaData = helper.getHCaptchaData( $node, nonceName );
 
 		// The hcaptcha-widget-id is already in the data object.
-		data.push( {
-			name: 'h-captcha-response',
-			value: hCaptchaData[ 'h-captcha-response' ],
-			required: false,
-		} );
-		data.push( {
-			name: nonceName,
-			value: hCaptchaData[ nonceName ],
-			required: false,
-		} );
+		for ( const [ name, value ] of Object.entries( hCaptchaData ) ) {
+			if ( name === 'hcaptcha-widget-id' ) {
+				continue;
+			}
+
+			const existingField = data.find( ( field ) => field.name === name );
+
+			if ( existingField ) {
+				existingField.value = value;
+				continue;
+			}
+
+			data.push( {
+				name,
+				value,
+				required: false,
+			} );
+		}
 
 		options.data.set( 'data', JSON.stringify( data ) );
+	} );
+
+	$( document ).on( 'ajaxComplete', function( event, xhr, settings ) {
+		const params = new URLSearchParams( settings.url.split( '?' )[ 1 ] );
+
+		if ( params.get( 'action' ) !== 'brizy_submit_form' ) {
+			return;
+		}
+
+		window.hCaptchaBindEvents();
+
+		if ( typeof window.hCaptchaFST?.getToken === 'function' ) {
+			window.hCaptchaFST.getToken();
+		}
 	} );
 }( jQuery ) );

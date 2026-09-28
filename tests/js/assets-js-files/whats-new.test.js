@@ -316,6 +316,23 @@ describe( 'whats-new.js', () => {
 		expect( $( '#hcaptcha-lightbox-modal img' ).length ).toBe( 1 );
 	} );
 
+	test( 'replacement accepts a popup response without a lightbox', () => {
+		postSpy.mockImplementationOnce( () => {
+			const deferred = $.Deferred();
+			deferred.resolve( {
+				success: true,
+				data: { html: '<div id="hcaptcha-whats-new-modal" data-popup-version="4.13.0"></div>' },
+			} );
+			return deferred.promise();
+		} );
+		bootWhatsNew();
+
+		$( '.hcaptcha-whats-new-version-link[data-version="4.13.0"]' ).trigger( 'click' );
+
+		expect( $( '#hcaptcha-whats-new-modal' ).attr( 'data-popup-version' ) ).toBe( '4.13.0' );
+		expect( $( '#hcaptcha-lightbox-modal' ) ).toHaveLength( 0 );
+	} );
+
 	test( 'document click inside version control does not close the dropdown', () => {
 		bootWhatsNew();
 		const $control = $( '.hcaptcha-whats-new-version-control' );

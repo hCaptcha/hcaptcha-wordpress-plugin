@@ -14,6 +14,7 @@ use ActionScheduler_Store;
 use HCaptcha\Admin\Events\Events;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Migrations\Migrations;
+use HCaptcha\Settings\General;
 use HCaptcha\Settings\PluginSettingsBase;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
@@ -51,6 +52,7 @@ class MigrationsTest extends HCaptchaWPTestCase {
 		delete_transient( 'hcaptcha_async_migrate_4_11_0' );
 		delete_transient( 'hcaptcha_async_migrate_5_0_0' );
 		delete_transient( 'hcaptcha_async_migrate_5_1_0' );
+		delete_transient( 'hcaptcha_async_migrate_5_4_0' );
 
 		parent::tearDown();
 	}
@@ -147,6 +149,10 @@ class MigrationsTest extends HCaptchaWPTestCase {
 			$expected_option['5.1.0'] = $time;
 		}
 
+		if ( version_compare( '5.4.0', $plugin_major_version, '<=' ) ) {
+			$expected_option['5.4.0'] = $time;
+		}
+
 		uksort( $expected_option, 'version_compare' );
 
 		update_option( 'hcaptcha_size', $size );
@@ -164,6 +170,7 @@ class MigrationsTest extends HCaptchaWPTestCase {
 		set_transient( 'hcaptcha_async_migrate_4_11_0', Migrations::COMPLETED );
 		set_transient( 'hcaptcha_async_migrate_5_0_0', Migrations::COMPLETED );
 		set_transient( 'hcaptcha_async_migrate_5_1_0', Migrations::COMPLETED );
+		set_transient( 'hcaptcha_async_migrate_5_4_0', Migrations::COMPLETED );
 
 		$subject->migrate();
 
@@ -410,6 +417,126 @@ class MigrationsTest extends HCaptchaWPTestCase {
 				]
 			)
 		);
+	}
+
+	/**
+	 * Test async_migrate_5_4_0().
+	 *
+	 * @return void
+	 */
+	public function test_async_migrate_5_4_0(): void {
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . Events::TABLE_NAME;
+		$subject    = new Migrations();
+
+		Events::create_table();
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$wpdb->query( "DROP INDEX status_trashed_at_gmt ON $table_name" );
+
+		add_action( 'async_migrate_5_4_0', [ $subject, 'async_migrate_5_4_0' ] );
+		do_action( 'async_migrate_5_4_0' );
+
+		self::assertSame( Migrations::COMPLETED, (int) get_transient( 'hcaptcha_async_migrate_5_4_0' ) );
+		self::assertSame(
+			[
+				'status_trashed_at_gmt' => [
+					'status'         => null,
+					'trashed_at_gmt' => null,
+				],
+			],
+			$this->get_index_sub_parts( $table_name, [ 'status_trashed_at_gmt' ] )
+		);
+	}
+
+	/**
+	 * Test init repairs the retention index when RC1 already marked 5.4.0 as migrated.
+	 *
+	 * @return void
+	 */
+	public function test_init_repairs_retention_index_when_5_4_0_was_already_migrated(): void {
+		global $wpdb;
+
+		$table_name  = $wpdb->prefix . Events::TABLE_NAME;
+		$old_date    = gmdate( 'Y-m-d H:i:s', time() - ( Events::ACTIVE_RETENTION_DAYS + 1 ) * DAY_IN_SECONDS );
+		$recent_date = gmdate( 'Y-m-d H:i:s' );
+		$migrated_at = time();
+
+		Events::create_table();
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$wpdb->query( "DROP INDEX status_trashed_at_gmt ON $table_name" );
+
+		update_option(
+			Migrations::MIGRATED_VERSIONS_OPTION_NAME,
+			[
+				'2.0.0'  => $migrated_at,
+				'3.6.0'  => $migrated_at,
+				'4.0.0'  => $migrated_at,
+				'4.6.0'  => $migrated_at,
+				'4.11.0' => $migrated_at,
+				'5.0.0'  => $migrated_at,
+				'5.1.0'  => $migrated_at,
+				'5.4.0'  => $migrated_at,
+			]
+		);
+		update_option(
+			PluginSettingsBase::OPTION_NAME,
+			[
+				'statistics'                      => [ 'on' ],
+				Events::TABLE_CREATED_OPTION_NAME => 'on',
+			]
+		);
+		hcaptcha()->init_hooks();
+
+		self::assertFalse( Events::is_retention_schema_ready() );
+
+		set_current_screen( 'some-screen' );
+		$subject = new Migrations();
+		$subject->migrate();
+
+		self::assertTrue( Events::is_retention_schema_ready() );
+		self::assertSame(
+			$migrated_at,
+			get_option( Migrations::MIGRATED_VERSIONS_OPTION_NAME, [] )['5.4.0']
+		);
+		self::assertSame(
+			[
+				'status_trashed_at_gmt' => [
+					'status'         => null,
+					'trashed_at_gmt' => null,
+				],
+			],
+			$this->get_index_sub_parts( $table_name, [ 'status_trashed_at_gmt' ] )
+		);
+
+		$event = [
+			'source'         => '[]',
+			'form_id'        => 'test',
+			'ip'             => '',
+			'user_agent'     => '',
+			'uuid'           => '',
+			'error_codes'    => '[]',
+			'date_gmt'       => $old_date,
+			'status'         => Events::STATUS_ACTIVE,
+			'trashed_at_gmt' => null,
+		];
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$wpdb->insert( $table_name, $event );
+
+		$event['date_gmt'] = $recent_date;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$wpdb->insert( $table_name, $event );
+
+		Events::cleanup_trash();
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		self::assertSame( 0, (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $table_name WHERE date_gmt = %s", $old_date ) ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		self::assertSame( 1, (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $table_name WHERE date_gmt = %s", $recent_date ) ) );
 	}
 
 	/**
@@ -668,6 +795,7 @@ class MigrationsTest extends HCaptchaWPTestCase {
 		    KEY uuid (uuid),
 		    KEY date_gmt (date_gmt),
 		    KEY status_date_gmt (status, date_gmt),
+		    KEY status_trashed_at_gmt (status, trashed_at_gmt),
 		    KEY status_source_form (status, source(191), form_id)
 		) $charset_collate;";
 
@@ -741,6 +869,87 @@ class MigrationsTest extends HCaptchaWPTestCase {
 				]
 			)
 		);
+	}
+
+	/**
+	 * Test add_events_retention_index().
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_add_events_retention_index(): void {
+		global $wpdb;
+
+		$subject    = new Migrations();
+		$table_name = $wpdb->prefix . Events::TABLE_NAME;
+
+		Events::create_table();
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$wpdb->query( "DROP INDEX status_trashed_at_gmt ON $table_name" );
+
+		$method = $this->set_method_accessibility( $subject, 'add_events_retention_index' );
+		$method->invoke( $subject );
+
+		self::assertSame(
+			[
+				'status_trashed_at_gmt' => [
+					'status'         => null,
+					'trashed_at_gmt' => null,
+				],
+			],
+			$this->get_index_sub_parts( $table_name, [ 'status_trashed_at_gmt' ] )
+		);
+	}
+
+	/**
+	 * Test repeated initialization skips DDL when the retention schema is ready.
+	 *
+	 * @return void
+	 */
+	public function test_repeated_init_skips_ddl_when_retention_schema_is_ready(): void {
+		$create_table_calls = [];
+		$dbdelta_queries    = [];
+		$ddl_queries        = [];
+		$dbdelta_filter     = static function ( array $queries ) use ( &$dbdelta_queries ): array {
+			$dbdelta_queries = array_merge( $dbdelta_queries, $queries );
+
+			return $queries;
+		};
+		$query_filter       = static function ( string $query ) use ( &$ddl_queries ): string {
+			if ( preg_match( '/^\\s*(?:CREATE|ALTER|DROP)\\s/i', $query ) ) {
+				$ddl_queries[] = $query;
+			}
+
+			return $query;
+		};
+
+		set_current_screen( 'some-screen' );
+		Events::create_table();
+
+		self::assertTrue( Events::is_retention_schema_ready() );
+
+		FunctionMocker::replace(
+			Events::class . '::create_table',
+			static function ( bool $force = false ) use ( &$create_table_calls ): void {
+				$create_table_calls[] = $force;
+			}
+		);
+
+		add_filter( 'dbdelta_queries', $dbdelta_filter );
+		add_filter( 'query', $query_filter );
+
+		try {
+			new Migrations();
+			new Migrations();
+		} finally {
+			remove_filter( 'dbdelta_queries', $dbdelta_filter );
+			remove_filter( 'query', $query_filter );
+		}
+
+		self::assertSame( [ false, false ], $create_table_calls );
+		self::assertSame( [], $dbdelta_queries );
+		self::assertSame( [], $ddl_queries );
 	}
 
 	/**
@@ -968,12 +1177,19 @@ class MigrationsTest extends HCaptchaWPTestCase {
 
 		$method = $this->set_method_accessibility( $subject, $method_name );
 
-		$method->invoke( $subject );
+		$_SERVER['HTTP_X_FORWARDED_FOR'] = '7.7.7.15';
 
-		$option = get_option( PluginSettingsBase::OPTION_NAME, [] );
+		try {
+			$method->invoke( $subject );
+			$method->invoke( $subject );
 
-		self::assertSame( [], $option['trusted_address_headers'] );
-		self::assertSame( 'on', $option[ Migrations::REVIEW_TRUSTED_ADDRESS_HEADERS_OPTION ] );
+			$option = get_option( PluginSettingsBase::OPTION_NAME, [] );
+
+			self::assertSame( [], $option['trusted_address_headers'] );
+			self::assertSame( 'on', $option[ Migrations::REVIEW_TRUSTED_ADDRESS_HEADERS_OPTION ] );
+		} finally {
+			unset( $_SERVER['HTTP_X_FORWARDED_FOR'] );
+		}
 	}
 
 	/**
@@ -1040,6 +1256,18 @@ class MigrationsTest extends HCaptchaWPTestCase {
 			},
 			10,
 			3
+		);
+		add_filter(
+			'hcap_site_key',
+			static function () {
+				return General::MODE_TEST_PUBLISHER_SITE_KEY;
+			}
+		);
+		add_filter(
+			'hcap_secret_key',
+			static function () {
+				return General::MODE_TEST_SECRET_KEY;
+			}
 		);
 
 		HCaptcha::save_license_level();

@@ -5,7 +5,9 @@
  * @package hcaptcha-wp
  */
 
-use HCaptcha\Abstracts\LoginBase;
+use HCaptcha\AutoVerify\AutoVerify;
+use HCaptcha\Helpers\FormSubmitTimeStore;
+use HCaptcha\Helpers\LoginAttempts;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\Settings\PluginSettingsBase;
 use KAGG\Settings\Abstracts\SettingsBase;
@@ -37,7 +39,7 @@ function hcap_delete_site_meta_options( array $options ): void {
 }
 
 /**
- * Delete several options from site 'options' table.
+ * Delete several options from the site 'options' table.
  *
  * @param array $options Options.
  *
@@ -70,6 +72,9 @@ function hcap_delete_events_table(): void {
  */
 function hcap_cleanup_site_data( array $options ): void {
 	hcap_delete_options( $options );
+	AutoVerify::delete_all();
+	FormSubmitTimeStore::delete_all();
+	LoginAttempts::delete_all();
 	hcap_delete_events_table();
 }
 
@@ -89,7 +94,7 @@ function hcap_cleanup_data(): void {
 
 	// Perform plugin cleanup tasks.
 	$settings    = [ PluginSettingsBase::OPTION_NAME, PluginSettingsBase::OPTION_NAME . SettingsBase::NETWORK_WIDE ];
-	$other       = [ LoginBase::LOGIN_DATA, Migrations::MIGRATED_VERSIONS_OPTION_NAME ];
+	$other       = [ Migrations::MIGRATED_VERSIONS_OPTION_NAME ];
 	$all_options = array_merge( $settings, $other );
 
 	if ( ! is_multisite() ) {
