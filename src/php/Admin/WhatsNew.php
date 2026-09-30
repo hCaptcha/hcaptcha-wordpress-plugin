@@ -312,7 +312,8 @@ class WhatsNew extends NotificationsBase {
 					aria-label="<?php esc_attr_e( "Select What's New version", 'hcaptcha-for-forms-and-more' ); ?>"
 					aria-haspopup="true"
 					aria-expanded="false"
-					aria-controls="hcaptcha-whats-new-versions"></button>
+					aria-controls="hcaptcha-whats-new-versions">
+			</button>
 			<ul id="hcaptcha-whats-new-versions" class="hcaptcha-whats-new-version-list" hidden>
 				<?php foreach ( $versions as $version ) : ?>
 					<li class="<?php echo esc_attr( $version === $current_version ? 'is-current' : '' ); ?>">
@@ -659,7 +660,7 @@ class WhatsNew extends NotificationsBase {
 			'message' => sprintf(
 				'<p>%1$s</p><p>%2$s</p>',
 				__( 'hCaptcha now supports WooCommerce PayPal Payments express checkout flows on product, cart, mini-cart, and checkout pages.', 'hcaptcha-for-forms-and-more' ),
-				__( 'The integration works with PayPal order creation so express checkout can use hCaptcha while keeping the buyer flow familiar.', 'hcaptcha-for-forms-and-more' )
+				__( 'The integration works with PayPal order creation, so express checkout can use hCaptcha while keeping the buyer flow familiar.', 'hcaptcha-for-forms-and-more' )
 			),
 			'button'  => [
 				'url'  => $urls['paypal_payments'],
@@ -773,6 +774,39 @@ class WhatsNew extends NotificationsBase {
 		];
 
 		$this->show_block( $block_theme_editor );
+	}
+
+	/**
+	 * What's New 5.4.0 content.
+	 *
+	 * @return void
+	 * @noinspection HtmlUnknownTarget
+	 * @noinspection PhpUnused
+	 */
+	protected function whats_new_5_4_0(): void {
+		$urls = $this->prepare_urls();
+
+		$block_anti_spam = [
+			'type'    => 'left',
+			'badge'   => __( 'New Feature', 'hcaptcha-for-forms-and-more' ),
+			'title'   => __( 'Smarter Anti-Spam Checks', 'hcaptcha-for-forms-and-more' ),
+			'message' => sprintf(
+				'<p>%1$s</p><p>%2$s</p><p>%3$s</p>',
+				__( 'hCaptcha now uses submitted form data for anti-spam checks in 10 popular integrations, including WordPress Core, WooCommerce, Divi, bbPress, and GiveWP.', 'hcaptcha-for-forms-and-more' ),
+				__( 'Fields identified as passwords, verification tokens, or payment details are excluded before anti-spam processing.', 'hcaptcha-for-forms-and-more' ),
+				__( 'Enable Anti-Spam Check to use these checks.', 'hcaptcha-for-forms-and-more' )
+			),
+			'button'  => [
+				'url'  => $urls['anti_spam_checks'],
+				'text' => __( 'Open Anti-Spam Settings', 'hcaptcha-for-forms-and-more' ),
+			],
+			'image'   => [
+				'url'      => $urls['anti_spam_checks_img'],
+				'lightbox' => true,
+			],
+		];
+
+		$this->show_block( $block_anti_spam );
 	}
 
 	/**

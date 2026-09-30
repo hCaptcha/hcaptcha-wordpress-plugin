@@ -40,6 +40,9 @@ describe( 'hCaptcha wpDiscuz comment', () => {
 		};
 		global.wp = window.wp;
 		window.hCaptchaBindEvents = jest.fn();
+		window.hCaptchaFST = {
+			getToken: jest.fn(),
+		};
 
 		require( '../../../assets/js/hcaptcha-wpdiscuz-comment.js' );
 	}
@@ -49,12 +52,13 @@ describe( 'hCaptcha wpDiscuz comment', () => {
 	} );
 
 	afterEach( () => {
-		$( document ).off( 'ajaxSuccess' );
+		$( document ).off( 'ajaxComplete' );
 		window.MutationObserver = originalMutationObserver;
 		global.MutationObserver = originalMutationObserver;
 		delete window.wp;
 		delete global.wp;
 		delete window.hCaptchaBindEvents;
+		delete window.hCaptchaFST;
 		document.body.innerHTML = '';
 		jest.restoreAllMocks();
 	} );
@@ -95,11 +99,26 @@ describe( 'hCaptcha wpDiscuz comment', () => {
 		expect( observers ).toHaveLength( 0 );
 	} );
 
-	test( 'rebinds hCaptcha after wpDiscuz add-comment ajax success only', () => {
-		$( document ).trigger( 'ajaxSuccess', [ {}, { data: 'action=other_action' } ] );
+	test( 'refreshes hCaptcha after wpDiscuz protected ajax requests only', () => {
+		$( document ).trigger( 'ajaxComplete', [ {}, { data: 'action=other_action' } ] );
 		expect( window.hCaptchaBindEvents ).not.toHaveBeenCalled();
+		expect( window.hCaptchaFST.getToken ).not.toHaveBeenCalled();
 
-		$( document ).trigger( 'ajaxSuccess', [ {}, { data: 'action=wpdAddComment' } ] );
+		$( document ).trigger( 'ajaxComplete', [ {}, { data: 'action=wpdAddComment' } ] );
+		expect( window.hCaptchaBindEvents ).toHaveBeenCalledTimes( 1 );
+		expect( window.hCaptchaFST.getToken ).toHaveBeenCalledTimes( 1 );
+
+		$( document ).trigger( 'ajaxComplete', [ {}, { data: 'action=wpdAddSubscription' } ] );
+		expect( window.hCaptchaBindEvents ).toHaveBeenCalledTimes( 2 );
+		expect( window.hCaptchaFST.getToken ).toHaveBeenCalledTimes( 2 );
+	} );
+
+	test( 'does not fail when FST is disabled', () => {
+		delete window.hCaptchaFST;
+
+		expect( () => {
+			$( document ).trigger( 'ajaxComplete', [ {}, { data: 'action=wpdAddComment' } ] );
+		} ).not.toThrow();
 		expect( window.hCaptchaBindEvents ).toHaveBeenCalledTimes( 1 );
 	} );
 } );

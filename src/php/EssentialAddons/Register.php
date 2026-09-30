@@ -78,7 +78,9 @@ class Register {
 	 * @return void
 	 */
 	public function verify(): void {
-		$this->base_verify();
+		// The nonce is verified in Base::base_verify().
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$this->base_verify( $_POST );
 	}
 
 	/**

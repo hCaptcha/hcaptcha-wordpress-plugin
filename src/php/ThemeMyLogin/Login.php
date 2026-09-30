@@ -24,6 +24,7 @@ class Login extends LoginBase {
 	 */
 	protected function init_hooks(): void {
 		parent::init_hooks();
+		Assets::init();
 
 		add_action( 'login_form', [ $this, 'add_captcha' ] );
 		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );

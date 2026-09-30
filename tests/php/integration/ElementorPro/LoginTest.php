@@ -15,10 +15,13 @@ namespace HCaptcha\Tests\Integration\ElementorPro;
 use Elementor\Element_Base;
 use HCaptcha\ElementorPro\Login;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\LoginAttempts;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
 use ElementorPro\Modules\Forms\Widgets\Login as ElementorLogin;
 use tad\FunctionMocker\FunctionMocker;
+use WP_Error;
+use WP_User;
 
 /**
  * Class LoginTest
@@ -46,6 +49,17 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 		'plugins_loaded',
 		'init',
 	];
+
+	/**
+	 * Tear down the test.
+	 *
+	 * @return void
+	 */
+	public function tearDown(): void {
+		LoginAttempts::delete_all();
+
+		parent::tearDown();
+	}
 
 	/**
 	 * Test init_hooks().
@@ -206,6 +220,119 @@ HTML;
 	}
 
 	/**
+	 * Test a valid below-threshold signature cannot be replayed after the threshold is crossed.
+	 *
+	 * @return void
+	 */
+	public function test_replayed_below_threshold_signature_requires_captcha(): void {
+		$ip   = '203.0.113.18';
+		$user = new WP_User( 1 );
+
+		update_option(
+			'hcaptcha_settings',
+			[
+				'login_limit'    => 1,
+				'login_interval' => 15,
+			]
+		);
+		hcaptcha()->init_hooks();
+
+		$subject = new Login();
+		$this->set_protected_property( $subject, 'ip', $ip );
+
+		ob_start();
+		$subject->display_signature();
+		$this->submit_signature( (string) ob_get_clean() );
+		$this->mark_native_login_request();
+
+		self::assertTrue( HCaptcha::check_signature( Login::class, 'login' ) );
+		self::assertSame( $user, $subject->check_signature( $user, 'password' ) );
+
+		$subject->login_failed( 'test-user' );
+
+		$result = $subject->check_signature( $user, 'password' );
+
+		self::assertInstanceOf( WP_Error::class, $result );
+		self::assertTrue( $result->has_errors() );
+	}
+
+	/**
+	 * Test a false signature cannot skip an immediately required challenge.
+	 *
+	 * @return void
+	 */
+	public function test_false_signature_cannot_skip_when_login_limit_is_zero(): void {
+		$user = new WP_User( 1 );
+
+		update_option(
+			'hcaptcha_settings',
+			[
+				'login_limit'    => 0,
+				'login_interval' => 15,
+			]
+		);
+		hcaptcha()->init_hooks();
+
+		$subject = new Login();
+
+		ob_start();
+		$subject->display_signature();
+		$this->submit_signature( (string) ob_get_clean() );
+		$this->mark_native_login_request();
+
+		self::assertTrue( HCaptcha::check_signature( Login::class, 'login' ) );
+
+		$result = $subject->check_signature( $user, 'password' );
+
+		self::assertInstanceOf( WP_Error::class, $result );
+		self::assertTrue( $result->has_errors() );
+	}
+
+	/**
+	 * Test a solved challenge above the threshold remains valid.
+	 *
+	 * @return void
+	 */
+	public function test_solved_challenge_above_threshold(): void {
+		$ip   = '203.0.113.19';
+		$user = new WP_User( 1 );
+
+		update_option(
+			'hcaptcha_settings',
+			[
+				'login_limit'    => 1,
+				'login_interval' => 15,
+			]
+		);
+		hcaptcha()->init_hooks();
+
+		$subject = new Login();
+		$this->set_protected_property( $subject, 'ip', $ip );
+		$subject->login_failed( 'test-user' );
+
+		ob_start();
+		$subject->add_captcha();
+		$captcha = (string) ob_get_clean();
+
+		ob_start();
+		$subject->display_signature();
+		$this->submit_signature( (string) ob_get_clean() );
+
+		$this->prepare_verify_post( 'hcaptcha_login_nonce', 'hcaptcha_login' );
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'elementor-pro/elementor-pro.php' ],
+				'form_id' => 'login',
+			]
+		);
+		$this->mark_native_login_request();
+
+		self::assertStringContainsString( '<h-captcha', $captcha );
+		self::assertNull( HCaptcha::check_signature( Login::class, 'login' ) );
+		self::assertSame( $user, $subject->check_signature( $user, 'password' ) );
+	}
+
+	/**
 	 * Test print_inline_styles().
 	 *
 	 * @return void
@@ -240,5 +367,33 @@ CSS;
 		$subject->print_inline_styles();
 
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Submit a rendered signature field.
+	 *
+	 * @param string $signature Rendered signature field.
+	 *
+	 * @return void
+	 */
+	private function submit_signature( string $signature ): void {
+		preg_match( '/name="([^"]+)"\s+value="([^"]+)"/', $signature, $matches );
+
+		self::assertCount( 3, $matches );
+
+		$_POST[ html_entity_decode( $matches[1], ENT_QUOTES ) ] = html_entity_decode( $matches[2], ENT_QUOTES );
+	}
+
+	/**
+	 * Mark the request as a native login submission.
+	 *
+	 * @return void
+	 */
+	private function mark_native_login_request(): void {
+		// phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
+		$GLOBALS['wp_actions']['login_init']           = 1;
+		$GLOBALS['wp_actions']['login_form_login']     = 1;
+		$GLOBALS['wp_filters']['login_link_separator'] = 1;
+		// phpcs:enable WordPress.WP.GlobalVariablesOverride.Prohibited
 	}
 }

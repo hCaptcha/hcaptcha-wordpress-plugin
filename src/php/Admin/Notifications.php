@@ -1,12 +1,14 @@
 <?php
 /**
- * Notifications class file.
+ * Notification class file.
  *
  * @package hcaptcha-wp
  */
 
-// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedNamespaceInspection */
 /** @noinspection PhpUndefinedClassInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
 
 namespace HCaptcha\Admin;
 
@@ -197,7 +199,7 @@ class Notifications extends NotificationsBase {
 				'title'   => __( 'Events admin page', 'hcaptcha-for-forms-and-more' ),
 				'message' => sprintf(
 				/* translators: 1: statistics switch link, 2: Pro link, 3: the 'forms' page link. */
-					__( '%1$s events statistics and %2$s to %3$s complete statistics on form events.', 'hcaptcha-for-forms-and-more' ),
+					__( '%1$s events statistics and %2$s to %3$s retained statistics on form events.', 'hcaptcha-for-forms-and-more' ),
 					sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
 						$urls['statistics'],
@@ -635,7 +637,7 @@ class Notifications extends NotificationsBase {
 	}
 
 	/**
-	 * Remove dismissed status for all notifications.
+	 * Remove the dismissed status for all notifications.
 	 *
 	 * @return bool
 	 */

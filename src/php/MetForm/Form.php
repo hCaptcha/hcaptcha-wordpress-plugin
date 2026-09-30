@@ -15,6 +15,7 @@ namespace HCaptcha\MetForm;
 use Elementor\Plugin;
 use Elementor\Widget_Base;
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use MetForm\Core\Entries\Action as EntriesAction;
 use WP_REST_Request;
@@ -82,7 +83,6 @@ class Form {
 	 * @param Widget_Base  $widget  Elementor widget.
 	 *
 	 * @return string
-	 * @noinspection PhpUndefinedMethodInspection
 	 */
 	public function add_hcaptcha( $content, Widget_Base $widget ): string {
 		$content = (string) $content;
@@ -192,7 +192,7 @@ class Form {
 		foreach ( $this->get_fields() as $field_name => $field ) {
 			$field_name = (string) $field_name;
 			$field      = (array) $field;
-			$value      = $this->get_field_value( $form_data, $field_name );
+			$value      = $this->get_field_value( $form_data, $field_name, $field );
 
 			if ( null === $value ) {
 				continue;
@@ -201,20 +201,21 @@ class Form {
 			$label      = (string) ( $field['mf_input_label'] ?? '' );
 			$input_name = (string) ( $field['mf_input_name'] ?? $field_name );
 			$type       = (string) ( $field['widgetType'] ?? '' );
-			$key        = $label ?: $input_name;
 
-			if ( 'mf-email' === $type ) {
+			$key = $label ?: $input_name;
+
+			if ( 'mf-email' === $type && is_scalar( $value ) ) {
 				$data['email'] = $value;
 			}
 
-			if ( $this->is_name_field( $type, $input_name, $label ) ) {
+			if ( is_scalar( $value ) && $this->is_name_field( $type, $input_name, $label ) ) {
 				$name[] = $value;
 			}
 
-			$data[ $key ] = $value;
+			EntryData::add_field( $data, $key, $value, $field_name );
 		}
 
-		$data['name'] = implode( ' ', $name ) ?: null;
+		EntryData::add_name( $data, $name );
 
 		return $data;
 	}
@@ -224,23 +225,27 @@ class Form {
 	 *
 	 * @param array  $form_data Form data.
 	 * @param string $field_name Field name.
+	 * @param array  $field      Field metadata.
 	 *
-	 * @return string|null
+	 * @return array|string|null
 	 */
-	private function get_field_value( array $form_data, string $field_name ): ?string {
+	private function get_field_value( array $form_data, string $field_name, array $field ) {
+		if ( EntryData::has_sensitive_field(
+			$field_name,
+			(string) ( $field['widgetType'] ?? '' ),
+			(string) ( $field['mf_input_name'] ?? '' ),
+			(string) ( $field['mf_input_label'] ?? '' )
+		) ) {
+			return null;
+		}
+
 		if ( ! array_key_exists( $field_name, $form_data ) ) {
 			return null;
 		}
 
-		$value = $form_data[ $field_name ];
+		$value = EntryData::sanitize_value( $form_data[ $field_name ] );
 
-		if ( is_array( $value ) ) {
-			$value = implode( ' ', $value );
-		}
-
-		$value = (string) $value;
-
-		return '' === $value ? null : $value;
+		return '' === $value || [] === $value ? null : $value;
 	}
 
 	/**
@@ -262,7 +267,6 @@ class Form {
 	 * Get MetForm fields.
 	 *
 	 * @return array
-	 * @noinspection PhpUndefinedMethodInspection
 	 */
 	protected function get_fields(): array {
 		return (array) EntriesAction::instance()->get_fields( $this->form_id );

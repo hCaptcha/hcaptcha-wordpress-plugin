@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Tests\Integration\includes;
 
+use HCaptcha\Main;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 
 /**
@@ -213,14 +214,43 @@ class RequestTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test hcap_get_user_ip() preserves legacy headers before migration.
+	 * Test hcap_get_user_ip() uses REMOTE_ADDR before migration.
 	 *
 	 * @return void
 	 */
-	public function test_hcap_get_user_ip_preserves_legacy_headers_before_migration(): void {
+	public function test_hcap_get_user_ip_uses_remote_addr_before_migration(): void {
 		update_option( 'hcaptcha_settings', [ 'site_key' => 'some key' ] );
 		update_option( 'hcaptcha_versions', [ '4.26.0' => time() ] );
 		hcaptcha()->settings()->init();
+
+		foreach ( hcap_get_address_headers() as $header ) {
+			$this->set_server_headers(
+				[
+					$header       => '7.7.7.15',
+					'REMOTE_ADDR' => '7.7.7.16',
+				]
+			);
+
+			self::assertSame( '7.7.7.16', hcap_get_user_ip(), $header );
+		}
+	}
+
+	/**
+	 * Test a forged address header cannot deactivate hCaptcha before migration.
+	 *
+	 * @return void
+	 * @throws \ReflectionException Reflection exception.
+	 */
+	public function test_forged_address_header_cannot_deactivate_hcaptcha_before_migration(): void {
+		update_option(
+			'hcaptcha_settings',
+			[
+				'site_key'        => 'some key',
+				'secret_key'      => 'some secret',
+				'whitelisted_ips' => '7.7.7.15',
+			]
+		);
+		update_option( 'hcaptcha_versions', [ '4.26.0' => time() ] );
 
 		$this->set_server_headers(
 			[
@@ -229,7 +259,11 @@ class RequestTest extends HCaptchaWPTestCase {
 			]
 		);
 
-		self::assertSame( '7.7.7.15', hcap_get_user_ip() );
+		$subject = new Main();
+		$subject->init_hooks();
+
+		self::assertSame( '7.7.7.16', hcap_get_user_ip( false ) );
+		self::assertTrue( $this->get_protected_property( $subject, 'active' ) );
 	}
 
 	/**

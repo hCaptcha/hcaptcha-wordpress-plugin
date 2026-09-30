@@ -10,6 +10,7 @@ namespace HCaptcha\Tests\Unit\MigrationWizard\Detectors;
 use HCaptcha\MigrationWizard\DetectionResult;
 use HCaptcha\MigrationWizard\Detectors\MailPoetDetector;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
+use Mockery;
 use WP_Mock;
 
 /**
@@ -82,8 +83,12 @@ class MailPoetDetectorTest extends HCaptchaTestCase {
 		global $wpdb;
 
 		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
-		$wpdb         = \Mockery::mock( 'wpdb' );
+		$wpdb         = Mockery::mock( 'wpdb' );
 		$wpdb->prefix = 'wp_';
+
+		WP_Mock::userFunction( 'esc_sql' )
+			->with( 'wp_mailpoet_settings' )
+			->andReturn( 'wp_mailpoet_settings' );
 
 		$wpdb->shouldReceive( 'prepare' )->once()->andReturnUsing(
 			function () {
@@ -220,7 +225,7 @@ class MailPoetDetectorTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test detect returns no results when captcha value is not an array.
+	 * Test detect returns no results when the captcha value is not an array.
 	 *
 	 * @return void
 	 */

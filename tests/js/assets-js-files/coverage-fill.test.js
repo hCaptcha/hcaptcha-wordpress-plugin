@@ -516,6 +516,8 @@ describe( 'asset coverage fill: direct app methods', () => {
 			ajaxUrl: 'https://test.test/wp-admin/admin-ajax.php',
 			issueTokenAction: 'issue-token',
 			issueTokenNonce: 'nonce',
+			issueTokenContext: '456|context-signature',
+			postId: '456',
 		};
 		document.body.className = 'single post-id-456';
 		document.body.innerHTML = '<input name="hcap_fst_token" value="old-token">';

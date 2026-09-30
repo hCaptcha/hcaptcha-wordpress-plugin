@@ -192,7 +192,7 @@ HTML;
 		// This method allows/disallows honeypot and fst.
 		hcaptcha()->allow_honeypot_and_fst( true, $source, $form_id );
 
-		$honeypot = null === $honeypot ? hcaptcha()->settings()->is_on( 'honeypot' ) : $honeypot;
+		$honeypot = $honeypot ?? hcaptcha()->settings()->is_on( 'honeypot' );
 
 		return $honeypot ? $hp_field : '';
 	}
@@ -271,10 +271,11 @@ HTML;
 	/**
 	 * Prepare a response from \HCaptcha\Helpers\API::verify_request().
 	 *
-	 * @param string    $hcaptcha_response hCaptcha response.
-	 * @param bool|null $result            Desired result.
+	 * @param string          $hcaptcha_response hCaptcha response.
+	 * @param array|bool|null $result            Desired result or siteverify response.
 	 *
 	 * @noinspection PhpMissingParamTypeInspection
+	 * @noinspection PhpVariableIsUsedOnlyInClosureInspection
 	 */
 	protected function prepare_verify_request( string $hcaptcha_response, $result = true ): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
@@ -296,7 +297,9 @@ HTML;
 			}
 		);
 
-		$raw_response = wp_json_encode( [ 'success' => $result ] );
+		$raw_response = is_array( $result )
+			? wp_json_encode( $result )
+			: wp_json_encode( [ 'success' => $result ] );
 
 		if ( null === $result ) {
 			$raw_response = '';
@@ -304,6 +307,7 @@ HTML;
 
 		// phpcs:ignore Generic.Strings.UnnecessaryStringConcat.Found
 		$hcaptcha_secret_key = General::MODE_TEST_SECRET_KEY;
+		$hcaptcha_site_key   = General::MODE_TEST_PUBLISHER_SITE_KEY;
 
 		$hcaptcha_settings = (array) get_option( 'hcaptcha_settings', [] );
 		$hcaptcha_settings = array_merge(
@@ -322,12 +326,13 @@ HTML;
 
 		add_filter(
 			'pre_http_request',
-			static function ( $preempt, $parsed_args, $url ) use ( $hcaptcha_secret_key, $hcaptcha_response, $raw_response, $ip ) {
+			static function ( $preempt, $parsed_args, $url ) use ( $hcaptcha_secret_key, $hcaptcha_site_key, $hcaptcha_response, $raw_response, $ip ) {
 				$expected_url  =
 					'https://api.hcaptcha.com/siteverify';
 				$expected_body = [
 					'secret'   => $hcaptcha_secret_key,
 					'response' => $hcaptcha_response,
+					'sitekey'  => $hcaptcha_site_key,
 					'remoteip' => $ip,
 				];
 

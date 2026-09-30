@@ -22,6 +22,20 @@ use WP_Error;
 class RegisterTest extends HCaptchaWPTestCase {
 
 	/**
+	 * Set up the test.
+	 *
+	 * @return void
+	 */
+	public function setUp(): void {
+		parent::setUp();
+
+		hcaptcha()->settings()->set( 'honeypot', 'on' );
+		hcaptcha()->settings()->set( 'set_min_submit_time', 'on' );
+		hcaptcha()->settings()->set( 'learn_dash_status', 'register' );
+		$this->set_protected_property( hcaptcha(), 'supported_forms', null );
+	}
+
+	/**
 	 * Tear down the test.
 	 *
 	 * @return void
@@ -70,6 +84,8 @@ class RegisterTest extends HCaptchaWPTestCase {
 		];
 
 		self::assertStringContainsString( HCaptcha::widget_id_value( $id ), $output );
+		self::assertStringContainsString( 'name="hcap_hp_test"', $output );
+		self::assertStringContainsString( 'name="hcap_hp_sig"', $output );
 	}
 
 	/**
@@ -102,6 +118,26 @@ class RegisterTest extends HCaptchaWPTestCase {
 		$this->prepare_verify_post( 'hcaptcha_learn_dash_register_nonce', 'hcaptcha_learn_dash_register' );
 
 		self::assertSame( $errors, $subject->verify( $errors, '', '' ) );
+	}
+
+	/**
+	 * Test a filled honeypot blocks LearnDash registration.
+	 *
+	 * @return void
+	 */
+	public function test_filled_honeypot_is_rejected(): void {
+		$subject = new Register();
+		$errors  = new WP_Error();
+
+		$_POST['learndash-registration-form'] = '1';
+		$this->prepare_widget_id();
+		$this->prepare_verify_post( 'hcaptcha_learn_dash_register_nonce', 'hcaptcha_learn_dash_register' );
+		$_POST['hcap_hp_test'] = 'bot';
+
+		$result = $subject->verify( $errors, '', '' );
+
+		self::assertInstanceOf( WP_Error::class, $result );
+		self::assertSame( 'Anti-spam check failed.', $result->get_error_message( 'spam' ) );
 	}
 
 	/**

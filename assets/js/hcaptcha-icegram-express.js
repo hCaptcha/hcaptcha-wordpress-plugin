@@ -12,6 +12,8 @@ const icegramExpress = window.hCaptchaIcegramExpress || ( function( document, wi
 	 */
 	const app = {
 		init() {
+			$( window ).on( 'es.send_response', app.response );
+
 			/**
 			 * init.icegram may have already fired before this script was loaded.
 			 * #icegram_messages_container is appended during the Icegram.prototype.init(),
@@ -44,6 +46,26 @@ const icegramExpress = window.hCaptchaIcegramExpress || ( function( document, wi
 
 				last.before( `${ clearFixDiv }<div class="ig_form_els">${ hCaptchaHtml }</div>${ clearFixDiv }` );
 			} );
+		},
+
+		/**
+		 * Refresh hCaptcha data after an AJAX subscription response.
+		 *
+		 * @param {Object} event The event object.
+		 * @param {Object} form  The submitted form.
+		 *
+		 * @return {void}
+		 */
+		response( event, form ) {
+			if ( ! $( form ).find( '.h-captcha' ).length ) {
+				return;
+			}
+
+			window.hCaptchaBindEvents();
+
+			if ( typeof window.hCaptchaFST?.getToken === 'function' ) {
+				window.hCaptchaFST.getToken();
+			}
 		},
 	};
 

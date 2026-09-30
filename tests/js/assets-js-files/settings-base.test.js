@@ -520,6 +520,7 @@ describe( 'ajaxPrefilter', () => {
 
 	test( 'FormData branch: skips append when key already present', () => {
 		const fd = new FormData();
+		fd.append( 'action', 'hcaptcha_check' );
 		fd.append( '_wp_http_referer', 'existing' );
 		const original = { url: 'https://test.test/wp-admin/admin-ajax.php', data: 'action=hcaptcha_check' };
 		const options = {

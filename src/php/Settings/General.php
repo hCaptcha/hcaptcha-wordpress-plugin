@@ -111,7 +111,7 @@ class General extends PluginSettingsBase {
 	public const MODE_TEST_ENTERPRISE_SAFE_END_USER_SITE_KEY = '20000000-ffff-ffff-ffff-000000000002';
 
 	/**
-	 * Test enterprise bot detected mode site key.
+	 * Test enterprise bot detected a mode site key.
 	 */
 	public const MODE_TEST_ENTERPRISE_BOT_DETECTED_SITE_KEY = '30000000-ffff-ffff-ffff-000000000003';
 
@@ -121,12 +121,17 @@ class General extends PluginSettingsBase {
 	public const MODE_TEST_SECRET_KEY = '0' . 'x' . '0000000000000000000000000000000000000000'; // phpcs:ignore Generic.Strings.UnnecessaryStringConcat.Found
 
 	/**
+	 * Secret key length.
+	 */
+	private const SECRET_KEY_LENGTH = 35;
+
+	/**
 	 * The 'check config' form id.
 	 */
 	public const CHECK_CONFIG_FORM_ID = 'check-config';
 
 	/**
-	 * Notifications class instance.
+	 * Notification class instance.
 	 *
 	 * @var Notifications|null
 	 */
@@ -355,10 +360,12 @@ class General extends PluginSettingsBase {
 				'helper'       => __( 'To fill out the site key, set Mode to Live.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'secret_key'           => [
-				'label'   => __( 'Secret Key', 'hcaptcha-for-forms-and-more' ),
-				'type'    => 'password',
-				'section' => self::SECTION_KEYS,
-				'helper'  => __( 'To fill out the secret key, set Mode to Live.', 'hcaptcha-for-forms-and-more' ),
+				'label'       => __( 'Secret Key', 'hcaptcha-for-forms-and-more' ),
+				'type'        => 'password',
+				'placeholder' => str_repeat( '*', self::SECRET_KEY_LENGTH ),
+				'sensitive'   => true,
+				'section'     => self::SECTION_KEYS,
+				'helper'      => __( 'To fill out the secret key, set Mode to Live.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'sample_hcaptcha'      => [
 				'label'   => __( 'Active hCaptcha to Check Site Config', 'hcaptcha-for-forms-and-more' ),
@@ -474,12 +481,14 @@ class General extends PluginSettingsBase {
 					'mi'    => __( 'Maori', 'hcaptcha-for-forms-and-more' ),
 					'mr'    => __( 'Marathi', 'hcaptcha-for-forms-and-more' ),
 					'mn'    => __( 'Mongolian', 'hcaptcha-for-forms-and-more' ),
+					'me'    => __( 'Montenegrin (as Bosnian)', 'hcaptcha-for-forms-and-more' ),
 					'ne'    => __( 'Nepali', 'hcaptcha-for-forms-and-more' ),
 					'no'    => __( 'Norwegian', 'hcaptcha-for-forms-and-more' ),
 					'ny'    => __( 'Nyanja', 'hcaptcha-for-forms-and-more' ),
 					'or'    => __( 'Oriya', 'hcaptcha-for-forms-and-more' ),
 					'pl'    => __( 'Polish', 'hcaptcha-for-forms-and-more' ),
 					'pt'    => __( 'Portuguese', 'hcaptcha-for-forms-and-more' ),
+					'pt-BR' => __( 'Portuguese (Brazil)', 'hcaptcha-for-forms-and-more' ),
 					'ps'    => __( 'Pashto', 'hcaptcha-for-forms-and-more' ),
 					'pa'    => __( 'Punjabi', 'hcaptcha-for-forms-and-more' ),
 					'ro'    => __( 'Romanian', 'hcaptcha-for-forms-and-more' ),
@@ -665,6 +674,14 @@ class General extends PluginSettingsBase {
 				],
 				'helper'  => __( 'Do not show hCaptcha to logged-in users.', 'hcaptcha-for-forms-and-more' ),
 			],
+			'ajax_forms'           => [
+				'type'    => 'checkbox',
+				'section' => self::SECTION_OTHER,
+				'options' => [
+					'on' => __( 'Submit supported forms via AJAX', 'hcaptcha-for-forms-and-more' ),
+				],
+				'helper'  => __( 'AJAX submission is not available for every form. Currently, it supports the standard WordPress comment form.', 'hcaptcha-for-forms-and-more' ),
+			],
 			'recaptcha_compat_off' => [
 				'type'    => 'checkbox',
 				'section' => self::SECTION_OTHER,
@@ -696,7 +713,7 @@ class General extends PluginSettingsBase {
 				'options' => [
 					'on' => __( 'Enable Statistics', 'hcaptcha-for-forms-and-more' ),
 				],
-				'helper'  => __( 'By turning the statistics on, you agree to the collection of non-personal data to improve the plugin.', 'hcaptcha-for-forms-and-more' ),
+				'helper'  => __( "Enabling Statistics stores local event data and sends the current request's visitor IP, site URL, and plugin configuration to hCaptcha to improve the plugin. hCaptcha site and secret key values are not sent.", 'hcaptcha-for-forms-and-more' ),
 			],
 			'anonymous'            => [
 				'type'    => 'checkbox',
@@ -705,7 +722,7 @@ class General extends PluginSettingsBase {
 					'on' => __( 'Collect Anonymously', 'hcaptcha-for-forms-and-more' ),
 				],
 				'default' => 'on',
-				'helper'  => __( 'Store collected IP and User Agent locally as hashed values to conform to GDPR requirements.', 'hcaptcha-for-forms-and-more' ),
+				'helper'  => __( 'Store collected IP and User Agent locally as salted hashes. This affects only local event storage and does not anonymize or disable remote Statistics reports.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'collect_ip'           => [
 				'label'   => __( 'Collection', 'hcaptcha-for-forms-and-more' ),
@@ -753,14 +770,14 @@ class General extends PluginSettingsBase {
 
 		if ( 'free' === $license ) {
 			$this->form_fields['custom_themes']['disabled'] = true;
-			$this->form_fields['api_host']['disabled']      = true;
-			$this->form_fields['asset_host']['disabled']    = true;
-			$this->form_fields['endpoint']['disabled']      = true;
-			$this->form_fields['host']['disabled']          = true;
-			$this->form_fields['image_host']['disabled']    = true;
-			$this->form_fields['report_api']['disabled']    = true;
-			$this->form_fields['sentry']['disabled']        = true;
-			$this->form_fields['backend']['disabled']       = true;
+		}
+
+		if ( 'enterprise' !== $license ) {
+			foreach ( $this->form_fields as $field_name => $field ) {
+				if ( self::SECTION_ENTERPRISE === ( $field['section'] ?? '' ) ) {
+					$this->form_fields[ $field_name ]['disabled'] = true;
+				}
+			}
 		}
 
 		parent::setup_fields();
@@ -826,7 +843,7 @@ class General extends PluginSettingsBase {
 				}
 				break;
 			case self::SECTION_ENTERPRISE:
-				if ( 'free' === $license ) {
+				if ( 'enterprise' !== $license ) {
 					$open     = false;
 					$disabled = true;
 
@@ -919,6 +936,9 @@ class General extends PluginSettingsBase {
 				'unsavedChanges'                       => __( 'Unsaved changes', 'hcaptcha-for-forms-and-more' ),
 				'lastValidPreview'                     => __( 'Showing the last valid config.', 'hcaptcha-for-forms-and-more' ),
 				'activeState'                          => __( 'Active', 'hcaptcha-for-forms-and-more' ),
+				'detailsState'                         => __( 'Details', 'hcaptcha-for-forms-and-more' ),
+				'disabledState'                        => __( 'Disabled', 'hcaptcha-for-forms-and-more' ),
+				'errorState'                           => __( 'Error', 'hcaptcha-for-forms-and-more' ),
 				'focusState'                           => __( 'Focus', 'hcaptcha-for-forms-and-more' ),
 				'hoverState'                           => __( 'Hover', 'hcaptcha-for-forms-and-more' ),
 				'mainState'                            => __( 'Main', 'hcaptcha-for-forms-and-more' ),
@@ -1310,9 +1330,10 @@ class General extends PluginSettingsBase {
 			);
 			add_filter(
 				'hcap_secret_key',
-				static function () use ( $ajax_secret_key ) {
+				static function ( $secret_key ) use ( $ajax_secret_key ) {
 					// @codeCoverageIgnoreStart
-					return $ajax_secret_key;
+					// A blank sensitive field keeps the configured secret.
+					return '' === (string) $ajax_secret_key ? $secret_key : $ajax_secret_key;
 					// @codeCoverageIgnoreEnd
 				}
 			);
@@ -1322,12 +1343,11 @@ class General extends PluginSettingsBase {
 
 		if ( $result['error'] ?? false ) {
 			$this->send_check_config_error( $result['error'] );
+
+			return;
 		}
 
-		$pro     = $result['features']['custom_theme'] ?? false;
-		$license = $pro ? 'pro' : 'free';
-
-		$this->update_option( 'license', $license );
+		$pro = (bool) ( $result['features']['custom_theme'] ?? false );
 
 		// Nonce is checked by check_ajax_referer() in run_checks().
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
@@ -1343,11 +1363,35 @@ class General extends PluginSettingsBase {
 
 		if ( null !== $result ) {
 			$this->send_check_config_error( $result, true );
+
+			return;
+		}
+
+		if ( self::MODE_LIVE === $ajax_mode ) {
+			$license = $this->detect_license( $pro );
+
+			$this->update_option( 'license', $license );
 		}
 
 		wp_send_json_success(
 			esc_html__( 'Site config is valid. Save your changes.', 'hcaptcha-for-forms-and-more' )
 		);
+	}
+
+	/**
+	 * Detect the account license level.
+	 *
+	 * @param bool $pro Whether checksiteconfig reports Pro features.
+	 *
+	 * @return string
+	 */
+	private function detect_license( bool $pro ): string {
+		// Site config does not distinguish Pro from Enterprise; preserve a previously saved Enterprise level.
+		if ( $pro && 'enterprise' === $this->get( 'license' ) ) {
+			return 'enterprise';
+		}
+
+		return $pro ? 'pro' : 'free';
 	}
 
 	/**

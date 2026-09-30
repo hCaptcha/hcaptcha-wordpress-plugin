@@ -107,6 +107,7 @@ class Migrations {
 		add_action( 'async_migrate_4_11_0', [ $this, 'async_migrate_4_11_0' ] );
 		add_action( 'async_migrate_5_0_0', [ $this, 'async_migrate_5_0_0' ] );
 		add_action( 'async_migrate_5_1_0', [ $this, 'async_migrate_5_1_0' ] );
+		add_action( 'async_migrate_5_4_0', [ $this, 'async_migrate_5_4_0' ] );
 	}
 
 	/**
@@ -242,6 +243,7 @@ class Migrations {
 		}
 
 		Events::create_table();
+		$this->add_events_retention_index();
 
 		$this->tables_check_done = true;
 	}
@@ -562,6 +564,27 @@ class Migrations {
 	}
 
 	/**
+	 * Migrate to 5.4.0.
+	 *
+	 * @return bool|null
+	 * @noinspection PhpUnused
+	 */
+	protected function migrate_5_4_0(): ?bool {
+		return $this->run_async( __FUNCTION__ );
+	}
+
+	/**
+	 * Async migration to 5.4.0.
+	 *
+	 * @return void
+	 */
+	public function async_migrate_5_4_0(): void {
+		$this->add_events_retention_index();
+
+		$this->mark_completed();
+	}
+
+	/**
 	 * Run async action.
 	 *
 	 * @param string $method Method name.
@@ -860,6 +883,41 @@ class Migrations {
 				'status, ' . $source_form_index
 			);
 		}
+	}
+
+	/**
+	 * Add the index used to expire trashed events in bounded batches.
+	 *
+	 * @return void
+	 */
+	private function add_events_retention_index(): void {
+		global $wpdb;
+
+		if ( Events::is_retention_schema_ready() ) {
+			return;
+		}
+
+		Events::create_table( true );
+
+		if ( ! Events::table_exists() ) {
+			return;
+		}
+
+		$table_name = $wpdb->prefix . Events::TABLE_NAME;
+
+		if (
+			Events::is_retention_schema_ready() ||
+			! $this->column_exists( $table_name, 'status' ) ||
+			! $this->column_exists( $table_name, 'trashed_at_gmt' )
+		) {
+			return;
+		}
+
+		$this->replace_index(
+			$table_name,
+			'status_trashed_at_gmt',
+			'status, trashed_at_gmt'
+		);
 	}
 
 	/**

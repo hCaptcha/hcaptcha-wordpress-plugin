@@ -8,6 +8,7 @@
 namespace HCaptcha\BBPress;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\Request;
 
 /**
@@ -59,18 +60,7 @@ class Reply extends Base {
 	 * @return array
 	 */
 	protected function get_entry(): array {
-		$data = [];
-
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		foreach ( $_POST as $key => $value ) {
-			$value = sanitize_text_field( wp_unslash( $value ) );
-
-			if ( 0 === strpos( $key, 'bbp_' ) ) {
-				$data[ str_replace( 'bbp_', '', $key ) ] = $value;
-			}
-		}
-
-		$topic_id = (int) $data['topic_id'];
+		$topic_id = (int) Request::filter_input( INPUT_POST, 'bbp_topic_id' );
 		$topic    = get_post( $topic_id );
 
 		return [
@@ -78,7 +68,13 @@ class Reply extends Base {
 			'nonce_action'       => self::ACTION,
 			'h-captcha-response' => Request::filter_input( INPUT_POST, 'h-captcha-response' ),
 			'form_date_gmt'      => $topic->post_modified_gmt ?? null,
-			'data'               => $data,
+			'data'               => EntryData::from_post(
+				[
+					'email'   => 'bbp_anonymous_email',
+					'name'    => 'bbp_anonymous_name',
+					'message' => 'bbp_reply_content',
+				]
+			),
 			'expected_id'        => $this->get_expected_id(),
 		];
 	}

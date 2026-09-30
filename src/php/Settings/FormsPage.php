@@ -150,7 +150,7 @@ class FormsPage extends ListPageBase {
 
 			$message = sprintf(
 			/* translators: 1: Statistics link. */
-				__( 'Want to see forms statistics? Please turn on the %1$s on the General settings page.', 'hcaptcha-for-forms-and-more' ),
+				__( 'Want to see form statistics? Please turn on the %1$s on the General settings page.', 'hcaptcha-for-forms-and-more' ),
 				sprintf(
 				/* translators: 1: Statistics switch link, 2: Statistics switch text. */
 					'<a href="%1$s" target="_blank">%2$s</a>',

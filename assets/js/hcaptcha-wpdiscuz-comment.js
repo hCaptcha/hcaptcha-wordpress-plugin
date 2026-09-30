@@ -52,12 +52,17 @@ document.addEventListener( 'DOMContentLoaded', function() {
 	observer.observe( threadsElement, config );
 } );
 
-jQuery( document ).on( 'ajaxSuccess', function( event, xhr, settings ) {
+jQuery( document ).on( 'ajaxComplete', function( event, xhr, settings ) {
 	const params = new URLSearchParams( settings.data );
+	const action = params.get( 'action' );
 
-	if ( params.get( 'action' ) !== 'wpdAddComment' ) {
+	if ( ! [ 'wpdAddComment', 'wpdAddSubscription' ].includes( action ) ) {
 		return;
 	}
 
 	window.hCaptchaBindEvents();
+
+	if ( typeof window.hCaptchaFST?.getToken === 'function' ) {
+		window.hCaptchaFST.getToken();
+	}
 } );

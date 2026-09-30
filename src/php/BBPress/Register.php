@@ -9,6 +9,7 @@ namespace HCaptcha\BBPress;
 
 use HCaptcha\Abstracts\RegisterBase;
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 
@@ -99,7 +100,7 @@ class Register extends RegisterBase {
 			return HCaptcha::add_error_message( $errors, hcap_get_error_messages()['bad-signature'] );
 		}
 
-		$error_message = API::verify( $this->get_entry() );
+		$error_message = API::verify( $this->get_entry( $sanitized_user_login, $user_email ) );
 
 		return HCaptcha::add_error_message( $errors, $error_message );
 	}
@@ -107,12 +108,25 @@ class Register extends RegisterBase {
 	/**
 	 * Get hCaptcha verification entry.
 	 *
+	 * @param string $username User's sanitized username.
+	 * @param string $email    User's email.
+	 *
 	 * @return array
 	 */
-	private function get_entry(): array {
+	private function get_entry( string $username, string $email ): array {
+		$data             = EntryData::from_post(
+			[
+				'username' => 'user_login',
+				'email'    => 'user_email',
+			]
+		);
+		$data['username'] = $username;
+		$data['email']    = sanitize_email( $email );
+
 		return [
 			'nonce_name'   => self::NONCE,
 			'nonce_action' => self::ACTION,
+			'data'         => $data,
 			'expected_id'  => $this->get_expected_id(),
 		];
 	}

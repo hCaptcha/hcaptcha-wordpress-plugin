@@ -8,6 +8,7 @@
 namespace HCaptcha\EssentialAddons;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\Pages;
 
 /**
@@ -53,13 +54,24 @@ trait Base {
 	/**
 	 * Verify hCaptcha.
 	 *
+	 * @param array $submitted_data Submitted form fields.
+	 *
 	 * @return void
 	 */
-	private function base_verify(): void {
+	private function base_verify( array $submitted_data ): void {
 		$error_message = API::verify(
 			[
 				'nonce_name'   => self::NONCE,
 				'nonce_action' => self::ACTION,
+				'data'         => EntryData::from_array(
+					wp_unslash( $submitted_data ),
+					[
+						'username'   => [ 'eael-user-login', 'user_name' ],
+						'email'      => 'email',
+						'first_name' => 'first_name',
+						'last_name'  => 'last_name',
+					]
+				),
 				'expected_id'  => $this->get_expected_id(),
 			]
 		);

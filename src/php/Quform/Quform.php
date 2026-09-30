@@ -11,6 +11,7 @@
 namespace HCaptcha\Quform;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use Quform_Element;
 use Quform_Element_Field;
@@ -407,9 +408,11 @@ class Quform {
 	 * @return void
 	 */
 	private function get_element_content( Quform_Element $element, $value ): void {
-		$type = $element->config()['type'] ?? '';
+		$type  = (string) ( $element->config()['type'] ?? '' );
+		$label = trim( (string) ( $element->config()['label'] ?? '' ) );
+		$id    = (string) $element->getId();
 
-		if ( ! in_array( $type, [ 'text', 'textarea', 'email', 'date', 'time', 'name', 'html' ], true ) ) {
+		if ( ! EntryData::is_content_field_type( $type ) || EntryData::has_sensitive_field( $label, $id ) ) {
 			return;
 		}
 
@@ -422,13 +425,8 @@ class Quform {
 			$this->entry['name'] = $value;
 		}
 
-		if ( 'html' === $type ) {
-			$value = wp_strip_all_tags( $value );
-		}
-
-		$label = trim( $element->config()['label'] ?? '' );
 		$label = $label ?: $type;
 
-		$this->entry['data'][ $label ] = $value;
+		EntryData::add_field( $this->entry['data'], $label, $value, $id );
 	}
 }

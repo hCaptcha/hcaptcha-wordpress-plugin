@@ -30,6 +30,13 @@ class API {
 	private static array $error_codes = [];
 
 	/**
+	 * Normalized siteverify response.
+	 *
+	 * @var array
+	 */
+	private static array $siteverify_response = [];
+
+	/**
 	 * Verify hCaptcha and AntiSpam response.
 	 *
 	 * @param array $entry Entry.
@@ -50,9 +57,9 @@ class API {
 			]
 		);
 
-		if ( $entry['post_data'] ) {
-			self::set_global_post_data( $entry );
-		}
+		$entry['data'] = EntryData::without_sensitive_fields( (array) $entry['data'] );
+
+		self::set_global_post_data( $entry );
 
 		$result = self::verify_widget_id( $entry['expected_id'] );
 		$result = $result ?? self::verify_nonce(
@@ -63,7 +70,7 @@ class API {
 
 		// Init AntiSpam object and add hcap_verify_request hook.
 		if ( null === $result ) {
-			( new AntiSpam( $entry ) )->init();
+			( new AntiSpam( EntryData::for_antispam( $entry ) ) )->init();
 
 			$result = self::verify_request( $entry['h-captcha-response'], $entry );
 		}
@@ -102,20 +109,6 @@ class API {
 	}
 
 	/**
-	 * Verify POST.
-	 *
-	 * @param string $name   Nonce field name.
-	 * @param string $action Nonce action name.
-	 *
-	 * @return null|string Null on success, error message on failure.
-	 */
-	public static function verify_post( string $name = HCAPTCHA_NONCE, string $action = HCAPTCHA_ACTION ): ?string {
-		$result = self::verify_nonce( $name, $action );
-
-		return $result ?? self::verify_request();
-	}
-
-	/**
 	 * Verify POST data.
 	 *
 	 * @param string $name      Nonce field name.
@@ -132,12 +125,25 @@ class API {
 
 		self::set_global_post_data( $entry );
 
-		$result = self::verify_nonce( $name, $action );
-		$result = $result ?? self::verify_request();
+		$result = self::verify_post( $name, $action );
 
 		self::unset_global_post_data( $entry );
 
 		return $result;
+	}
+
+	/**
+	 * Verify POST.
+	 *
+	 * @param string $name   Nonce field name.
+	 * @param string $action Nonce action name.
+	 *
+	 * @return null|string Null on success, error message on failure.
+	 */
+	public static function verify_post( string $name = HCAPTCHA_NONCE, string $action = HCAPTCHA_ACTION ): ?string {
+		$result = self::verify_nonce( $name, $action );
+
+		return $result ?? self::verify_request();
 	}
 
 	/**
@@ -172,6 +178,10 @@ class API {
 	 * @return void
 	 */
 	private static function set_global_post_data( array $entry ): void {
+		if ( ! $entry['post_data'] ) {
+			return;
+		}
+
 		$post_data = $entry['post_data'];
 		$keys      = self::get_hcaptcha_post_keys( $entry );
 
@@ -252,10 +262,11 @@ class API {
 		$expected_id = (array) ( $entry['expected_id'] ?? [] );
 		// Do not make a remote request more than once.
 		if ( hcaptcha()->has_result ) {
-			return self::filtered_result( self::$result, self::$error_codes, $expected_id );
+			return self::filtered_result( self::$result, self::$error_codes, $expected_id, self::$siteverify_response );
 		}
 
 		hcaptcha()->has_result = true;
+		$fst_check             = self::check_fst_token();
 
 		/**
 		 * Filters the user IP to check whether it is denylisted.
@@ -307,11 +318,9 @@ class API {
 		}
 
 		// Check the form submit time token.
-		$check = self::check_fst_token();
-
-		if ( is_wp_error( $check ) ) {
-			$result      = $check->get_error_message();
-			$error_codes = $check->get_error_codes();
+		if ( is_wp_error( $fst_check ) ) {
+			$result      = $fst_check->get_error_message();
+			$error_codes = $fst_check->get_error_codes();
 
 			return self::filtered_result( $result, $error_codes, $expected_id );
 		}
@@ -326,6 +335,15 @@ class API {
 		$params = self::get_params( $hcaptcha_response_sanitized );
 
 		return self::process_request( $params, $expected_id );
+	}
+
+	/**
+	 * Get the normalized response from the latest siteverify request.
+	 *
+	 * @return array
+	 */
+	public static function get_siteverify_response(): array {
+		return self::$siteverify_response;
 	}
 
 	/**
@@ -379,7 +397,8 @@ class API {
 			return self::filtered_result( $result, $error_codes, $expected_id );
 		}
 
-		$body = Utils::json_decode_arr( $raw_body );
+		$body                = Utils::json_decode_arr( $raw_body );
+		$siteverify_response = self::normalize_siteverify_response( $body );
 
 		if ( ! isset( $body['success'] ) || true !== (bool) $body['success'] ) {
 			// Verification request is not verified.
@@ -388,17 +407,52 @@ class API {
 			$result             = $hcap_error_message ?: $fail_message;
 			$error_codes        = $hcap_error_message ? $error_codes : [ 'fail' ];
 
-			return self::filtered_result( $result, $error_codes, $expected_id );
+			return self::filtered_result( $result, $error_codes, $expected_id, $siteverify_response );
 		}
 
 		// Success.
-		return self::filtered_result( null, [], $expected_id );
+		return self::filtered_result( null, [], $expected_id, $siteverify_response );
+	}
+
+	/**
+	 * Normalize the siteverify response.
+	 *
+	 * @param array $body Decoded siteverify response.
+	 *
+	 * @return array
+	 */
+	private static function normalize_siteverify_response( array $body ): array {
+		return [
+			'success'      => isset( $body['success'] ) && true === (bool) $body['success'],
+			'challenge_ts' => is_scalar( $body['challenge_ts'] ?? null )
+				? sanitize_text_field( (string) $body['challenge_ts'] )
+				: '',
+			'hostname'     => is_scalar( $body['hostname'] ?? null )
+				? sanitize_text_field( (string) $body['hostname'] )
+				: '',
+			'credit'       => array_key_exists( 'credit', $body ) ? (bool) $body['credit'] : null,
+			'error-codes'  => self::sanitize_siteverify_array( $body['error-codes'] ?? [] ),
+		];
+	}
+
+	/**
+	 * Sanitize an array from the siteverify response.
+	 *
+	 * @param mixed $value Value.
+	 *
+	 * @return array
+	 */
+	private static function sanitize_siteverify_array( $value ): array {
+		$value = is_array( $value ) ? $value : [];
+		$value = array_filter( $value, 'is_scalar' );
+
+		return array_values( array_map( 'sanitize_text_field', $value ) );
 	}
 
 	/**
 	 * Verify nonce.
 	 *
-	 * @param string|null $name Nonce field name.
+	 * @param string|null $name        Nonce field name.
 	 * @param string|null $action      Nonce action name.
 	 * @param array       $expected_id Expected hCaptcha widget id.
 	 *
@@ -433,13 +487,19 @@ class API {
 	/**
 	 * Get filtered result.
 	 *
-	 * @param string|null $result      Result.
-	 * @param array       $error_codes Error codes.
-	 * @param array       $expected_id Expected hCaptcha widget id.
+	 * @param string|null $result              Result.
+	 * @param array       $error_codes         Error codes.
+	 * @param array       $expected_id         Expected hCaptcha widget id.
+	 * @param array       $siteverify_response Normalized siteverify response.
 	 *
 	 * @return string|null
 	 */
-	public static function filtered_result( ?string $result, array $error_codes, array $expected_id = [] ): ?string {
+	public static function filtered_result(
+		?string $result,
+		array $error_codes,
+		array $expected_id = [],
+		array $siteverify_response = []
+	): ?string {
 		/**
 		 * Filters the result of request verification.
 		 *
@@ -447,19 +507,21 @@ class API {
 		 *
 		 * @param string|null $result     The result of verification. The null means success.
 		 * @param string[]    $deprecated Not used.
-		 * @param object      $error_info Error info. Contains error codes and the expected widget id.
+		 * @param object      $error_info Error info. Contains error codes, expected widget id, and siteverify response.
 		 */
 		$error_info = (object) [
 			'codes'       => $error_codes,
 			'expected_id' => $expected_id,
+			'siteverify'  => $siteverify_response,
 		];
 
 		$result = apply_filters( 'hcap_verify_request', $result, $error_codes, $error_info );
 
 		$result = null === $result ? null : esc_html( (string) $result );
 
-		self::$result      = $result;
-		self::$error_codes = $error_codes;
+		self::$result              = $result;
+		self::$error_codes         = $error_codes;
+		self::$siteverify_response = $siteverify_response;
 
 		return $result;
 	}
@@ -502,7 +564,10 @@ class API {
 	}
 
 	/**
-	 * Check Form Submit Time token.
+	 * Check and consume the Form Submit Time token.
+	 *
+	 * The token is consumed before any later verification branch can return, so
+	 * every form submission remains single-use, including early failures.
 	 *
 	 * @return true|WP_Error
 	 */
@@ -560,9 +625,10 @@ class API {
 		$params = [
 			'secret'   => hcaptcha()->settings()->get_secret_key(),
 			'response' => $hcaptcha_response_sanitized,
+			'sitekey'  => hcaptcha()->settings()->get_site_key(),
 		];
 
-		$ip = hcap_get_user_ip();
+		$ip = hcap_get_user_ip( false );
 
 		if ( $ip ) {
 			$params['remoteip'] = $ip;

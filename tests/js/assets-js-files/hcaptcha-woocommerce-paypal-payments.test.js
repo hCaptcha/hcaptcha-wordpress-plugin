@@ -414,6 +414,18 @@ describe( 'hCaptcha WooCommerce PayPal Payments', () => {
 		expect( captcha.style.display ).toBe( '' );
 	} );
 
+	test( 'skips classic cart containers without a checkout button or captcha', () => {
+		const app = loadPayPal( {
+			html: `
+				<div class="wc-proceed-to-checkout"><span class="hcaptcha-woocommerce-paypal-payments"></span></div>
+				<div class="wc-proceed-to-checkout"><a class="checkout-button"></a></div>
+			`,
+		} );
+
+		expect( () => app.moveClassicCartCaptcha() ).not.toThrow();
+		expect( document.querySelectorAll( '.wc-proceed-to-checkout' ) ).toHaveLength( 2 );
+	} );
+
 	test( 'covers PayPal SDK loaded handler and Buttons setter branches', () => {
 		const app = loadPayPal();
 		const loadedPaypal = {

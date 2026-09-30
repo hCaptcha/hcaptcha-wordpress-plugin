@@ -10,6 +10,7 @@ namespace HCaptcha\Tests\Unit\MigrationWizard\Detectors;
 use HCaptcha\MigrationWizard\DetectionResult;
 use HCaptcha\MigrationWizard\Detectors\BrevoDetector;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
+use Mockery;
 use WP_Mock;
 
 /**
@@ -83,12 +84,23 @@ class BrevoDetectorTest extends HCaptchaTestCase {
 		global $wpdb;
 
 		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
-		$wpdb         = \Mockery::mock( 'wpdb' );
+		$wpdb         = Mockery::mock( 'wpdb' );
 		$wpdb->prefix = 'wp_';
+
+		WP_Mock::userFunction( 'esc_sql' )
+			->with( 'wp_sib_model_forms' )
+			->andReturn( 'wp_sib_model_forms' );
 
 		$wpdb->shouldReceive( 'prepare' )
 			->twice()
-			->andReturn( 'prepared_query' );
+			->andReturnUsing(
+				static function ( $query ) {
+					self::assertStringContainsString( 'FROM `wp_sib_model_forms`', $query );
+					self::assertStringNotContainsString( '%i', $query );
+
+					return 'prepared_query';
+				}
+			);
 
 		$wpdb->shouldReceive( 'get_var' )
 			->with( 'prepared_query' )
@@ -129,7 +141,7 @@ class BrevoDetectorTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test detect with both reCAPTCHA and Turnstile configured.
+	 * Test detect function with both reCAPTCHA and Turnstile configured.
 	 *
 	 * @return void
 	 */
@@ -145,7 +157,7 @@ class BrevoDetectorTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test detect when no captcha is configured.
+	 * Test detect function when no captcha is configured.
 	 *
 	 * @return void
 	 */

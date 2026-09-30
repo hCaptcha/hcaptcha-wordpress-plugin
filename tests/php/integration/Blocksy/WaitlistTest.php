@@ -5,8 +5,14 @@
  * @package HCaptcha\Tests
  */
 
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedNamespaceInspection */
+/** @noinspection PhpUndefinedClassInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
+
 namespace HCaptcha\Tests\Integration\Blocksy;
 
+use Blocksy\Plugin;
 use HCaptcha\Blocksy\Waitlist;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
@@ -49,13 +55,20 @@ class WaitlistTest extends HCaptchaPluginWPTestCase {
 	];
 
 	/**
+	 * Optional incorrect usage notice raised by the live plugin.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_optional_incorrect_usage = [ "add_theme_support( 'title-tag' )" ];
+
+	/**
 	 * Test that the live Blocksy stack is loaded for the waitlist integration.
 	 *
 	 * @return void
 	 */
 	public function test_live_blocksy_stack_is_loaded(): void {
 		$theme_file  = wp_normalize_path( ( new ReflectionClass( 'Blocksy_Screen_Manager' ) )->getFileName() );
-		$plugin_file = wp_normalize_path( ( new ReflectionClass( \Blocksy\Plugin::class ) )->getFileName() );
+		$plugin_file = wp_normalize_path( ( new ReflectionClass( Plugin::class ) )->getFileName() );
 
 		self::assertTrue( is_plugin_active( 'woocommerce/woocommerce.php' ) );
 		self::assertTrue( is_plugin_active( 'blocksy-companion/blocksy-companion.php' ) );
@@ -297,7 +310,7 @@ class WaitlistTest extends HCaptchaPluginWPTestCase {
 			'h-captcha-response' => 'some-response',
 			'email'              => 'test@example.com',
 			'product_id'         => (string) $product_id,
-			// Non-matching key — covers continue branch.
+			// Additional form field must be preserved.
 			'some_other_field'   => 'value',
 		];
 
@@ -316,7 +329,7 @@ class WaitlistTest extends HCaptchaPluginWPTestCase {
 			],
 			$actual['expected_id']
 		);
-		self::assertArrayNotHasKey( 'some_other_field', $actual['data'] );
+		self::assertSame( 'value', $actual['data']['some_other_field'] );
 	}
 
 	/**

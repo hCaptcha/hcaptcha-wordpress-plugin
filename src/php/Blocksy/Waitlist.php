@@ -8,6 +8,7 @@
 namespace HCaptcha\Blocksy;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use WP_Error;
@@ -212,26 +213,20 @@ class Waitlist {
 
 		$post = get_post( $product_id );
 
-		$entry = [
+		return [
 			'nonce_name'         => self::NONCE,
 			'nonce_action'       => self::ACTION,
 			'h-captcha-response' => $form_data['h-captcha-response'] ?? '',
 			'form_date_gmt'      => $post->post_modified_gmt ?? null,
-			'data'               => [],
+			'data'               => EntryData::from_array(
+				$form_data,
+				[
+					'email'      => 'email',
+					'product_id' => 'product_id',
+				]
+			),
 			'expected_id'        => $this->get_expected_id(),
 		];
-
-		foreach ( $form_data as $key => $value ) {
-			$type = $key;
-
-			if ( ! in_array( $type, [ 'email', 'product_id' ], true ) ) {
-				continue;
-			}
-
-			$entry['data'][ $key ] = $value;
-		}
-
-		return $entry;
 	}
 
 	/**

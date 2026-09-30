@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Tests\Integration\MemberPress;
 
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\MemberPress\Register;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 
@@ -16,6 +17,20 @@ use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
  * @group memberpress
  */
 class RegisterTest extends HCaptchaWPTestCase {
+
+	/**
+	 * Set up the test.
+	 *
+	 * @return void
+	 */
+	public function setUp(): void {
+		parent::setUp();
+
+		hcaptcha()->settings()->set( 'honeypot', 'on' );
+		hcaptcha()->settings()->set( 'set_min_submit_time', 'on' );
+		hcaptcha()->settings()->set( 'memberpress_status', [ 'login', 'register' ] );
+		$this->set_protected_property( hcaptcha(), 'supported_forms', null );
+	}
 
 	/**
 	 * Test constructor and init hooks.
@@ -52,8 +67,11 @@ class RegisterTest extends HCaptchaWPTestCase {
 
 		ob_start();
 		$subject->add_captcha();
+		$output = (string) ob_get_clean();
 
-		self::assertSame( $expected, ob_get_clean() );
+		self::assertSame( $expected, $output );
+		self::assertStringContainsString( 'name="hcap_hp_test"', $output );
+		self::assertStringContainsString( 'name="hcap_hp_sig"', $output );
 	}
 
 	/**
@@ -92,5 +110,30 @@ class RegisterTest extends HCaptchaWPTestCase {
 		);
 
 		self::assertSame( $error_message, $subject->verify( $errors ) );
+	}
+
+	/**
+	 * Test verify() with a filled honeypot.
+	 *
+	 * @return void
+	 */
+	public function test_verify_filled_honeypot(): void {
+		$this->prepare_verify_post(
+			'hcaptcha_memberpress_register_nonce',
+			'hcaptcha_memberpress_register'
+		);
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'memberpress/memberpress.php' ],
+				'form_id' => 'register',
+			]
+		);
+		$_POST['hcap_hp_test']                 = 'bot';
+
+		self::assertSame(
+			[ 'Anti-spam check failed.' ],
+			( new Register() )->verify( [] )
+		);
 	}
 }

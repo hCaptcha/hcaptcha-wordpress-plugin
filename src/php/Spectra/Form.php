@@ -8,6 +8,7 @@
 namespace HCaptcha\Spectra;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use HCaptcha\Helpers\Utils;
@@ -76,6 +77,7 @@ class Form {
 	 *
 	 * @return string|mixed
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection UnnecessaryCastingInspection
 	 */
 	public function render_block( $block_content, array $block, WP_Block $instance ) {
 		if ( 'uagb/forms' !== $block['blockName'] ) {
@@ -124,26 +126,7 @@ class Form {
 			: [];
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
-		$widget_id_name = 'hcaptcha-widget-id';
-		$hp_sig_name    = 'hcap_hp_sig';
-		$token_name     = 'hcap_fst_token';
-		$hp_name        = API::get_hp_name( $form_data );
-
-		$_POST[ self::NONCE ]     = $form_data[ self::NONCE ] ?? '';
-		$_POST[ $widget_id_name ] = $form_data[ $widget_id_name ] ?? '';
-		$_POST[ $hp_sig_name ]    = $form_data[ $hp_sig_name ] ?? '';
-		$_POST[ $hp_name ]        = $form_data[ $hp_name ] ?? '';
-		$_POST[ $token_name ]     = $form_data[ $token_name ] ?? '';
-
 		$error_message = API::verify( $this->get_entry( $form_data ) );
-
-		unset(
-			$_POST[ self::NONCE ],
-			$_POST[ $widget_id_name ],
-			$_POST[ $hp_sig_name ],
-			$_POST[ $hp_name ],
-			$_POST[ $token_name ]
-		);
 
 		if ( null === $error_message ) {
 			return;
@@ -271,6 +254,7 @@ class Form {
 			'nonce_action'       => self::ACTION,
 			'h-captcha-response' => $form_data['h-captcha-response'] ?? '',
 			'form_date_gmt'      => $post->post_modified_gmt ?? null,
+			'post_data'          => $form_data,
 			'data'               => [],
 			'expected_id'        => $this->get_expected_id( $block_id ),
 		];
@@ -280,7 +264,13 @@ class Form {
 		$name   = [];
 
 		foreach ( $fields as $field ) {
-			$value = $form_data[ $field['label'] ] ?? '';
+			$label = $field['label'];
+
+			if ( ! array_key_exists( $label, $form_data ) || '' === $label || EntryData::is_sensitive_field( (string) $label ) ) {
+				continue;
+			}
+
+			$value = $form_data[ $label ];
 
 			if ( 'name' === $field['type'] ) {
 				$name[] = $value;
@@ -290,10 +280,10 @@ class Form {
 				$entry['data']['email'] = $value;
 			}
 
-			$entry['data'][ $field['label'] ] = $value;
+			EntryData::add_field( $entry['data'], (string) $label, $value, (string) $field['id'] );
 		}
 
-		$entry['data']['name'] = implode( ' ', $name ) ?: null;
+		EntryData::add_name( $entry['data'], $name );
 
 		return $entry;
 	}
@@ -318,11 +308,11 @@ class Form {
 
 			$type = $m[1];
 
-			if ( ! in_array( $type, [ 'name', 'email', 'textarea' ], true ) ) {
+			if ( ! EntryData::is_content_field_type( (string) $type ) ) {
 				continue;
 			}
 
-			$label = '';
+			$label = (string) ( $inner_block['attrs']['label'] ?? '' );
 
 			if ( preg_match( '#<div class="uagb-forms-' . $type . '-label.*?>(.*?)</div>#', $inner_block['innerHTML'], $m ) ) {
 				$label = $m[1];
@@ -331,6 +321,7 @@ class Form {
 			$fields[] = [
 				'type'  => $type,
 				'label' => $label,
+				'id'    => (string) ( $inner_block['attrs']['block_id'] ?? count( $fields ) ),
 			];
 		}
 

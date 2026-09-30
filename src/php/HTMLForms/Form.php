@@ -61,7 +61,25 @@ class Form {
 		add_filter( 'hf_validate_form', [ $this, 'verify' ], 10, 3 );
 		add_filter( 'wp_insert_post_data', [ $this, 'insert_post_data' ], 10, 4 );
 		add_filter( 'hf_form_message_' . self::HCAPTCHA_ERROR, [ $this, 'get_message' ] );
+		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
+	}
+
+	/**
+	 * Enqueue HTML Forms integration script.
+	 *
+	 * @return void
+	 */
+	public function enqueue_scripts(): void {
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			'hcaptcha-html-forms',
+			HCAPTCHA_URL . "/assets/js/hcaptcha-html-forms$min.js",
+			[ 'hcaptcha' ],
+			HCAPTCHA_VERSION,
+			true
+		);
 	}
 
 	/**

@@ -50,6 +50,8 @@ class Signup {
 	 * @return void
 	 */
 	private function init_hooks(): void {
+		Assets::init();
+
 		add_filter( 'tml_before_form_field', [ $this, 'add_captcha' ], 10, 4 );
 		add_filter( 'wpmu_validate_user_signup', [ $this, 'verify' ], 0 );
 		add_filter( 'wpmu_validate_blog_signup', [ $this, 'verify' ], 0 );

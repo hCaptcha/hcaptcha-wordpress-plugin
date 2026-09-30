@@ -38,6 +38,11 @@ class CommentTest extends HCaptchaWPTestCase {
 	public function setUp(): void {
 		parent::setUp();
 
+		hcaptcha()->settings()->set( 'honeypot', 'on' );
+		hcaptcha()->settings()->set( 'set_min_submit_time', 'on' );
+		hcaptcha()->settings()->set( 'wpdiscuz_status', 'comment_form' );
+		$this->set_protected_property( hcaptcha(), 'supported_forms', null );
+
 		$options                  = Mockery::mock( 'WpdiscuzOptions' );
 		$options->recaptcha       = [
 			'siteKey'       => 'some site key',
@@ -104,6 +109,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * Test block_recaptcha().
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFieldInspection
 	 */
 	public function test_block_recaptcha(): void {
 		// Ensure initial values come from setUp().
@@ -179,6 +185,7 @@ class CommentTest extends HCaptchaWPTestCase {
 
 		self::assertFalse( wp_script_is( 'wpdiscuz-google-recaptcha', 'registered' ) );
 		self::assertFalse( wp_script_is( 'wpdiscuz-google-recaptcha' ) );
+		self::assertTrue( wp_script_is( 'hcaptcha-wpdiscuz-comment' ) );
 	}
 
 	/**
@@ -204,8 +211,11 @@ class CommentTest extends HCaptchaWPTestCase {
 		' . '<div class="wc-field-submit">Submit</div>';
 
 		$subject = new Comment();
+		$result  = $subject->add_hcaptcha( $output, 0, false );
 
-		self::assertSame( $expected, $subject->add_hcaptcha( $output, 0, false ) );
+		self::assertSame( $expected, $result );
+		self::assertStringContainsString( 'name="hcap_hp_test"', $result );
+		self::assertStringContainsString( 'name="hcap_hp_sig"', $result );
 	}
 
 	/**
@@ -294,6 +304,36 @@ class CommentTest extends HCaptchaWPTestCase {
 		self::assertFalse( isset( $_POST['h-captcha-response'], $_POST['g-recaptcha-response'] ) );
 		self::assertSame( $expected, $die_arr );
 		self::assertFalse( has_filter( 'preprocess_comment', [ $this->wp_discuz, 'validateRecaptcha' ] ) );
+	}
+
+	/**
+	 * Test a filled honeypot blocks comment processing.
+	 *
+	 * @return void
+	 */
+	public function test_filled_honeypot_is_rejected(): void {
+		$comment_data      = [ 'some comment data' ];
+		$hcaptcha_response = 'some response';
+		$die_arr           = [];
+
+		$_POST['action'] = 'wpdAddComment';
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		$this->prepare_verify_request( $hcaptcha_response );
+		$_POST['hcap_hp_test'] = 'bot';
+
+		add_filter(
+			'wp_die_ajax_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		( new Comment() )->verify( $comment_data );
+
+		self::assertSame( [ 'Anti-spam check failed.', '', [] ], $die_arr );
 	}
 
 	/**

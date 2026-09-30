@@ -39,6 +39,7 @@ use HCaptcha\NF\NF;
 use HCaptcha\Quform\Quform;
 use HCaptcha\Sendinblue\Sendinblue;
 use HCaptcha\Settings\AntiSpamPage;
+use HCaptcha\Settings\PluginSettingsBase;
 use HCaptcha\Settings\Settings;
 use HCaptcha\WC\Checkout;
 use HCaptcha\WC\OrderTracking;
@@ -53,6 +54,7 @@ use HCaptcha\WPDiscuz\Subscribe;
 use JsonException;
 use Mockery;
 use ReflectionException;
+use RuntimeException;
 use tad\FunctionMocker\FunctionMocker;
 use HCaptcha\Admin\PluginStats;
 use HCaptcha\Admin\Events\Events;
@@ -82,7 +84,7 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	 */
 	public function test_authenticated_xml_rpc_setting( bool $disabled ): void {
 		update_option(
-			AntiSpamPage::OPTION_NAME,
+			PluginSettingsBase::OPTION_NAME,
 			[ AntiSpamPage::DISABLE_XML_RPC_AUTH => $disabled ? [ 'on' ] : [] ]
 		);
 
@@ -134,6 +136,10 @@ class AAAMainTest extends HCaptchaWPTestCase {
 
 		$reader->shouldReceive( 'country' )->andReturnUsing(
 			static function ( string $ip ) {
+				if ( '__throw__' === ( self::$geoip_country_by_ip[ $ip ] ?? '' ) ) {
+					throw new RuntimeException( 'Reader error.' );
+				}
+
 				return (object) [
 					'country' => (object) [
 						'isoCode' => self::$geoip_country_by_ip[ $ip ] ?? '',
@@ -202,6 +208,52 @@ class AAAMainTest extends HCaptchaWPTestCase {
 		$hcaptcha->init();
 
 		self::assertSame( Main::LOAD_PRIORITY, has_action( 'plugins_loaded', [ $hcaptcha, 'init_hooks' ] ) );
+	}
+
+	/**
+	 * Test initialization on an XML-RPC request.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_init_on_xml_rpc(): void {
+		FunctionMocker::replace( 'HCaptcha\\Helpers\\Request::is_xml_rpc', true );
+
+		$subject = new Main();
+		$subject->init();
+
+		self::assertSame( Main::LOAD_PRIORITY, has_action( 'plugins_loaded', [ $subject, 'init_hooks' ] ) );
+		self::assertSame( [], $this->get_protected_property( $subject, 'loaded_classes' ) );
+	}
+
+	/**
+	 * Test declaring compatibility with WooCommerce features.
+	 */
+	public function test_declare_wc_compatibility(): void {
+		$features = Mockery::mock( 'alias:Automattic\\WooCommerce\\Utilities\\FeaturesUtil' );
+		$features->shouldReceive( 'declare_compatibility' )
+			->once()
+			->with( 'custom_order_tables', HCAPTCHA_FILE )
+			->andReturn( true );
+
+		( new Main() )->declare_wc_compatibility();
+	}
+
+	/**
+	 * Test that Tutor LMS Pro is the preferred module source.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_tutor_modules_prefer_pro(): void {
+		$subject = new Main();
+		$this->set_protected_property( $subject, 'active', false );
+		$subject->load_modules();
+
+		foreach ( [ 'Tutor Checkout', 'Tutor Login', 'Tutor LostPassword', 'Tutor Register' ] as $module_name ) {
+			self::assertSame(
+				[ 'tutor-pro/tutor-pro.php', 'tutor/tutor.php' ],
+				$subject->modules[ $module_name ][1]
+			);
+		}
 	}
 
 	/**
@@ -512,23 +564,33 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	/**
 	 * Test csp_headers().
 	 *
+	 * @param string $license         License level.
+	 * @param bool   $allow_unsafe_js Whether unsafe JavaScript sources should be allowed.
+	 *
+	 * @dataProvider dp_test_csp_headers
+	 *
 	 * @return void
 	 */
-	public function test_csp_headers(): void {
-		$headers  = [
+	public function test_csp_headers( string $license, bool $allow_unsafe_js ): void {
+		$headers    = [
 			'some_header' => 'some header content',
 		];
-		$expected = $headers;
-		$hcap_csp = "'self' 'unsafe-inline' 'unsafe-eval' https://hcaptcha.com https://*.hcaptcha.com";
+		$expected   = $headers;
+		$hcap_src   = 'https://hcaptcha.com https://*.hcaptcha.com';
+		$script_src = $allow_unsafe_js ? "'unsafe-inline' 'unsafe-eval' $hcap_src" : $hcap_src;
 
 		$expected['Content-Security-Policy'] =
-			"script-src $hcap_csp; " .
-			"frame-src $hcap_csp; " .
-			"style-src $hcap_csp; " .
-			"connect-src $hcap_csp; " .
+			"script-src $script_src; " .
+			"frame-src $hcap_src; " .
+			"style-src $hcap_src; " .
+			"connect-src $hcap_src; " .
 			"default-src 'self'";
 
+		$settings = Mockery::mock( Settings::class );
+		$settings->shouldReceive( 'get_license' )->with()->once()->andReturn( $license );
+
 		$subject = new Main();
+		$this->set_protected_property( $subject, 'settings', $settings );
 
 		// The 'hcap_add_csp_headers' filter is not added.
 		self::assertSame( $headers, $subject->csp_headers( $headers ) );
@@ -555,6 +617,19 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Data provider for test_csp_headers().
+	 *
+	 * @return array[]
+	 */
+	public function dp_test_csp_headers(): array {
+		return [
+			'Free'       => [ 'free', false ],
+			'Pro'        => [ 'pro', false ],
+			'Enterprise' => [ 'enterprise', true ],
+		];
+	}
+
+	/**
 	 * Test print_inline_styles().
 	 *
 	 * @param string|false $custom_themes Custom themes option value.
@@ -565,12 +640,20 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	 */
 	public function test_print_inline_styles( $custom_themes, int $delay ): void {
 		$license       = 'pro';
+		$color         = 'on' === $custom_themes
+			? '#555555'
+			: 'initial';
 		$bg            = 'on' === $custom_themes
 			? '#f0f0f0'
 			: 'initial';
 		$config_params = 'on' === $custom_themes
 			? [
 				'theme' => [
+					'palette'   => [
+						'text' => [
+							'body' => $color,
+						],
+					],
 					'component' => [
 						'checkbox' => [
 							'main' => [
@@ -772,6 +855,53 @@ class AAAMainTest extends HCaptchaWPTestCase {
 
 	div[style*="z-index: 2147483647"] div[style*="border-width: 11px"][style*="position: absolute"][style*="pointer-events: none"] {
 		border-style: none;
+	}
+
+	p.hcaptcha-invisible-disclosure {
+		padding: 0.5rem;
+		margin-bottom: 2rem !important;
+	}
+
+	.h-captcha[data-theme="light"] + p.hcaptcha-invisible-disclosure,
+	body.is-light-theme .h-captcha[data-theme="auto"] + p.hcaptcha-invisible-disclosure,
+	.h-captcha[data-theme="auto"] + p.hcaptcha-invisible-disclosure {
+		color: #333;
+		background-color: #fafafa;
+		border: 1px solid #e0e0e0;
+	}
+
+	.h-captcha[data-theme="dark"] + p.hcaptcha-invisible-disclosure,
+	body.is-dark-theme .h-captcha[data-theme="auto"] + p.hcaptcha-invisible-disclosure,
+	html.wp-dark-mode-active .h-captcha[data-theme="auto"] + p.hcaptcha-invisible-disclosure,
+	html.drdt-dark-mode .h-captcha[data-theme="auto"] + p.hcaptcha-invisible-disclosure {
+		color: #f5f5f5;
+		background-color: #333;
+		border: 1px solid #f5f5f5;
+	}
+
+	.h-captcha[data-theme="dark"] + p.hcaptcha-invisible-disclosure a,
+	body.is-dark-theme .h-captcha[data-theme="auto"] + p.hcaptcha-invisible-disclosure a,
+	html.wp-dark-mode-active .h-captcha[data-theme="auto"] + p.hcaptcha-invisible-disclosure a,
+	html.drdt-dark-mode .h-captcha[data-theme="auto"] + p.hcaptcha-invisible-disclosure a {
+		color: #f5f5f5;
+	}
+
+	@media (prefers-color-scheme: dark) {
+		.h-captcha[data-theme="auto"] + p.hcaptcha-invisible-disclosure {
+			color: #f5f5f5;
+			background-color: #333;
+			border: 1px solid #f5f5f5;
+		}
+
+		.h-captcha[data-theme="auto"] + p.hcaptcha-invisible-disclosure a {
+			color: #f5f5f5;
+		}
+	}
+
+	.h-captcha[data-theme="custom"] + p.hcaptcha-invisible-disclosure,
+	.h-captcha[data-theme="custom"] + p.hcaptcha-invisible-disclosure a {
+		color: $color;
+		background-color: $bg;
 	}
 CSS;
 
@@ -988,6 +1118,7 @@ CSS;
 				'image_host'           => 'imgs-cn1.hcaptcha.com',
 				'report_api'           => 'reportapi-cn1.hcaptcha.com',
 				'sentry'               => 'cn1.hcaptcha.com',
+				'mode'                 => 'live',
 				'license'              => 'pro',
 			]
 		);
@@ -1541,6 +1672,38 @@ CSS;
 			'some ips, matching wrong ip' => [ " 4444444.777.2 \r\n 220.45.45.1 \r\n", '4444444.777.2', false ],
 			'with local, local ip'        => [ " 4444444.777.2 \r\n 220.45.45.1 \r\n127.0.0.1\r\n", '127.0.0.1', true ],
 		];
+	}
+
+	/**
+	 * Test country code normalization and reader failures.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_get_client_country_code(): void {
+		$client_ip = '203.0.113.40';
+		$error_ip  = '203.0.113.41';
+
+		self::$geoip_country_by_ip = [
+			$client_ip => ' us ',
+			$error_ip  => '__throw__',
+		];
+		$this->init_geoip_reader_mock();
+
+		$maxmind_db_path_filter = static function () {
+			return __FILE__;
+		};
+		add_filter( 'hcap_maxmind_db_path', $maxmind_db_path_filter );
+
+		try {
+			$subject = new Main();
+			$method  = $this->set_method_accessibility( $subject, 'get_client_country_code' );
+
+			self::assertSame( 'US', $method->invoke( $subject, $client_ip ) );
+			self::assertSame( '', $method->invoke( $subject, $error_ip ) );
+		} finally {
+			remove_filter( 'hcap_maxmind_db_path', $maxmind_db_path_filter );
+			self::$geoip_country_by_ip = [];
+		}
 	}
 
 	/**
@@ -2216,16 +2379,6 @@ CSS;
 				'otter-blocks/otter-blocks.php',
 				\HCaptcha\Otter\Form::class,
 			],
-			'Paid Memberships Pro Checkout'     => [
-				[ 'paid_memberships_pro_status', 'checkout' ],
-				'paid-memberships-pro/paid-memberships-pro.php',
-				[ \HCaptcha\PaidMembershipsPro\Checkout::class, \HCaptcha\PaidMembershipsPro\Login::class ],
-			],
-			'Paid Memberships Pro Login'        => [
-				[ 'paid_memberships_pro_status', 'login' ],
-				'paid-memberships-pro/paid-memberships-pro.php',
-				\HCaptcha\PaidMembershipsPro\Login::class,
-			],
 			'Passster Protect'                  => [
 				[ 'passster_status', 'protect' ],
 				'content-protector/content-protector.php',
@@ -2335,6 +2488,11 @@ CSS;
 				[ 'woocommerce_status', 'order_tracking' ],
 				'woocommerce/woocommerce.php',
 				OrderTracking::class,
+			],
+			'WooCommerce Order Withdrawal'      => [
+				[ 'woocommerce_status', 'order_withdrawal' ],
+				'woocommerce/woocommerce.php',
+				\HCaptcha\WC\OrderWithdrawal::class,
 			],
 			'WooCommerce Register'              => [
 				[ 'woocommerce_status', 'register' ],

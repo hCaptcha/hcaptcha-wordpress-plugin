@@ -6,6 +6,7 @@
  */
 
 // phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedConstantInspection */
 /** @noinspection PhpUndefinedClassInspection */
 /** @noinspection PhpUndefinedNamespaceInspection */
 // phpcs:enable Generic.Commenting.DocComment.MissingShort
@@ -471,7 +472,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 				'email'         => 'john@example.com',
 				'Email address' => 'john@example.com',
 				'Message'       => 'Hello world',
-				'choice'        => 'One Two',
+				'choice'        => [ 'One', 'Two' ],
 				'name'          => 'John Doe',
 			],
 			$entry['data']

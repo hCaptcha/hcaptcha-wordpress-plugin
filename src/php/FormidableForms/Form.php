@@ -15,6 +15,7 @@ use FrmField;
 use FrmForm;
 use FrmSettings;
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use stdClass;
 
@@ -120,7 +121,7 @@ class Form {
 			return $html;
 		}
 
-		[ $captcha_div, $div_id ] = $m;
+		[ $captcha_div, $div_id ] = (array) $m;
 
 		$args = [
 			'action' => self::ACTION,
@@ -245,10 +246,14 @@ class Form {
 		$name = [];
 
 		foreach ( $fields as $field ) {
+			if ( EntryData::is_sensitive_field( (string) $field->type ) || EntryData::is_sensitive_field( (string) $field->name ) ) {
+				continue;
+			}
+
 			$field_id = $field->id;
 			$val      = $values['item_meta'][ $field_id ] ?? '';
 
-			if ( ! $val ) {
+			if ( null === $val || '' === $val ) {
 				continue;
 			}
 
@@ -261,10 +266,10 @@ class Form {
 				$data['email'] = $val;
 			}
 
-			$data[ $field->name ] = $val;
+			EntryData::add_field( $data, (string) $field->name, $val, (string) $field_id );
 		}
 
-		$data['name'] = implode( ' ', $name ) ?: null;
+		EntryData::add_name( $data, $name );
 
 		return $data;
 	}

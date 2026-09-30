@@ -23,6 +23,32 @@ use WP_Error;
  * @group bbpress
  */
 class ReplyTest extends HCaptchaPluginWPTestCase {
+	/**
+	 * Test that reply entry excludes the bbPress password and token fields.
+	 *
+	 * @return void
+	 */
+	public function test_get_entry_excludes_sensitive_fields(): void {
+		$this->prepare_reply_topic();
+
+		$_POST['bbp_reply_content']   = 'Reply text';
+		$_POST['bbp_anonymous_email'] = 'reader@example.com';
+		$_POST['bbp_password']        = 'private-password';
+		$_POST['bbp_token']           = 'private-token';
+
+		$subject = new Reply();
+		$method  = $this->set_method_accessibility( $subject, 'get_entry' );
+		$entry   = $method->invoke( $subject );
+
+		self::assertSame(
+			[
+				'email'   => 'reader@example.com',
+				'message' => 'Reply text',
+			],
+			$entry['data']
+		);
+	}
+
 
 	/**
 	 * Plugin relative path.
@@ -90,6 +116,7 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 	 * Test hCaptcha in the live bbPress reply shortcode.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_live_reply_form(): void {
 		$user_id  = $this->factory()->user->create( [ 'role' => 'administrator' ] );

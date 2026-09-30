@@ -46,9 +46,45 @@ class FormTest extends JetpackTestCase {
 	 * @param string $expected Expected content.
 	 *
 	 * @dataProvider dp_test_add_captcha
+	 * @noinspection UnnecessaryCastingInspection
 	 */
 	public function test_add_captcha( string $content, string $expected ): void {
-		$subject = new Form();
+		$hash         = 'some hash';
+		$args         = [
+			'action' => 'hcaptcha_jetpack',
+			'name'   => 'hcaptcha_jetpack_nonce',
+			'id'     => [
+				'source'  => [ 'jetpack/jetpack.php' ],
+				'form_id' => 'contact_' . $hash,
+			],
+		];
+		$replacements = [
+			'{{hcaptcha}}'         => $this->get_hcap_form( $args ),
+			'{{compact_hcaptcha}}' => $this->get_hcap_form(
+				array_merge( $args, [ 'size' => 'compact' ] )
+			),
+			'{{wrong_hcaptcha}}'   => $this->get_hcap_form(
+				[
+					'action' => 'hcaptcha_action',
+					'name'   => 'hcaptcha_nonce',
+					'id'     => [
+						'source'  => [],
+						'form_id' => 0,
+					],
+					'size'   => 'compact',
+				]
+			),
+		];
+		$content      = strtr( $content, $replacements );
+		$expected     = strtr( $expected, $replacements );
+		$subject      = new Form();
+		$expected     = (string) preg_replace_callback(
+			'/(id="hcaptcha_jetpack_nonce" name="hcaptcha_jetpack_nonce" value=")[^"]+/',
+			static function ( array $matches ): string {
+				return $matches[1] . wp_create_nonce( 'hcaptcha_jetpack' );
+			},
+			$expected
+		);
 
 		self::assertSame( $expected, $subject->add_hcaptcha( $content ) );
 	}
@@ -80,38 +116,11 @@ class FormTest extends JetpackTestCase {
 	 * @noinspection HtmlUnknownAttribute
 	 */
 	public function dp_test_add_captcha(): array {
-		$_SERVER['REQUEST_URI'] = 'http://test.test/';
-
 		$hash             = 'some hash';
 		$hash_input       = "<input name='contact-form-hash' value='$hash'>";
-		$args             = [
-			'action' => 'hcaptcha_jetpack',
-			'name'   => 'hcaptcha_jetpack_nonce',
-			'id'     => [
-				'source'  => [ 'jetpack/jetpack.php' ],
-				'form_id' => 'contact_' . $hash,
-			],
-		];
-		$hcaptcha         = $this->get_hcap_form( $args );
-		$compact_hcaptcha = $this->get_hcap_form(
-			array_merge(
-				$args,
-				[
-					'size' => 'compact',
-				]
-			)
-		);
-		$wrong_hcaptcha   = $this->get_hcap_form(
-			[
-				'action' => 'hcaptcha_action',
-				'name'   => 'hcaptcha_nonce',
-				'id'     => [
-					'source'  => [],
-					'form_id' => 0,
-				],
-				'size'   => 'compact',
-			]
-		);
+		$hcaptcha         = '{{hcaptcha}}';
+		$compact_hcaptcha = '{{compact_hcaptcha}}';
+		$wrong_hcaptcha   = '{{wrong_hcaptcha}}';
 
 		return [
 			'Empty contact form'                           => [ '', '' ],

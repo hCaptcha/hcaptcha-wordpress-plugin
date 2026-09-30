@@ -10,15 +10,18 @@
 
 namespace HCaptcha\LearnPress;
 
+use Exception;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
-use LP_Checkout;
-use WP_Error;
 
 /**
  * Class Checkout
  */
 class Checkout {
+	/**
+	 * Script handle.
+	 */
+	private const HANDLE = 'hcaptcha-learnpress';
 
 	/**
 	 * Nonce action.
@@ -29,6 +32,13 @@ class Checkout {
 	 * Nonce name.
 	 */
 	private const NONCE = 'hcaptcha_learn_press_checkout_nonce';
+
+	/**
+	 * Whether the checkout form was shown.
+	 *
+	 * @var bool
+	 */
+	private bool $form_shown = false;
 
 	/**
 	 * Constructor.
@@ -44,13 +54,17 @@ class Checkout {
 	 */
 	private function init_hooks(): void {
 		add_action( 'learn-press/payment-form', [ $this, 'add_hcaptcha' ] );
-		add_filter( 'learn-press/validate-checkout-fields', [ $this, 'verify' ], 20, 3 );
+		add_action( 'learn-press/before-checkout', [ $this, 'verify' ], 0 );
+		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
+		add_filter( 'script_loader_tag', [ $this, 'add_type_module' ], 10, 3 );
 	}
 
 	/**
 	 * Add hCaptcha.
 	 */
 	public function add_hcaptcha(): void {
+		$this->form_shown = true;
+
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
@@ -64,23 +78,58 @@ class Checkout {
 	}
 
 	/**
-	 * Verify checkout form.
+	 * Enqueue LearnPress script.
 	 *
-	 * @param array|mixed $errors      Checkout errors.
-	 * @param array       $fields      Checkout fields.
-	 * @param LP_Checkout $lp_checkout LearnPress checkout object.
-	 *
-	 * @return array|WP_Error
-	 * @noinspection PhpMissingParamTypeInspection
-	 * @noinspection PhpUnusedParameterInspection
+	 * @return void
 	 */
-	public function verify( $errors, $fields, LP_Checkout $lp_checkout ) {
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
-
-		if ( null === $error_message ) {
-			return $errors;
+	public function enqueue_scripts(): void {
+		if ( ! $this->form_shown ) {
+			return;
 		}
 
-		return HCaptcha::add_error_message( $errors, $error_message );
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			self::HANDLE,
+			HCAPTCHA_URL . "/assets/js/hcaptcha-learnpress$min.js",
+			[],
+			HCAPTCHA_VERSION,
+			true
+		);
+	}
+
+	/**
+	 * Add the type="module" attribute to the script tag.
+	 *
+	 * @param string|mixed $tag    Script tag.
+	 * @param string       $handle Script handle.
+	 * @param string       $src    Script source.
+	 *
+	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function add_type_module( $tag, string $handle, string $src ): string {
+		$tag = (string) $tag;
+
+		if ( self::HANDLE !== $handle ) {
+			return $tag;
+		}
+
+		return HCaptcha::add_type_module( $tag );
+	}
+
+	/**
+	 * Verify the checkout form.
+	 *
+	 * @return void
+	 * @throws Exception When hCaptcha verification fails.
+	 * @noinspection ThrowRawExceptionInspection
+	 */
+	public function verify(): void {
+		$error_message = API::verify_post( self::NONCE, self::ACTION );
+
+		if ( null !== $error_message ) {
+			throw new Exception( esc_html( $error_message ) );
+		}
 	}
 }

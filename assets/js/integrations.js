@@ -4,16 +4,23 @@
  * @param HCaptchaIntegrationsObject.CancelBtnText
  * @param HCaptchaIntegrationsObject.OKBtnText
  * @param HCaptchaIntegrationsObject.action
+ * @param HCaptchaIntegrationsObject.activationPlanAction
+ * @param HCaptchaIntegrationsObject.activationPlanNonce
  * @param HCaptchaIntegrationsObject.activatePluginMsg
  * @param HCaptchaIntegrationsObject.activateThemeMsg
  * @param HCaptchaIntegrationsObject.ajaxUrl
  * @param HCaptchaIntegrationsObject.deactivatePluginMsg
  * @param HCaptchaIntegrationsObject.deactivateThemeMsg
+ * @param HCaptchaIntegrationsObject.deactivateAllMsg
+ * @param HCaptchaIntegrationsObject.dependenciesMsg
  * @param HCaptchaIntegrationsObject.defaultTheme
  * @param HCaptchaIntegrationsObject.installPluginMsg
  * @param HCaptchaIntegrationsObject.installThemeMsg
+ * @param HCaptchaIntegrationsObject.loadingDepsMsg
  * @param HCaptchaIntegrationsObject.nonce
  * @param HCaptchaIntegrationsObject.onlyOneThemeMsg
+ * @param HCaptchaIntegrationsObject.planAction
+ * @param HCaptchaIntegrationsObject.planNonce
  * @param HCaptchaIntegrationsObject.selectThemeMsg
  * @param HCaptchaIntegrationsObject.suggestActivate
  * @param HCaptchaIntegrationsObject.suggestActivateMsg
@@ -238,7 +245,7 @@ const integrations = function( $ ) {
 
 	// Test hook: expose selected internals for isolated unit tests
 	// noinspection JSUnresolvedReference
-	if ( typeof jest !== 'undefined' ) {
+	if ( window.__hCaptchaTestMode ) {
 		window.__integrationsTest = {
 			swapThemes,
 		};
@@ -249,7 +256,22 @@ const integrations = function( $ ) {
 		setupHelpers();
 	} );
 
+	const latestPlanRequests = new WeakMap();
+
 	$( '.form-table img' ).on( 'click', function( event ) {
+		const image = event.currentTarget;
+
+		function nextPlanRequestId() {
+			const requestId = ( latestPlanRequests.get( image ) || 0 ) + 1;
+			latestPlanRequests.set( image, requestId );
+
+			return requestId;
+		}
+
+		function isCurrentPlanRequest( requestId ) {
+			return requestId === latestPlanRequests.get( image );
+		}
+
 		function maybeInstallEntity( confirmation ) {
 			if ( ! confirmation ) {
 				return;
@@ -277,6 +299,231 @@ const integrations = function( $ ) {
 			}
 
 			return select.value ?? '';
+		}
+
+		function getSelectedDependencies() {
+			return [ ...document.querySelectorAll( '.hcaptcha-dependency-item:checked' ) ]
+				.map( ( checkbox ) => checkbox.value );
+		}
+
+		function escapeHtml( value ) {
+			/* language=HTML */
+			return $( '<div>' ).text( value ?? '' ).html()
+				.replace( /"/g, '&quot;' )
+				.replace( /'/g, '&#039;' );
+		}
+
+		function renderDependencyOptions( plan ) {
+			const items = plan?.items ?? [];
+
+			if ( ! items.length ) {
+				return '<div class="hcaptcha-deactivation-dependencies"></div>';
+			}
+
+			let options = '<div class="hcaptcha-deactivation-dependencies">';
+			options += `<p>${ escapeHtml( HCaptchaIntegrationsObject.dependenciesMsg ) }</p>`;
+			options += '<label class="hcaptcha-dependency-all">';
+			options += '<input type="checkbox"> ';
+			options += escapeHtml( HCaptchaIntegrationsObject.deactivateAllMsg );
+			options += '</label><ul>';
+
+			items.forEach( ( item, index ) => {
+				const disabled = item.disabled ? ' disabled' : '';
+				const reason = item.reason ? ` title="${ escapeHtml( item.reason ) }"` : '';
+				const depth = Math.max( 0, Number.parseInt( item.depth, 10 ) || 0 );
+
+				options += `<li style="--hcaptcha-dependency-depth:${ depth }"${ reason }>`;
+				options += '<label>';
+				options += `<input class="hcaptcha-dependency-item" type="checkbox" value="${ escapeHtml( item.plugin ) }" data-index="${ index }"${ disabled }> `;
+				options += `<span>${ escapeHtml( item.name ) }</span>`;
+
+				if ( item.reason ) {
+					options += `<small>${ escapeHtml( item.reason ) }</small>`;
+				}
+
+				options += '</label></li>';
+			} );
+
+			return options + '</ul></div>';
+		}
+
+		function setupDependencyOptions() {
+			const $dialog = $( '.kagg-dialog' );
+			const $all = $dialog.find( '.hcaptcha-dependency-all input' );
+			const $items = $dialog.find( '.hcaptcha-dependency-item:not(:disabled)' );
+
+			$all.on( 'change', function() {
+				$items.prop( 'checked', this.checked );
+				this.indeterminate = false;
+			} );
+
+			$items.on( 'change', function() {
+				const checked = $items.filter( ':checked' ).length;
+
+				$all.prop( 'checked', checked === $items.length );
+				$all.prop( 'indeterminate', checked > 0 && checked < $items.length );
+			} );
+		}
+
+		function requestActivationPlan( onSuccess ) {
+			const requestId = nextPlanRequestId();
+
+			$tr.addClass( 'on' );
+
+			$.post( {
+				url: HCaptchaIntegrationsObject.ajaxUrl,
+				data: {
+					action: HCaptchaIntegrationsObject.activationPlanAction,
+					nonce: HCaptchaIntegrationsObject.activationPlanNonce,
+					entity,
+					status,
+				},
+			} )
+				.done( function( response ) {
+					if ( ! isCurrentPlanRequest( requestId ) ) {
+						return;
+					}
+
+					if ( response.success === undefined ) {
+						showUnexpectedErrorMessage();
+
+						return;
+					}
+
+					if ( ! response.success ) {
+						const message = response.data?.message ?? response.data;
+
+						showErrorMessage( message );
+
+						return;
+					}
+
+					onSuccess( response.data?.notice ?? '' );
+				} )
+				.fail( function( response ) {
+					if ( ! isCurrentPlanRequest( requestId ) ) {
+						return;
+					}
+
+					showErrorMessage( response.statusText );
+				} )
+				.always( function() {
+					if ( isCurrentPlanRequest( requestId ) ) {
+						$tr.removeClass( 'on' );
+					}
+				} );
+		}
+
+		function showActivationDialog( dialogTitle, dialogContent, notice ) {
+			if ( notice ) {
+				dialogContent += `<p class="hcaptcha-activation-dependencies">${ escapeHtml( notice ) }</p>`;
+			}
+
+			kaggDialog.confirm( {
+				title: dialogTitle,
+				content: dialogContent,
+				type: 'activate',
+				buttons: {
+					ok: {
+						text: HCaptchaIntegrationsObject.OKBtnText,
+					},
+					cancel: {
+						text: HCaptchaIntegrationsObject.CancelBtnText,
+					},
+				},
+				onAction: maybeToggleActivation,
+			} );
+		}
+
+		function requestDeactivationPlan( newTheme, onSuccess ) {
+			const requestId = nextPlanRequestId();
+
+			$tr.addClass( 'off' );
+
+			$.post( {
+				url: HCaptchaIntegrationsObject.ajaxUrl,
+				data: {
+					action: HCaptchaIntegrationsObject.planAction,
+					nonce: HCaptchaIntegrationsObject.planNonce,
+					entity,
+					status,
+					newTheme,
+				},
+			} )
+				.done( function( response ) {
+					if ( ! isCurrentPlanRequest( requestId ) ) {
+						return;
+					}
+
+					if ( response.success === undefined ) {
+						showUnexpectedErrorMessage();
+
+						return;
+					}
+
+					if ( ! response.success ) {
+						const message = response.data?.message ?? response.data;
+
+						showErrorMessage( message );
+
+						return;
+					}
+
+					onSuccess( response.data?.plan ?? { items: [] } );
+				} )
+				.fail( function( response ) {
+					if ( ! isCurrentPlanRequest( requestId ) ) {
+						return;
+					}
+
+					showErrorMessage( response.statusText );
+				} )
+				.always( function() {
+					if ( isCurrentPlanRequest( requestId ) ) {
+						$tr.removeClass( 'off' );
+					}
+				} );
+		}
+
+		function showDeactivationDialog( dialogTitle, themeContent, plan ) {
+			const dependencyContent = renderDependencyOptions( plan );
+
+			kaggDialog.confirm( {
+				title: dialogTitle,
+				content: themeContent + dependencyContent,
+				type: 'deactivate',
+				buttons: {
+					ok: {
+						text: HCaptchaIntegrationsObject.OKBtnText,
+					},
+					cancel: {
+						text: HCaptchaIntegrationsObject.CancelBtnText,
+					},
+				},
+				onAction( confirmation ) {
+					if ( ! confirmation ) {
+						return;
+					}
+
+					toggleActivation( false, {
+						manageDependencies: true,
+						dependencies: getSelectedDependencies(),
+					} );
+				},
+			} );
+
+			setupDependencyOptions();
+
+			$( '.kagg-dialog select' ).on( 'change', function() {
+				const $dependencies = $( '.kagg-dialog .hcaptcha-deactivation-dependencies' );
+
+				$dependencies.html( `<p>${ escapeHtml( HCaptchaIntegrationsObject.loadingDepsMsg ) }</p>` );
+
+				requestDeactivationPlan( this.value, ( updatedPlan ) => {
+					$dependencies.replaceWith( renderDependencyOptions( updatedPlan ) );
+					setupDependencyOptions();
+				} );
+			} );
 		}
 
 		function updateActivationStati( stati ) {
@@ -309,7 +556,7 @@ const integrations = function( $ ) {
 			toggleActivation( true );
 		}
 
-		function toggleActivation( install = false ) {
+		function toggleActivation( install = false, dependencyOptions = {} ) {
 			let actionClass = activate ? 'on' : 'off';
 			actionClass = install ? 'install' : actionClass;
 
@@ -322,6 +569,7 @@ const integrations = function( $ ) {
 				entity,
 				status,
 				newTheme,
+				...dependencyOptions,
 			};
 
 			$tr.addClass( actionClass );
@@ -426,13 +674,13 @@ const integrations = function( $ ) {
 				title = HCaptchaIntegrationsObject.deactivatePluginMsg;
 			} else {
 				title = HCaptchaIntegrationsObject.deactivateThemeMsg;
-				content = '<p>' + HCaptchaIntegrationsObject.selectThemeMsg + '</p>';
+				content = '<p>' + escapeHtml( HCaptchaIntegrationsObject.selectThemeMsg ) + '</p>';
 				content += '<select>';
 
 				for ( const slug in HCaptchaIntegrationsObject.themes ) {
 					const selected = slug === HCaptchaIntegrationsObject.defaultTheme ? ' selected="selected"' : '';
 
-					content += `<option value="${ slug }"${ selected }>${ HCaptchaIntegrationsObject.themes[ slug ] }</option>`;
+					content += `<option value="${ escapeHtml( slug ) }"${ selected }>${ escapeHtml( HCaptchaIntegrationsObject.themes[ slug ] ) }</option>`;
 				}
 
 				content += '</select>';
@@ -495,27 +743,30 @@ const integrations = function( $ ) {
 		}
 
 		if ( event.ctrlKey ) {
-			toggleActivation();
+			toggleActivation( false, activate
+				? {}
+				: {
+					manageDependencies: true,
+					deactivateAll: true,
+				} );
 
 			return;
 		}
 
 		title = title.replace( '%s', alt );
 
-		kaggDialog.confirm( {
-			title,
-			content,
-			type: activate ? 'activate' : 'deactivate',
-			buttons: {
-				ok: {
-					text: HCaptchaIntegrationsObject.OKBtnText,
-				},
-				cancel: {
-					text: HCaptchaIntegrationsObject.CancelBtnText,
-				},
-			},
-			onAction: maybeToggleActivation,
-		} );
+		if ( ! activate ) {
+			requestDeactivationPlan(
+				HCaptchaIntegrationsObject.defaultTheme,
+				( plan ) => showDeactivationDialog( title, content, plan ),
+			);
+
+			return;
+		}
+
+		requestActivationPlan(
+			( notice ) => showActivationDialog( title, content, notice ),
+		);
 	} );
 
 	const debounce = ( func, delay ) => {

@@ -7,7 +7,6 @@
 
 // phpcs:disable Generic.Commenting.DocComment.MissingShort
 /** @noinspection PhpUndefinedMethodInspection */
-/** @noinspection PhpArrayShapeAttributeCanBeAddedInspection */
 // phpcs:enable Generic.Commenting.DocComment.MissingShort
 
 namespace HCaptcha\Tests\Unit\Settings;
@@ -30,6 +29,21 @@ use WP_Mock;
  * @group plugin-settings-base
  */
 class PluginSettingsBaseTest extends HCaptchaTestCase {
+	/**
+	 * Test command palette accessors use the page's data.
+	 */
+	public function test_command_palette_accessors(): void {
+		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$fields = [ 'field' => [ 'type' => 'checkbox' ] ];
+
+		$subject->shouldReceive( 'page_title' )->once()->andReturn( 'Test page' );
+		$subject->shouldReceive( 'form_fields' )->once()->andReturn( $fields );
+
+		self::assertSame( 'Test page', $subject->command_palette_page_title() );
+		self::assertSame( $fields, $subject->command_palette_form_fields() );
+	}
+
 
 	/**
 	 * Tear down the test.
@@ -83,8 +97,9 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 		$plugin_url = 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin';
 		$menu_title = 'hCaptcha';
 		$icon       = "<img class=\"kagg-settings-menu-image\" src=\"$plugin_url/assets/images/hcaptcha-icon.svg\" alt=\"hCaptcha icon\">";
-		$subject    = Mockery::mock( PluginSettingsBase::class )->makePartial()->shouldAllowMockingProtectedMethods();
-		$constant   = FunctionMocker::replace( 'constant', $plugin_url );
+		$subject    = Mockery::mock( PluginSettingsBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$constant = FunctionMocker::replace( 'constant', $plugin_url );
 
 		$this->set_protected_property( $subject, 'admin_mode', SettingsBase::MODE_TABS );
 
@@ -100,7 +115,8 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	 */
 	public function test_menu_title_in_pages_mode(): void {
 		$menu_title = 'hCaptcha';
-		$subject    = Mockery::mock( PluginSettingsBase::class )->makePartial()->shouldAllowMockingProtectedMethods();
+		$subject    = Mockery::mock( PluginSettingsBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
 
 		$this->set_protected_property( $subject, 'admin_mode', SettingsBase::MODE_PAGES );
 
@@ -112,8 +128,9 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	 * Test option_group().
 	 */
 	public function test_option_group(): void {
-		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial()->shouldAllowMockingProtectedMethods();
-		$method  = 'option_group';
+		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$method = 'option_group';
 
 		self::assertSame( 'hcaptcha_group', $subject->$method() );
 	}
@@ -160,8 +177,9 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	 * Test option_name().
 	 */
 	public function test_option_name(): void {
-		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial()->shouldAllowMockingProtectedMethods();
-		$method  = 'option_name';
+		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$method = 'option_name';
 
 		self::assertSame( 'hcaptcha_settings', $subject->$method() );
 	}
@@ -173,7 +191,8 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 		$plugin_file      = '/var/www/wp-content/plugins/hcaptcha-wordpress-plugin/hcaptcha.php';
 		$plugin_base_name = 'hcaptcha-wordpress-plugin/hcaptcha.php';
 
-		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial()->shouldAllowMockingProtectedMethods();
+		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
 
 		$constant = FunctionMocker::replace( 'constant', $plugin_file );
 
@@ -189,8 +208,9 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	 */
 	public function test_plugin_url(): void {
 		$plugin_url = 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin';
-		$subject    = Mockery::mock( PluginSettingsBase::class )->makePartial()->shouldAllowMockingProtectedMethods();
-		$constant   = FunctionMocker::replace( 'constant', $plugin_url );
+		$subject    = Mockery::mock( PluginSettingsBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$constant = FunctionMocker::replace( 'constant', $plugin_url );
 
 		$method = 'plugin_url';
 		self::assertSame( $plugin_url, $subject->$method() );
@@ -203,7 +223,8 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	public function test_plugin_version(): void {
 		$plugin_version = '1.0.0';
 
-		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial()->shouldAllowMockingProtectedMethods();
+		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
 
 		$constant = FunctionMocker::replace( 'constant', $plugin_version );
 
@@ -216,7 +237,8 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	 * Test settings_link_label().
 	 */
 	public function test_settings_link_label(): void {
-		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial()->shouldAllowMockingProtectedMethods();
+		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
 
 		$method = 'settings_link_label';
 		self::assertSame( 'hCaptcha Settings', $subject->$method() );
@@ -226,8 +248,9 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	 * Test settings_link_text().
 	 */
 	public function test_settings_link_text(): void {
-		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial()->shouldAllowMockingProtectedMethods();
-		$method  = 'settings_link_text';
+		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$method = 'settings_link_text';
 
 		self::assertSame( 'Settings', $subject->$method() );
 	}
@@ -236,8 +259,9 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	 * Test text_domain().
 	 */
 	public function test_text_domain(): void {
-		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial()->shouldAllowMockingProtectedMethods();
-		$method  = 'text_domain';
+		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$method = 'text_domain';
 
 		self::assertSame( 'hcaptcha-for-forms-and-more', $subject->$method() );
 	}
@@ -409,7 +433,7 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test update_footer() not on options' screen.
+	 * Test update_footer() not on the options' screen.
 	 */
 	public function test_update_footer_not_on_options_screen(): void {
 		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial();
@@ -425,24 +449,33 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test run_checks().
 	 *
-	 * @param bool   $referer  Referer.
-	 * @param bool   $user_can User can.
-	 * @param string $expected Expected check.
+	 * @param bool   $referer            Referer.
+	 * @param bool   $network_wide       Whether network-wide settings are active.
+	 * @param bool   $user_can           User can.
+	 * @param string $expected_capability Expected capability.
+	 * @param string $expected           Expected check.
 	 *
 	 * @return void
 	 *
 	 * @dataProvider dp_test_run_checks
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_run_checks( bool $referer, bool $user_can, string $expected ): void {
+	public function test_run_checks(
+		bool $referer,
+		bool $network_wide,
+		bool $user_can,
+		string $expected_capability,
+		string $expected
+	): void {
 		$action  = 'some-action';
 		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial();
 		$method  = 'run_checks';
 
 		$this->set_method_accessibility( $subject, 'run_checks' );
+		$subject->shouldReceive( 'is_network_wide' )->once()->andReturn( $network_wide );
 
 		WP_Mock::userFunction( 'check_ajax_referer' )->with( $action, 'nonce', false )->once()->andReturn( $referer );
-		WP_Mock::userFunction( 'current_user_can' )->with( 'manage_options' )->once()->andReturn( $user_can );
+		WP_Mock::userFunction( 'current_user_can' )->with( $expected_capability )->once()->andReturn( $user_can );
 
 		if ( $expected ) {
 			WP_Mock::userFunction( 'wp_send_json_error' )->with( $expected )->once();
@@ -458,9 +491,11 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 	 */
 	public function dp_test_run_checks(): array {
 		return [
-			'OK'              => [ true, true, '' ],
-			'Bad referer'     => [ false, true, 'Your session has expired. Please reload the page.' ],
-			'No capabilities' => [ true, false, 'You are not allowed to perform this action.' ],
+			'Site settings allowed'    => [ true, false, true, 'manage_options', '' ],
+			'Network settings allowed' => [ true, true, true, 'manage_network_options', '' ],
+			'Bad referer'              => [ false, false, true, 'manage_options', 'Your session has expired. Please reload the page.' ],
+			'Site settings denied'     => [ true, false, false, 'manage_options', 'You are not allowed to perform this action.' ],
+			'Network settings denied'  => [ true, true, false, 'manage_network_options', 'You are not allowed to perform this action.' ],
 		];
 	}
 
@@ -496,6 +531,7 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 			],
 		];
 		$subject                = Mockery::mock( PluginSettingsBase::class )->makePartial();
+		$subject->shouldReceive( 'can_manage_settings' )->once()->andReturn( true );
 
 		$_POST['section'] = $section;
 
@@ -518,7 +554,6 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 		WP_Mock::passthruFunction( 'sanitize_text_field' );
 		WP_Mock::userFunction( 'check_ajax_referer' )->with( PluginSettingsBase::TOGGLE_SECTION_ACTION, 'nonce', false )->once()
 			->andReturn( true );
-		WP_Mock::userFunction( 'current_user_can' )->with( 'manage_options' )->once()->andReturn( true );
 		WP_Mock::userFunction( 'wp_get_current_user' )->with()->once()->andReturn( $user );
 		WP_Mock::userFunction( 'get_user_meta' )->with( $user_id, PluginSettingsBase::USER_SETTINGS_META, true )->once()
 			->andReturn( false );
@@ -593,6 +628,7 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 		$section = 'some-section';
 		$status  = '1';
 		$subject = Mockery::mock( PluginSettingsBase::class )->makePartial();
+		$subject->shouldReceive( 'can_manage_settings' )->once()->andReturn( true );
 
 		$_POST['section'] = $section;
 		$_POST['status']  = $status;
@@ -612,7 +648,6 @@ class PluginSettingsBaseTest extends HCaptchaTestCase {
 		WP_Mock::passthruFunction( 'sanitize_text_field' );
 		WP_Mock::userFunction( 'check_ajax_referer' )->with( PluginSettingsBase::TOGGLE_SECTION_ACTION, 'nonce', false )->once()
 			->andReturn( true );
-		WP_Mock::userFunction( 'current_user_can' )->with( 'manage_options' )->once()->andReturn( true );
 		WP_Mock::userFunction( 'wp_get_current_user' )->with()->once()->andReturn( null );
 		WP_Mock::userFunction( 'wp_send_json_error' )->with( 'Cannot save section status.' )->once();
 

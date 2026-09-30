@@ -8,6 +8,7 @@
 namespace HCaptcha\Settings;
 
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Request;
 use WP_Error;
 
 /**
@@ -93,18 +94,22 @@ class SettingsTransfer {
 			return $result;
 		}
 
-		$new_settings = (array) ( $payload['settings'] ?? [] );
-
-		if ( isset( $payload['keys'] ) && $allow_keys ) {
-			$new_settings['site_key']   = $payload['keys']['site_key'] ?? '';
-			$new_settings['secret_key'] = $payload['keys']['secret_key'] ?? '';
-		}
+		$new_settings = $this->get_import_settings( $payload, $allow_keys );
 
 		if ( $dry_run ) {
 			return null;
 		}
 
-		$settings     = hcaptcha()->settings();
+		$settings = hcaptcha()->settings();
+		$general  = $settings->get_tab( General::class );
+
+		if ( ! $this->can_import_network_settings( $general ) ) {
+			return new WP_Error(
+				'hcaptcha_network_settings_forbidden',
+				__( 'You are not allowed to import network-wide settings.', 'hcaptcha-for-forms-and-more' )
+			);
+		}
+
 		$old_settings = $settings->get_raw_settings();
 
 		// Apply the same field-specific sanitization as each admin settings tab.
@@ -113,7 +118,6 @@ class SettingsTransfer {
 		}
 
 		// Prepare the combined settings value like the admin UI does.
-		$general  = $settings->get_tab( General::class );
 		$prepared = $general->pre_update_option_filter( $new_settings, $old_settings );
 
 		if ( $prepared === $old_settings ) {
@@ -134,5 +138,37 @@ class SettingsTransfer {
 		HCaptcha::save_license_level();
 
 		return null;
+	}
+
+	/**
+	 * Check whether network-wide settings can be imported in the current context.
+	 *
+	 * @param General $general General settings tab.
+	 *
+	 * @return bool
+	 */
+	private function can_import_network_settings( General $general ): bool {
+		return ! $general->is_network_wide() ||
+			Request::is_cli() ||
+			current_user_can( 'manage_network_options' );
+	}
+
+	/**
+	 * Get settings from an import payload.
+	 *
+	 * @param array $payload    Import payload.
+	 * @param bool  $allow_keys Whether to allow importing keys block.
+	 *
+	 * @return array
+	 */
+	private function get_import_settings( array $payload, bool $allow_keys ): array {
+		$settings = (array) ( $payload['settings'] ?? [] );
+
+		if ( isset( $payload['keys'] ) && $allow_keys ) {
+			$settings['site_key']   = $payload['keys']['site_key'] ?? '';
+			$settings['secret_key'] = $payload['keys']['secret_key'] ?? '';
+		}
+
+		return $settings;
 	}
 }

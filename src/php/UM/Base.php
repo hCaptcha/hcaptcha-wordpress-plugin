@@ -9,6 +9,7 @@ namespace HCaptcha\UM;
 
 use HCaptcha\Abstracts\LoginBase;
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 
@@ -223,7 +224,7 @@ abstract class Base extends LoginBase {
 			return;
 		}
 
-		$error_message = API::verify( $this->get_entry() );
+		$error_message = API::verify( $this->get_entry( $submitted_data ) );
 
 		if ( null === $error_message ) {
 			return;
@@ -235,13 +236,30 @@ abstract class Base extends LoginBase {
 	/**
 	 * Get entry.
 	 *
+	 * @param array $submitted_data Submitted form fields.
+	 *
 	 * @return array
 	 */
-	private function get_entry(): array {
+	private function get_entry( array $submitted_data ): array {
+		$form_id   = $this->get_submitted_form_id();
+		$field_map = [
+			'username' => [ 'username', 'user_login', "username-$form_id" ],
+		];
+
+		if ( 'register' === $this->um_mode ) {
+			$field_map['email']      = [ 'user_email', "user_email-$form_id" ];
+			$field_map['first_name'] = [ 'first_name', "first_name-$form_id" ];
+			$field_map['last_name']  = [ 'last_name', "last_name-$form_id" ];
+		} else {
+			$field_map['username'][] = 'user_email';
+			$field_map['username'][] = "user_email-$form_id";
+		}
+
 		return [
 			'nonce_name'   => $this->hcaptcha_nonce,
 			'nonce_action' => $this->hcaptcha_action,
-			'expected_id'  => $this->get_expected_id( $this->get_submitted_form_id() ),
+			'data'         => EntryData::from_array( $submitted_data, $field_map ),
+			'expected_id'  => $this->get_expected_id( $form_id ),
 		];
 	}
 

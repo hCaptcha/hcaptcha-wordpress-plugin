@@ -36,7 +36,10 @@ describe( 'hCaptcha Customer Reviews', () => {
 	function loadCustomerReviews() {
 		jest.resetModules();
 		helperMock = {
-			addHCaptchaData: jest.fn(),
+			getAction: jest.fn( ( options ) => new URLSearchParams( options.data ).get( 'action' ) ?? '' ),
+			addHCaptchaData: jest.fn( ( options ) => {
+				options.data += '&hcap_fst_token=';
+			} ),
 		};
 		jest.doMock( '../../../assets/js/hcaptcha-helper.js', () => ( {
 			helper: helperMock,
@@ -51,6 +54,9 @@ describe( 'hCaptcha Customer Reviews', () => {
 		global.wp = window.wp;
 		window.hCaptchaBindEvents = jest.fn();
 		global.hCaptchaBindEvents = window.hCaptchaBindEvents;
+		window.hCaptchaFST = {
+			getToken: jest.fn(),
+		};
 		delete window.hCaptchaCustomerReviews;
 
 		require( '../../../assets/js/hcaptcha-customer-reviews.js' );
@@ -66,9 +72,15 @@ describe( 'hCaptcha Customer Reviews', () => {
 
 	beforeEach( () => {
 		document.body.innerHTML = `
-			<form id="review_form"></form>
-			<div id="cr_qna"></div>
-			<div data-question="question-1"></div>
+			<div id="tab-reviews">
+				<form id="review_form"></form>
+				<input name="hcap_fst_token" value="review-token">
+			</div>
+			<div id="tab-cr_qna">
+				<div id="cr_qna"></div>
+				<div data-question="question-1"></div>
+				<input name="hcap_fst_token" value="qna-token">
+			</div>
 			<div id="tab-title-reviews"><a href="#reviews">Reviews</a></div>
 		`;
 		loadCustomerReviews();
@@ -85,6 +97,7 @@ describe( 'hCaptcha Customer Reviews', () => {
 		delete window.hCaptchaCustomerReviews;
 		delete window.hCaptchaBindEvents;
 		delete global.hCaptchaBindEvents;
+		delete window.hCaptchaFST;
 		delete window.wp;
 		delete global.wp;
 		document.body.innerHTML = '';
@@ -135,6 +148,7 @@ describe( 'hCaptcha Customer Reviews', () => {
 				length: 1,
 			} ),
 		);
+		expect( new URLSearchParams( options.data ).get( 'hcap_fst_token' ) ).toBe( 'review-token' );
 	} );
 
 	test( 'adds hCaptcha data to Q&A submissions with and without question id', () => {
@@ -169,6 +183,32 @@ describe( 'hCaptcha Customer Reviews', () => {
 				length: 1,
 			} ),
 		);
+		expect( new URLSearchParams( questionOptions.data ).get( 'hcap_fst_token' ) ).toBe( 'qna-token' );
+		expect( new URLSearchParams( newQuestionOptions.data ).get( 'hcap_fst_token' ) ).toBe( 'qna-token' );
+	} );
+
+	test( 'refreshes hCaptcha and FST after protected AJAX requests only', () => {
+		runReady();
+
+		$( document ).trigger( 'ajaxComplete', [ {}, { data: 'action=other_action' } ] );
+		expect( window.hCaptchaBindEvents ).not.toHaveBeenCalled();
+		expect( window.hCaptchaFST.getToken ).not.toHaveBeenCalled();
+
+		$( document ).trigger( 'ajaxComplete', [ {}, { data: 'action=cr_submit_review' } ] );
+		$( document ).trigger( 'ajaxComplete', [ {}, { data: 'action=cr_new_qna' } ] );
+
+		expect( window.hCaptchaBindEvents ).toHaveBeenCalledTimes( 2 );
+		expect( window.hCaptchaFST.getToken ).toHaveBeenCalledTimes( 2 );
+	} );
+
+	test( 'refreshes hCaptcha when FST is disabled', () => {
+		runReady();
+		delete window.hCaptchaFST;
+
+		expect( () => {
+			$( document ).trigger( 'ajaxComplete', [ {}, { data: 'action=cr_submit_review' } ] );
+		} ).not.toThrow();
+		expect( window.hCaptchaBindEvents ).toHaveBeenCalledTimes( 1 );
 	} );
 
 	test( 'reuses existing app object', () => {

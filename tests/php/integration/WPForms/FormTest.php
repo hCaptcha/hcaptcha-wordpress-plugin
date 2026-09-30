@@ -195,6 +195,58 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
+	 * Test that custom fields with the same type and label stay in the entry.
+	 *
+	 * @return void
+	 */
+	public function test_get_entry_preserves_custom_fields(): void {
+		$subject = new Form();
+		$method  = $this->set_method_accessibility( $subject, 'get_entry' );
+		$entry   = $method->invoke(
+			$subject,
+			[
+				'id'     => '5',
+				'fields' => [
+					1 => 'First opinion',
+					2 => 'Second opinion',
+					3 => 'private-password',
+					4 => [ 'Red', 'Blue' ],
+				],
+			],
+			[
+				'id'     => 5,
+				'fields' => [
+					1 => [
+						'type'  => 'textarea',
+						'label' => 'Ваше мнение',
+					],
+					2 => [
+						'type'  => 'textarea',
+						'label' => 'Ваше мнение',
+					],
+					3 => [
+						'type'  => 'password',
+						'label' => 'Other',
+					],
+					4 => [
+						'type'  => 'checkbox',
+						'label' => 'Preferences',
+					],
+				],
+			]
+		);
+
+		self::assertSame(
+			[
+				'Ваше мнение'     => 'First opinion',
+				'Ваше мнение [2]' => 'Second opinion',
+				'Preferences'     => [ 'Red', 'Blue' ],
+			],
+			$entry['data']
+		);
+	}
+
+	/**
 	 * Test verify() when not process hcaptcha.
 	 *
 	 * @return void

@@ -15,6 +15,7 @@ use WP_User;
  * Class Login.
  */
 class Login extends LoginBase {
+	use RefreshTokens;
 
 	/**
 	 * Init hooks.
@@ -26,6 +27,17 @@ class Login extends LoginBase {
 
 		add_action( 'rtcl_login_form', [ $this, 'add_captcha' ] );
 		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
+	}
+
+	/**
+	 * Add hCaptcha to the login form.
+	 *
+	 * @return void
+	 */
+	public function add_captcha(): void {
+		$this->enqueue_refresh_tokens_script();
+
+		parent::add_captcha();
 	}
 
 	/**

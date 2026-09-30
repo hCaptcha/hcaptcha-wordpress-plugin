@@ -81,100 +81,34 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		];
 
 		$hcap_errors = [
-			'missing-input-secret'     => [
-				'type' => 'error',
-				'text' => 'Your secret key is missing.',
-			],
-			'invalid-input-secret'     => [
-				'type' => 'error',
-				'text' => 'Your secret key is invalid or malformed.',
-			],
-			'missing-input-response'   => [
-				'type' => 'error',
-				'text' => 'The response parameter (verification token) is missing.',
-			],
-			'invalid-input-response'   => [
-				'type' => 'error',
-				'text' => 'The response parameter (verification token) is invalid or malformed.',
-			],
-			'expired-input-response'   => [
-				'type' => 'error',
-				'text' => 'The response parameter (verification token) is expired. (120s default)',
-			],
-			'already-seen-response'    => [
-				'type' => 'error',
-				'text' => 'The response parameter (verification token) was already verified once.',
-			],
-			'bad-request'              => [
-				'type' => 'error',
-				'text' => 'The request is invalid or malformed.',
-			],
-			'missing-remoteip'         => [
-				'type' => 'error',
-				'text' => 'The remoteip parameter is missing.',
-			],
-			'invalid-remoteip'         => [
-				'type' => 'error',
-				'text' => 'The remoteip parameter is not a valid IP address or blinded value.',
-			],
-			'not-using-dummy-passcode' => [
-				'type' => 'error',
-				'text' => 'You have used a testing sitekey but have not used its matching secret.',
-			],
-			'sitekey-secret-mismatch'  => [
-				'type' => 'error',
-				'text' => 'The sitekey is not registered with the provided secret.',
-			],
-			'empty'                    => [
-				'type' => 'error',
-				'text' => 'Please complete the hCaptcha.',
-			],
-			'fail'                     => [
-				'type' => 'error',
-				'text' => 'The hCaptcha is invalid.',
-			],
-			'bad-nonce'                => [
-				'type' => 'error',
-				'text' => 'Bad hCaptcha nonce!',
-			],
-			'bad-signature'            => [
-				'type' => 'error',
-				'text' => 'Bad hCaptcha signature!',
-			],
-			'missing-keys'             => [
-				'type' => 'error',
-				'text' => 'Site Key and Secret Key are required.',
-			],
-			'spam'                     => [
-				'type' => 'error',
-				'text' => 'Anti-spam check failed.',
-			],
-			'fst-no-object'            => [
-				'type' => 'error',
-				'text' => 'FST object does not exist.',
-			],
-			'fst-too-fast'             => [
-				'type' => 'error',
-				'text' => 'Form submitted too quickly.',
-			],
-			'fst-replayed-or-expired'  => [
-				'type' => 'error',
-				'text' => 'Token replayed or expired.',
-			],
-			'fst-expired'              => [
-				'type' => 'error',
-				'text' => 'Token expired.',
-			],
-			'disposable-email'         => [
-				'type' => 'error',
-				'text' => 'Please use a permanent email address.',
-			],
+			'first-error'  => 'First error.',
+			'second-error' => 'Second error.',
 		];
+		$expected    = array_merge(
+			$messages,
+			[
+				'first-error'  => [
+					'type' => 'error',
+					'text' => 'First error.',
+				],
+				'second-error' => [
+					'type' => 'error',
+					'text' => 'Second error.',
+				],
+			]
+		);
+		$filter      = static function () use ( $hcap_errors ): array {
+			return $hcap_errors;
+		};
+		$subject     = new Form();
 
-		$expected = array_merge( $messages, $hcap_errors );
-		$subject  = new Form();
+		add_filter( 'hcap_error_messages', $filter );
 
-		self::assertSame( $expected, $subject->add_hcap_error_messages( $messages, $form ) );
+		try {
+			self::assertSame( $expected, $subject->add_hcap_error_messages( $messages, $form ) );
+		} finally {
+			remove_filter( 'hcap_error_messages', $filter );
+		}
 	}
 
 	/**

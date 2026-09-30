@@ -8,6 +8,7 @@
 namespace HCaptcha\WC;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use HCaptcha\Helpers\Utils;
@@ -104,7 +105,6 @@ class Checkout {
 	 * @return string
 	 *
 	 * @noinspection PhpUnusedParameterInspection
-	 * @noinspection UnnecessaryCastingInspection
 	 */
 	public function add_block_captcha( $block_content, array $block, WP_Block $instance ): string {
 		$block_content = (string) $block_content;
@@ -188,20 +188,7 @@ class Checkout {
 			return $response;
 		}
 
-		$params         = $request->get_params();
-		$widget_id_name = 'hcaptcha-widget-id';
-		$response_name  = 'h-captcha-response';
-		$hp_sig_name    = 'hcap_hp_sig';
-		$token_name     = 'hcap_fst_token';
-		$hp_name        = API::get_hp_name( $params );
-
-		$_POST[ $widget_id_name ] = $request->get_param( $widget_id_name );
-		$_POST[ $response_name ]  = $request->get_param( $response_name );
-		$_POST[ $hp_sig_name ]    = $request->get_param( $hp_sig_name );
-		$_POST[ $hp_name ]        = $request->get_param( $hp_name );
-		$_POST[ $token_name ]     = $request->get_param( $token_name );
-
-		$error_message = API::verify( $this->get_block_entry() );
+		$error_message = API::verify( $this->get_block_entry( $request->get_params() ) );
 
 		if ( null === $error_message ) {
 			return $response;
@@ -245,6 +232,13 @@ class Checkout {
 		return [
 			'nonce_name'   => self::NONCE,
 			'nonce_action' => self::ACTION,
+			'data'         => EntryData::from_post(
+				[
+					'email'      => 'billing_email',
+					'first_name' => 'billing_first_name',
+					'last_name'  => 'billing_last_name',
+				]
+			),
 			'expected_id'  => $this->get_expected_id(),
 		];
 	}
@@ -252,11 +246,37 @@ class Checkout {
 	/**
 	 * Get hCaptcha block verification entry.
 	 *
+	 * @param array $post_data Request parameters.
+	 *
 	 * @return array
 	 */
-	private function get_block_entry(): array {
+	private function get_block_entry( array $post_data ): array {
+		$billing_address = (array) ( $post_data['billing_address'] ?? [] );
+		$data            = EntryData::from_array(
+			$billing_address,
+			[
+				'email'      => 'email',
+				'first_name' => 'first_name',
+				'last_name'  => 'last_name',
+			]
+		);
+
+		foreach ( [ 'shipping_address', 'additional_fields' ] as $field_group ) {
+			$fields = EntryData::from_array( (array) ( $post_data[ $field_group ] ?? [] ), [] );
+
+			if ( $fields ) {
+				$data[ $field_group ] = $fields;
+			}
+		}
+
+		if ( isset( $post_data['customer_note'] ) && is_scalar( $post_data['customer_note'] ) ) {
+			$data['customer_note'] = sanitize_text_field( (string) $post_data['customer_note'] );
+		}
+
 		return [
 			'expected_id' => $this->get_expected_id(),
+			'post_data'   => $post_data,
+			'data'        => $data,
 		];
 	}
 

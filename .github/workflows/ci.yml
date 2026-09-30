@@ -70,7 +70,11 @@ jobs:
   js:
     name: JS lint and tests
     runs-on: ubuntu-latest
-    needs: phpcs
+
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && !contains(github.event.head_commit.message, '[skip ci]')) ||
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true)
 
     env:
       wp-plugin-directory: wordpress/wp-content/plugins/hcaptcha-wordpress-plugin
@@ -102,7 +106,11 @@ jobs:
   php_versions:
     name: Resolve PHP versions
     runs-on: ubuntu-latest
-    needs: js
+
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && !contains(github.event.head_commit.message, '[skip ci]')) ||
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true)
 
     outputs:
       matrix: ${{ steps.resolve.outputs.matrix }}
@@ -163,13 +171,15 @@ jobs:
         run: composer unit
 
   integration:
-    name: WP integration tests on PHP ${{ matrix.php-version }}
+    name: WP integration tests on PHP ${{ matrix.php-version }} (${{ matrix.shard }}/2)
     runs-on: ubuntu-latest
-    needs: [ unit, php_versions ]
+    needs: php_versions
 
     strategy:
+      fail-fast: false
       matrix:
         php-version: ${{ fromJSON(needs.php_versions.outputs.matrix) }}
+        shard: [ 1, 2 ]
 
     env:
       wp-directory: wordpress
@@ -192,28 +202,6 @@ jobs:
           path: ${{ env.wp-plugin-directory }}
           persist-credentials: false
 
-      - name: Detect latest Paid Memberships Pro release
-        id: paid_memberships_pro
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          version="$(gh api repos/strangerstudios/paid-memberships-pro/releases/latest --jq '.tag_name')"
-
-          if [[ ! "$version" =~ ^[0-9]+(\.[0-9]+){1,3}$ ]]; then
-            echo "Unexpected Paid Memberships Pro release tag: $version" >&2
-            exit 1
-          fi
-
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-
-      - name: Checkout Paid Memberships Pro
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          repository: strangerstudios/paid-memberships-pro
-          ref: ${{ steps.paid_memberships_pro.outputs.version }}
-          path: wordpress/wp-content/plugins/paid-memberships-pro
-          persist-credentials: false
-
       - name: Detect private test plugins access
         id: test_plugins
         env:
@@ -224,16 +212,6 @@ jobs:
           else
             echo "available=false" >> "$GITHUB_OUTPUT"
           fi
-
-      - name: Checkout private test plugins
-        if: steps.test_plugins.outputs.available == 'true'
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          repository: kagg-design/hcaptcha-test-plugins
-          ref: main
-          token: ${{ secrets.ELEMENTOR_PRO_CI_TOKEN }}
-          path: hcaptcha-test-plugins
-          persist-credentials: false
 
       - name: Setup PHP
         uses: hCaptcha/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2.37.0
@@ -256,6 +234,27 @@ jobs:
         with:
           working-directory: ${{ env.wp-plugin-directory }}
 
+      - name: Determine shard plugin dependencies
+        id: shard_dependencies
+        working-directory: ${{ env.wp-plugin-directory }}
+        run: |
+          dependencies="$(php tests/php/ci-shard-dependencies.php '${{ matrix.shard }}/2')"
+          echo "$dependencies" | jq .
+          echo "json=$dependencies" >> "$GITHUB_OUTPUT"
+          echo "private_needed=$(jq -r '(.private_plugins | length) > 0 or (.private_themes | length) > 0' <<< "$dependencies")" >> "$GITHUB_OUTPUT"
+          echo "needs_beaver_builder=$(jq -r '(.private_plugins | index("bb-plugin")) != null' <<< "$dependencies")" >> "$GITHUB_OUTPUT"
+          echo "needs_really_simple_captcha=$(jq -r '(.optional_plugins | index("really-simple-captcha")) != null' <<< "$dependencies")" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout private test plugins
+        if: steps.test_plugins.outputs.available == 'true' && steps.shard_dependencies.outputs.private_needed == 'true'
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: kagg-design/hcaptcha-test-plugins
+          ref: main
+          token: ${{ secrets.ELEMENTOR_PRO_CI_TOKEN }}
+          path: hcaptcha-test-plugins
+          persist-credentials: false
+
       - name: Install WP CLI
         # Security: 1. Ensure wp-cli integrity via checksum.
         run: |
@@ -267,6 +266,19 @@ jobs:
           mkdir -p wp-cli
           sudo mv wp-cli.phar wp-cli/wp
           echo "$GITHUB_WORKSPACE/wp-cli" >> $GITHUB_PATH
+
+      - name: Set WP CLI cache date
+        id: wp_cli_cache_date
+        run: echo "date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache public plugin and theme downloads
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.wp-cli/cache/plugin
+            ~/.wp-cli/cache/theme
+          key: wp-cli-downloads-${{ runner.os }}-${{ steps.wp_cli_cache_date.outputs.date }}
+          restore-keys: wp-cli-downloads-${{ runner.os }}-
 
       - name: Start mysql
         run: |
@@ -290,55 +302,64 @@ jobs:
 
       - name: Install public test plugins and themes
         working-directory: ${{ env.wp-directory }}
+        env:
+          SHARD_DEPENDENCIES: ${{ steps.shard_dependencies.outputs.json }}
         run: |
-          wp plugin install acf-extended bbpress blocksy-companion buddypress coblocks contact-form-7 download-manager elementor essential-addons-for-elementor-lite essential-blocks fluentform formidable forminator give jetpack kadence-blocks mailchimp-for-wp mailin mailpoet maintenance metform ninja-forms otter-blocks password-protected ultimate-addons-for-gutenberg ultimate-member woocommerce wordfence wpforms-lite wpforo
-          wp theme install blocksy
-          wp plugin is-installed acf-extended
-          wp plugin is-installed bbpress
-          wp plugin is-installed blocksy-companion
-          wp plugin is-installed buddypress
-          wp plugin is-installed coblocks
-          wp plugin is-installed download-manager
-          wp plugin is-installed essential-blocks
-          wp plugin is-installed formidable
-          wp plugin is-installed give
-          wp plugin is-installed kadence-blocks
-          wp plugin is-installed mailin
-          wp plugin is-installed mailpoet
-          wp plugin is-installed otter-blocks
-          wp plugin is-installed paid-memberships-pro
-          wp plugin is-installed password-protected
-          wp plugin is-installed ultimate-member
-          wp theme is-installed blocksy
+          mapfile -t plugins < <(jq -r '.public_plugins[]' <<< "$SHARD_DEPENDENCIES")
+          mapfile -t themes < <(jq -r '.public_themes[]' <<< "$SHARD_DEPENDENCIES")
+
+          if (( ${#plugins[@]} )); then
+            wp plugin install "${plugins[@]}"
+            for plugin in "${plugins[@]}"; do
+              wp plugin is-installed "$plugin"
+            done
+          fi
+
+          for theme in "${themes[@]}"; do
+            wp theme install "$theme"
+            wp theme is-installed "$theme"
+          done
 
       - name: Install Really Simple CAPTCHA
-        if: steps.really_simple_captcha.outputs.supported == 'true'
+        if: steps.really_simple_captcha.outputs.supported == 'true' && steps.shard_dependencies.outputs.needs_really_simple_captcha == 'true'
         working-directory: ${{ env.wp-directory }}
         run: |
           wp plugin install really-simple-captcha
           wp plugin is-installed really-simple-captcha
 
       - name: Install private test plugins and themes
-        if: steps.test_plugins.outputs.available == 'true'
+        if: steps.test_plugins.outputs.available == 'true' && steps.shard_dependencies.outputs.private_needed == 'true'
         working-directory: ${{ env.wp-directory }}
+        env:
+          SHARD_DEPENDENCIES: ${{ steps.shard_dependencies.outputs.json }}
         run: |
-          wp plugin install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/elementor-pro-4.2.1.zip"
-          wp plugin install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/advanced-custom-fields-pro-6.8.0.1.zip"
-          wp plugin install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/gravityforms-3.0.2.zip"
-          wp plugin install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/ultimate-elementor-1.39.5.zip"
-          wp plugin install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/fusion-builder-3.11.2.zip"
-          wp theme install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/Avada-7.11.2.zip"
-          wp theme install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/Divi-4.27.6.zip"
-          wp plugin is-installed elementor-pro
-          wp plugin is-installed advanced-custom-fields-pro
-          wp plugin is-installed gravityforms
-          wp plugin is-installed ultimate-elementor
-          wp plugin is-installed fusion-builder
-          wp theme is-installed Avada
-          wp theme is-installed Divi
+          for plugin in $(jq -r '.private_plugins[] | select(. != "bb-plugin")' <<< "$SHARD_DEPENDENCIES"); do
+            case "$plugin" in
+              elementor-pro) archive=elementor-pro-4.2.1.zip ;;
+              advanced-custom-fields-pro) archive=advanced-custom-fields-pro-6.8.0.1.zip ;;
+              gravityforms) archive=gravityforms-3.0.2.zip ;;
+              ultimate-elementor) archive=ultimate-elementor-1.39.5.zip ;;
+              fusion-builder) archive=fusion-builder-3.11.2.zip ;;
+              *) echo "Unknown private plugin: $plugin" >&2; exit 1 ;;
+            esac
+
+            wp plugin install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/$archive"
+            wp plugin is-installed "$plugin"
+          done
+
+          for theme in $(jq -r '.private_themes[]' <<< "$SHARD_DEPENDENCIES"); do
+            case "$theme" in
+              Avada) archive=Avada-7.11.2.zip ;;
+              Divi) archive=Divi-4.27.6.zip ;;
+              *) echo "Unknown private theme: $theme" >&2; exit 1 ;;
+            esac
+
+            wp theme install "$GITHUB_WORKSPACE/hcaptcha-test-plugins/$archive"
+            wp theme is-installed "$theme"
+          done
 
       - name: Install Beaver Builder
-        if: steps.test_plugins.outputs.available == 'true'
+        if: steps.test_plugins.outputs.available == 'true' && steps.shard_dependencies.outputs.needs_beaver_builder == 'true'
         id: beaver_builder
         working-directory: ${{ env.wp-directory }}
         run: |
@@ -367,19 +388,24 @@ jobs:
             integration_args+=(--skip-group beaver-builder)
           fi
 
-          composer integration:parallel -- --env github-actions "${integration_args[@]}"
+          composer integration:parallel -- --shard=${{ matrix.shard }}/2 --env github-actions "${integration_args[@]}"
 
       - name: Run WP tests without private test plugins
         if: steps.test_plugins.outputs.available != 'true'
         working-directory: ${{ env.wp-plugin-directory }}
         run: |
-          integration_args=(--skip-group beaver-builder --skip-group elementor-pro --skip-group gravityforms --skip-group ultimate-addons)
+          integration_args=(--skip-group acfe --skip-group avada --skip-group beaver-builder --skip-group divi --skip-group elementor-pro --skip-group gravityforms --skip-group ultimate-addons)
 
           if [[ "${{ steps.really_simple_captcha.outputs.supported }}" != "true" ]]; then
             integration_args+=(--skip-group cf7-really-simple-captcha)
           fi
 
-          composer integration:parallel -- --env github-actions "${integration_args[@]}"
+          composer integration:parallel -- --shard=${{ matrix.shard }}/2 --env github-actions "${integration_args[@]}"
+
+      - name: Run multisite settings authorization tests
+        if: matrix.shard == 1
+        working-directory: ${{ env.wp-plugin-directory }}
+        run: composer integration:multisite -- --env github-actions
 
   update_changelog:
     name: Update Changelog
@@ -387,7 +413,7 @@ jobs:
 
     # 2. SECURITY: Only run on PUSH, never on Pull Requests
     if: github.event_name == 'push'
-    needs: integration
+    needs: [ phpcs, js, unit, integration ]
 
     # 3. SECURITY: Grant write permission ONLY to this job
     permissions:

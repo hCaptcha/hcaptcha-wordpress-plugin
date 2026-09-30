@@ -129,6 +129,10 @@ class Abilities {
 	 * @return void
 	 */
 	public function register_categories(): void {
+		if ( ! function_exists( 'wp_register_ability_category' ) ) {
+			return;
+		}
+
 		wp_register_ability_category(
 			self::CATEGORY,
 			[
@@ -144,6 +148,10 @@ class Abilities {
 	 * @return void
 	 */
 	public function register_abilities(): void {
+		if ( ! function_exists( 'wp_register_ability' ) ) {
+			return;
+		}
+
 		// phpcs:disable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned
 		wp_register_ability(
 			self::ABILITY_GET_THREAT_SNAPSHOT,
@@ -547,10 +555,10 @@ class Abilities {
 	 */
 	private function can_manage_settings(): bool {
 		$settings_tab = hcaptcha()->settings()->get_tab( Integrations::class );
-		$network_wide = $settings_tab && $settings_tab->is_network_wide();
-		$capability   = $network_wide ? 'manage_network_options' : 'manage_options';
 
-		return current_user_can( $capability );
+		return $settings_tab
+			? $settings_tab->can_manage_settings()
+			: current_user_can( 'manage_options' );
 	}
 
 	/**
@@ -869,6 +877,8 @@ class Abilities {
 	private function get_threats_total( string $table_name, string $from_gmt, string $to_gmt, bool $trash_schema_ready ): ?string {
 		global $wpdb;
 
+		$table_name = (string) esc_sql( $table_name );
+
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		if ( $trash_schema_ready ) {
@@ -910,6 +920,8 @@ class Abilities {
 		bool $trash_schema_ready
 	): array {
 		global $wpdb;
+
+		$table_name = (string) esc_sql( $table_name );
 
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared

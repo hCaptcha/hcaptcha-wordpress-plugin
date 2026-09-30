@@ -9,6 +9,8 @@ namespace HCaptcha\Passster;
 
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
+use WP_REST_Request;
+use WP_REST_Response;
 
 /**
  * Class Protect
@@ -46,9 +48,47 @@ class Protect {
 		add_filter( 'do_shortcode_tag', [ $this, 'do_shortcode_tag' ], 10, 4 );
 		add_action( 'wp_ajax_validate_input', [ $this, 'verify' ], 9 );
 		add_action( 'wp_ajax_nopriv_validate_input', [ $this, 'verify' ], 9 );
+		add_filter( 'rest_pre_dispatch', [ $this, 'verify_rest' ], 9, 3 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 		add_filter( 'script_loader_tag', [ $this, 'add_type_module' ], 10, 3 );
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ], 20 );
+	}
+
+	/**
+	 * Verify a modern Passster REST unlock request.
+	 *
+	 * @param mixed           $result  Response to replace the requested version with.
+	 * @param mixed           $server  Server instance.
+	 * @param WP_REST_Request $request Request used to generate the response.
+	 *
+	 * @return mixed
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function verify_rest( $result, $server, WP_REST_Request $request ) {
+		if (
+			null !== $result ||
+			'POST' !== $request->get_method() ||
+			'/passster/v1/unlock' !== $request->get_route()
+		) {
+			return $result;
+		}
+
+		$error_message = API::verify_post_data(
+			self::NONCE,
+			self::ACTION,
+			$request->get_json_params()
+		);
+
+		if ( null === $error_message ) {
+			return null;
+		}
+
+		return new WP_REST_Response(
+			[
+				'success' => false,
+				'error'   => $error_message,
+			]
+		);
 	}
 
 	/**
@@ -86,7 +126,7 @@ class Protect {
 		$search  = '<button name="submit"';
 		$replace = HCaptcha::form( $args ) . $search;
 
-		$output = (string) str_replace(
+		$output = str_replace(
 			$search,
 			$replace,
 			(string) $output
@@ -139,7 +179,7 @@ class Protect {
 	}
 
 	/**
-	 * Add type="module" attribute to script tag.
+	 * Add the type="module" attribute to the script tag.
 	 *
 	 * @param string|mixed $tag    Script tag.
 	 * @param string       $handle Script handle.

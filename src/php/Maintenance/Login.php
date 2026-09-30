@@ -9,6 +9,7 @@ namespace HCaptcha\Maintenance;
 
 use HCaptcha\Abstracts\LoginBase;
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 use WP_User;
@@ -79,6 +80,7 @@ class Login extends LoginBase {
 
 		remove_filter( 'script_loader_tag', 'mtnc_defer_scripts' );
 
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WordPress core hook.
 		do_action( 'wp_print_footer_scripts' );
 	}
 
@@ -106,6 +108,11 @@ class Login extends LoginBase {
 			[
 				'nonce_name'   => self::NONCE,
 				'nonce_action' => self::ACTION,
+				'data'         => EntryData::from_post(
+					[
+						'username' => [ 'username', 'user_login', 'log' ],
+					]
+				),
 				'expected_id'  => $this->get_expected_id(),
 			]
 		);

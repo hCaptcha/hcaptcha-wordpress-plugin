@@ -44,11 +44,11 @@ class AdvancedFormTest extends HCaptchaPluginWPTestCase {
 	];
 
 	/**
-	 * Expected notice from Kadence's late-loaded dependency registry.
+	 * Optional notice from Kadence's late-loaded dependency registry.
 	 *
 	 * @var string[]
 	 */
-	protected static array $plugin_expected_incorrect_usage = [ '_lw_harbor_instance_registry' ];
+	protected static array $plugin_optional_incorrect_usage = [ '_lw_harbor_instance_registry' ];
 
 	/**
 	 * Tear down the test.
