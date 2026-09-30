@@ -240,7 +240,8 @@
 	opacity: 0;
 }
 
-#hcaptcha-options fieldset .helper:hover .helper-content {
+#hcaptcha-options fieldset .helper:hover .helper-content,
+#hcaptcha-options fieldset .helper:focus-within .helper-content {
 	/* Transition */
 	visibility: visible;
 	opacity: 1;
@@ -252,6 +253,10 @@
 }
 
 /* Antispam indicators toggle */
+#hcaptcha-options .hcaptcha-integrations-show-antispam-coverage td {
+	width: max-content;
+}
+
 #hcaptcha-options .hcaptcha-integrations-show-antispam-coverage fieldset:disabled {
 	color: #a9a9a9;
 }
@@ -386,6 +391,61 @@ body div.kagg-dialog.deactivate .kagg-dialog-container .kagg-dialog-box {
 body div.kagg-dialog.deactivate .kagg-dialog-container .kagg-dialog-box .kagg-dialog-buttons button.btn-ok {
 	background: var(--color-deactivate);
 	color: #ffffff
+}
+
+body div.kagg-dialog.deactivate .kagg-dialog-container {
+	max-width: 520px;
+}
+
+body div.kagg-dialog.deactivate .hcaptcha-deactivation-dependencies {
+	margin-top: 0;
+	text-align: start;
+}
+
+body div.kagg-dialog.deactivate select + .hcaptcha-deactivation-dependencies {
+	margin-top: 8px;
+}
+
+body div.kagg-dialog.deactivate .kagg-dialog-content > p:first-child {
+	margin-top: 0;
+}
+
+body div.kagg-dialog.deactivate .kagg-dialog-container .hcaptcha-deactivation-dependencies > p {
+	margin: 0 0 8px;
+	font-weight: 600;
+}
+
+body div.kagg-dialog.deactivate .hcaptcha-dependency-all {
+	display: block;
+}
+
+body div.kagg-dialog.deactivate .hcaptcha-deactivation-dependencies ul {
+	margin: 0;
+}
+
+body div.kagg-dialog.deactivate .hcaptcha-deactivation-dependencies li {
+	margin: 0;
+	padding-inline-start: calc(var(--hcaptcha-dependency-depth) * 18px);
+}
+
+body div.kagg-dialog.deactivate .hcaptcha-deactivation-dependencies label {
+	display: block;
+	padding: 5px 0;
+}
+
+body div.kagg-dialog.deactivate .hcaptcha-deactivation-dependencies small {
+	display: block;
+	padding-inline-start: 24px;
+	color: #787c82;
+}
+
+body div.kagg-dialog.deactivate .hcaptcha-deactivation-dependencies input:disabled + span {
+	color: #787c82;
+}
+
+body div.kagg-dialog.activate .hcaptcha-activation-dependencies {
+	margin-top: 0 !important;
+	color: #787c82;
 }
 
 body div.kagg-dialog.install .kagg-dialog-container .kagg-dialog-box {

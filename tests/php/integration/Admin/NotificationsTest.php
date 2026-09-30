@@ -148,7 +148,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 			],
 			'events_page'         => [
 				'title'   => 'Events admin page',
-				'message' => '<a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=general#statistics_1" target="_blank">Turn on</a> events statistics and <a href="https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not" target="_blank">upgrade to Pro</a> to <a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=events" target="_blank">see</a> complete statistics on form events.',
+				'message' => '<a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=general#statistics_1" target="_blank">Turn on</a> events statistics and <a href="https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not" target="_blank">upgrade to Pro</a> to <a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=events" target="_blank">see</a> retained statistics on form events.',
 				'button'  => [
 					'url'  => 'http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=general#statistics_1',
 					'text' => 'Turn on stats',
@@ -231,7 +231,13 @@ class NotificationsTest extends HCaptchaWPTestCase {
 				break;
 			case 'pro':
 				unset( $expected['pro-free-trial'] );
-				update_option( 'hcaptcha_settings', [ 'license' => 'pro' ] );
+				update_option(
+					'hcaptcha_settings',
+					[
+						'license' => 'pro',
+						'mode'    => 'live',
+					]
+				);
 				break;
 			case 'statistics':
 				unset( $expected['statistics'] );
@@ -244,6 +250,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 					[
 						'statistics' => 'on',
 						'license'    => 'pro',
+						'mode'       => 'live',
 					]
 				);
 				break;
@@ -257,6 +264,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 					'hcaptcha_settings',
 					[
 						'license' => 'pro',
+						'mode'    => 'live',
 						'size'    => 'invisible',
 					]
 				);

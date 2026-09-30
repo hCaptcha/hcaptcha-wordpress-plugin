@@ -12,6 +12,7 @@ namespace HCaptcha\CoBlocks;
 
 use CoBlocks_Form;
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Block;
 use WP_Error;
@@ -275,7 +276,7 @@ class Form {
 
 			$type = $m[1];
 
-			if ( ! in_array( $type, [ 'name', 'email', 'message' ], true ) ) {
+			if ( ! EntryData::is_content_field_type( (string) $type ) ) {
 				continue;
 			}
 
@@ -290,6 +291,10 @@ class Form {
 			$label = $field['label'];
 			$value = $field['value'];
 
+			if ( EntryData::is_sensitive_field( (string) $label ) ) {
+				continue;
+			}
+
 			if ( 'name' === $type ) {
 				$name[] = $value;
 			}
@@ -298,10 +303,10 @@ class Form {
 				$entry['data']['email'] = $value;
 			}
 
-			$entry['data'][ $label ] = $value;
+			EntryData::add_field( $entry['data'], (string) $label, $value, (string) $key );
 		}
 
-		$entry['data']['name'] = implode( ' ', $name ) ?: null;
+		EntryData::add_name( $entry['data'], $name );
 
 		return $entry;
 	}

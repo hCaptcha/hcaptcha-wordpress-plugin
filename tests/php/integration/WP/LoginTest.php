@@ -10,6 +10,7 @@ namespace HCaptcha\Tests\Integration\WP;
 use HCaptcha\Abstracts\LoginBase;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\LoginAttempts;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WP\Login;
 use ReflectionException;
@@ -40,6 +41,7 @@ class LoginTest extends HCaptchaWPTestCase {
 			$GLOBALS['wp_filters']['login_link_separator']
 		);
 		delete_transient( AutoVerify::TRANSIENT );
+		LoginAttempts::delete_all();
 
 		parent::tearDown();
 	}
@@ -372,27 +374,45 @@ class LoginTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_login(): void {
-		$ip                      = '1.1.1.1';
-		$login_data[ $ip ][]     = time();
-		$login_data['2.2.2.2'][] = time();
-		$user_login              = 'test-user';
-		$user                    = new WP_User();
+		$ip         = '1.1.1.1';
+		$ip2        = '2.2.2.2';
+		$now        = time();
+		$user_login = 'test-user';
+		$user       = new WP_User();
+
+		update_option(
+			'hcaptcha_settings',
+			[
+				'login_limit'    => 2,
+				'login_interval' => 15,
+			]
+		);
+		hcaptcha()->init_hooks();
+
+		$attempts = new LoginAttempts();
+		$attempts->increment( $ip, $now, 15 * MINUTE_IN_SECONDS );
+		$attempts->increment( $ip2, $now, 15 * MINUTE_IN_SECONDS );
 
 		$subject = new Login();
 
 		$this->set_protected_property( $subject, 'ip', $ip );
-		$this->set_protected_property( $subject, 'login_data', $login_data );
+		$this->set_protected_property(
+			$subject,
+			'login_attempts_reset_token',
+			$attempts->get_reset_token( $ip, $now )
+		);
 
 		$subject->login( $user_login, $user );
 
-		unset( $login_data[ $ip ] );
+		self::assertSame( 0, $attempts->read( $ip, $now ) );
+		self::assertSame( 1, $attempts->read( $ip2, $now ) );
 
-		self::assertSame( $login_data, $this->get_protected_property( $subject, 'login_data' ) );
-		self::assertSame( $login_data, get_option( LoginBase::LOGIN_DATA ) );
+		// Check that login attempt options are not autoloading.
+		$alloptions = wp_load_alloptions();
 
-		// Check that the hcaptcha_login_data option is not autoloading.
-		$alloptions = wp_cache_get( 'alloptions', 'options' );
-		self::assertArrayNotHasKey( LoginBase::LOGIN_DATA, $alloptions );
+		foreach ( array_keys( $alloptions ) as $option_name ) {
+			self::assertFalse( 0 === strpos( $option_name, LoginAttempts::OPTION_PREFIX ) );
+		}
 	}
 
 	/**
@@ -402,37 +422,277 @@ class LoginTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_login_failed(): void {
-		$ip                           = '1.1.1.1';
-		$ip2                          = '2.2.2.2';
-		$time                         = time();
-		$login_interval               = 15;
-		$login_data[ $ip ][]          = $time - $login_interval * MINUTE_IN_SECONDS;
-		$login_data[ $ip ][]          = $time - 20;
-		$login_data[ $ip ][]          = $time - 10;
-		$login_data[ $ip2 ][]         = $time - $login_interval * MINUTE_IN_SECONDS - 5;
-		$login_data[ $ip2 ][]         = $time - 25;
-		$login_data[ $ip2 ][]         = $time - 15;
-		$expected_login_data          = $login_data;
-		$expected_login_data[ $ip ][] = $time;
-		$username                     = 'test_username';
-		$_SERVER['REMOTE_ADDR']       = $ip;
+		$ip             = '1.1.1.1';
+		$time           = time();
+		$login_interval = 15;
+		$username       = 'test_username';
 
-		array_shift( $expected_login_data[ $ip ] );
-		array_shift( $expected_login_data[ $ip2 ] );
+		update_option(
+			'hcaptcha_settings',
+			[
+				'login_limit'    => 2,
+				'login_interval' => $login_interval,
+			]
+		);
+		hcaptcha()->init_hooks();
 
-		update_option( 'hcaptcha_settings', [ 'login_interval' => $login_interval ] );
-		update_option( LoginBase::LOGIN_DATA, $login_data );
-
-		$subject = new Login();
+		$subject  = new Login();
+		$subject2 = new Login();
 
 		$this->set_protected_property( $subject, 'ip', $ip );
+		$this->set_protected_property( $subject2, 'ip', $ip );
 
 		FunctionMocker::replace( 'time', $time );
 
 		$subject->login_failed( $username );
+		$subject2->login_failed( $username );
 
-		self::assertSame( $expected_login_data, $this->get_protected_property( $subject, 'login_data' ) );
-		self::assertSame( $expected_login_data, get_option( LoginBase::LOGIN_DATA ) );
+		$attempts = $this->get_protected_property( $subject, 'login_attempts' );
+		$method   = $this->set_method_accessibility( $subject, 'is_login_limit_exceeded' );
+
+		self::assertSame( 2, $attempts->read( $ip, $time ) );
+		self::assertTrue( $method->invoke( $subject ) );
+
+		$attempts->increment( $ip, $time + MINUTE_IN_SECONDS, $login_interval * MINUTE_IN_SECONDS );
+
+		self::assertSame( 3, $attempts->read( $ip, $time + $login_interval * MINUTE_IN_SECONDS ) );
+		self::assertSame( 0, $attempts->read( $ip, $time + ( $login_interval + 1 ) * MINUTE_IN_SECONDS ) );
+
+		$method->setAccessible( false );
+	}
+
+	/**
+	 * Test that shared wp_login_failed hooks count one authentication failure once.
+	 */
+	public function test_login_failed_is_deduplicated_across_integrations(): void {
+		$ip                   = '192.0.2.80';
+		$wp_login_failed_hook = $GLOBALS['wp_filter']['wp_login_failed'] ?? null;
+
+		remove_all_actions( 'wp_login_failed' );
+
+		update_option(
+			'hcaptcha_settings',
+			[
+				'login_limit'    => 2,
+				'login_interval' => 15,
+			]
+		);
+		hcaptcha()->init_hooks();
+
+		$subject  = new Login();
+		$subject2 = new Login();
+
+		$this->set_protected_property( $subject, 'ip', $ip );
+		$this->set_protected_property( $subject2, 'ip', $ip );
+
+		do_action( 'wp_login_failed', 'test-user' );
+
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$GLOBALS['wp_filter']['wp_login_failed'] = $wp_login_failed_hook;
+
+		$attempts = $this->get_protected_property( $subject, 'login_attempts' );
+
+		self::assertSame( 1, $attempts->read( $ip, time() ) );
+	}
+
+	/**
+	 * Test immediate-CAPTCHA mode does not allocate attempt state.
+	 */
+	public function test_login_limit_zero_does_not_store_failures(): void {
+		global $wpdb;
+
+		update_option(
+			'hcaptcha_settings',
+			[
+				'login_limit'    => 0,
+				'login_interval' => 15,
+			]
+		);
+		hcaptcha()->init_hooks();
+
+		$subject = new Login();
+		$subject->login_failed( 'test-user' );
+
+		$method = $this->set_method_accessibility( $subject, 'is_login_limit_exceeded' );
+
+		self::assertTrue( $method->invoke( $subject ) );
+		self::assertSame(
+			0,
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			(int) $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT COUNT(*) FROM $wpdb->options WHERE option_name LIKE %s",
+					$wpdb->esc_like( LoginAttempts::OPTION_PREFIX ) . '%'
+				)
+			)
+		);
+
+		$method->setAccessible( false );
+	}
+
+	/**
+	 * Test one-time bounded retirement of legacy login data.
+	 */
+	public function test_legacy_login_data_retirement_is_bounded_and_one_time(): void {
+		global $wpdb;
+
+		$legacy_data = [];
+
+		for ( $i = 0; $i < 5000; ++$i ) {
+			$legacy_data[ '192.0.2.' . $i ] = 0 === $i % 2 ? [] : [ time() - YEAR_IN_SECONDS ];
+		}
+
+		update_option( LoginBase::LOGIN_DATA, $legacy_data, false );
+
+		$queries = [];
+		$filter  = static function ( $query ) use ( &$queries ) {
+			$queries[] = $query;
+
+			return $query;
+		};
+
+		add_filter( 'query', $filter );
+
+		new Login();
+		new Login();
+
+		remove_filter( 'query', $filter );
+
+		$legacy_selects = array_filter(
+			$queries,
+			static function ( $query ) {
+				return false !== stripos( $query, 'SELECT option_value' ) &&
+					false !== stripos( $query, "option_name = 'hcaptcha_login_data'" );
+			}
+		);
+		$legacy_deletes = array_filter(
+			$queries,
+			static function ( $query ) {
+				return false !== stripos( $query, 'DELETE FROM' ) &&
+					false !== stripos( $query, "option_name = 'hcaptcha_login_data'" );
+			}
+		);
+
+		self::assertSame( [], array_values( $legacy_selects ) );
+		self::assertCount( 1, $legacy_deletes );
+		self::assertFalse( get_option( LoginBase::LOGIN_DATA, false ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		self::assertSame( '1', $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM $wpdb->options WHERE option_name = %s", LoginAttempts::RETIREMENT_OPTION ) ) );
+	}
+
+	/**
+	 * Test that a full store stays bounded and fails closed at constant cost.
+	 */
+	public function test_login_attempt_store_is_globally_bounded(): void {
+		global $wpdb;
+
+		$now        = time();
+		$owner_hash = str_repeat( 'a', 64 );
+		$record     = $owner_hash . '|1|' . ( $now + HOUR_IN_SECONDS );
+		$values     = [];
+		$params     = [];
+
+		for ( $slot = 0; $slot < LoginAttempts::SLOT_COUNT; ++$slot ) {
+			$values[] = '(%s, %s, %s)';
+			$params[] = LoginAttempts::OPTION_PREFIX . sprintf( '%04d', $slot );
+			$params[] = $record;
+			$params[] = 'no';
+		}
+
+		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->query(
+			$wpdb->prepare(
+				"INSERT INTO $wpdb->options (option_name, option_value, autoload) VALUES " . implode( ', ', $values ),
+				$params
+			)
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+
+		update_option(
+			'hcaptcha_settings',
+			[
+				'login_limit'    => 2,
+				'login_interval' => 15,
+			]
+		);
+		hcaptcha()->init_hooks();
+
+		$subject = new Login();
+		$this->set_protected_property( $subject, 'ip', '198.51.100.25' );
+
+		$operation_queries = [];
+		$filter            = static function ( $query ) use ( &$operation_queries ) {
+			if ( false !== strpos( $query, LoginAttempts::OPTION_PREFIX ) ) {
+				$operation_queries[] = $query;
+			}
+
+			return $query;
+		};
+
+		add_filter( 'query', $filter );
+		$subject->login_failed( 'test-user' );
+		remove_filter( 'query', $filter );
+
+		$method = $this->set_method_accessibility( $subject, 'is_login_limit_exceeded' );
+
+		self::assertCount( 2, $operation_queries );
+		self::assertTrue( $method->invoke( $subject ) );
+		self::assertSame(
+			LoginAttempts::SLOT_COUNT,
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			(int) $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT COUNT(*) FROM $wpdb->options WHERE option_name LIKE %s",
+					$wpdb->esc_like( LoginAttempts::OPTION_PREFIX ) . '%'
+				)
+			)
+		);
+		self::assertLessThanOrEqual(
+			LoginAttempts::MAX_RECORD_BYTES,
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			(int) $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT MAX(OCTET_LENGTH(option_value)) FROM $wpdb->options WHERE option_name LIKE %s",
+					$wpdb->esc_like( LoginAttempts::OPTION_PREFIX ) . '%'
+				)
+			)
+		);
+
+		$method->setAccessible( false );
+	}
+
+	/**
+	 * Test that the per-address counter saturates without growing its record.
+	 */
+	public function test_login_attempt_count_is_saturated(): void {
+		$ip           = '198.51.100.80';
+		$now          = time();
+		$address_hash = hash_hmac( 'sha256', $ip, wp_salt( 'nonce' ) );
+		$slot         = hexdec( substr( $address_hash, 0, 4 ) ) % LoginAttempts::SLOT_COUNT;
+		$option_name  = LoginAttempts::OPTION_PREFIX . sprintf( '%04d', $slot );
+		$expires      = $now + MINUTE_IN_SECONDS;
+		$record       = $address_hash . '|' . LoginAttempts::MAX_FAILURES . '|' . $expires;
+		$attempts     = new LoginAttempts();
+
+		update_option( $option_name, $record, false );
+
+		$operation_queries = [];
+		$filter            = static function ( $query ) use ( &$operation_queries, $option_name ) {
+			if ( false !== strpos( $query, $option_name ) ) {
+				$operation_queries[] = $query;
+			}
+
+			return $query;
+		};
+
+		add_filter( 'query', $filter );
+		$count = $attempts->increment( $ip, $now, MINUTE_IN_SECONDS );
+		remove_filter( 'query', $filter );
+
+		self::assertSame( LoginAttempts::MAX_FAILURES, $count );
+		self::assertCount( 2, $operation_queries );
+		self::assertLessThanOrEqual( LoginAttempts::MAX_RECORD_BYTES, strlen( get_option( $option_name ) ) );
 	}
 
 	/**

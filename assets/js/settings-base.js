@@ -193,7 +193,7 @@ const settingsBase = ( function( $ ) {
 		},
 
 		showMessage( message = '', msgClass = '' ) {
-			message = message === undefined ? '' : String( message );
+			message = String( message );
 
 			if ( ! message ) {
 				return;

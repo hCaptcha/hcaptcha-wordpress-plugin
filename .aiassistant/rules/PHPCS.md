@@ -38,7 +38,7 @@ PHPCS is pointed at the current directory (`<file>.`), but with the following pa
 - Only these top-level paths are considered; everything else is excluded by a negative lookahead rule:
   - `*/Projects/hcaptcha-wordpress-plugin/`
 - Additional directories are excluded everywhere:
-  - `*/.codeception/*`, `*/.githooks/*`, `*/.github/*`, `*/.php-scoper/vendor/*`, `*/.wordpress-org/*`, `*/.yarn/*`, `*/assets/*`, `*/build/*`, `*/coverage/*`, `*/languages/*`, `*/node_modules/*`, `*/vendor/*`, `*/vendors/*`.
+  - `*/.codeception/*`, `*/.githooks/*`, `*/.github/*`, `*/.php-scoper/vendor/*`, `*/.wordpress-org/*`, `*/.yarn/*`, `*/assets/*`, `*/build/*`, `*/coverage/*`, `*/languages/*`, `*/node_modules/*`, `*/vendor/*`, `*/vendor_prefixed/*`.
 
 This keeps scans fast and relevant to our PHP source.
 

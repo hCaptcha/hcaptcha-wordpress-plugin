@@ -141,6 +141,9 @@ class Privacy {
 				);
 				?>
 			</p>
+			<p>
+				<?php esc_html_e( 'The optional Statistics setting is off by default. Enabling it sends the visitor IP of the current request (X-Forwarded-For), the full site URL with /plugin-stats appended, and plugin configuration to hCaptcha at https://a.hcaptcha.com/api/event to help prioritize plugin development. Configuration includes the plugin version, license type, active integrations and their enabled forms, multisite status, and site/secret key presence flags, without key values. Reports are sent when Statistics is turned on and on initialization after plugin updates. The IP belongs to the request triggering the report, which may be an administrator or cron request; if no public IP is available, 127.0.0.1 is sent as a fallback. The recipient also receives ordinary network metadata, such as the server IP. Collect Anonymously, Collect IP, and Collect User Agent affect only local event storage, not these reports. Custom code can force or filter sends even with Statistics off.', 'hcaptcha-for-forms-and-more' ); ?>
+			</p>
 		</div>
 		<?php
 

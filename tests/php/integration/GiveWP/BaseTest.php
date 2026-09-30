@@ -63,6 +63,7 @@ class BaseTest extends HCaptchaPluginWPTestCase {
 	 * Tear down the test.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function tearDown(): void {
 		unset( $_POST, $_GET, $_SERVER['REQUEST_METHOD'] );
@@ -97,6 +98,40 @@ class BaseTest extends HCaptchaPluginWPTestCase {
 			9,
 			has_action( 'template_redirect', [ $subject, 'verify_block' ] )
 		);
+	}
+
+	/**
+	 * Test donor fields reach the entry without payment fields.
+	 *
+	 * @return void
+	 * @noinspection PhpArrayWriteIsNotUsedInspection
+	 */
+	public function test_donor_entry_data(): void {
+		$_POST = [
+			'give-form-id' => 42,
+			'give_email'   => 'donor@example.com',
+			'give_first'   => 'Jane',
+			'give_last'    => 'Doe',
+			'card_number'  => 'do-not-copy',
+		];
+
+		$subject = new Form();
+		$entry   = $this->set_method_accessibility( $subject, 'get_entry' )->invoke( $subject );
+
+		self::assertSame( 'donor@example.com', $entry['data']['email'] );
+		self::assertSame( 'Jane Doe', $entry['data']['name'] );
+		self::assertArrayNotHasKey( 'card_number', $entry['data'] );
+
+		$_POST = [
+			'formId'    => 42,
+			'email'     => 'block@example.com',
+			'firstName' => 'John',
+			'lastName'  => 'Smith',
+		];
+		$entry = $this->set_method_accessibility( $subject, 'get_entry' )->invoke( $subject, false );
+
+		self::assertSame( 'block@example.com', $entry['data']['email'] );
+		self::assertSame( 'John Smith', $entry['data']['name'] );
 	}
 
 	/**
@@ -178,7 +213,7 @@ class BaseTest extends HCaptchaPluginWPTestCase {
 	 */
 	public function test_live_donation_form(): void {
 		$form_id = ( new DefaultFormFactory() )->make();
-		$user_id = self::factory()->user->create();
+		$user_id = $this->factory()->user->create();
 
 		update_post_meta( $form_id, '_give_form_template', 'legacy' );
 		wp_set_current_user( $user_id );
@@ -203,6 +238,7 @@ class BaseTest extends HCaptchaPluginWPTestCase {
 	 * Test verify() with the correct action.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_verify(): void {
 		$form_id = 42;
@@ -226,6 +262,7 @@ class BaseTest extends HCaptchaPluginWPTestCase {
 	 * Test verify() when not verified.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_verify_not_verified(): void {
 		$form_id = 42;
@@ -252,6 +289,7 @@ class BaseTest extends HCaptchaPluginWPTestCase {
 	 * Test verify() with an empty hCaptcha response does not consume FST.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_verify_empty_hcaptcha_response_skips_fst(): void {
 		$form_id = 42;
@@ -292,6 +330,7 @@ class BaseTest extends HCaptchaPluginWPTestCase {
 	 * Test verify() with the wrong action — early return.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_verify_wrong_action(): void {
 		$_POST['action'] = 'some_other_action';

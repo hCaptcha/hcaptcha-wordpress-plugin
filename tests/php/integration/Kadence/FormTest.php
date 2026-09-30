@@ -18,6 +18,7 @@ use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
 use ReflectionClass;
 use ReflectionException;
+use WP_Block_Type_Registry;
 
 /**
  * Test Kadence Form.
@@ -45,6 +46,13 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	];
 
 	/**
+	 * Optional notice from Kadence's late-loaded dependency registry.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_optional_incorrect_usage = [ '_lw_harbor_instance_registry' ];
+
+	/**
 	 * Test that the live Kadence form block is registered.
 	 *
 	 * @return void
@@ -54,7 +62,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 
 		self::assertTrue( is_plugin_active( static::$plugin ) );
 		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/kadence-blocks/' ), $plugin_file );
-		self::assertTrue( \WP_Block_Type_Registry::get_instance()->is_registered( 'kadence/form' ) );
+		self::assertTrue( WP_Block_Type_Registry::get_instance()->is_registered( 'kadence/form' ) );
 	}
 
 	/**

@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, recaptcha, antispam, spam
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 5.3.0
+Stable tag: 5.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -81,7 +81,7 @@ To use this plugin, install it and enter your sitekey and secret in the Settings
 
 [hCaptcha Pro](https://www.hcaptcha.com/pro) goes beyond the free hCaptcha service with advanced machine learning to reduce the challenge rate, delivering high security and low friction along with more features like UI customization.
 
-[hCaptcha Enterprise](https://www.hcaptcha.com/) delivers a complete advanced security platform, including site-specific risk scores, fraud protection, and more to address both human and automated abuse.
+[hCaptcha Enterprise](https://www.hcaptcha.com/) delivers a complete advanced security platform, including fraud protection and more to address both human and automated abuse.
 
 == Screenshots ==
 
@@ -369,11 +369,13 @@ You can add also `force="true"` or `force="1"` argument to prevent sending a for
 [hcaptcha auto="true" force="true"]
 `
 
-Arbitrary forms can also be verified in ajax via the `ajax` argument. There is no need to specify `auto="true"` in this case, as `ajax` implies `auto="true"`.
+Arbitrary forms can also be submitted via AJAX using the `ajax` argument. For backward compatibility, the shortcode enables automatic verification when `ajax="true"` is set and `auto` is omitted.
 
 `
 [hcaptcha ajax="true"]
 `
+
+If your code verifies the form itself, use `[hcaptcha ajax="true" auto="false"]`. The same applies to `HCaptcha::form()` in PHP: specify `auto=false` to use AJAX submission with your own verifier.
 
 = How to block hCaptcha entirely on a specific page? =
 
@@ -548,10 +550,6 @@ Login/Signup Popup
 MemberPress
 `$source: 'memberpress/memberpress.php'`
 `$form_id: 'login' or 'register'`
-
-Paid Memberships Pro
-`$source: 'paid-memberships-pro/paid-memberships-pro.php'`
-`$form_id: 'checkout' or 'login'`
 
 Passster
 `$source: 'content-protector/content-protector.php'`
@@ -769,6 +767,41 @@ function my_hcap_language( $language ): string {
 add_filter( 'hcap_language', 'my_hcap_language' );
 `
 
+= How can I customize hCaptcha parameters for an individual widget? =
+
+Use the `hcap_widget_params` filter. It supports `sitekey`, `theme`, `size`, `hl`, `tabindex`, `callback`, `expired-callback`, `chalexpired-callback`, `open-callback`, `close-callback`, `error-callback`, and Enterprise `orientation`. The success callback runs after the plugin's internal callback so it does not replace form handling.
+
+`
+/**
+ * Filters hCaptcha render parameters for an individual widget.
+ *
+ * @param array $params hCaptcha render parameters.
+ * @param array $args   Validated hCaptcha form arguments, including the form id.
+ */
+add_filter(
+  'hcap_widget_params',
+  static function ( array $params, array $args ): array {
+    $params['tabindex']         = 0;
+    $params['expired-callback'] = 'myHCaptchaExpired';
+
+    // Enterprise only.
+    $params['orientation'] = 'landscape';
+
+    return $params;
+  },
+  10,
+  2
+);
+`
+
+= How can I display the disclosure for invisible hCaptcha? =
+
+The disclosure is disabled by default. Enable it with the `hcap_print_invisible_disclosure` filter. The standard disclosure is printed next to each widget whose effective size is `invisible`; visible widgets are not affected.
+
+`
+add_filter( 'hcap_print_invisible_disclosure', '__return_true' );
+`
+
 = How to denylist certain IPs =
 
 You can use the following filter. It should be added to your plugin's (or mu-plugin's) main file. This filter won't work being added to a theme's functions.php file.
@@ -918,11 +951,15 @@ If you enable the optional plugin-local statistics feature, the following additi
 * **only if you enable this optional feature:** the IP address challenged on each form
 * **only if you enable this optional feature:** the User Agent challenged on each form
 
-We recommend leaving IP and User Agent recording off, which will make these statistics fully anonymous.
+We recommend leaving IP and User Agent recording off. In that configuration, the local event records do not contain either value.
 
-You can collect data anonymously but still distinguish sources. The hashed IP address and User Agent will be saved.
+The separate Collect Anonymously setting controls only local event storage. If IP address or User Agent collection is enabled, this setting stores those values as salted hashes instead of their original values.
 
-If this feature is enabled, anonymized statistics on your plugin configuration, not including any end user data, will also be sent to us. This lets us see which modules and features are being used and prioritize development for them accordingly.
+Statistics is optional and off by default. Enabling it sends the visitor IP of the current request (X-Forwarded-For), the full site URL with /plugin-stats appended, and plugin configuration to hCaptcha at https://a.hcaptcha.com/api/event to help prioritize plugin development. Configuration includes the plugin version, license type, active integrations and their enabled forms, multisite status, and site/secret key presence flags, without key values. Reports are sent when Statistics is turned on and on initialization after plugin updates. The IP belongs to the request triggering the report, which may be an administrator or cron request; if no public IP is available, 127.0.0.1 is sent as a fallback. The recipient also receives ordinary network metadata, such as the server IP. Collect Anonymously, Collect IP, and Collect User Agent affect only local event storage, not these reports. Custom code can force or filter sends even with Statistics off.
+
+The existing telemetry transport is retained for compatibility. It posts JSON with `Content-Type: application/json`, a fixed browser-style `User-Agent` (not the visitor browser value), and `X-Forwarded-For` containing the IP selected by the plugin from the current request using its trusted IP header settings/filter, or the `127.0.0.1` fallback. This fallback is not an anonymized visitor IP. The JSON fields are `d` (`wp-plugin.hcaptcha.com`), `n` (`plugin-stats`), `u` (the full `home_url('plugin-stats')`, including any installation path), `r` (`null`), `w` (the fixed value `1024`), and `props` (configuration). The configuration fields are `hCaptcha`, `License`, `Site key`, `Secret key`, `Multisite`, `Active`, and active integration names with their enabled form identifiers. At most 30 configuration fields are sent, with `Active` limited to 2000 characters. `Site key` and `Secret key` are presence flags (`0` or `1`); their values are not sent. Local event records are not included in the remote report.
+
+For developers, ordinary calls to `hcap_send_plugin_stats` require Statistics to be enabled. The plugin forces a send when the setting changes from off to on, before the new value is saved; other code can also explicitly request a forced send. The `hcap_allow_send_plugin_stats` filter can allow or block any send, including a forced send. The Playground integration uses this filter to block telemetry. Collect Anonymously does not change the remote report.
 
 == Plugins, Themes, and Forms Supported ==
 
@@ -970,7 +1007,6 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * MetForm
 * Ninja Forms
 * Otter Blocks Forms
-* Paid Memberships Pro Checkout and Login Forms
 * Passster Protection Form
 * Password Protected Form
 * Profile Builder Login, Recover Password, and Register Forms
@@ -979,7 +1015,6 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Sendinblue Form
 * Simple Download Monitor Form
 * Simple Membership Login, Lost Password, and Register Forms
-* Simple Basic Contact Form
 * Spectra — WordPress Gutenberg Blocks Form
 * Subscriber Form
 * Support Candy New Ticket Form
@@ -988,7 +1023,7 @@ If this feature is enabled, anonymized statistics on your plugin configuration, 
 * Ultimate Addons for Elementor Login and Register Forms
 * Ultimate Member Login, Lost Password, and Member Register Forms
 * UsersWP Forgot Password, Login, and Register Forms
-* WooCommerce Login, Registration, Lost Password, Checkout, and Order Tracking Forms
+* WooCommerce Login, Registration, Lost Password, Checkout, Order Tracking, and Order Withdrawal Forms
 * WooCommerce Germanized Return Request Form
 * WooCommerce Wishlist Form
 * Wordfence Security Login Form
@@ -1017,6 +1052,35 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 5.4.0 =
+* Added optional AJAX submission for standard WordPress comment forms, with inline error messages.
+* Added form data processing for anti-spam checks in 10 popular integrations: WordPress Core, WooCommerce, Divi, Ultimate Addons for Elementor, Essential Addons, Mailchimp, Maintenance, Ultimate Member, bbPress, and GiveWP.
+* Added filtering of form fields identified as passwords, verification tokens, or payment details before anti-spam processing.
+* Improved an anti-spam entry collection to retain additional non-sensitive fields and avoid overwriting fields with duplicate labels.
+* Added Tutor LMS Pro integration.
+* Added Tutor LMS form data processing for anti-spam checks on login, registration, password recovery, and checkout.
+* Added Tutor LMS login, registration, password recovery, and checkout forms to the optional form-interaction API loading.
+* Added hCaptcha protection to the WooCommerce Order Withdrawal Form.
+* Added Essential Blocks form migration from Google reCAPTCHA to the Migration Wizard.
+* Added Tutor LMS Pro reCAPTCHA migration for Tutor LMS and WordPress login and registration forms.
+* Added an optional invisible hCaptcha disclosure controlled by the `hcap_print_invisible_disclosure` filter.
+* Added Montenegrin and Brazilian Portuguese hCaptcha widget locales.
+* Added support for documented per-widget hCaptcha render parameters through the `hcap_widget_params` filter.
+* Updated the Custom Themes editor and default theme to match the latest documented hCaptcha theme schema.
+* Improved plugin and theme dependency management on the Integrations page with activation notices and safe, selectable dependency deactivation.
+* Improved compatibility with Plugin Check (PCP).
+* Improved server-side verification.
+* Removed Paid Memberships Pro and Simple Basic Contact Form integrations after their WordPress.org closures.
+* Fixed Auto-Verification bypass after its transient expires or evicts a protected form and prevented other pages from removing its registration.
+* Fixed automatically added CSP sources, allowing unsafe JavaScript sources only for Enterprise accounts.
+* Fixed the Form Submit Time token lifecycle across page reloads and failed submissions to prevent stale tokens from exhausting issuance limits.
+* Fixed license detection when switching between Live and test modes.
+* Fixed saving credentials after an automatic site configuration check.
+* Fixed the Secret Key field appearing empty when a key is configured.
+* Fixed LearnPress checkout verification fatal error and prevented account creation before hCaptcha validation.
+* Fixed Google reCAPTCHA appearing in the Beaver Builder editor when its reCAPTCHA field is disabled.
+* Fixed reusing an expired token after a failed AJAX submission for several integrations.
 
 = 5.3.0 =
 * Added the Advanced Theme Editor with a live widget and challenge previews and direct JSON editing.

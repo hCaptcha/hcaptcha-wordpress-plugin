@@ -39,6 +39,8 @@ class Register {
 	 * @return void
 	 */
 	private function init_hooks(): void {
+		Assets::init();
+
 		add_action( 'register_form', [ $this, 'add_captcha' ] );
 		add_filter( 'registration_errors', [ $this, 'verify' ], 10, 3 );
 	}

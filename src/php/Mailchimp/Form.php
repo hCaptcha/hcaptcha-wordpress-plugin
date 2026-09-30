@@ -11,6 +11,7 @@
 namespace HCaptcha\Mailchimp;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use MC4WP_Form;
@@ -132,6 +133,14 @@ class Form {
 			[
 				'nonce_name'   => self::NAME,
 				'nonce_action' => self::ACTION,
+				'data'         => EntryData::from_array(
+					(array) $form->get_data(),
+					[
+						'email'      => [ 'EMAIL', 'email' ],
+						'first_name' => [ 'FNAME', 'first_name' ],
+						'last_name'  => [ 'LNAME', 'last_name' ],
+					]
+				),
 				'expected_id'  => $this->get_expected_id( (int) $form->ID ),
 			]
 		);

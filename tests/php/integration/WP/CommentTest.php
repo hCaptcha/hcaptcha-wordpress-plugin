@@ -169,6 +169,28 @@ class CommentTest extends HCaptchaWPTestCase {
 		// Test when hCaptcha plugin is active.
 		self::assertSame( $expected, $subject->add_captcha( $submit_field, [] ) );
 	}
+
+	/**
+	 * AJAX submission uses the comment integration's own verification.
+	 */
+	public function test_add_captcha_with_ajax_submission(): void {
+		update_option(
+			'hcaptcha_settings',
+			[
+				'wp_status'  => 'comment',
+				'ajax_forms' => [ 'on' ],
+			]
+		);
+
+		hcaptcha()->init_hooks();
+
+		$submit_field = '<input type="submit" value="Submit Comment" />' .
+			"<input type='hidden' name='comment_post_ID' value='42' id='comment_post_ID' />";
+		$output       = ( new Comment() )->add_captcha( $submit_field, [] );
+
+		self::assertStringContainsString( 'data-ajax="true"', $output );
+		self::assertStringContainsString( 'data-auto="false"', $output );
+	}
 	/**
 	 * Test add_captcha() with built-in form interaction.
 	 *

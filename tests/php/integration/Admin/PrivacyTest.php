@@ -43,6 +43,13 @@ class PrivacyTest extends HCaptchaWPTestCase {
 		self::assertStringContainsString( 'wp-suggested-text', $message );
 		self::assertStringContainsString( 'https://www.hcaptcha.com/privacy', $message );
 		self::assertStringContainsString( 'https://www.hcaptcha.com/terms', $message );
+		self::assertStringContainsString( 'optional Statistics setting', $message );
+		self::assertStringContainsString( 'https://a.hcaptcha.com/api/event', $message );
+		self::assertStringContainsString( 'help prioritize plugin development', $message );
+		self::assertStringContainsString( 'visitor IP of the current request (X-Forwarded-For)', $message );
+		self::assertStringContainsString( 'full site URL with /plugin-stats appended', $message );
+		self::assertStringContainsString( 'without key values', $message );
+		self::assertStringContainsString( 'ordinary network metadata, such as the server IP', $message );
 
 		set_current_screen( 'dashboard' );
 		do_action( 'admin_init' );

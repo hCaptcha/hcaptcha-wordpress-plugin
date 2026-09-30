@@ -644,7 +644,7 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 		bool $allowed,
 		string $expected_capability
 	): void {
-		$settings_tab = Mockery::mock( PluginSettingsBase::class );
+		$settings_tab = Mockery::mock( PluginSettingsBase::class )->makePartial();
 		$settings_tab->shouldReceive( 'is_network_wide' )->with()->twice()->andReturn( $network_wide );
 
 		$settings = Mockery::mock( Settings::class );
@@ -946,6 +946,11 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 		$mock         = Mockery::mock( 'wpdb' );
 		$mock->prefix = $saved->prefix ?? 'wp_';
 
+		$mock->shouldReceive( '_escape' )->once()->andReturnUsing(
+			static function ( $value ) {
+				return $value;
+			}
+		);
 		$mock->shouldReceive( 'prepare' )->andReturn( 'SELECT 1' );
 		$mock->shouldReceive( 'get_var' )->andReturn( null );
 
@@ -992,6 +997,8 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 
 		$subject = new Abilities();
 
+		// Disable temporary table creation so the persistent Events schema marker is updated.
+		remove_all_filters( 'query', 10 );
 		Events::create_table();
 
 		$table_name = $wpdb->prefix . Events::TABLE_NAME;

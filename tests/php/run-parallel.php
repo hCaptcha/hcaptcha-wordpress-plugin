@@ -1,6 +1,7 @@
 <?php
 /**
  * Run Codeception test files in parallel processes.
+ * Use --shard=N/M to run one CI share; omit it for the full local suite.
  *
  * @package HCaptcha\Tests
  */
@@ -19,6 +20,7 @@ require_once dirname( __DIR__, 2 ) . '/vendor/autoload.php';
 const HCAPTCHA_PARALLEL_MAX_AUTO_PROCESSES = 8;
 const HCAPTCHA_PARALLEL_GROUP              = 'hcaptcha_parallel_excluded';
 
+// phpcs:disable Generic.Metrics.CyclomaticComplexity.TooHigh -- CLI validation and runner setup.
 /**
  * Run the parallel test command.
  *
@@ -30,7 +32,7 @@ function hcaptcha_run_parallel_tests( array $arguments ): int {
 	$root = dirname( __DIR__, 2 );
 
 	if ( ! $arguments ) {
-		echo "Usage: php tests/php/run-parallel.php <suite> [--processes=N] [Codeception options]\n";
+		echo "Usage: php tests/php/run-parallel.php <suite> [--processes=N] [--shard=N/M] [Codeception options]\n";
 
 		return 1;
 	}
@@ -49,7 +51,7 @@ function hcaptcha_run_parallel_tests( array $arguments ): int {
 		return 1;
 	}
 
-	[ $process_count, $codeception_arguments ] = hcaptcha_parse_parallel_arguments( $arguments );
+	[ $process_count, $shard_number, $shard_total, $codeception_arguments ] = hcaptcha_parse_parallel_arguments( $arguments );
 
 	if ( 0 === $process_count ) {
 		return 1;
@@ -71,10 +73,20 @@ function hcaptcha_run_parallel_tests( array $arguments ): int {
 		return 1;
 	}
 
-	$units         = hcaptcha_create_parallel_units(
+	$units = hcaptcha_create_parallel_units(
 		$files,
 		hcaptcha_normalize_parallel_path( $root . '/tests/php/' . $suite )
 	);
+
+	if ( $shard_total > count( $units ) ) {
+		echo "The shard count cannot exceed the number of test groups.\n";
+
+		return 1;
+	}
+
+	$units = hcaptcha_partition_parallel_units( $units, $shard_total )[ $shard_number - 1 ];
+	printf( "Shard %d/%d: %d test groups.\n", $shard_number, $shard_total, count( $units ) );
+
 	$process_count = min( $process_count, count( $units ) );
 	$codecept      = $root . '/vendor/bin/codecept';
 	$temp_dir      = rtrim( sys_get_temp_dir(), '/\\' ) . '/hcaptcha-codeception-' . getmypid() . '-' . bin2hex( random_bytes( 4 ) );
@@ -96,6 +108,7 @@ function hcaptcha_run_parallel_tests( array $arguments ): int {
 			$codecept,
 			$suite,
 			$units,
+			$files,
 			$process_count,
 			$codeception_arguments,
 			$temp_dir
@@ -104,16 +117,19 @@ function hcaptcha_run_parallel_tests( array $arguments ): int {
 		hcaptcha_remove_parallel_temp_dir( $temp_dir );
 	}
 }
+// phpcs:enable Generic.Metrics.CyclomaticComplexity.TooHigh
 
+// phpcs:disable Generic.Metrics.CyclomaticComplexity.TooHigh -- Runner option validation.
 /**
  * Parse runner-specific arguments and preserve Codeception arguments.
  *
  * @param string[] $arguments Command arguments.
  *
- * @return array{0: int, 1: string[]}
+ * @return array{0: int, 1: int, 2: int, 3: string[]}
  */
 function hcaptcha_parse_parallel_arguments( array $arguments ): array {
 	$process_count         = null;
+	$shard                 = '1/1';
 	$codeception_arguments = [];
 
 	for ( $index = 0, $count = count( $arguments ); $index < $count; ++$index ) {
@@ -127,6 +143,18 @@ function hcaptcha_parse_parallel_arguments( array $arguments ): array {
 
 		if ( '--processes' === $argument ) {
 			$process_count = $arguments[ ++$index ] ?? '';
+
+			continue;
+		}
+
+		if ( 0 === strpos( $argument, '--shard=' ) ) {
+			$shard = substr( $argument, strlen( '--shard=' ) );
+
+			continue;
+		}
+
+		if ( '--shard' === $argument ) {
+			$shard = $arguments[ ++$index ] ?? '';
 
 			continue;
 		}
@@ -151,11 +179,18 @@ function hcaptcha_parse_parallel_arguments( array $arguments ): array {
 	if ( false === $process_count ) {
 		echo "The process count must be an integer from 1 to 32.\n";
 
-		return [ 0, [] ];
+		return [ 0, 0, 0, [] ];
 	}
 
-	return [ (int) $process_count, $codeception_arguments ];
+	if ( ! preg_match( '/^([1-9][0-9]*)\/([1-9][0-9]*)$/', $shard, $matches ) || (int) $matches[1] > (int) $matches[2] ) {
+		echo "The shard must be N/M, with 1 <= N <= M.\n";
+
+		return [ 0, 0, 0, [] ];
+	}
+
+	return [ (int) $process_count, (int) $matches[1], (int) $matches[2], $codeception_arguments ];
 }
+// phpcs:enable Generic.Metrics.CyclomaticComplexity.TooHigh
 
 /**
  * Detect a sensible process count for the current machine.
@@ -253,6 +288,40 @@ function hcaptcha_create_parallel_units( array $files, string $suite_dir ): arra
 	unset( $weighted_unit );
 
 	return $weighted_units;
+}
+
+/**
+ * Assign complete test groups to balanced CI shards.
+ *
+ * @param array<int,array{name: string, files: string[], weight: int}> $units       Test units.
+ * @param int                                                          $shard_count Number of shards.
+ *
+ * @return array<int,array<int,array{name: string, files: string[], weight: int}>>
+ * @throws InvalidArgumentException Invalid shard count.
+ */
+function hcaptcha_partition_parallel_units( array $units, int $shard_count ): array {
+	if ( 1 > $shard_count || $shard_count > count( $units ) ) {
+		throw new InvalidArgumentException( 'Invalid shard count.' );
+	}
+
+	$shards = array_fill( 0, $shard_count, [] );
+	$loads  = array_fill( 0, $shard_count, 0 );
+
+	foreach ( $units as $unit ) {
+		$lightest = 0;
+
+		for ( $index = 1; $index < $shard_count; ++$index ) {
+			if ( $loads[ $index ] < $loads[ $lightest ] ) {
+				$lightest = $index;
+			}
+		}
+
+		// Allow 70 test-method weights for each WordPress process startup.
+		$shards[ $lightest ][] = $unit;
+		$loads[ $lightest ]   += 70 + $unit['weight'];
+	}
+
+	return $shards;
 }
 
 /**
@@ -360,6 +429,7 @@ function hcaptcha_build_codeception( string $root, string $codecept ): bool {
  * @param string                                                       $codecept              Codeception executable.
  * @param string                                                       $suite                 Suite name.
  * @param array<int,array{name: string, files: string[], weight: int}> $units                  Test units.
+ * @param string[]                                                     $all_files              Every test file in the suite.
  * @param int                                                          $process_count          Process count.
  * @param string[]                                                     $codeception_arguments Additional arguments.
  * @param string                                                       $temp_dir              Temporary directory.
@@ -371,11 +441,11 @@ function hcaptcha_run_test_processes(
 	string $codecept,
 	string $suite,
 	array $units,
+	array $all_files,
 	int $process_count,
 	array $codeception_arguments,
 	string $temp_dir
 ): int {
-	$all_files  = array_merge( ...array_column( $units, 'files' ) );
 	$task_count = count( $units );
 
 	foreach ( $units as $task_index => &$unit ) {
@@ -632,4 +702,6 @@ function hcaptcha_remove_parallel_temp_dir( string $directory ): void {
 	rmdir( $directory );
 }
 
-exit( hcaptcha_run_parallel_tests( array_slice( $argv, 1 ) ) );
+if ( isset( $argv[0] ) && realpath( $argv[0] ) === __FILE__ ) {
+	exit( hcaptcha_run_parallel_tests( array_slice( $argv, 1 ) ) );
+}

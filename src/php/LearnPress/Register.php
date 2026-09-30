@@ -48,7 +48,10 @@ class Register {
 	 * @return void
 	 */
 	public function add_hcaptcha(): void {
-		if ( ! did_action( 'learn-press/after-form-register-fields' ) ) {
+		if (
+			! did_action( 'learn-press/after-form-register-fields' ) ||
+			doing_action( 'learn-press/after-checkout-form' )
+		) {
 			return;
 		}
 

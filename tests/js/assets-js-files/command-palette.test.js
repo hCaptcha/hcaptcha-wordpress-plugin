@@ -99,4 +99,42 @@ describe( 'command-palette.js', () => {
 
 		expect( registerCommand ).not.toHaveBeenCalled();
 	} );
+
+	test( 'handles missing configuration and a non-array command list', () => {
+		const { registerCommand } = bootCommandPalette( { commands: 'invalid' } );
+
+		expect( registerCommand ).not.toHaveBeenCalled();
+
+		delete window.HCaptchaCommandPaletteObject;
+		window.hCaptchaCommandPalette();
+
+		expect( registerCommand ).not.toHaveBeenCalled();
+	} );
+
+	test( 'returns when the command store has no register function', () => {
+		const { dispatch, registerCommand } = bootCommandPalette( {}, {
+			data: { dispatch: () => ( {} ) },
+		} );
+
+		expect( dispatch ).not.toHaveBeenCalled();
+		expect( registerCommand ).not.toHaveBeenCalled();
+	} );
+
+	test( 'uses command defaults and navigates without a close callback', () => {
+		const url = `${ window.location.origin }/#hcaptcha-command`;
+		const { registerCommand } = bootCommandPalette( {
+			commands: [ { name: 'hcaptcha/defaults', label: 'Defaults', url } ],
+		} );
+		const command = registerCommand.mock.calls[ 0 ][ 0 ];
+
+		expect( command ).toEqual( expect.objectContaining( {
+			searchLabel: 'Defaults',
+			category: 'view',
+			keywords: [],
+		} ) );
+
+		command.callback();
+
+		expect( window.location.href ).toBe( url );
+	} );
 } );

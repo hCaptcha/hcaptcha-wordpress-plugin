@@ -8,7 +8,9 @@
 namespace HCaptcha\Tests\Unit\MigrationWizard;
 
 use HCaptcha\MigrationWizard\DetectionResult;
+use HCaptcha\MigrationWizard\Detectors\EssentialBlocksDetector;
 use HCaptcha\MigrationWizard\Detectors\MetFormDetector;
+use HCaptcha\MigrationWizard\Detectors\TutorLMSDetector;
 use HCaptcha\MigrationWizard\Scanner;
 use HCaptcha\MigrationWizard\SourceDetectorInterface;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
@@ -108,6 +110,8 @@ class ScannerTest extends HCaptchaTestCase {
 		$detectors = array_map( 'get_class', $scanner->get_detectors() );
 
 		self::assertContains( MetFormDetector::class, $detectors );
+		self::assertContains( EssentialBlocksDetector::class, $detectors );
+		self::assertContains( TutorLMSDetector::class, $detectors );
 	}
 
 	/**

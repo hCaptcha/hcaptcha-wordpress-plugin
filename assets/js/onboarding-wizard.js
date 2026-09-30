@@ -83,7 +83,7 @@ const onboarding = function( $ ) {
 
 	function stepNumber( stepStr ) {
 		// 'step 3' -> 3
-		const m = /step\s(\d+)/.exec( stepStr || '' );
+		const m = /step\s(\d+)/.exec( stepStr );
 
 		return m ? parseInt( m[ 1 ], 10 ) : 1;
 	}
@@ -110,7 +110,7 @@ const onboarding = function( $ ) {
 	function buildUrl( base, params ) {
 		const url = new URL( base, window.location.origin );
 
-		Object.keys( params || {} ).forEach( function( key ) {
+		Object.keys( params ).forEach( function( key ) {
 			if ( params[ key ] === undefined || params[ key ] === null || params[ key ] === '' ) {
 				return;
 			}
@@ -374,23 +374,25 @@ const onboarding = function( $ ) {
 
 		// Convert the provided URL to embed URL (supports YouTube and youtube.com/watch?v=)
 		function toEmbedUrl( url ) {
+			let original = '';
+
 			try {
-				const u = String( url || '' );
+				original = String( url || '' );
 				let id = '';
 
-				if ( u.indexOf( 'youtu.be/' ) !== -1 ) {
-					id = u.split( 'youtu.be/' )[ 1 ].split( /[?&#]/ )[ 0 ];
-				} else if ( u.indexOf( 'watch?v=' ) !== -1 ) {
-					id = u.split( 'watch?v=' )[ 1 ].split( /[?&#]/ )[ 0 ];
+				if ( original.indexOf( 'youtu.be/' ) !== -1 ) {
+					id = original.split( 'youtu.be/' )[ 1 ].split( /[?&#]/ )[ 0 ];
+				} else if ( original.indexOf( 'watch?v=' ) !== -1 ) {
+					id = original.split( 'watch?v=' )[ 1 ].split( /[?&#]/ )[ 0 ];
 				}
 
 				if ( ! id ) {
-					return u;
+					return original;
 				}
 
 				return 'https://www.youtube.com/embed/' + encodeURIComponent( id ) + '?autoplay=1&rel=0';
 			} catch {
-				return String( url || '' );
+				return original;
 			}
 		}
 

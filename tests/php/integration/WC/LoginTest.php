@@ -8,9 +8,11 @@
 namespace HCaptcha\Tests\Integration\WC;
 
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\LoginAttempts;
 use HCaptcha\WC\Login;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
+use WP_User;
 
 /**
  * Test Login class.
@@ -19,6 +21,15 @@ use WP_Error;
  * @group wc
  */
 class LoginTest extends WooCommerceTestCase {
+
+	/**
+	 * Tear down the test.
+	 */
+	public function tearDown(): void {
+		LoginAttempts::delete_all();
+
+		parent::tearDown();
+	}
 
 	/**
 	 * Test constructor and init_hooks().
@@ -110,6 +121,49 @@ class LoginTest extends WooCommerceTestCase {
 			$validation_error,
 			apply_filters( 'woocommerce_process_login_errors', $validation_error )
 		);
+	}
+
+	/**
+	 * Test shared bounded login failures and a successful-login reset.
+	 */
+	public function test_login_limit_uses_shared_bounded_store(): void {
+		$ip = '203.0.113.15';
+
+		update_option(
+			'hcaptcha_settings',
+			[
+				'login_limit'    => 2,
+				'login_interval' => 15,
+			]
+		);
+		hcaptcha()->init_hooks();
+
+		$subject = new Login();
+		$this->set_protected_property( $subject, 'ip', $ip );
+
+		$method = $this->set_method_accessibility( $subject, 'is_login_limit_exceeded' );
+
+		self::assertFalse( $method->invoke( $subject ) );
+
+		$subject->login_failed( 'test-user' );
+		$subject->login_failed( 'test-user' );
+
+		self::assertTrue( $method->invoke( $subject ) );
+
+		$successful_request = new Login();
+		$attempts           = $this->get_protected_property( $successful_request, 'login_attempts' );
+
+		$this->set_protected_property( $successful_request, 'ip', $ip );
+		$this->set_protected_property(
+			$successful_request,
+			'login_attempts_reset_token',
+			$attempts->get_reset_token( $ip, time() )
+		);
+		$successful_request->login( 'test-user', new WP_User() );
+
+		self::assertFalse( $method->invoke( $subject ) );
+
+		$method->setAccessible( false );
 	}
 
 	/**

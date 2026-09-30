@@ -13,6 +13,11 @@ namespace HCaptcha\WPDiscuz;
 abstract class Base {
 
 	/**
+	 * Script handle.
+	 */
+	private const HANDLE = 'hcaptcha-wpdiscuz-comment';
+
+	/**
 	 * Class constructor.
 	 */
 	public function __construct() {
@@ -61,12 +66,22 @@ abstract class Base {
 	}
 
 	/**
-	 * Dequeue recaptcha script.
+	 * Dequeue reCaptcha script and enqueue the integration script.
 	 *
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
 		wp_dequeue_script( 'wpdiscuz-google-recaptcha' );
 		wp_deregister_script( 'wpdiscuz-google-recaptcha' );
+
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			self::HANDLE,
+			HCAPTCHA_URL . "/assets/js/hcaptcha-wpdiscuz-comment$min.js",
+			[],
+			HCAPTCHA_VERSION,
+			true
+		);
 	}
 }

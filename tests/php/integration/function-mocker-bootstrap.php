@@ -82,6 +82,10 @@ function hcaptcha_get_function_mocker_external_plugin_whitelist( string $wp_root
 		$paths[] = $wp_root_path . '/wp-content/plugins/' . $plugin_slug;
 	}
 
+	$paths[] = $wp_root_path . '/wp-content/plugins/learnpress/inc/class-lp-checkout.php';
+	$paths[] = $wp_root_path . '/wp-content/plugins/learnpress/inc/lp-core-functions.php';
+	$paths[] = $wp_root_path . '/wp-content/plugins/woocommerce/includes/wc-notice-functions.php';
+
 	return $paths;
 }
 

@@ -178,7 +178,9 @@ class OnboardingWizard {
 	 * @return bool
 	 */
 	public static function verify_request( string $action ): bool {
-		if ( ! current_user_can( 'manage_options' ) ) {
+		$tab = hcaptcha()->settings()->get_tab( General::class );
+
+		if ( ! $tab || ! $tab->can_manage_settings() ) {
 			return false;
 		}
 
@@ -338,7 +340,7 @@ class OnboardingWizard {
 			wp_send_json_error( esc_html__( 'Your session has expired. Please reload the page.', 'hcaptcha-for-forms-and-more' ) );
 		}
 
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! $this->tab->can_manage_settings() ) {
 			wp_send_json_error( esc_html__( 'You are not allowed to perform this action.', 'hcaptcha-for-forms-and-more' ) );
 		}
 

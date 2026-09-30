@@ -189,7 +189,7 @@ const notifications = ( $ ) => {
 
 	// Test hook for Jest
 	// noinspection JSUnresolvedReference
-	if ( typeof jest !== 'undefined' ) {
+	if ( window.__hCaptchaTestMode ) {
 		window.__notificationsTest = {
 			handleNavClick,
 			setNavStatus,

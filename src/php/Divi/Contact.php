@@ -9,6 +9,7 @@ namespace HCaptcha\Divi;
 
 use ET\Builder\FrontEnd\BlockParser\BlockParserStore;
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use HCaptcha\Helpers\Utils;
@@ -18,6 +19,7 @@ use WP_Block;
  * Class Contact
  */
 class Contact {
+	use Component;
 
 	/**
 	 * Contact form's shortcode tag.
@@ -378,17 +380,19 @@ class Contact {
 
 			$type = $field['field_type'];
 
-			if ( ! in_array( $type, [ 'input', 'email', 'text' ], true ) ) {
-				continue;
-			}
-
 			$id          = $field['field_id'];
 			$original_id = $field['original_id'];
 			$label       = $field['field_label'];
 			$label       = $label ?: $type;
-			$value       = Request::filter_input( INPUT_POST, $id );
 
-			$entry['data'][ $label ] = $value;
+			if ( ! EntryData::is_content_field_type( (string) $type ) ||
+				EntryData::has_sensitive_field( (string) $id, (string) $original_id, (string) $label ) ) {
+				continue;
+			}
+
+			$value = Request::filter_input( INPUT_POST, $id );
+
+			EntryData::add_field( $entry['data'], (string) $label, $value, (string) $id );
 
 			if ( 'name' === $original_id ) {
 				$entry['name'] = $value;
@@ -409,7 +413,7 @@ class Contact {
 	 */
 	private function get_expected_id(): array {
 		return [
-			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'source'  => $this->get_active_divi_source( __CLASS__ ),
 			'form_id' => 'contact',
 		];
 	}

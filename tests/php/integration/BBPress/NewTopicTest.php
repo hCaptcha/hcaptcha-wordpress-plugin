@@ -88,9 +88,32 @@ class NewTopicTest extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
+	 * Test new topic fields reach the anti-spam entry.
+	 *
+	 * @return void
+	 * @noinspection PhpArrayWriteIsNotUsedInspection
+	 */
+	public function test_entry_data(): void {
+		$_POST = [
+			'bbp_topic_title'     => 'A new topic',
+			'bbp_topic_content'   => 'A useful question',
+			'bbp_anonymous_email' => 'guest@example.com',
+			'bbp_password'        => 'do-not-copy',
+		];
+
+		$subject = new NewTopic();
+		$entry   = $this->set_method_accessibility( $subject, 'get_entry' )->invoke( $subject );
+
+		self::assertSame( 'guest@example.com', $entry['data']['email'] );
+		self::assertSame( 'A new topic', $entry['data']['title'] );
+		self::assertArrayNotHasKey( 'bbp_password', $entry['data'] );
+	}
+
+	/**
 	 * Test hCaptcha in the live bbPress new-topic shortcode.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_live_new_topic_form(): void {
 		$user_id = $this->factory()->user->create( [ 'role' => 'administrator' ] );

@@ -9,6 +9,7 @@ namespace HCaptcha\WP;
 
 use HCaptcha\Abstracts\RegisterBase;
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 
@@ -80,7 +81,6 @@ class Register extends RegisterBase {
 	 * @param string         $user_email           User's email.
 	 *
 	 * @return WP_Error|mixed
-	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $errors, string $sanitized_user_login, string $user_email ) {
 		if ( ! $this->is_login_action() ) {
@@ -97,10 +97,20 @@ class Register extends RegisterBase {
 			return HCaptcha::add_error_message( $errors, hcap_get_error_messages()['bad-signature'] );
 		}
 
+		$data             = EntryData::from_post(
+			[
+				'username' => 'user_login',
+				'email'    => 'user_email',
+			]
+		);
+		$data['username'] = $sanitized_user_login;
+		$data['email']    = sanitize_email( $user_email );
+
 		$error_message = API::verify(
 			[
 				'nonce_name'   => self::NONCE,
 				'nonce_action' => self::ACTION,
+				'data'         => $data,
 				'expected_id'  => $this->get_expected_id(),
 			]
 		);

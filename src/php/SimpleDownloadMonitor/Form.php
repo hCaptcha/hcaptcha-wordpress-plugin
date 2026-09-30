@@ -94,14 +94,8 @@ class Form {
 			return;
 		}
 
-		// phpcs:disable WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
-		$_POST['h-captcha-response'] = $_GET['h-captcha-response'] ?? '';
-		$_POST[ self::NONCE ]        = $_GET[ self::NONCE ] ?? '';
-		// phpcs:enable WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
-
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
-
-		unset( $_POST['h-captcha-response'], $_POST[ self::NONCE ] );
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$error_message = API::verify_post_data( self::NONCE, self::ACTION, $_GET );
 
 		if ( null === $error_message ) {
 			return;

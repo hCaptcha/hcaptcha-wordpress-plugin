@@ -5,6 +5,11 @@
  * @package HCaptcha\Tests
  */
 
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedNamespaceInspection */
+/** @noinspection PhpUndefinedClassInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
+
 namespace HCaptcha\Tests\Integration\UM;
 
 use HCaptcha\Helpers\HCaptcha;
@@ -12,6 +17,7 @@ use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use HCaptcha\UM\Login;
 use Mockery;
 use ReflectionClass;
+use um\core\Shortcodes;
 
 /**
  * Class LoginTest.
@@ -47,6 +53,8 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test a live Ultimate Member login form.
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_live_login_form(): void {
 		wp_set_current_user( 0 );
@@ -68,7 +76,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 		update_post_meta( $form_id, '_um_template', 'login' );
 
 		$integration = new Login();
-		$class_file  = wp_normalize_path( ( new ReflectionClass( \um\core\Shortcodes::class ) )->getFileName() );
+		$class_file  = wp_normalize_path( ( new ReflectionClass( Shortcodes::class ) )->getFileName() );
 		$form_data   = UM()->query()->post_data( $form_id );
 		$form_args   = array_merge( $form_data, UM()->shortcodes()->get_css_args( $form_data ) );
 
@@ -79,7 +87,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 		self::assertTrue( is_plugin_active( static::$plugin ) );
 		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/ultimate-member/' ), $class_file );
 		self::assertTrue( shortcode_exists( 'ultimatemember' ) );
-		self::assertSame( \um\core\Shortcodes::class, get_class( $GLOBALS['shortcode_tags']['ultimatemember'][0] ) );
+		self::assertSame( Shortcodes::class, get_class( $GLOBALS['shortcode_tags']['ultimatemember'][0] ) );
 		self::assertSame( 'ultimatemember', $GLOBALS['shortcode_tags']['ultimatemember'][1] );
 		self::assertSame( 'um_form', get_post_type( $form_id ) );
 		self::assertSame( 'publish', get_post_status( $form_id ) );
@@ -128,6 +136,25 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 			10,
 			has_action( 'login_errors', [ $subject, 'mute_login_hcaptcha_notice' ] )
 		);
+	}
+
+	/**
+	 * Test Ultimate Member entry data without the login password.
+	 *
+	 * @return void
+	 */
+	public function test_entry_data(): void {
+		$subject = $this->get_subject();
+		$entry   = $this->set_method_accessibility( $subject, 'get_entry' )->invoke(
+			$subject,
+			[
+				'username'      => 'member@example.com',
+				'user_password' => 'do-not-copy',
+			]
+		);
+
+		self::assertSame( 'member@example.com', $entry['data']['username'] );
+		self::assertArrayNotHasKey( 'user_password', $entry['data'] );
 	}
 
 	/**

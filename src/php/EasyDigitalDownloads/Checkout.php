@@ -16,6 +16,11 @@ use HCaptcha\Helpers\HCaptcha;
 class Checkout {
 
 	/**
+	 * Script handle.
+	 */
+	private const HANDLE = 'hcaptcha-easy-digital-downloads';
+
+	/**
 	 * Nonce action.
 	 */
 	private const ACTION = 'hcaptcha_easy_digital_downloads_register';
@@ -48,6 +53,8 @@ class Checkout {
 	 * @return void
 	 */
 	public function add_captcha(): void {
+		$this->enqueue_scripts();
+
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
@@ -61,7 +68,24 @@ class Checkout {
 	}
 
 	/**
-	 * Verify checkout form.
+	 * Enqueue Easy Digital Downloads script.
+	 *
+	 * @return void
+	 */
+	public function enqueue_scripts(): void {
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			self::HANDLE,
+			HCAPTCHA_URL . "/assets/js/hcaptcha-easy-digital-downloads$min.js",
+			[ 'jquery' ],
+			HCAPTCHA_VERSION,
+			true
+		);
+	}
+
+	/**
+	 * Verify the checkout form.
 	 *
 	 * @param array|mixed $errors Errors.
 	 *

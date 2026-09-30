@@ -15,6 +15,7 @@ namespace HCaptcha\Tests\Integration\Helpers;
 use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\CF7\CF7;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Settings\General;
 use HCaptcha\Settings\Integrations;
 use HCaptcha\Settings\PluginSettingsBase;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
@@ -76,6 +77,25 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 			),
 			HCaptcha::form( $args )
 		);
+	}
+
+	/**
+	 * AJAX submission can use the integration's verifier while keeping the old default.
+	 */
+	public function test_ajax_form_with_explicit_auto_verification_setting(): void {
+		$explicit = HCaptcha::form(
+			[
+				'ajax' => true,
+				'auto' => false,
+			]
+		);
+
+		self::assertStringContainsString( 'data-ajax="true"', $explicit );
+		self::assertStringContainsString( 'data-auto="false"', $explicit );
+
+		$implicit = HCaptcha::form( [ 'ajax' => true ] );
+
+		self::assertStringContainsString( 'data-auto="true"', $implicit );
 	}
 
 	/**
@@ -142,6 +162,111 @@ class HCaptchaTest extends HCaptchaWPTestCase {
 		ob_start();
 		HCaptcha::form_display( $args );
 		self::assertFalse( strpos( ob_get_clean(), '<h-captcha' ) );
+	}
+
+	/**
+	 * Test the optional invisible hCaptcha disclosure.
+	 */
+	public function test_form_display_invisible_disclosure(): void {
+		$disclosure_class = 'hcaptcha-invisible-disclosure';
+		$filter_calls     = 0;
+
+		update_option( 'hcaptcha_settings', [ 'size' => 'invisible' ] );
+		hcaptcha()->init_hooks();
+
+		self::assertStringNotContainsString(
+			$disclosure_class,
+			HCaptcha::form()
+		);
+
+		$filter = static function ( $display, array $args, array $widget_params ) use ( &$filter_calls ): bool {
+			++$filter_calls;
+
+			self::assertFalse( $display );
+			self::assertSame( 'invisible', $args['size'] );
+			self::assertSame( 'invisible', $widget_params['size'] );
+
+			return true;
+		};
+
+		add_filter( 'hcap_print_invisible_disclosure', $filter, 10, 3 );
+
+		try {
+			$form = HCaptcha::form();
+
+			self::assertStringContainsString( $disclosure_class, $form );
+			self::assertStringContainsString( 'This site is protected by hCaptcha.<br>Its ', $form );
+			self::assertStringContainsString( 'https://www.hcaptcha.com/privacy', $form );
+			self::assertStringContainsString( 'https://www.hcaptcha.com/terms', $form );
+
+			$normal_form = HCaptcha::form( [ 'size' => 'normal' ] );
+
+			self::assertStringNotContainsString( $disclosure_class, $normal_form );
+			self::assertSame( 1, $filter_calls );
+		} finally {
+			remove_filter( 'hcap_print_invisible_disclosure', $filter );
+		}
+	}
+
+	/**
+	 * Test documented widget render parameters.
+	 */
+	public function test_form_display_widget_params(): void {
+		$received_args = null;
+		$filter        = static function ( array $params, array $args ) use ( &$received_args ): array {
+			$received_args                   = $args;
+			$params['open-callback']         = 'callbacks.onOpen';
+			$params['close-callback']        = 'callbacks.onClose';
+			$params['error-callback']        = 'callbacks.onError';
+			$params['orientation']           = 'landscape';
+			$params['unsupported-parameter'] = 'ignored';
+
+			return $params;
+		};
+
+		add_filter( 'hcap_widget_params', $filter, 10, 2 );
+
+		try {
+			$form = HCaptcha::form(
+				[
+					'id'            => [ 'form_id' => 123 ],
+					'widget_params' => [
+						'hl'                    => 'fr',
+						'tabindex'              => -1,
+						'callback'              => 'callbacks.onSuccess',
+						'expired-callback'      => 'callbacks.onExpired',
+						'chalexpired-callback'  => 'callbacks.onChallengeExpired',
+						'unsupported-parameter' => 'ignored',
+					],
+				]
+			);
+		} finally {
+			remove_filter( 'hcap_widget_params', $filter );
+		}
+
+		self::assertSame( 123, $received_args['id']['form_id'] );
+		self::assertStringContainsString( 'data-hl="fr"', $form );
+		self::assertStringContainsString( 'data-tabindex="-1"', $form );
+		self::assertStringContainsString( 'data-callback="callbacks.onSuccess"', $form );
+		self::assertStringContainsString( 'data-expired-callback="callbacks.onExpired"', $form );
+		self::assertStringContainsString( 'data-chalexpired-callback="callbacks.onChallengeExpired"', $form );
+		self::assertStringContainsString( 'data-open-callback="callbacks.onOpen"', $form );
+		self::assertStringContainsString( 'data-close-callback="callbacks.onClose"', $form );
+		self::assertStringContainsString( 'data-error-callback="callbacks.onError"', $form );
+		self::assertStringContainsString( 'data-orientation="landscape"', $form );
+		self::assertStringNotContainsString( 'unsupported-parameter', $form );
+
+		$form = HCaptcha::form(
+			[
+				'widget_params' => [
+					'tabindex'    => 'not-an-integer',
+					'orientation' => 'upside-down',
+				],
+			]
+		);
+
+		self::assertStringNotContainsString( 'data-tabindex=', $form );
+		self::assertStringNotContainsString( 'data-orientation=', $form );
 	}
 
 	/**
@@ -704,6 +829,8 @@ JS;
 			[ 'zh_SG', 'zh' ],
 			[ 'bal', 'ca' ],
 			[ 'hau', 'ha' ],
+			[ 'me_ME', 'me' ],
+			[ 'pt_BR', 'pt-BR' ],
 			[ 'some', '' ],
 		];
 	}
@@ -859,7 +986,16 @@ JS;
 	 * @return void
 	 */
 	public function test_save_license_level(): void {
-		update_option( PluginSettingsBase::OPTION_NAME, [ 'license' => 'old' ] );
+		update_option(
+			PluginSettingsBase::OPTION_NAME,
+			[
+				'license'    => 'old',
+				'mode'       => General::MODE_TEST_ENTERPRISE_SAFE_END_USER,
+				'secret_key' => 'live-secret-key',
+				'site_key'   => 'live-site-key',
+			]
+		);
+		hcaptcha()->settings()->init();
 
 		$this->save_license_level_with_response( new WP_Error( 'remote-error', 'Remote failed.' ) );
 
@@ -890,6 +1026,54 @@ JS;
 		);
 
 		self::assertSame( 'pro', get_option( PluginSettingsBase::OPTION_NAME )['license'] );
+
+		$option            = get_option( PluginSettingsBase::OPTION_NAME );
+		$option['license'] = 'enterprise';
+
+		update_option( PluginSettingsBase::OPTION_NAME, $option );
+
+		$this->save_license_level_with_response(
+			[
+				'body' => wp_json_encode(
+					[
+						'pass'     => true,
+						'features' => [ 'custom_theme' => true ],
+					]
+				),
+			]
+		);
+
+		self::assertSame( 'enterprise', get_option( PluginSettingsBase::OPTION_NAME )['license'] );
+	}
+
+	/**
+	 * Test save_license_level() without Live keys.
+	 *
+	 * @return void
+	 */
+	public function test_save_license_level_without_live_keys(): void {
+		foreach (
+			[
+				[ '', '' ],
+				[ 'live-site-key', '' ],
+				[ '', 'live-secret-key' ],
+			] as [ $site_key, $secret_key ]
+		) {
+			update_option(
+				PluginSettingsBase::OPTION_NAME,
+				[
+					'license'    => 'enterprise',
+					'mode'       => General::MODE_TEST_ENTERPRISE_SAFE_END_USER,
+					'secret_key' => $secret_key,
+					'site_key'   => $site_key,
+				]
+			);
+			hcaptcha()->settings()->init();
+
+			HCaptcha::save_license_level();
+
+			self::assertSame( 'free', get_option( PluginSettingsBase::OPTION_NAME )['license'] );
+		}
 	}
 
 	/**

@@ -159,16 +159,20 @@ class RegisterTest extends HCaptchaWPTestCase {
 	 * Test verify() when the register action is submitted in POST.
 	 */
 	public function test_verify_with_post_action(): void {
-		$_POST['action'] = 'register';
+		$_POST['action']      = 'register';
+		$_POST['Ваше мнение'] = 'Useful feedback';
+		$_POST['pass1']       = 'do-not-copy';
 		$this->prepare_widget_id();
 
 		$verify_called = false;
+		$entry_data    = [];
 		$errors        = new WP_Error( 'some error' );
 
 		FunctionMocker::replace(
 			'HCaptcha\Helpers\API::verify',
-			static function () use ( &$verify_called ) {
+			static function ( array $entry ) use ( &$verify_called, &$entry_data ) {
 				$verify_called = true;
+				$entry_data    = $entry['data'];
 
 				return null;
 			}
@@ -178,6 +182,8 @@ class RegisterTest extends HCaptchaWPTestCase {
 
 		self::assertSame( $errors, $subject->verify( $errors, '', '' ) );
 		self::assertTrue( $verify_called );
+		self::assertSame( 'Useful feedback', $entry_data['Ваше мнение'] );
+		self::assertArrayNotHasKey( 'pass1', $entry_data );
 	}
 
 	/**

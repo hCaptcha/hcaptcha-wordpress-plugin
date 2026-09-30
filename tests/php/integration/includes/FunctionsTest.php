@@ -80,6 +80,23 @@ class FunctionsTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Keep the ajax shortcode shorthand without coupling the form arguments.
+	 */
+	public function test_ajax_shortcode_auto_verification_compatibility(): void {
+		hcaptcha()->init_hooks();
+
+		$implicit = do_shortcode( '[hcaptcha ajax="true"]' );
+
+		self::assertStringContainsString( 'data-ajax="true"', $implicit );
+		self::assertStringContainsString( 'data-auto="true"', $implicit );
+
+		$explicit = do_shortcode( '[hcaptcha ajax="true" auto="false"]' );
+
+		self::assertStringContainsString( 'data-ajax="true"', $explicit );
+		self::assertStringContainsString( 'data-auto="false"', $explicit );
+	}
+
+	/**
 	 * Data provider for test_hcap_shortcode().
 	 *
 	 * @return array

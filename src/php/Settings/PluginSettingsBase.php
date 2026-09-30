@@ -413,7 +413,7 @@ abstract class PluginSettingsBase extends SettingsBase {
 		}
 
 		// Check for permissions.
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! $this->can_manage_settings() ) {
 			wp_send_json_error( esc_html__( 'You are not allowed to perform this action.', 'hcaptcha-for-forms-and-more' ) );
 		}
 	}

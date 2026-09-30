@@ -16,6 +16,7 @@ coverage/
 docs/tasks/
 node_modules/
 vendor/
+/vendor_prefixed/
 
 .php-scoper/composer.lock
 *.lock

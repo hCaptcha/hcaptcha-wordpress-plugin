@@ -112,10 +112,7 @@ class Form {
 	 * @return void
 	 */
 	public function verify( array $post_data, bool $rest_api ): void {
-
-		$hcaptcha_response = $post_data['h-captcha-response'] ?? '';
-
-		$result = API::verify_request( $hcaptcha_response );
+		$result = API::verify_post_data( self::NONCE, self::ACTION, $post_data );
 
 		if ( null === $result ) {
 			return;
@@ -127,8 +124,19 @@ class Form {
 			wp_send_json( $error_msg, 200 );
 		} else {
 			echo wp_json_encode( $error_msg );
-			die();
+			$this->exit();
 		}
+	}
+
+	/**
+	 * Exit wrapper for test purposes.
+	 *
+	 * @return void
+	 */
+	protected function exit(): void {
+		// @codeCoverageIgnoreStart
+		die();
+		// @codeCoverageIgnoreEnd
 	}
 
 	/**
@@ -162,7 +170,7 @@ class Form {
 	}
 
 	/**
-	 * Add type="module" attribute to script tag.
+	 * Add the type="module" attribute to the script tag.
 	 *
 	 * @param string|mixed $tag    Script tag.
 	 * @param string       $handle Script handle.

@@ -96,11 +96,13 @@ class BrevoDetector extends AbstractDetector {
 	private function has_recaptcha(): bool {
 		global $wpdb;
 
+		$table = esc_sql( $wpdb->prefix . self::TABLE_NAME );
+
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$count = $wpdb->get_var(
 			$wpdb->prepare(
-				'SELECT COUNT(*) FROM %i WHERE gCaptcha != 0 AND selectCaptchaType != %d AND gCaptcha_site != %s AND gCaptcha_secret != %s',
-				$wpdb->prefix . self::TABLE_NAME,
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT COUNT(*) FROM `$table` WHERE gCaptcha != 0 AND selectCaptchaType != %d AND gCaptcha_site != %s AND gCaptcha_secret != %s",
 				self::CAPTCHA_TYPE_TURNSTILE,
 				'',
 				''
@@ -120,11 +122,13 @@ class BrevoDetector extends AbstractDetector {
 	private function has_turnstile(): bool {
 		global $wpdb;
 
+		$table = esc_sql( $wpdb->prefix . self::TABLE_NAME );
+
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$count = $wpdb->get_var(
 			$wpdb->prepare(
-				'SELECT COUNT(*) FROM %i WHERE gCaptcha != 0 AND selectCaptchaType = %d AND cCaptcha_site != %s AND cCaptcha_secret != %s',
-				$wpdb->prefix . self::TABLE_NAME,
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT COUNT(*) FROM `$table` WHERE gCaptcha != 0 AND selectCaptchaType = %d AND cCaptcha_site != %s AND cCaptcha_secret != %s",
 				self::CAPTCHA_TYPE_TURNSTILE,
 				'',
 				''

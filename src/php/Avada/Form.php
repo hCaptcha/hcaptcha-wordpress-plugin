@@ -8,6 +8,7 @@
 namespace HCaptcha\Avada;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use HCaptcha\Helpers\Utils;
@@ -134,12 +135,6 @@ class Form {
 			: [];
 		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
-		$_POST['hcaptcha-widget-id'] = $form_data['hcaptcha-widget-id'] ?? '';
-		$_POST['hcap_fst_token']     = $form_data['hcap_fst_token'] ?? '';
-		$hp_name                     = API::get_hp_name( $form_data );
-		$_POST[ $hp_name ]           = $form_data[ $hp_name ] ?? '';
-		$_POST['hcap_hp_sig']        = $form_data['hcap_hp_sig'] ?? '';
-
 		$result = API::verify( $this->get_entry( $form_data ) );
 
 		if ( null === $result ) {
@@ -200,6 +195,7 @@ class Form {
 		$entry = [
 			'h-captcha-response' => $form_data['h-captcha-response'] ?? '',
 			'form_date_gmt'      => $form->post_modified_gmt ?? null,
+			'post_data'          => $form_data,
 			'data'               => [],
 		];
 
@@ -212,11 +208,11 @@ class Form {
 		foreach ( $form_data as $key => $value ) {
 			$type = $field_types[ $key ] ?? '';
 
-			if ( ! in_array( $type, [ 'text', 'email', 'textarea' ], true ) ) {
+			if ( ! is_string( $type ) || ! EntryData::is_content_field_type( $type ) || EntryData::is_sensitive_field( (string) $key ) ) {
 				continue;
 			}
 
-			$entry['data'][ $key ] = $value;
+			EntryData::add_field( $entry['data'], (string) $key, $value );
 		}
 
 		return $entry;

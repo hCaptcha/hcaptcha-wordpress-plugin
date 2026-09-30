@@ -14,6 +14,7 @@
 namespace HCaptcha\NF;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use HCaptcha\Helpers\Utils;
@@ -160,7 +161,7 @@ class Field extends NF_Abstracts_Field implements Base {
 			$label    = $settings['label'];
 			$value    = $field['value'];
 
-			if ( 'submit' === $type ) {
+			if ( ! EntryData::is_content_field_type( (string) $type ) || EntryData::has_sensitive_field( (string) $key, (string) $label ) ) {
 				continue;
 			}
 
@@ -172,10 +173,10 @@ class Field extends NF_Abstracts_Field implements Base {
 				$entry['data']['email'] = $value;
 			}
 
-			$entry['data'][ $label ] = $value;
+			EntryData::add_field( $entry['data'], (string) $label, $value, (string) $id );
 		}
 
-		$entry['data']['name'] = implode( ' ', $name ) ?: null;
+		EntryData::add_name( $entry['data'], $name );
 
 		return $entry;
 	}

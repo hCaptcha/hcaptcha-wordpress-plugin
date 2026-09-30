@@ -12,6 +12,7 @@ namespace HCaptcha\BeaverBuilder;
 
 use FLBuilderModule;
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\Request;
 use stdClass;
 
@@ -113,16 +114,14 @@ class Contact extends Base {
 	 * @return array
 	 */
 	private function get_data(): array {
-		$data = [];
-
-		foreach ( [ 'name', 'subject', 'email', 'phone', 'message' ] as $field ) {
-			$value = Request::filter_input( INPUT_POST, $field );
-
-			if ( '' !== $value ) {
-				$data[ $field ] = $value;
-			}
-		}
-
-		return $data;
+		return EntryData::from_post(
+			[
+				'name'    => 'name',
+				'subject' => 'subject',
+				'email'   => 'email',
+				'phone'   => 'phone',
+				'message' => 'message',
+			]
+		);
 	}
 }

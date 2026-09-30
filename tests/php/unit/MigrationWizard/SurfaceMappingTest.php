@@ -50,6 +50,7 @@ class SurfaceMappingTest extends HCaptchaTestCase {
 		self::assertTrue( SurfaceMapping::is_supported( 'wc_checkout' ) );
 		self::assertTrue( SurfaceMapping::is_supported( 'cf7_form' ) );
 		self::assertTrue( SurfaceMapping::is_supported( 'metform_form' ) );
+		self::assertTrue( SurfaceMapping::is_supported( 'essential_blocks_form' ) );
 		self::assertFalse( SurfaceMapping::is_supported( 'nonexistent' ) );
 	}
 
@@ -66,6 +67,7 @@ class SurfaceMappingTest extends HCaptchaTestCase {
 		self::assertContains( 'wc_checkout', $ids );
 		self::assertContains( 'cf7_form', $ids );
 		self::assertContains( 'metform_form', $ids );
+		self::assertContains( 'essential_blocks_form', $ids );
 	}
 
 	/**
@@ -80,6 +82,7 @@ class SurfaceMappingTest extends HCaptchaTestCase {
 		self::assertArrayHasKey( 'wp_login', $all );
 		self::assertArrayHasKey( 'wc_login', $all );
 		self::assertArrayHasKey( 'metform_form', $all );
+		self::assertArrayHasKey( 'essential_blocks_form', $all );
 	}
 
 	/**

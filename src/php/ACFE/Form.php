@@ -8,6 +8,7 @@
 namespace HCaptcha\ACFE;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use HCaptcha\Helpers\Utils;
@@ -170,7 +171,7 @@ class Form {
 
 		if ( is_admin() ) {
 			// In admin, the recaptcha field is required and $valid set to false in the acf_validate_value().
-			// So,we fix it.
+			// So, we fix it.
 			return true;
 		}
 
@@ -258,11 +259,15 @@ class Form {
 		$name = [];
 
 		foreach ( $acf_data as $field_key => $value ) {
-			if ( '_validate_email' === $field_key || '' === $value ) {
+			if ( '_validate_email' === $field_key ) {
 				continue;
 			}
 
-			$value = implode( ' ', (array) $value );
+			$value = $this->sanitize_acf_value( $value );
+
+			if ( null === $value || '' === $value || [] === $value ) {
+				continue;
+			}
 
 			$acf_field = acf_get_field( $field_key );
 			$acf_field = is_array( $acf_field ) ? $acf_field : [];
@@ -278,29 +283,68 @@ class Form {
 			$label      = $acf_field['label'];
 			$type       = $acf_field['type'];
 			$field_name = $acf_field['name'];
-			$data_key   = $field_name ?: $field_key;
-			$data_key   = $label ?: $data_key;
 
-			if ( '' === $data_key ) {
+			$data_key = $field_name ?: $field_key;
+			$data_key = $label ?: $data_key;
+
+			if ( ! EntryData::is_safe_field( (string) $data_key, (string) $type, (string) $field_name, (string) $label ) ) {
 				continue;
 			}
 
 			$label_name = strtolower( $label );
 
-			if ( 'email' === $type ) {
+			if ( 'email' === $type && is_scalar( $value ) ) {
 				$data['email'] = $value;
 			}
 
-			if ( 'name' === $field_name || 'name' === $label_name ) {
+			if ( ( 'name' === $field_name || 'name' === $label_name ) && is_scalar( $value ) ) {
 				$name[] = $value;
 			}
 
-			$data[ $data_key ] = $value;
+			EntryData::add_field( $data, (string) $data_key, $value, (string) $field_key );
 		}
 
-		$data['name'] = implode( ' ', $name ) ?: null;
+		EntryData::add_name( $data, $name );
 
 		return $data;
+	}
+
+	/**
+	 * Preserve nested ACF answers while excluding sensitive subfields.
+	 *
+	 * @param mixed $value Submitted ACF value.
+	 *
+	 * @return array|string|null
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	private function sanitize_acf_value( $value ) {
+		if ( ! is_array( $value ) ) {
+			return EntryData::sanitize_value( $value );
+		}
+
+		$result = [];
+
+		foreach ( $value as $key => $item ) {
+			$field = acf_get_field( $key );
+			$field = is_array( $field ) ? $field : [];
+
+			if ( EntryData::has_sensitive_field(
+				(string) $key,
+				(string) ( $field['name'] ?? '' ),
+				(string) ( $field['label'] ?? '' ),
+				(string) ( $field['type'] ?? '' )
+			) ) {
+				continue;
+			}
+
+			$sanitized = $this->sanitize_acf_value( $item );
+
+			if ( null !== $sanitized ) {
+				$result[ $key ] = $sanitized;
+			}
+		}
+
+		return $result;
 	}
 
 	/**

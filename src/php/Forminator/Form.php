@@ -13,6 +13,7 @@ namespace HCaptcha\Forminator;
 use Forminator_CForm_Front;
 use Forminator_Front_Action;
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 
@@ -378,6 +379,10 @@ class Form {
 			$id    = $field->raw['element_id'];
 			$type  = $field->raw['type'];
 			$label = $field->raw['field_label'];
+			if ( ! EntryData::is_content_field_type( (string) $type ) || EntryData::has_sensitive_field( (string) $label, (string) $id ) ) {
+				continue;
+			}
+
 			$value = Request::filter_input( INPUT_POST, $id ) ?? '';
 
 			if ( 'name' === $type ) {
@@ -388,10 +393,10 @@ class Form {
 				$entry['data']['email'] = $value;
 			}
 
-			$entry['data'][ $label ] = $value;
+			EntryData::add_field( $entry['data'], (string) $label, $value, (string) $id );
 		}
 
-		$entry['data']['name'] = implode( ' ', $name ) ?: null;
+		EntryData::add_name( $entry['data'], $name );
 
 		return $entry;
 	}

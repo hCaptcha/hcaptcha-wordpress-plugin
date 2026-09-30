@@ -21,6 +21,11 @@ use HCaptcha\Helpers\HCaptcha;
 class Booking {
 
 	/**
+	 * Script handle.
+	 */
+	private const HANDLE = 'hcaptcha-events-manager';
+
+	/**
 	 * Nonce action.
 	 */
 	private const ACTION = 'hcaptcha_events_manager';
@@ -56,6 +61,8 @@ class Booking {
 	 * @return void
 	 */
 	public function add_hcaptcha( EM_Event $event ): void {
+		$this->enqueue_scripts();
+
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
@@ -70,6 +77,23 @@ class Booking {
 			<?php HCaptcha::form_display( $args ); ?>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Enqueue Events Manager script.
+	 *
+	 * @return void
+	 */
+	public function enqueue_scripts(): void {
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			self::HANDLE,
+			HCAPTCHA_URL . "/assets/js/hcaptcha-events-manager$min.js",
+			[ 'jquery' ],
+			HCAPTCHA_VERSION,
+			true
+		);
 	}
 
 	/**

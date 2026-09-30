@@ -14,6 +14,8 @@ namespace HCaptcha\UltimateAddons;
 
 use Elementor\Element_Base;
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
+use HCaptcha\Helpers\Request;
 use HCaptcha\Helpers\HCaptcha;
 use UltimateElementor\Modules\RegistrationForm\Widgets\RegistrationForm as UltimateElementorRegistration;
 
@@ -89,6 +91,15 @@ class Register extends Base {
 			[
 				'nonce_name'   => self::NONCE,
 				'nonce_action' => self::ACTION,
+				'data'         => EntryData::from_array(
+					(array) Request::filter_input( INPUT_POST, 'data' ),
+					[
+						'username'   => 'user_name',
+						'email'      => 'email',
+						'first_name' => 'first_name',
+						'last_name'  => 'last_name',
+					]
+				),
 				'expected_id'  => $this->get_expected_id(),
 			]
 		);

@@ -8,6 +8,7 @@
 namespace HCaptcha\WC;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 
@@ -70,6 +71,12 @@ class Register {
 			[
 				'nonce_name'   => self::NONCE,
 				'nonce_action' => self::ACTION,
+				'data'         => EntryData::from_post(
+					[
+						'username' => 'username',
+						'email'    => 'email',
+					]
+				),
 				'expected_id'  => $this->get_expected_id(),
 			]
 		);

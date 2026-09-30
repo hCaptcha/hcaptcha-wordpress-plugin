@@ -9,6 +9,7 @@ namespace HCaptcha\WC;
 
 use HCaptcha\Abstracts\LoginBase;
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 
@@ -50,6 +51,11 @@ class Login extends LoginBase {
 			[
 				'nonce_name'   => self::NONCE,
 				'nonce_action' => self::ACTION,
+				'data'         => EntryData::from_post(
+					[
+						'username' => 'username',
+					]
+				),
 				'expected_id'  => $this->get_expected_id(),
 			]
 		);

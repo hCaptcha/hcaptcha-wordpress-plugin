@@ -13,6 +13,7 @@
 namespace HCaptcha\Otter;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use ThemeIsle\GutenbergBlocks\Integration\Form_Data_Request;
@@ -239,31 +240,38 @@ class Form {
 			$value = $input['value'];
 			$type  = $input['type'];
 			$id    = $input['id'];
-			$key   = $label ?: $id;
+
+			if ( EntryData::has_sensitive_field( (string) $type, (string) $id, (string) $label ) ) {
+				continue;
+			}
+
+			$key = $label ?: $id;
 
 			if ( '' === $key || '' === $value ) {
 				continue;
 			}
 
-			if ( is_array( $value ) ) {
-				$value = implode( ' ', $value );
+			$value = EntryData::sanitize_value( $value );
+
+			if ( null === $value || [] === $value ) {
+				continue;
 			}
 
 			$mapped_name = $input['metadata']['mappedName'] ?? '';
 			$label_name  = strtolower( $label );
 
-			if ( 'email' === $type ) {
+			if ( 'email' === $type && is_scalar( $value ) ) {
 				$data['email'] = $value;
 			}
 
-			if ( 'name' === $mapped_name || 'name' === $label_name ) {
+			if ( ( 'name' === $mapped_name || 'name' === $label_name ) && is_scalar( $value ) ) {
 				$name[] = $value;
 			}
 
-			$data[ $key ] = $value;
+			EntryData::add_field( $data, (string) $key, $value, (string) $id );
 		}
 
-		$data['name'] = implode( ' ', $name ) ?: null;
+		EntryData::add_name( $data, $name );
 
 		return $data;
 	}
