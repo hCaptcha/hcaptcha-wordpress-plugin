@@ -16,6 +16,7 @@ use HCaptcha\MigrationWizard\Detectors\BrevoDetector;
 use HCaptcha\MigrationWizard\Detectors\CoBlocksDetector;
 use HCaptcha\MigrationWizard\Detectors\DownloadManagerDetector;
 use HCaptcha\MigrationWizard\Detectors\ElementorProDetector;
+use HCaptcha\MigrationWizard\Detectors\EssentialBlocksDetector;
 use HCaptcha\MigrationWizard\Detectors\FluentFormsDetector;
 use HCaptcha\MigrationWizard\Detectors\FormidableFormsDetector;
 use HCaptcha\MigrationWizard\Detectors\ForminatorDetector;
@@ -28,9 +29,9 @@ use HCaptcha\MigrationWizard\Detectors\MailPoetDetector;
 use HCaptcha\MigrationWizard\Detectors\MetFormDetector;
 use HCaptcha\MigrationWizard\Detectors\NinjaFormsDetector;
 use HCaptcha\MigrationWizard\Detectors\OtterDetector;
-use HCaptcha\MigrationWizard\Detectors\PaidMembershipProDetector;
 use HCaptcha\MigrationWizard\Detectors\SpectraDetector;
 use HCaptcha\MigrationWizard\Detectors\SimpleTurnstileDetector;
+use HCaptcha\MigrationWizard\Detectors\TutorLMSDetector;
 use HCaptcha\MigrationWizard\Detectors\WPFormsRecaptchaDetector;
 use HCaptcha\MigrationWizard\Detectors\WordfenceDetector;
 
@@ -81,12 +82,13 @@ class Scanner {
 			new MetFormDetector(),
 			new NinjaFormsDetector(),
 			new OtterDetector(),
-			new PaidMembershipProDetector(),
 			new ACFEDetector(),
 			new BeaverBuilderDetector(),
 			new BrevoDetector(),
 			new DownloadManagerDetector(),
+			new EssentialBlocksDetector(),
 			new SpectraDetector(),
+			new TutorLMSDetector(),
 			new WordfenceDetector(),
 		];
 

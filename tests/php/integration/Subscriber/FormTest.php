@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Tests\Integration\Subscriber;
 
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Subscriber\Form;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 
@@ -16,6 +17,20 @@ use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
  * @group subscriber
  */
 class FormTest extends HCaptchaWPTestCase {
+
+	/**
+	 * Set up the test.
+	 *
+	 * @return void
+	 */
+	public function setUp(): void {
+		parent::setUp();
+
+		hcaptcha()->settings()->set( 'honeypot', 'on' );
+		hcaptcha()->settings()->set( 'set_min_submit_time', 'on' );
+		hcaptcha()->settings()->set( 'subscriber_status', 'form' );
+		$this->set_protected_property( hcaptcha(), 'supported_forms', null );
+	}
 
 	/**
 	 * Tests add_captcha().
@@ -35,7 +50,11 @@ class FormTest extends HCaptchaWPTestCase {
 		$expected = $content . $this->get_hcap_form( $args );
 		$subject  = new Form();
 
-		self::assertSame( $expected, $subject->add_captcha( $content ) );
+		$output = $subject->add_captcha( $content );
+
+		self::assertSame( $expected, $output );
+		self::assertStringContainsString( 'name="hcap_hp_test"', $output );
+		self::assertStringContainsString( 'name="hcap_hp_sig"', $output );
 	}
 
 	/**
@@ -59,5 +78,24 @@ class FormTest extends HCaptchaWPTestCase {
 		$subject = new Form();
 
 		self::assertSame( 'The hCaptcha is invalid.', $subject->verify( true ) );
+	}
+
+	/**
+	 * Test verify() with a filled honeypot.
+	 *
+	 * @return void
+	 */
+	public function test_verify_filled_honeypot(): void {
+		$this->prepare_verify_post( 'hcaptcha_subscriber_form_nonce', 'hcaptcha_subscriber_form' );
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'subscriber/subscriber.php' ],
+				'form_id' => 'form',
+			]
+		);
+		$_POST['hcap_hp_test']                 = 'bot';
+
+		self::assertSame( 'Anti-spam check failed.', ( new Form() )->verify( true ) );
 	}
 }

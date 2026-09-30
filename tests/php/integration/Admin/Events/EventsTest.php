@@ -14,6 +14,7 @@ namespace HCaptcha\Tests\Integration\Admin\Events;
 
 use Exception;
 use HCaptcha\Admin\Events\Events;
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\Settings\General;
@@ -40,6 +41,9 @@ class EventsTest extends HCaptchaWPTestCase {
 
 		// Disable temporary tables creating.
 		remove_all_filters( 'query', 10 );
+
+		update_option( 'hcaptcha_settings', [ 'statistics' => [ 'on' ] ] );
+		hcaptcha()->init_hooks();
 	}
 
 	/**
@@ -98,6 +102,7 @@ class EventsTest extends HCaptchaWPTestCase {
 		$user_agent  = 'some user agent string';
 		$ip          = '1.1.1.1';
 		$option      = [
+			'statistics'              => [ 'on' ],
 			'collect_ua'              => [ 'on' ],
 			'collect_ip'              => [ 'on' ],
 			'anonymous'               => [],
@@ -432,6 +437,7 @@ class EventsTest extends HCaptchaWPTestCase {
 		    KEY uuid (uuid),
 		    KEY date_gmt (date_gmt),
 		    KEY status_date_gmt (status, date_gmt),
+		    KEY status_trashed_at_gmt (status, trashed_at_gmt),
 		    KEY status_source_form (status, source(191), form_id)
 		) $charset_collate";
 		$filter          = static function ( $queries ) use ( &$actual_query ) {
@@ -458,6 +464,7 @@ class EventsTest extends HCaptchaWPTestCase {
 
 		$this->assertSame( [ $expected_query ], $actual_query );
 		self::assertTrue( Events::table_exists() );
+		self::assertTrue( Events::is_retention_schema_ready() );
 	}
 
 	/**
@@ -650,6 +657,7 @@ class EventsTest extends HCaptchaWPTestCase {
 		update_option(
 			'hcaptcha_settings',
 			[
+				'statistics'              => [ 'on' ],
 				'collect_ua'              => [ 'on' ],
 				'collect_ip'              => [ 'on' ],
 				'anonymous'               => [ 'on' ],
@@ -670,6 +678,301 @@ class EventsTest extends HCaptchaWPTestCase {
 
 		self::assertSame( wp_hash( $ip ), $event->ip );
 		self::assertSame( wp_hash( $user_agent ), $event->user_agent );
+	}
+
+	/**
+	 * Test empty API responses remain rejected while sampling and the row cap bound reporting.
+	 *
+	 * @return void
+	 */
+	public function test_verify_request_bounds_anonymous_failure_burst(): void {
+		wp_set_current_user( 0 );
+		$this->drop_table();
+		Events::create_table();
+		$this->prepare_verify_request( '', false );
+
+		$max_rows_filter = static function (): int {
+			return 3;
+		};
+
+		add_filter( 'hcap_events_max_rows', $max_rows_filter );
+
+		try {
+			foreach ( [ 1, 1, 1, 1, 1, 2, 3, 3, 3, 3 ] as $i => $expected_count ) {
+				// Model independent requests without invoking the cleanup scheduler.
+				hcaptcha()->has_result = false;
+				remove_all_filters( 'hcap_verify_request' );
+
+				new Events();
+
+				$entry = [
+					'expected_id' => [
+						'source'  => [ 'WordPress' ],
+						'form_id' => 'burst-' . max( 0, $i - 4 ),
+					],
+				];
+
+				self::assertSame( hcap_get_error_messages()['empty'], API::verify_request( '', $entry ) );
+				self::assertSame( $expected_count, Events::get_events()['total'] );
+			}
+
+			$forms = Events::get_forms();
+
+			self::assertSame( 3, $forms['total'] );
+			self::assertCount( 3, $forms['served'] );
+			self::assertSame( 3, (int) array_sum( array_column( $forms['items'], 'served' ) ) );
+			self::assertSame(
+				[
+					'active' => 3,
+					'trash'  => 0,
+				],
+				Events::get_status_counts()
+			);
+		} finally {
+			remove_filter( 'hcap_events_max_rows', $max_rows_filter );
+		}
+	}
+
+	/**
+	 * Test identical anonymous failures are sampled without changing verification.
+	 *
+	 * @return void
+	 */
+	public function test_save_event_samples_identical_anonymous_failures(): void {
+		global $wpdb;
+
+		wp_set_current_user( 0 );
+		$this->drop_table();
+		Events::create_table();
+
+		for ( $i = 0; $i < 5; ++$i ) {
+			$result = ( new Events() )->save_event( 'empty', [], (object) [ 'codes' => [ 'empty' ] ] );
+
+			self::assertSame( 'empty', $result );
+		}
+
+		$table_name = $wpdb->prefix . Events::TABLE_NAME;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM $table_name" );
+
+		self::assertSame( 1, $count );
+
+		$sampled_before = gmdate( 'Y-m-d H:i:s', time() - Events::ANONYMOUS_FAILURE_SAMPLE_SECONDS - 1 );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$wpdb->query( $wpdb->prepare( "UPDATE $table_name SET date_gmt = %s", $sampled_before ) );
+
+		self::assertSame(
+			'empty',
+			( new Events() )->save_event( 'empty', [], (object) [ 'codes' => [ 'empty' ] ] )
+		);
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM $table_name" );
+
+		self::assertSame( 2, $count );
+	}
+
+	/**
+	 * Test the total row cap is enforced on the write path.
+	 *
+	 * @return void
+	 */
+	public function test_save_event_enforces_total_row_cap(): void {
+		global $wpdb;
+
+		$max_rows_filter = static function (): int {
+			return 3;
+		};
+
+		add_filter( 'hcap_events_max_rows', $max_rows_filter );
+
+		$this->drop_table();
+		Events::create_table();
+		$this->insert_event();
+		$this->insert_event( [ 'status' => Events::STATUS_TRASH ] );
+
+		self::assertSame(
+			'first-failure',
+			( new Events() )->save_event( 'first-failure', [], (object) [ 'codes' => [ 'first-failure' ] ] )
+		);
+		self::assertSame(
+			'second-failure',
+			( new Events() )->save_event( 'second-failure', [], (object) [ 'codes' => [ 'second-failure' ] ] )
+		);
+
+		remove_filter( 'hcap_events_max_rows', $max_rows_filter );
+
+		$table_name = $wpdb->prefix . Events::TABLE_NAME;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM $table_name" );
+
+		self::assertSame( 3, $count );
+	}
+
+	/**
+	 * Test an event write performs active retention when the scheduler is stalled.
+	 *
+	 * @return void
+	 */
+	public function test_save_event_cleans_expired_active_rows_before_allocation(): void {
+		global $wpdb;
+
+		$max_rows_filter = static function (): int {
+			return 2;
+		};
+		$old_date        = gmdate( 'Y-m-d H:i:s', time() - ( Events::ACTIVE_RETENTION_DAYS + 1 ) * DAY_IN_SECONDS );
+
+		add_filter( 'hcap_events_max_rows', $max_rows_filter );
+
+		$this->drop_table();
+		Events::create_table();
+		$this->insert_event( [ 'date_gmt' => $old_date ] );
+		$this->insert_event();
+
+		self::assertSame(
+			'new-failure',
+			( new Events() )->save_event( 'new-failure', [], (object) [ 'codes' => [ 'new-failure' ] ] )
+		);
+
+		remove_filter( 'hcap_events_max_rows', $max_rows_filter );
+
+		$table_name = $wpdb->prefix . Events::TABLE_NAME;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM $table_name" );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$expired_count = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $table_name WHERE date_gmt = %s", $old_date ) );
+
+		self::assertSame( 2, $count );
+		self::assertSame( 0, $expired_count );
+	}
+
+	/**
+	 * Test cleanup failures do not change the verification result.
+	 *
+	 * @return void
+	 */
+	public function test_save_event_preserves_result_when_cleanup_fails(): void {
+		global $wpdb;
+
+		$query_filter = static function ( string $query ): string {
+			if ( false !== strpos( $query, 'FORCE INDEX (status_date_gmt)' ) ) {
+				throw new \RuntimeException( 'Simulated event cleanup failure.' );
+			}
+
+			return $query;
+		};
+
+		$this->drop_table();
+		Events::create_table();
+
+		add_filter( 'query', $query_filter );
+
+		try {
+			self::assertSame(
+				'empty',
+				( new Events() )->save_event( 'empty', [], (object) [ 'codes' => [ 'empty' ] ] )
+			);
+		} finally {
+			remove_filter( 'query', $query_filter );
+		}
+
+		$table_name = $wpdb->prefix . Events::TABLE_NAME;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		self::assertSame( 0, (int) $wpdb->get_var( "SELECT COUNT(*) FROM $table_name" ) );
+	}
+
+	/**
+	 * Test a busy allocation lock skips logging without changing verification.
+	 *
+	 * @return void
+	 * @throws \ReflectionException Reflection exception.
+	 */
+	public function test_save_event_skips_allocation_when_write_lock_is_busy(): void {
+		global $wpdb;
+
+		$this->drop_table();
+		Events::create_table();
+
+		$subject   = new Events();
+		$method    = $this->set_method_accessibility( $subject, 'get_write_lock_name' );
+		$lock_name = $method->invoke( $subject );
+		$lock_db   = new \wpdb( DB_USER, DB_PASSWORD, DB_NAME, DB_HOST );
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$acquired = $lock_db->get_var( $lock_db->prepare( 'SELECT GET_LOCK(%s, 0)', $lock_name ) );
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		self::assertSame( '1', (string) $acquired );
+
+		try {
+			self::assertSame(
+				'empty',
+				( new Events() )->save_event( 'empty', [], (object) [ 'codes' => [ 'empty' ] ] )
+			);
+
+			$table_name = $wpdb->prefix . Events::TABLE_NAME;
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			self::assertSame( 0, (int) $wpdb->get_var( "SELECT COUNT(*) FROM $table_name" ) );
+		} finally {
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$lock_db->get_var( $lock_db->prepare( 'SELECT RELEASE_LOCK(%s)', $lock_name ) );
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$lock_db->close();
+		}
+	}
+
+	/**
+	 * Test disabled statistics and an unavailable schema do not allocate rows.
+	 *
+	 * @return void
+	 */
+	public function test_save_event_skips_allocation_when_statistics_or_schema_are_unavailable(): void {
+		global $wpdb;
+
+		$this->drop_table();
+		Events::create_table();
+
+		update_option( 'hcaptcha_settings', [ 'statistics' => [] ] );
+		hcaptcha()->init_hooks();
+
+		self::assertSame( 'empty', ( new Events() )->save_event( 'empty', [], (object) [ 'codes' => [ 'empty' ] ] ) );
+
+		$table_name = $wpdb->prefix . Events::TABLE_NAME;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		self::assertSame( 0, (int) $wpdb->get_var( "SELECT COUNT(*) FROM $table_name" ) );
+
+		update_option( 'hcaptcha_settings', [ 'statistics' => [ 'on' ] ] );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$wpdb->query( "DROP INDEX status_trashed_at_gmt ON $table_name" );
+
+		hcaptcha()->init_hooks();
+
+		self::assertSame( 'invalid', ( new Events() )->save_event( 'invalid', [], (object) [ 'codes' => [ 'invalid' ] ] ) );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		self::assertSame( 0, (int) $wpdb->get_var( "SELECT COUNT(*) FROM $table_name" ) );
+
+		$this->drop_table();
+		$this->mark_events_table_created();
+		update_option(
+			Migrations::MIGRATED_VERSIONS_OPTION_NAME,
+			[
+				'5.0.0' => time(),
+				'5.4.0' => time(),
+			]
+		);
+
+		self::assertSame( 'missing', ( new Events() )->save_event( 'missing', [], (object) [ 'codes' => [ 'missing' ] ] ) );
+		self::assertFalse( $this->database_table_exists() );
 	}
 
 	/**
@@ -795,11 +1098,11 @@ class EventsTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test cleanup_trash() deletes expired trashed events.
+	 * Test cleanup_trash() deletes expired active and trashed events.
 	 *
 	 * @return void
 	 */
-	public function test_cleanup_trash_deletes_expired_trash(): void {
+	public function test_cleanup_trash_deletes_expired_events(): void {
 		global $wpdb;
 
 		update_option( 'hcaptcha_settings', [ 'statistics' => [ 'on' ] ] );
@@ -811,7 +1114,8 @@ class EventsTest extends HCaptchaWPTestCase {
 		$old_date = gmdate( 'Y-m-d H:i:s', time() - ( Events::TRASH_RETENTION_DAYS + 1 ) * DAY_IN_SECONDS );
 		$new_date = gmdate( 'Y-m-d H:i:s' );
 
-		$this->insert_event();
+		$this->insert_event( [ 'date_gmt' => $old_date ] );
+		$this->insert_event( [ 'date_gmt' => $new_date ] );
 		$this->insert_event(
 			[
 				'status'         => Events::STATUS_TRASH,
@@ -830,9 +1134,46 @@ class EventsTest extends HCaptchaWPTestCase {
 		$table_name = $wpdb->prefix . Events::TABLE_NAME;
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$active_count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM $table_name WHERE status = 'active'" );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$trash_count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM $table_name WHERE status = 'trash'" );
 
+		self::assertSame( 1, $active_count );
 		self::assertSame( 1, $trash_count );
+	}
+
+	/**
+	 * Test cleanup removes only a bounded batch per status.
+	 *
+	 * @return void
+	 */
+	public function test_cleanup_trash_uses_bounded_batches(): void {
+		global $wpdb;
+
+		$batch_size_filter = static function (): int {
+			return 2;
+		};
+		$old_date          = gmdate( 'Y-m-d H:i:s', time() - ( Events::ACTIVE_RETENTION_DAYS + 1 ) * DAY_IN_SECONDS );
+
+		add_filter( 'hcap_events_cleanup_batch_size', $batch_size_filter );
+
+		$this->drop_table();
+		Events::create_table();
+
+		for ( $i = 0; $i < 3; ++$i ) {
+			$this->insert_event( [ 'date_gmt' => $old_date ] );
+		}
+
+		Events::cleanup_trash();
+		remove_filter( 'hcap_events_cleanup_batch_size', $batch_size_filter );
+
+		$table_name = $wpdb->prefix . Events::TABLE_NAME;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM $table_name" );
+
+		self::assertSame( 1, $count );
 	}
 
 	/**

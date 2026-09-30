@@ -94,7 +94,7 @@ class HCaptcha {
 	 *
 	 * @param {HTMLDivElement} parent Parent element.
 	 * @param {HTMLDivElement} child  Child element.
-	 * @return {boolean} Whether child is the same or a descendant of parent.
+	 * @return {boolean} Whether child is the same or a descendant of the parent.
 	 */
 	isSameOrDescendant( parent, child ) {
 		let node = child;
@@ -420,8 +420,8 @@ class HCaptcha {
 		);
 
 		const params = this.getParams();
-		const hcaptcha = this.getWidgetByToken( token );
-		const force = hcaptcha ? hcaptcha.dataset.force : null;
+		const hcaptchaElement = this.getWidgetByToken( token );
+		const force = hcaptchaElement ? hcaptchaElement.dataset.force : null;
 
 		if (
 			params.size === 'invisible' ||
@@ -431,6 +431,77 @@ class HCaptcha {
 		) {
 			this.submit();
 		}
+	}
+
+	/**
+	 * Run a named callback without replacing the plugin's internal callback.
+	 *
+	 * @param {string|Function} callback     Callback or its name.
+	 * @param {...*}            callbackArgs Callback arguments.
+	 */
+	runCallback( callback, ...callbackArgs ) {
+		if ( typeof callback === 'function' ) {
+			callback( ...callbackArgs );
+
+			return;
+		}
+
+		if ( typeof callback !== 'string' || ! callback ) {
+			return;
+		}
+
+		const path = callback.split( '.' );
+		let context = window;
+
+		if ( path[ 0 ] === 'window' ) {
+			path.shift();
+		}
+
+		for ( const property of path.slice( 0, -1 ) ) {
+			context = context?.[ property ];
+
+			if ( ! context ) {
+				return;
+			}
+		}
+
+		const method = path[ path.length - 1 ];
+		const namedCallback = context?.[ method ];
+
+		if ( typeof namedCallback === 'function' ) {
+			namedCallback.apply( context, callbackArgs );
+		}
+	}
+
+	/**
+	 * Get documented render parameters defined on a widget element.
+	 *
+	 * @param {HTMLDivElement} hcaptchaElement hCaptcha element.
+	 *
+	 * @return {{}} Widget rendering parameters.
+	 */
+	getWidgetParams( hcaptchaElement ) {
+		const dataset = hcaptchaElement.dataset;
+		const paramNames = {
+			sitekey: 'sitekey',
+			hl: 'hl',
+			tabindex: 'tabindex',
+			expiredCallback: 'expired-callback',
+			chalexpiredCallback: 'chalexpired-callback',
+			openCallback: 'open-callback',
+			closeCallback: 'close-callback',
+			errorCallback: 'error-callback',
+			orientation: 'orientation',
+		};
+		const params = {};
+
+		for ( const [ datasetName, paramName ] of Object.entries( paramNames ) ) {
+			if ( dataset[ datasetName ] !== undefined && dataset[ datasetName ] !== '' ) {
+				params[ paramName ] = dataset[ datasetName ];
+			}
+		}
+
+		return params;
 	}
 
 	/**
@@ -474,7 +545,17 @@ class HCaptcha {
 		this.observeDarkMode();
 		this.observePasswordManagers();
 
-		let globalParams = this.getParams();
+		let globalParams = { ...this.getParams(), ...this.getWidgetParams( hcaptchaElement ) };
+		const widgetCallback = hcaptchaElement.dataset.callback;
+
+		if ( widgetCallback ) {
+			const pluginCallback = globalParams.callback;
+
+			globalParams.callback = ( ...callbackArgs ) => {
+				this.runCallback( pluginCallback, ...callbackArgs );
+				this.runCallback( widgetCallback, ...callbackArgs );
+			};
+		}
 
 		// Do not overwrite a custom theme.
 		if ( typeof globalParams.theme === 'object' ) {

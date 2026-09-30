@@ -14,6 +14,7 @@ use WP_Block;
  * Class Login.
  */
 class Login extends LoginBase {
+	use Component;
 
 	/**
 	 * Login form shortcode tag.
@@ -73,30 +74,12 @@ class Login extends LoginBase {
 	}
 
 	/**
-	 * Get active Divi component.
-	 *
-	 * @return string
-	 */
-	protected function get_active_divi_component(): string {
-		if ( defined( 'ET_BUILDER_PLUGIN_VERSION' ) ) {
-			return 'divi_builder';
-		}
-
-		$theme = get_template();
-
-		if ( in_array( $theme, [ 'Divi', 'Extra' ], true ) ) {
-			return strtolower( $theme );
-		}
-
-		return '';
-	}
-
-	/**
 	 * Add hCaptcha to the Divi login form.
 	 *
 	 * @param string $output Output.
 	 *
 	 * @return string
+	 * @noinspection UnnecessaryCastingInspection
 	 */
 	private function add_divi_login_hcaptcha( string $output ): string {
 		if ( ! $this->is_login_limit_exceeded() ) {
@@ -128,5 +111,17 @@ class Login extends LoginBase {
 
 		// Insert hCaptcha.
 		return (string) preg_replace( $pattern, $replacement, $output );
+	}
+
+	/**
+	 * Get expected hCaptcha widget id.
+	 *
+	 * @return array
+	 */
+	protected function get_expected_id(): array {
+		return [
+			'source'  => $this->get_active_divi_source( __CLASS__ ),
+			'form_id' => 'login',
+		];
 	}
 }

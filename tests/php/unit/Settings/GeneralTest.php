@@ -26,7 +26,6 @@ use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use Mockery;
 use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
-use Throwable;
 use WP_Mock;
 
 /**
@@ -53,8 +52,9 @@ class GeneralTest extends HCaptchaTestCase {
 	 * Test page_title().
 	 */
 	public function test_page_title(): void {
-		$subject = Mockery::mock( General::class )->makePartial()->shouldAllowMockingProtectedMethods();
-		$method  = 'page_title';
+		$subject = Mockery::mock( General::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$method = 'page_title';
 
 		self::assertSame( 'General', $subject->$method() );
 	}
@@ -63,8 +63,9 @@ class GeneralTest extends HCaptchaTestCase {
 	 * Test section_title().
 	 */
 	public function test_section_title(): void {
-		$subject = Mockery::mock( General::class )->makePartial()->shouldAllowMockingProtectedMethods();
-		$method  = 'section_title';
+		$subject = Mockery::mock( General::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$method = 'section_title';
 
 		self::assertSame( 'general', $subject->$method() );
 	}
@@ -96,7 +97,6 @@ class GeneralTest extends HCaptchaTestCase {
 	 * @param bool $doing_ajax Whether doing AJAX.
 	 *
 	 * @dataProvider dp_test_init_hooks
-	 * @throws Throwable Throwable.
 	 */
 	public function test_init_hooks( bool $doing_ajax ): void {
 		$plugin_base_name = 'hcaptcha-for-forms-and-more/hcaptcha.php';
@@ -147,7 +147,6 @@ class GeneralTest extends HCaptchaTestCase {
 	/**
 	 * Test init_notifications().
 	 *
-	 * @throws Throwable Throwable.
 	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_init_notifications(): void {
@@ -173,8 +172,6 @@ class GeneralTest extends HCaptchaTestCase {
 
 	/**
 	 * Test init_notifications() not on the option screen.
-	 *
-	 * @throws Throwable Throwable.
 	 */
 	public function test_init_notifications_not_on_options_screen(): void {
 		$subject = Mockery::mock( General::class )->makePartial();
@@ -214,6 +211,8 @@ class GeneralTest extends HCaptchaTestCase {
 		);
 
 		$subject = Mockery::mock( General::class )->makePartial();
+
+		$this->mock_onboarding_settings( $subject );
 
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'is_options_screen' )->once()->andReturn( true );
@@ -265,6 +264,8 @@ class GeneralTest extends HCaptchaTestCase {
 
 		$subject = Mockery::mock( General::class )->makePartial();
 
+		$this->mock_onboarding_settings( $subject );
+
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'is_options_screen' )->once()->andReturn( true );
 		$subject->shouldReceive( 'should_enable_onboarding_antispam' )->once()->andReturn( false );
@@ -314,6 +315,8 @@ class GeneralTest extends HCaptchaTestCase {
 		);
 
 		$subject = Mockery::mock( General::class )->makePartial();
+
+		$this->mock_onboarding_settings( $subject );
 
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'is_options_screen' )->once()->andReturn( true );
@@ -512,13 +515,54 @@ class GeneralTest extends HCaptchaTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_init_form_fields(): void {
-		$subject = Mockery::mock( General::class )->makePartial()->shouldAllowMockingProtectedMethods();
+		$subject = Mockery::mock( General::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
 
 		WP_Mock::userFunction( 'is_multisite' )->andReturn( false );
+		WP_Mock::userFunction( 'number_format_i18n' )->with( 10000 )->andReturn( '10,000' );
 		$expected = $this->get_test_general_form_fields();
 
 		$subject->init_form_fields();
 		self::assertSame( $expected, $this->get_protected_property( $subject, 'form_fields' ) );
+	}
+
+	/**
+	 * Test sanitize_option_callback().
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_sanitize_option_callback(): void {
+		$subject = Mockery::mock( General::class )->makePartial();
+
+		$this->set_protected_property(
+			$subject,
+			'form_fields',
+			[
+				General::RISK_SCORE_THRESHOLD => [
+					'type' => 'number',
+				],
+			]
+		);
+
+		WP_Mock::passthruFunction( 'sanitize_text_field' );
+
+		self::assertSame(
+			[ General::RISK_SCORE_THRESHOLD => '0.4' ],
+			$subject->sanitize_option_callback( [ General::RISK_SCORE_THRESHOLD => '0.4' ] )
+		);
+		self::assertSame(
+			[ General::RISK_SCORE_THRESHOLD => '0' ],
+			$subject->sanitize_option_callback( [ General::RISK_SCORE_THRESHOLD => '-1' ] )
+		);
+		self::assertSame(
+			[ General::RISK_SCORE_THRESHOLD => '1' ],
+			$subject->sanitize_option_callback( [ General::RISK_SCORE_THRESHOLD => '2' ] )
+		);
+		self::assertSame(
+			[ General::RISK_SCORE_THRESHOLD => '1' ],
+			$subject->sanitize_option_callback( [ General::RISK_SCORE_THRESHOLD => 'invalid' ] )
+		);
+		self::assertSame( [], $subject->sanitize_option_callback( [] ) );
 	}
 
 	/**
@@ -577,6 +621,63 @@ class GeneralTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test setup_fields() permissions by license.
+	 *
+	 * @param string $license             License level.
+	 * @param bool   $enterprise_disabled Whether Enterprise fields are disabled.
+	 * @param bool   $custom_disabled     Whether Custom Themes is disabled.
+	 *
+	 * @dataProvider dp_test_setup_fields_by_license
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_setup_fields_by_license(
+		string $license,
+		bool $enterprise_disabled,
+		bool $custom_disabled
+	): void {
+		$settings = Mockery::mock( Settings::class )->makePartial();
+		$settings->shouldReceive( 'get_mode' )->andReturn( General::MODE_LIVE );
+		$settings->shouldReceive( 'get_license' )->andReturn( $license );
+
+		$main = Mockery::mock( Main::class )->makePartial();
+		$main->shouldReceive( 'settings' )->andReturn( $settings );
+
+		$subject = Mockery::mock( General::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_options_screen' )->andReturn( true );
+		$this->set_protected_property( $subject, 'form_fields', $this->get_test_form_fields() );
+
+		WP_Mock::passthruFunction( 'register_setting' );
+		WP_Mock::passthruFunction( 'add_settings_field' );
+		WP_Mock::userFunction( 'hcaptcha' )->with()->once()->andReturn( $main );
+
+		$subject->setup_fields();
+
+		$form_fields = $this->get_protected_property( $subject, 'form_fields' );
+
+		foreach ( $form_fields as $form_field ) {
+			if ( General::SECTION_ENTERPRISE === ( $form_field['section'] ?? '' ) ) {
+				self::assertSame( $enterprise_disabled, $form_field['disabled'] );
+			}
+		}
+
+		self::assertSame( $custom_disabled, $form_fields['custom_themes']['disabled'] );
+	}
+
+	/**
+	 * Data provider for test_setup_fields_by_license().
+	 *
+	 * @return array
+	 */
+	public function dp_test_setup_fields_by_license(): array {
+		return [
+			'Free'       => [ 'free', true, true ],
+			'Pro'        => [ 'pro', true, false ],
+			'Enterprise' => [ 'enterprise', false, false ],
+		];
+	}
+
+	/**
 	 * Test setup_fields() not on the option screen.
 	 *
 	 * @return void
@@ -611,7 +712,8 @@ class GeneralTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'hcaptcha' )->with()->andReturn( $main );
 
 		$notifications = Mockery::mock( Notifications::class )->makePartial();
-		$subject       = Mockery::mock( General::class )->makePartial()->shouldAllowMockingProtectedMethods();
+		$subject       = Mockery::mock( General::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
 
 		$this->set_protected_property( $subject, 'notifications', $notifications );
 
@@ -720,15 +822,78 @@ class GeneralTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test the Enterprise section state by license.
+	 *
+	 * @param string $license  License level.
+	 * @param bool   $disabled Whether the section is disabled.
+	 *
+	 * @dataProvider dp_test_enterprise_section_callback_by_license
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_enterprise_section_callback_by_license( string $license, bool $disabled ): void {
+		$user     = (object) [ 'ID' => 1 ];
+		$settings = Mockery::mock( Settings::class )->makePartial();
+		$settings->shouldReceive( 'get_license' )->andReturn( $license );
+
+		$main = Mockery::mock( Main::class )->makePartial();
+		$main->shouldReceive( 'settings' )->andReturn( $settings );
+
+		WP_Mock::userFunction( 'hcaptcha' )->with()->andReturn( $main );
+		WP_Mock::userFunction( 'wp_get_current_user' )->andReturn( $user );
+		WP_Mock::userFunction( 'get_user_meta' )->andReturn( [] );
+
+		$subject = Mockery::mock( General::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+
+		ob_start();
+		$subject->section_callback( [ 'id' => General::SECTION_ENTERPRISE ] );
+		$output = ob_get_clean();
+
+		if ( $disabled ) {
+			self::assertStringContainsString( 'hcaptcha-section-enterprise closed disabled', $output );
+			self::assertStringContainsString( 'Enterprise - hCaptcha Enterprise Required', $output );
+
+			return;
+		}
+
+		self::assertStringNotContainsString( 'closed', $output );
+		self::assertStringNotContainsString( 'disabled', $output );
+		self::assertStringNotContainsString( 'hCaptcha Enterprise Required', $output );
+	}
+
+	/**
+	 * Data provider for test_enterprise_section_callback_by_license().
+	 *
+	 * @return array
+	 */
+	public function dp_test_enterprise_section_callback_by_license(): array {
+		return [
+			'Free'       => [ 'free', true ],
+			'Pro'        => [ 'pro', true ],
+			'Enterprise' => [ 'enterprise', false ],
+		];
+	}
+
+	/**
 	 * Test admin_enqueue_scripts().
+	 *
+	 * @param string $min_suffix  Asset suffix.
+	 * @param string $plugin_path Plugin directory.
+	 *
+	 * @dataProvider dp_test_admin_enqueue_scripts
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_admin_enqueue_scripts(): void {
+	public function test_admin_enqueue_scripts( string $min_suffix, string $plugin_path ): void {
 		$plugin_url          = 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin';
 		$plugin_version      = '1.0.0';
 		$form_fields         = $this->get_test_general_form_fields();
-		$min_suffix          = '.min';
+		$script_path         = $plugin_path . '/assets/js/general.js';
+		$style_path          = $plugin_path . '/assets/css/general.css';
+		$script_mtime        = '' === $min_suffix && file_exists( $script_path ) ? filemtime( $script_path ) : false;
+		$style_mtime         = '' === $min_suffix && file_exists( $style_path ) ? filemtime( $style_path ) : false;
+		$script_version      = $plugin_version . ( false === $script_mtime ? '' : '-' . $script_mtime );
+		$style_version       = $plugin_version . ( false === $style_mtime ? '' : '-' . $style_mtime );
 		$ajax_url            = 'https://test.test/wp-admin/admin-ajax.php';
 		$nonce               = 'some_nonce';
 		$site_key            = 'some key';
@@ -749,13 +914,17 @@ class GeneralTest extends HCaptchaTestCase {
 
 		FunctionMocker::replace(
 			'constant',
-			static function ( $name ) use ( $plugin_url, $plugin_version ) {
+			static function ( $name ) use ( $plugin_url, $plugin_version, $plugin_path ) {
 				if ( 'HCAPTCHA_URL' === $name ) {
 					return $plugin_url;
 				}
 
 				if ( 'HCAPTCHA_VERSION' === $name ) {
 					return $plugin_version;
+				}
+
+				if ( 'HCAPTCHA_PATH' === $name ) {
+					return $plugin_path;
 				}
 
 				return '';
@@ -779,7 +948,7 @@ class GeneralTest extends HCaptchaTestCase {
 				General::HANDLE,
 				$plugin_url . "/assets/js/general$min_suffix.js",
 				[ 'jquery', 'lodash', General::DIALOG_HANDLE ],
-				$plugin_version,
+				$script_version,
 				true
 			)
 			->once();
@@ -817,6 +986,9 @@ class GeneralTest extends HCaptchaTestCase {
 					'unsavedChanges'                       => 'Unsaved changes',
 					'lastValidPreview'                     => 'Showing the last valid config.',
 					'activeState'                          => 'Active',
+					'detailsState'                         => 'Details',
+					'disabledState'                        => 'Disabled',
+					'errorState'                           => 'Error',
 					'focusState'                           => 'Focus',
 					'hoverState'                           => 'Hover',
 					'mainState'                            => 'Main',
@@ -850,11 +1022,35 @@ class GeneralTest extends HCaptchaTestCase {
 					PluginSettingsBase::PREFIX . '-' . SettingsBase::HANDLE,
 					General::DIALOG_HANDLE,
 				],
-				$plugin_version
+				$style_version
 			)
 			->once();
 
-		$subject->admin_enqueue_scripts();
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler -- Missing asset timestamps intentionally warn.
+		set_error_handler(
+			static function () {
+				return true;
+			}
+		);
+
+		try {
+			$subject->admin_enqueue_scripts();
+		} finally {
+			restore_error_handler();
+		}
+	}
+
+	/**
+	 * Asset version cases.
+	 *
+	 * @return array
+	 */
+	public function dp_test_admin_enqueue_scripts(): array {
+		return [
+			'minified assets'       => [ '.min', HCAPTCHA_TEST_PATH ],
+			'source assets'         => [ '', HCAPTCHA_TEST_PATH ],
+			'missing source assets' => [ '', HCAPTCHA_TEST_PATH . '/missing' ],
+		];
 	}
 
 	/**
@@ -867,13 +1063,43 @@ class GeneralTest extends HCaptchaTestCase {
 			'text' => [ 'some_class', 'some_method' ],
 		];
 
-		$subject = Mockery::mock( General::class )->makePartial()->shouldAllowMockingProtectedMethods();
-		$method  = 'settings_fields';
+		$subject = Mockery::mock( General::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$method = 'settings_fields';
 
 		$expected             = $fields;
 		$expected['hcaptcha'] = [ $subject, 'print_hcaptcha_field' ];
 
 		self::assertSame( $expected, $subject->$method( $fields ) );
+	}
+
+	/**
+	 * Test checkbox helper styles keep the icons beside their labels.
+	 */
+	public function test_checkbox_helper_styles(): void {
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$styles = file_get_contents( dirname( __DIR__, 4 ) . '/assets/css/general.css' );
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$base_styles = file_get_contents( dirname( __DIR__, 4 ) . '/assets/css/settings-base.css' );
+
+		self::assertIsString( $styles );
+		self::assertIsString( $base_styles );
+		self::assertStringContainsString(
+			".hcaptcha-section-enterprise + table tbody tr.hcaptcha-general-risk-score td {\n\twidth: max-content;\n}",
+			$styles
+		);
+		self::assertStringContainsString(
+			".hcaptcha-section-statistics + table tbody tr.hcaptcha-general-statistics td {\n\twidth: max-content;\n\tmin-width: 0;\n}",
+			$styles
+		);
+		self::assertStringContainsString(
+			".hcaptcha-section-statistics + table tbody tr.hcaptcha-general-statistics .helper-content {\n\tmax-width: calc(100vw - 40px);\n\twhite-space: normal;\n\toverflow-wrap: anywhere;",
+			$styles
+		);
+		self::assertStringContainsString(
+			"#hcaptcha-options .helper:hover .helper-content,\n#hcaptcha-options .helper:focus-within .helper-content {",
+			$base_styles
+		);
 	}
 
 	/**
@@ -889,6 +1115,17 @@ class GeneralTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'print_theme_editor_field' )->with( $arguments )->once();
 
 		$subject->field_callback( $arguments );
+	}
+
+	/**
+	 * Test non-editor fields use the base callback.
+	 */
+	public function test_field_callback_other_field(): void {
+		$subject = Mockery::mock( General::class )->makePartial();
+
+		ob_start();
+		$subject->field_callback( [] );
+		self::assertSame( '', ob_get_clean() );
 	}
 
 	/**
@@ -1027,22 +1264,29 @@ class GeneralTest extends HCaptchaTestCase {
 	/**
 	 * Test check_config().
 	 *
-	 * @param string|null $hcaptcha_response Some response.
+	 * @param string      $ajax_mode            Submitted mode.
+	 * @param string|null $hcaptcha_response    Some response.
+	 * @param string|null $ajax_secret_key      Submitted secret key.
+	 * @param string|null $expected_secret_key  Secret used for verification.
+	 * @param array       $siteverify_response  Siteverify response.
+	 * @param string|null $expected_license     Expected saved Live license level.
 	 *
 	 * @dataProvider dp_test_check_config
+	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_check_config( ?string $hcaptcha_response ): void {
-		$ajax_mode       = 'live';
-		$ajax_site_key   = 'some-site-key';
-		$ajax_secret_key = 'some-secret-key';
-		$error1          = 'some error';
-		$result1         = [
-			'error'    => $error1,
+	public function test_check_config(
+		string $ajax_mode,
+		?string $hcaptcha_response,
+		?string $ajax_secret_key,
+		?string $expected_secret_key,
+		array $siteverify_response,
+		?string $expected_license
+	): void {
+		$ajax_site_key = 'some-site-key';
+		$result1       = [
 			'features' => [ 'custom_theme' => true ],
 		];
-		$result2         = 'Some verify error';
-		$license         = 'pro';
-		$subject         = Mockery::mock( General::class )->makePartial();
+		$subject       = Mockery::mock( General::class )->makePartial();
 
 		$_POST['mode']      = $ajax_mode;
 		$_POST['siteKey']   = $ajax_site_key;
@@ -1053,9 +1297,16 @@ class GeneralTest extends HCaptchaTestCase {
 		}
 
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'update_option' )->with( 'license', $license )->once();
 
-		FunctionMocker::replace( '\HCaptcha\Helpers\API::verify_request', $result2 );
+		if ( null === $expected_license ) {
+			$subject->shouldNotReceive( 'update_option' );
+		} else {
+			$subject->shouldReceive( 'update_option' )->with( 'license', $expected_license )->once();
+			$subject->shouldReceive( 'is_network_wide' )->once()->andReturn( false );
+		}
+
+		FunctionMocker::replace( '\HCaptcha\Helpers\API::verify_request' );
+		FunctionMocker::replace( '\HCaptcha\Helpers\API::get_siteverify_response', $siteverify_response );
 
 		WP_Mock::passthruFunction( 'wp_unslash' );
 		WP_Mock::passthruFunction( 'sanitize_text_field' );
@@ -1063,9 +1314,80 @@ class GeneralTest extends HCaptchaTestCase {
 			->andReturn( true );
 		WP_Mock::userFunction( 'current_user_can' )->with( 'manage_options' )->once()->andReturn( true );
 		WP_Mock::userFunction( 'hcap_check_site_config' )->with()->once()->andReturn( $result1 );
-		WP_Mock::userFunction( 'wp_send_json_error' )->with( 'Site configuration error: ' . $error1 )->once();
-		WP_Mock::userFunction( 'wp_send_json_error' )->with( $result2 )->once();
+		WP_Mock::userFunction( 'remove_filter' )
+			->with( 'hcap_risk_score_threshold', '__return_null', PHP_INT_MAX )
+			->once()
+			->andReturn( true );
 		WP_Mock::userFunction( 'wp_send_json_success' )->with( 'Site config is valid. Save your changes.' )->once();
+
+		$subject->check_config();
+
+		if ( General::MODE_LIVE !== $ajax_mode ) {
+			return;
+		}
+
+		$secret_filter = $this->get_protected_property( WP_Mock::onFilterAdded( 'hcap_secret_key' ), 'callback' );
+
+		self::assertIsCallable( $secret_filter );
+		self::assertSame( $expected_secret_key, $secret_filter( 'stored-secret-key' ) );
+	}
+
+	/**
+	 * Test check_config() with a site config error.
+	 */
+	public function test_check_config_with_site_config_error(): void {
+		$error   = 'some error';
+		$subject = Mockery::mock( General::class )->makePartial();
+
+		$_POST['mode']      = General::MODE_LIVE;
+		$_POST['siteKey']   = 'some-site-key';
+		$_POST['secretKey'] = 'some-secret-key';
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldNotReceive( 'update_option' );
+
+		WP_Mock::passthruFunction( 'sanitize_text_field' );
+		WP_Mock::userFunction( 'check_ajax_referer' )->with( General::CHECK_CONFIG_ACTION, 'nonce', false )->once()
+			->andReturn( true );
+		WP_Mock::userFunction( 'current_user_can' )->with( 'manage_options' )->once()->andReturn( true );
+		WP_Mock::userFunction( 'hcap_check_site_config' )->with()->once()->andReturn( [ 'error' => $error ] );
+		WP_Mock::userFunction( 'wp_send_json_error' )->with( 'Site configuration error: ' . $error )->once();
+		WP_Mock::userFunction( 'wp_send_json_success' )->never();
+
+		$subject->check_config();
+	}
+
+	/**
+	 * Test check_config() with a siteverify error.
+	 */
+	public function test_check_config_with_siteverify_error(): void {
+		$error   = 'some verify error';
+		$subject = Mockery::mock( General::class )->makePartial();
+
+		$_POST['mode']               = General::MODE_LIVE;
+		$_POST['siteKey']            = 'some-site-key';
+		$_POST['secretKey']          = 'some-secret-key';
+		$_POST['h-captcha-response'] = 'some-response';
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldNotReceive( 'update_option' );
+
+		FunctionMocker::replace( '\HCaptcha\Helpers\API::verify_request', $error );
+
+		WP_Mock::passthruFunction( 'wp_unslash' );
+		WP_Mock::passthruFunction( 'sanitize_text_field' );
+		WP_Mock::userFunction( 'check_ajax_referer' )->with( General::CHECK_CONFIG_ACTION, 'nonce', false )->once()
+			->andReturn( true );
+		WP_Mock::userFunction( 'current_user_can' )->with( 'manage_options' )->once()->andReturn( true );
+		WP_Mock::userFunction( 'hcap_check_site_config' )->with()->once()->andReturn(
+			[ 'features' => [ 'custom_theme' => true ] ]
+		);
+		WP_Mock::userFunction( 'remove_filter' )
+			->with( 'hcap_risk_score_threshold', '__return_null', PHP_INT_MAX )
+			->once()
+			->andReturn( true );
+		WP_Mock::userFunction( 'wp_send_json_error' )->with( $error )->once();
+		WP_Mock::userFunction( 'wp_send_json_success' )->never();
 
 		$subject->check_config();
 	}
@@ -1077,8 +1399,32 @@ class GeneralTest extends HCaptchaTestCase {
 	 */
 	public function dp_test_check_config(): array {
 		return [
-			'No response'   => [ null ],
-			'Some response' => [ 'some-response' ],
+			'No response'     => [ General::MODE_LIVE, null, 'some-secret-key', 'some-secret-key', [], 'pro' ],
+			'Some response'   => [ General::MODE_LIVE, 'some-response', 'some-secret-key', 'some-secret-key', [], 'pro' ],
+			'Blank secret'    => [ General::MODE_LIVE, 'some-response', '', 'stored-secret-key', [], 'pro' ],
+			'Missing secret'  => [ General::MODE_LIVE, 'some-response', null, 'stored-secret-key', [], 'pro' ],
+			'Enterprise'      => [
+				General::MODE_LIVE,
+				'some-response',
+				'some-secret-key',
+				'some-secret-key',
+				[
+					'success' => true,
+					'score'   => 0.4,
+				],
+				'enterprise',
+			],
+			'Test Enterprise' => [
+				General::MODE_TEST_ENTERPRISE_SAFE_END_USER,
+				'some-response',
+				'some-secret-key',
+				null,
+				[
+					'success' => true,
+					'score'   => 0.4,
+				],
+				null,
+			],
 		];
 	}
 
@@ -1118,5 +1464,22 @@ class GeneralTest extends HCaptchaTestCase {
 			'Turned off' => [ false, true, false ],
 			'Already on' => [ true, true, false ],
 		];
+	}
+
+	/**
+	 * Mock the site-local settings owner for onboarding requests.
+	 *
+	 * @param General $tab General tab.
+	 */
+	private function mock_onboarding_settings( General $tab ): void {
+		$tab->shouldReceive( 'is_network_wide' )->once()->andReturn( false );
+
+		$settings = Mockery::mock( Settings::class );
+		$settings->shouldReceive( 'get_tab' )->with( General::class )->once()->andReturn( $tab );
+
+		$main = Mockery::mock( Main::class );
+		$main->shouldReceive( 'settings' )->with()->once()->andReturn( $settings );
+
+		WP_Mock::userFunction( 'hcaptcha' )->with()->once()->andReturn( $main );
 	}
 }

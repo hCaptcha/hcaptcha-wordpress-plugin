@@ -46,7 +46,8 @@ class FormsPageTest extends HCaptchaTestCase {
 	 * Test page_title().
 	 */
 	public function test_page_title(): void {
-		$subject = Mockery::mock( FormsPage::class )->makePartial()->shouldAllowMockingProtectedMethods();
+		$subject = Mockery::mock( FormsPage::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
 
 		$method = 'page_title';
 		self::assertSame( 'Forms', $subject->$method() );
@@ -56,7 +57,8 @@ class FormsPageTest extends HCaptchaTestCase {
 	 * Test section_title().
 	 */
 	public function test_section_title(): void {
-		$subject = Mockery::mock( FormsPage::class )->makePartial()->shouldAllowMockingProtectedMethods();
+		$subject = Mockery::mock( FormsPage::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
 
 		$method = 'section_title';
 		self::assertSame( 'forms', $subject->$method() );
@@ -66,7 +68,8 @@ class FormsPageTest extends HCaptchaTestCase {
 	 * Test tab_name().
 	 */
 	public function test_tab_name(): void {
-		$subject = Mockery::mock( FormsPage::class )->makePartial()->shouldAllowMockingProtectedMethods();
+		$subject = Mockery::mock( FormsPage::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
 
 		$method = 'tab_name';
 		self::assertSame( 'Forms', $subject->$method() );
@@ -383,11 +386,12 @@ class FormsPageTest extends HCaptchaTestCase {
 
 			<div class="hcaptcha-forms-sample-text">
 				<p>It is an example of the Forms page.</p>
-				<p>Want to see forms statistics? Please turn on the <a href="options-general.php?page=hcaptcha&tab=general#statistics_1" target="_blank">Statistics switch</a> on the General settings page.</p>
+				<p>Want to see form statistics? Please turn on the <a href="options-general.php?page=hcaptcha&tab=general#statistics_1" target="_blank">Statistics switch</a> on the General settings page.</p>
 			</div>
 			';
 
-		$subject = Mockery::mock( FormsPage::class )->makePartial()->shouldAllowMockingProtectedMethods();
+		$subject = Mockery::mock( FormsPage::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
 
 		WP_Mock::passthruFunction( 'admin_url' );
 		WP_Mock::passthruFunction( 'wp_kses_post' );
@@ -409,8 +413,10 @@ class FormsPageTest extends HCaptchaTestCase {
 	public function test_prepare_chart_data( array $items, array $expected ): void {
 		$gmt_offset = 3.0;
 
-		$list_table = Mockery::mock( FormsTable::class )->makePartial()->shouldAllowMockingProtectedMethods();
-		$subject    = Mockery::mock( FormsPage::class )->makePartial()->shouldAllowMockingProtectedMethods();
+		$list_table = Mockery::mock( FormsTable::class )->makePartial();
+		$list_table->shouldAllowMockingProtectedMethods();
+		$subject = Mockery::mock( FormsPage::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
 
 		$list_table->shouldReceive( 'prepare_items' )->once();
 		$this->set_protected_property( $list_table, 'served', $items );
@@ -601,8 +607,10 @@ class FormsPageTest extends HCaptchaTestCase {
 		$items      = [];
 		$gmt_offset = 3.0;
 
-		$list_table = Mockery::mock( FormsTable::class )->makePartial()->shouldAllowMockingProtectedMethods();
-		$subject    = Mockery::mock( FormsPage::class )->makePartial()->shouldAllowMockingProtectedMethods();
+		$list_table = Mockery::mock( FormsTable::class )->makePartial();
+		$list_table->shouldAllowMockingProtectedMethods();
+		$subject = Mockery::mock( FormsPage::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
 
 		$list_table->shouldReceive( 'prepare_items' )->once();
 		$this->set_protected_property( $list_table, 'items', $items );

@@ -11,6 +11,7 @@
 namespace KAGG\Settings\Abstracts;
 
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Request;
 
 /**
  * Class SettingsBase
@@ -278,6 +279,7 @@ abstract class SettingsBase {
 		add_action( 'admin_enqueue_scripts', [ $this, 'base_admin_enqueue_scripts' ] );
 		add_action( 'admin_page_access_denied', [ $this, 'base_admin_page_access_denied' ] );
 		add_filter( 'script_loader_tag', [ $this, 'add_type_module' ], 10, 3 );
+		add_filter( 'option_page_capability_' . $this->option_group(), [ $this, 'get_settings_capability' ], 10, 0 );
 
 		if ( $this->is_main_menu_page() ) {
 			add_action( 'plugins_loaded', [ $this, 'load_plugin_textdomain' ] );
@@ -531,12 +533,14 @@ abstract class SettingsBase {
 	 * @return void
 	 */
 	public function add_settings_page(): void {
+		$capability = $this->get_settings_capability();
+
 		if ( $this->parent_slug ) {
 			add_submenu_page(
 				$this->parent_slug,
 				$this->get_active_tab()->page_title(),
 				$this->menu_title(),
-				'manage_options',
+				$capability,
 				$this->option_page(),
 				[ $this, 'settings_base_page' ]
 			);
@@ -546,7 +550,7 @@ abstract class SettingsBase {
 			add_menu_page(
 				$this->page_title(),
 				$this->menu_title(),
-				'manage_options',
+				$capability,
 				$this->option_page(),
 				[ $this, 'settings_base_page' ],
 				$this->icon_url(),
@@ -557,7 +561,7 @@ abstract class SettingsBase {
 				$this->option_page(),
 				$this->page_title(),
 				$this->page_title(),
-				'manage_options',
+				$capability,
 				$this->option_page(),
 				[ $this, 'settings_base_page' ]
 			);
@@ -567,7 +571,7 @@ abstract class SettingsBase {
 					$this->option_page(),
 					$tab->page_title(),
 					$tab->page_title(),
-					'manage_options',
+					$capability,
 					$tab->option_page(),
 					[ $tab, 'settings_base_page' ]
 				);
@@ -579,8 +583,16 @@ abstract class SettingsBase {
 	 * Invoke relevant settings_page() basing on tabs.
 	 *
 	 * @return void
+	 * @noinspection ForgottenDebugOutputInspection
+	 * @noinspection PhpUnreachableStatementInspection
 	 */
 	public function settings_base_page(): void {
+		if ( ! $this->can_manage_settings() ) {
+			wp_die( esc_html__( 'You are not allowed to access this page.', 'hcaptcha-for-forms-and-more' ) );
+
+			return; // For testing purposes.
+		}
+
 		echo '<div class="wrap">';
 
 		$this->get_active_tab()->settings_page();
@@ -1007,6 +1019,7 @@ abstract class SettingsBase {
 	 */
 	protected function print_text_field( array $arguments ): void {
 		$value           = $this->get( $arguments['field_id'] );
+		$placeholder     = $arguments['placeholder'];
 		$autocomplete    = '';
 		$lp_ignore       = '';
 		$one_pass_ignore = '';
@@ -1015,6 +1028,11 @@ abstract class SettingsBase {
 			$autocomplete    = 'new-password';
 			$lp_ignore       = 'true';
 			$one_pass_ignore = 'true';
+		}
+
+		if ( ! empty( $arguments['sensitive'] ) ) {
+			$placeholder = empty( $value ) ? '' : $placeholder;
+			$value       = '';
 		}
 
 		$autocomplete = $arguments['autocomplete'] ?? $autocomplete;
@@ -1027,7 +1045,7 @@ abstract class SettingsBase {
 			esc_html( $this->option_name() ),
 			esc_attr( $arguments['field_id'] ),
 			esc_attr( $arguments['type'] ),
-			esc_attr( $arguments['placeholder'] ),
+			esc_attr( $placeholder ),
 			esc_html( $value ),
 			esc_attr( $autocomplete ),
 			esc_attr( $lp_ignore ),
@@ -1161,7 +1179,9 @@ abstract class SettingsBase {
 						'disabled' => [],
 					],
 					'span'  => [
-						'class' => [],
+						'class'    => [],
+						'role'     => [],
+						'tabindex' => [],
 					],
 					'br'    => [],
 				]
@@ -1474,6 +1494,7 @@ abstract class SettingsBase {
 				'options'      => [],
 				'placeholder'  => '',
 				'supplemental' => '',
+				'sensitive'    => false,
 				'type'         => '',
 				'text'         => '',
 				'data'         => [],
@@ -1570,6 +1591,10 @@ abstract class SettingsBase {
 	 * @return void
 	 */
 	public function update_option( string $key, $value ): void {
+		if ( $this->is_network_wide() && ! Request::is_cli() && ! $this->can_manage_settings() ) {
+			return;
+		}
+
 		if ( empty( $this->settings ) ) {
 			$this->init_settings();
 		}
@@ -1685,7 +1710,7 @@ abstract class SettingsBase {
 	 */
 	protected function get_helper( string $helper ): string {
 		return sprintf(
-			'<span class="helper"><span class="helper-content">%s</span></span>',
+			'<span class="helper" tabindex="0"><span class="helper-content" role="tooltip">%s</span></span>',
 			wp_kses_post( $helper )
 		);
 	}
@@ -1728,6 +1753,24 @@ abstract class SettingsBase {
 	 */
 	public function is_network_wide(): bool {
 		return [ 'on' ] === $this->get_network_wide();
+	}
+
+	/**
+	 * Get the capability required to manage the active settings scope.
+	 *
+	 * @return string
+	 */
+	public function get_settings_capability(): string {
+		return $this->is_network_wide() ? 'manage_network_options' : 'manage_options';
+	}
+
+	/**
+	 * Check whether the current user can manage the active settings scope.
+	 *
+	 * @return bool
+	 */
+	public function can_manage_settings(): bool {
+		return current_user_can( $this->get_settings_capability() );
 	}
 
 	/**
@@ -1794,12 +1837,24 @@ abstract class SettingsBase {
 	 * @return array
 	 */
 	private function prepare_value( $value, $old_value ): array {
+		$active_value = $this->is_network_wide()
+			? (array) get_site_option( $this->option_name(), [] )
+			: (array) $old_value;
+
 		[ $value, $old_value, $network_wide ] = $this->prepare_network_wide_values( $value, $old_value );
 
 		foreach ( $this->form_fields() as $key => $form_field ) {
 			if ( 'file' === $form_field['type'] ) {
 				unset( $value[ $key ], $old_value[ $key ] );
 				continue;
+			}
+
+			if (
+				! empty( $form_field['sensitive'] ) &&
+				array_key_exists( $key, $active_value ) &&
+				'' === ( $value[ $key ] ?? '' )
+			) {
+				$value[ $key ] = $active_value[ $key ];
 			}
 
 			if ( isset( $value[ $key ] ) || ! in_array( $form_field['type'], [ 'checkbox', 'multiple' ], true ) ) {
@@ -1837,7 +1892,8 @@ abstract class SettingsBase {
 			? $value[ self::NETWORK_WIDE ] ?? []
 			: $this->get_network_wide();
 
-		$network_wide = current_user_can( 'manage_network_options' ) ? $network_wide : [];
+		$can_manage_network = current_user_can( 'manage_network_options' ) || Request::is_cli();
+		$network_wide       = $can_manage_network ? $network_wide : [];
 
 		if ( $network_wide ) {
 			$old_value = (array) get_site_option( $this->option_name(), [] );

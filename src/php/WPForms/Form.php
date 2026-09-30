@@ -11,6 +11,7 @@
 namespace HCaptcha\WPForms;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -500,21 +501,44 @@ class Form {
 		];
 
 		foreach ( $form_data['fields'] as $id => $field ) {
-			$type  = $field['type'] ?? '';
-			$value = $wpforms_entry['fields'][ $id ] ?? '';
-
-			if ( 'name' === $type ) {
-				$entry['name'] = $value;
+			if ( ! array_key_exists( $id, $wpforms_entry['fields'] ?? [] ) ) {
+				continue;
 			}
 
-			if ( 'email' === $type ) {
-				$entry['email'] = $value;
-			}
-
-			$entry['data'][ $type ] = $value;
+			$this->add_entry_field( $entry, $field, $wpforms_entry['fields'][ $id ], (string) $id );
 		}
 
 		return $entry;
+	}
+
+	/**
+	 * Add one submitted WPForms field to the anti-spam entry.
+	 *
+	 * @param array  $entry Entry data.
+	 * @param array  $field Field settings.
+	 * @param mixed  $value Submitted value.
+	 * @param string $id    Field identifier.
+	 *
+	 * @return void
+	 */
+	private function add_entry_field( array &$entry, array $field, $value, string $id ): void {
+		$type  = (string) ( $field['type'] ?? '' );
+		$label = (string) ( $field['label'] ?? '' );
+		$name  = (string) ( $field['name'] ?? '' );
+
+		if ( ! EntryData::is_content_field_type( $type ) || EntryData::has_sensitive_field( $label, $name, $id ) ) {
+			return;
+		}
+
+		if ( 'name' === $type ) {
+			$entry['name'] = $value;
+		}
+
+		if ( 'email' === $type ) {
+			$entry['email'] = $value;
+		}
+
+		EntryData::add_field( $entry['data'], $label ?: $name ?: $type, $value, $id );
 	}
 
 	/**

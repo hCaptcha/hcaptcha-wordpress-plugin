@@ -8,6 +8,7 @@
 namespace HCaptcha\Blocksy;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Block;
 
@@ -190,26 +191,20 @@ class NewsletterSubscribe {
 	private function get_entry( array $form_data ): array {
 		global $post;
 
-		$entry = [
+		return [
 			'nonce_name'         => self::NONCE,
 			'nonce_action'       => self::ACTION,
 			'h-captcha-response' => $form_data['h-captcha-response'] ?? '',
 			'form_date_gmt'      => $post->post_modified_gmt ?? null,
-			'data'               => [],
+			'data'               => EntryData::from_array(
+				$form_data,
+				[
+					'email' => 'email',
+					'group' => 'group',
+				]
+			),
 			'expected_id'        => $this->get_expected_id(),
 		];
-
-		foreach ( $form_data as $key => $value ) {
-			$key = strtolower( $key );
-
-			if ( ! in_array( $key, [ 'email', 'group' ], true ) ) {
-				continue;
-			}
-
-			$entry['data'][ $key ] = $value;
-		}
-
-		return $entry;
 	}
 
 	/**

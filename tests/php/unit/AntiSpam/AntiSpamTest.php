@@ -54,6 +54,33 @@ class AntiSpamTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test that additional entry fields are preserved for the provider.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_constructor_preserves_additional_fields(): void {
+		$subject = $this->make_subject(
+			[
+				'data'        => [ 'email' => 'person@example.test' ],
+				'address'     => 'Riga',
+				'preferences' => [ 'newsletter' => true ],
+			]
+		);
+
+		self::assertSame(
+			[
+				'data'          => [ 'email' => 'person@example.test' ],
+				'name'          => null,
+				'email'         => null,
+				'form_date_gmt' => null,
+				'address'       => 'Riga',
+				'preferences'   => [ 'newsletter' => true ],
+			],
+			$this->get_protected_property( $subject, 'entry' )
+		);
+	}
+
+	/**
 	 * Test init() exits when anti-spam is off.
 	 */
 	public function test_init_when_antispam_is_off(): void {

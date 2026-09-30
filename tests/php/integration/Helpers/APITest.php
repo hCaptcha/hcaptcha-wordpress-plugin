@@ -9,7 +9,9 @@ namespace HCaptcha\Tests\Integration\Helpers;
 
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\FormSubmitTime;
+use HCaptcha\Helpers\FormSubmitTimeStore;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Settings\General;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use ReflectionException;
 use WP_Error;
@@ -106,6 +108,108 @@ class APITest extends HCaptchaWPTestCase {
 
 		self::assertSame( 'Please complete the hCaptcha.', API::verify_post() );
 	}
+
+	/**
+	 * Test verify_post() consumes an FST token when the hCaptcha response is empty.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_verify_post_empty_consumes_fst_token(): void {
+		$now       = time();
+		$payload   = [
+			'post_id'   => '0',
+			'issued_at' => $now,
+			'ttl'       => FormSubmitTime::DEFAULT_TOKEN_TTL,
+			'token_id'  => wp_generate_password( 32, false ),
+		];
+		$fst       = new FormSubmitTime();
+		$method    = $this->set_method_accessibility( $fst, 'token_from_payload' );
+		$token     = (string) $method->invoke( $fst, $payload );
+		$signature = explode( '-', $token, 2 )[1];
+		$store     = new FormSubmitTimeStore();
+		$settings  = (array) get_option( 'hcaptcha_settings', [] );
+
+		FormSubmitTimeStore::delete_all();
+
+		$settings['set_min_submit_time'] = 'on';
+		$settings['min_submit_time']     = '0';
+
+		update_option( 'hcaptcha_settings', $settings );
+		hcaptcha()->init_hooks();
+
+		self::assertTrue(
+			$store->reserve(
+				$signature,
+				$payload,
+				'test-client',
+				$now + FormSubmitTime::DEFAULT_TOKEN_TTL,
+				$now
+			)
+		);
+
+		$this->prepare_verify_request( '', false );
+		$_POST['hcap_fst_token'] = $token;
+
+		try {
+			self::assertSame( 'Please complete the hCaptcha.', API::verify_post() );
+			self::assertFalse( $store->has( $signature, $payload ) );
+		} finally {
+			FormSubmitTimeStore::delete_all();
+		}
+	}
+
+	/**
+	 * Test FST token consumption happens before an early verification failure.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_verify_request_consumes_fst_token_before_denylist_check(): void {
+		$now       = time();
+		$payload   = [
+			'post_id'   => '0',
+			'issued_at' => $now,
+			'ttl'       => FormSubmitTime::DEFAULT_TOKEN_TTL,
+			'token_id'  => wp_generate_password( 32, false ),
+		];
+		$fst       = new FormSubmitTime();
+		$method    = $this->set_method_accessibility( $fst, 'token_from_payload' );
+		$token     = (string) $method->invoke( $fst, $payload );
+		$signature = explode( '-', $token, 2 )[1];
+		$store     = new FormSubmitTimeStore();
+		$settings  = (array) get_option( 'hcaptcha_settings', [] );
+
+		FormSubmitTimeStore::delete_all();
+
+		$settings['set_min_submit_time'] = 'on';
+		$settings['min_submit_time']     = '0';
+
+		update_option( 'hcaptcha_settings', $settings );
+		hcaptcha()->init_hooks();
+
+		self::assertTrue(
+			$store->reserve(
+				$signature,
+				$payload,
+				'test-client',
+				$now + FormSubmitTime::DEFAULT_TOKEN_TTL,
+				$now
+			)
+		);
+
+		$this->prepare_verify_request( 'some response', false );
+		$_POST['hcap_fst_token'] = $token;
+
+		add_filter( 'hcap_blacklist_ip', '__return_true' );
+
+		try {
+			self::assertSame( 'The hCaptcha is invalid.', API::verify_request( 'some response' ) );
+			self::assertFalse( $store->has( $signature, $payload ) );
+		} finally {
+			remove_filter( 'hcap_blacklist_ip', '__return_true' );
+			FormSubmitTimeStore::delete_all();
+		}
+	}
+
 	/**
 	 * Test verify_post().
 	 */
@@ -174,6 +278,277 @@ class APITest extends HCaptchaWPTestCase {
 		$this->prepare_verify_request( $hcaptcha_response );
 
 		self::assertNull( API::verify_request( $hcaptcha_response ) );
+	}
+
+	/**
+	 * Test whether verify_request() sends a local IP in the configured mode.
+	 *
+	 * @param string $mode Mode.
+	 *
+	 * @dataProvider dp_test_verify_request_sends_local_ip
+	 */
+	public function test_verify_request_sends_local_ip( string $mode ): void {
+		$hcaptcha_response = 'some response';
+		$local_ip          = '127.0.0.1';
+		$settings          = (array) get_option( 'hcaptcha_settings', [] );
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+		$previous_ip     = $_SERVER['REMOTE_ADDR'] ?? null;
+		$request_checked = false;
+
+		$settings['mode']       = $mode;
+		$settings['site_key']   = 'some site key';
+		$settings['secret_key'] = 'some secret key';
+
+		update_option( 'hcaptcha_settings', $settings );
+		hcaptcha()->init_hooks();
+
+		$_SERVER['REMOTE_ADDR'] = $local_ip;
+
+		$filter = static function ( $preempt, $parsed_args, $url ) use ( $local_ip, &$request_checked ) {
+			if ( hcaptcha()->get_verify_url() !== $url ) {
+				return $preempt;
+			}
+
+			$request_checked = true;
+
+			self::assertSame( $local_ip, $parsed_args['body']['remoteip'] ?? null );
+
+			return [
+				'body' => wp_json_encode(
+					[
+						'success' => true,
+						'score'   => 0.0,
+					]
+				),
+			];
+		};
+
+		add_filter( 'pre_http_request', $filter, 10, 3 );
+
+		try {
+			$_POST['h-captcha-response'] = $hcaptcha_response;
+			$_POST['hcap_hp_test']       = '';
+			$_POST['hcap_hp_sig']        = wp_create_nonce( 'hcap_hp_test' );
+
+			self::assertNull( API::verify_request( $hcaptcha_response ) );
+			self::assertTrue( $request_checked );
+		} finally {
+			remove_filter( 'pre_http_request', $filter );
+
+			if ( null === $previous_ip ) {
+				unset( $_SERVER['REMOTE_ADDR'] );
+			} else {
+				$_SERVER['REMOTE_ADDR'] = $previous_ip;
+			}
+		}
+	}
+
+	/**
+	 * Data provider for test_verify_request_sends_local_ip().
+	 *
+	 * @return array
+	 */
+	public function dp_test_verify_request_sends_local_ip(): array {
+		return [
+			'live mode'                     => [ General::MODE_LIVE ],
+			'publisher test mode'           => [ General::MODE_TEST_PUBLISHER ],
+			'enterprise safe end user mode' => [ General::MODE_TEST_ENTERPRISE_SAFE_END_USER ],
+			'enterprise bot detected mode'  => [ General::MODE_TEST_ENTERPRISE_BOT_DETECTED ],
+		];
+	}
+
+	/**
+	 * Test that verify_request() exposes and caches the normalized siteverify response.
+	 */
+	public function test_verify_request_exposes_and_caches_siteverify_response(): void {
+		$hcaptcha_response   = 'some response';
+		$siteverify_response = [
+			'success'      => true,
+			'challenge_ts' => '2026-09-19T10:00:00Z',
+			'hostname'     => 'test.test',
+			'credit'       => true,
+			'error-codes'  => [],
+			'score'        => 1.0,
+			'score_reason' => [ 'test-reason' ],
+		];
+		$captured_responses  = [];
+
+		add_filter(
+			'hcap_verify_request',
+			static function ( $result, $deprecated, $error_info ) use ( &$captured_responses ) {
+				$captured_responses[] = $error_info->siteverify;
+
+				return $result;
+			},
+			PHP_INT_MAX,
+			3
+		);
+
+		$this->prepare_verify_request( $hcaptcha_response, $siteverify_response );
+
+		self::assertNull( API::verify_request( $hcaptcha_response ) );
+		self::assertNull( API::verify_request( $hcaptcha_response ) );
+		self::assertSame( [ $siteverify_response, $siteverify_response ], $captured_responses );
+		self::assertSame( $siteverify_response, API::get_siteverify_response() );
+	}
+
+	/**
+	 * Test that risk score enforcement accepts a score below the threshold.
+	 */
+	public function test_verify_request_accepts_risk_score_below_threshold(): void {
+		$hcaptcha_response = 'some response';
+
+		$this->enable_risk_score_enforcement( '0.5' );
+		$this->prepare_verify_request(
+			$hcaptcha_response,
+			[
+				'success' => true,
+				'score'   => 0.4,
+			]
+		);
+
+		self::assertNull( API::verify_request( $hcaptcha_response ) );
+	}
+
+	/**
+	 * Test that risk score enforcement rejects a score at the threshold.
+	 */
+	public function test_verify_request_rejects_risk_score_at_threshold(): void {
+		$hcaptcha_response = 'some response';
+		$error_info        = null;
+
+		add_filter(
+			'hcap_verify_request',
+			static function ( $result, $deprecated, $current_error_info ) use ( &$error_info ) {
+				$error_info = $current_error_info;
+
+				return $result;
+			},
+			PHP_INT_MAX,
+			3
+		);
+
+		$this->enable_risk_score_enforcement( '0.5' );
+		$this->prepare_verify_request(
+			$hcaptcha_response,
+			[
+				'success' => true,
+				'score'   => 0.5,
+			]
+		);
+
+		self::assertSame( 'The hCaptcha is invalid.', API::verify_request( $hcaptcha_response ) );
+		self::assertSame( [ 'fail' ], $error_info->codes );
+		self::assertSame( 0.5, $error_info->siteverify['score'] );
+	}
+
+	/**
+	 * Test that risk score enforcement rejects a missing or invalid score.
+	 *
+	 * @param array $siteverify_response Siteverify response.
+	 *
+	 * @dataProvider dp_test_verify_request_rejects_missing_or_invalid_risk_score
+	 */
+	public function test_verify_request_rejects_missing_or_invalid_risk_score( array $siteverify_response ): void {
+		$hcaptcha_response = 'some response';
+
+		$this->enable_risk_score_enforcement( '0.5' );
+		$this->prepare_verify_request( $hcaptcha_response, $siteverify_response );
+
+		self::assertSame( 'The hCaptcha is invalid.', API::verify_request( $hcaptcha_response ) );
+	}
+
+	/**
+	 * Test that risk score enforcement ignores a missing score for a Pro account.
+	 */
+	public function test_verify_request_ignores_missing_risk_score_for_pro(): void {
+		$hcaptcha_response = 'some response';
+
+		$this->enable_risk_score_enforcement( '0.5', 'pro' );
+		$this->prepare_verify_request( $hcaptcha_response, [ 'success' => true ] );
+
+		self::assertNull( API::verify_request( $hcaptcha_response ) );
+	}
+
+	/**
+	 * Test that risk score enforcement can be skipped for configuration checks.
+	 */
+	public function test_verify_request_skips_risk_score_enforcement(): void {
+		$hcaptcha_response = 'some response';
+		$skip_risk_score   = static function () {
+			return null;
+		};
+
+		$this->enable_risk_score_enforcement( '0.5' );
+		$this->prepare_verify_request(
+			$hcaptcha_response,
+			[
+				'success' => true,
+				'score'   => 1.0,
+			]
+		);
+
+		add_filter( 'hcap_risk_score_threshold', $skip_risk_score, PHP_INT_MAX );
+
+		try {
+			self::assertNull( API::verify_request( $hcaptcha_response ) );
+			self::assertSame( 1.0, API::get_siteverify_response()['score'] );
+		} finally {
+			remove_filter( 'hcap_risk_score_threshold', $skip_risk_score, PHP_INT_MAX );
+		}
+	}
+
+	/**
+	 * Test that the risk score threshold can be overridden.
+	 */
+	public function test_verify_request_filters_risk_score_threshold(): void {
+		$hcaptcha_response = 'some response';
+		$filter            = static function () {
+			return 0.4;
+		};
+
+		$this->enable_risk_score_enforcement( '0.9' );
+		$this->prepare_verify_request(
+			$hcaptcha_response,
+			[
+				'success' => true,
+				'score'   => 0.5,
+			]
+		);
+
+		add_filter( 'hcap_risk_score_threshold', $filter, PHP_INT_MAX );
+
+		try {
+			self::assertSame(
+				'The hCaptcha is invalid.',
+				API::verify_request( $hcaptcha_response )
+			);
+		} finally {
+			remove_filter( 'hcap_risk_score_threshold', $filter, PHP_INT_MAX );
+		}
+	}
+
+	/**
+	 * Data provider for test_verify_request_rejects_missing_or_invalid_risk_score().
+	 *
+	 * @return array
+	 */
+	public function dp_test_verify_request_rejects_missing_or_invalid_risk_score(): array {
+		return [
+			'missing'      => [ [ 'success' => true ] ],
+			'string'       => [
+				[
+					'success' => true,
+					'score'   => '0.4',
+				],
+			],
+			'out of range' => [
+				[
+					'success' => true,
+					'score'   => 1.1,
+				],
+			],
+		];
 	}
 
 	/**
@@ -443,6 +818,26 @@ class APITest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test that form entry and transport data are absent from the siteverify body.
+	 *
+	 * @return void
+	 */
+	public function test_verify_does_not_send_form_data_to_siteverify(): void {
+		$hcaptcha_response = 'some response';
+		$this->prepare_verify_request( $hcaptcha_response );
+
+		self::assertNull(
+			API::verify(
+				[
+					'h-captcha-response' => $hcaptcha_response,
+					'data'               => [ 'password' => 'private-password' ],
+					'post_data'          => [ 'payment_method' => 'private-payment-data' ],
+				]
+			)
+		);
+	}
+
+	/**
 	 * Test verify_request() for a denylisted IP.
 	 */
 	public function test_verify_request_denylisted_ip(): void {
@@ -644,5 +1039,25 @@ class APITest extends HCaptchaWPTestCase {
 		} finally {
 			remove_filter( 'pre_http_request', $filter );
 		}
+	}
+
+	/**
+	 * Enable risk score enforcement.
+	 *
+	 * @param string $threshold Risk score threshold.
+	 * @param string $license   License level.
+	 *
+	 * @return void
+	 */
+	private function enable_risk_score_enforcement( string $threshold, string $license = 'enterprise' ): void {
+		$settings                                  = (array) get_option( 'hcaptcha_settings', [] );
+		$settings[ General::RISK_SCORE ]           = [ 'on' ];
+		$settings[ General::RISK_SCORE_THRESHOLD ] = $threshold;
+		$settings['license']                       = $license;
+		$settings['mode']                          = General::MODE_LIVE;
+		$settings['site_key']                      = General::MODE_TEST_PUBLISHER_SITE_KEY;
+
+		update_option( 'hcaptcha_settings', $settings );
+		hcaptcha()->init_hooks();
 	}
 }

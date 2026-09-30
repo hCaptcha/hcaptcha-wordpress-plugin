@@ -8,6 +8,7 @@
 namespace HCaptcha\Abstracts;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 
@@ -85,6 +86,11 @@ abstract class LostPasswordBase extends FormOwnerBase {
 			[
 				'nonce_name'   => static::NONCE,
 				'nonce_action' => static::ACTION,
+				'data'         => EntryData::from_post(
+					[
+						'username' => [ 'user_login', 'user_email' ],
+					]
+				),
 				'expected_id'  => $this->get_expected_id(),
 			]
 		);

@@ -104,7 +104,7 @@ class MailPoetDetector extends AbstractDetector {
 	private function get_captcha_settings(): ?array {
 		global $wpdb;
 
-		$table = $wpdb->prefix . 'mailpoet_settings';
+		$table = esc_sql( $wpdb->prefix . 'mailpoet_settings' );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$value = $wpdb->get_var(

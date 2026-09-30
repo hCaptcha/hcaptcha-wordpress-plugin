@@ -15,6 +15,7 @@ use HCaptcha\BeaverBuilder\Contact;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use ReflectionClass;
+use ReflectionException;
 
 /**
  * Class ContactTest
@@ -47,6 +48,20 @@ class ContactTest extends HCaptchaPluginWPTestCase {
 	 * @var bool
 	 */
 	protected static bool $force_plugin_load_hooks = true;
+
+	/**
+	 * Set up the test.
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function setUp(): void {
+		parent::setUp();
+
+		hcaptcha()->settings()->set( 'honeypot', 'on' );
+		hcaptcha()->settings()->set( 'set_min_submit_time', 'on' );
+		$this->set_protected_property( hcaptcha(), 'supported_forms', null );
+	}
 
 	/**
 	 * Tear down.
@@ -124,6 +139,7 @@ class ContactTest extends HCaptchaPluginWPTestCase {
 	 * Test hCaptcha in a form rendered by the live Beaver Builder module.
 	 *
 	 * @return void
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_live_contact_form(): void {
 		global $post;
@@ -153,6 +169,8 @@ class ContactTest extends HCaptchaPluginWPTestCase {
 		self::assertStringContainsString( 'name="fl-email"', $html );
 		self::assertStringContainsString( 'class="fl-input-group fl-hcaptcha"', $html );
 		self::assertStringContainsString( 'name="hcaptcha_beaver_builder_nonce"', $html );
+		self::assertStringContainsString( 'name="hcap_hp_test"', $html );
+		self::assertStringContainsString( 'name="hcap_hp_sig"', $html );
 		self::assertSame( 10, has_filter( 'fl_builder_render_module_content', [ $subject, 'add_beaver_builder_captcha' ] ) );
 	}
 
@@ -210,6 +228,42 @@ class ContactTest extends HCaptchaPluginWPTestCase {
 		$json = ob_get_clean();
 
 		self::assertSame( '{"error":true,"message":"The hCaptcha is invalid."}', $json );
+		self::assertSame( $expected, $die_arr );
+	}
+
+	/**
+	 * Test verify() with a filled honeypot.
+	 *
+	 * @return void
+	 */
+	public function test_verify_filled_honeypot(): void {
+		$die_arr  = [];
+		$expected = [
+			'',
+			'',
+			[ 'response' => null ],
+		];
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter(
+			'wp_die_ajax_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		$this->prepare_verify_post( 'hcaptcha_beaver_builder_nonce', 'hcaptcha_beaver_builder' );
+		$this->prepare_widget_id();
+
+		$_POST['hcap_hp_test'] = 'bot';
+
+		ob_start();
+		( new Contact() )->verify( 'a@a.com', 'Subject', 'Message', [], (object) [] );
+		$json = ob_get_clean();
+
+		self::assertSame( '{"error":true,"message":"Anti-spam check failed."}', $json );
 		self::assertSame( $expected, $die_arr );
 	}
 

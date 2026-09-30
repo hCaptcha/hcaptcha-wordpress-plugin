@@ -15,6 +15,7 @@ use WP_Error;
  * Class Register.
  */
 class Register {
+	use RefreshTokens;
 
 	/**
 	 * Nonce action.
@@ -49,6 +50,8 @@ class Register {
 	 * @return void
 	 */
 	public function add_captcha(): void {
+		$this->enqueue_refresh_tokens_script();
+
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,

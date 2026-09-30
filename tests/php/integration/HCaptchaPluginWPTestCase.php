@@ -97,6 +97,13 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 	protected static array $plugin_expected_incorrect_usage = [];
 
 	/**
+	 * Incorrect usage notices that a plugin may raise, depending on the test environment.
+	 *
+	 * @var string[]
+	 */
+	protected static array $plugin_optional_incorrect_usage = [];
+
+	/**
 	 * Expected deprecation notices caused by loading plugins after WordPress bootstrap.
 	 *
 	 * @var string[]
@@ -123,6 +130,21 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 	 * @var string[]
 	 */
 	protected static array $theme_expected_incorrect_usage = [];
+
+	/**
+	 * Allow known plugin notices only when the plugin actually raised them.
+	 *
+	 * @return void
+	 */
+	public function assert_post_conditions() {
+		foreach ( static::$plugin_optional_incorrect_usage as $incorrect_usage ) {
+			if ( isset( $this->caught_doing_it_wrong[ $incorrect_usage ] ) ) {
+				$this->setExpectedIncorrectUsage( $incorrect_usage );
+			}
+		}
+
+		parent::assert_post_conditions();
+	}
 
 	/**
 	 * Teardown after class.

@@ -19,6 +19,10 @@ require_once __DIR__ . '/src/Scoper.php';
 
 $finders = Scoper::get_finders();
 
+if ( isset( $finders['composer/ca-bundle'] ) ) {
+	$finders['composer/ca-bundle']->name( 'cacert.pem' );
+}
+
 if ( isset( $finders['matthiasmullie/minify'] ) ) {
 	$finders['matthiasmullie/minify']
 		->in( __DIR__ . '/../vendor/matthiasmullie/minify/data/js' )
@@ -27,7 +31,7 @@ if ( isset( $finders['matthiasmullie/minify'] ) ) {
 
 $config = [
 	'prefix'   => 'HCaptcha\Vendors',
-	'finders'  => $finders,
+	'finders'  => array_values( $finders ),
 	'patchers' => [
 		static function ( string $file_path, string $prefix, string $content ): string {
 			$file_path = str_replace( '\\', '/', $file_path );

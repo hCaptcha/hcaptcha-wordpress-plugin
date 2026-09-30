@@ -312,24 +312,20 @@ describe( 'notifications edge branch coverage', () => {
 		expect( notificationCalls ).toBeGreaterThanOrEqual( 3 );
 	} );
 
-	test( 'initializer can run without the Jest-only test hook', () => {
-		const jestRef = jest;
-		const savedJest = global.jest;
+	test( 'initializer can run without the test hook', () => {
+		const savedMode = window.__hCaptchaTestMode;
 
 		document.body.innerHTML = getDom( { withTwo: true } );
 		Object.assign( window.HCaptchaNotificationsObject, defaultNotifications );
-		Object.defineProperty( global, 'jest', {
-			configurable: true,
-			value: undefined,
-		} );
-		jestRef.isolateModules( () => {
-			require( '../../../assets/js/notifications.js' );
-		} );
-		window.hCaptchaNotifications( $ );
-		Object.defineProperty( global, 'jest', {
-			configurable: true,
-			value: savedJest,
-		} );
+		try {
+			window.__hCaptchaTestMode = false;
+			jest.isolateModules( () => {
+				require( '../../../assets/js/notifications.js' );
+			} );
+			window.hCaptchaNotifications( $ );
+		} finally {
+			window.__hCaptchaTestMode = savedMode;
+		}
 
 		expect( document.getElementById( 'hcaptcha-navigation-pages' ).textContent ).toBe( '2' );
 	} );

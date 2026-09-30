@@ -38,6 +38,62 @@ use Elementor\Settings;
  */
 class HCaptchaHandlerTest extends HCaptchaPluginWPTestCase {
 	/**
+	 * Test that Elementor password, hidden and payment fields are excluded.
+	 *
+	 * @return void
+	 */
+	public function test_get_entry_excludes_sensitive_fields(): void {
+		$record = Mockery::mock( Form_Record::class );
+		$record->shouldReceive( 'get' )->with( 'form_settings' )->once()->andReturn( [ 'id' => 'form-1' ] );
+		$record->shouldReceive( 'get' )->with( 'sent_data' )->once()->andReturn(
+			[
+				'email'    => 'reader@example.com',
+				'opinion'  => 'Very useful',
+				'password' => 'private-password',
+				'token'    => 'private-token',
+				'card'     => 'private-card',
+			]
+		);
+		$record->shouldReceive( 'get' )->with( 'fields' )->once()->andReturn(
+			[
+				[
+					'id'   => 'email',
+					'type' => 'email',
+				],
+				[
+					'id'          => 'opinion',
+					'type'        => 'select',
+					'field_label' => 'Ваше мнение',
+				],
+				[
+					'id'   => 'password',
+					'type' => 'password',
+				],
+				[
+					'id'   => 'token',
+					'type' => 'hidden',
+				],
+				[
+					'id'   => 'card',
+					'type' => 'payment',
+				],
+			]
+		);
+
+		$subject = new HCaptchaHandler();
+		$method  = $this->set_method_accessibility( $subject, 'get_entry' );
+		$entry   = $method->invoke( $subject, $record );
+
+		self::assertSame(
+			[
+				'email'   => 'reader@example.com',
+				'opinion' => 'Very useful',
+			],
+			$entry['data']
+		);
+	}
+
+	/**
 	 * Plugin relative paths.
 	 *
 	 * @var string[]

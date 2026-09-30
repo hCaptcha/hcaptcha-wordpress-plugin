@@ -65,6 +65,6 @@ class Login extends LoginBase {
 			return;
 		}
 
-		$this->base_verify();
+		$this->base_verify( $post );
 	}
 }

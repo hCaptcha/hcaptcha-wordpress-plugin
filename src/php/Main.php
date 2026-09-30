@@ -431,9 +431,13 @@ class Main {
 			return $headers;
 		}
 
-		$hcap_src     = "'self' 'unsafe-inline' 'unsafe-eval' https://hcaptcha.com https://*.hcaptcha.com";
-		$hcap_csp     = "script-src $hcap_src; frame-src $hcap_src; style-src $hcap_src; connect-src $hcap_src";
-		$hcap_csp_arr = $this->parse_csp( $hcap_csp );
+		$hcap_src       = 'https://hcaptcha.com https://*.hcaptcha.com';
+		$settings       = $this->settings();
+		$is_enterprise  = $settings && 'enterprise' === $settings->get_license();
+		$enterprise_src = "'unsafe-inline' 'unsafe-eval'";
+		$script_src     = $is_enterprise ? "$enterprise_src $hcap_src" : $hcap_src;
+		$hcap_csp       = "script-src $script_src; frame-src $hcap_src; style-src $hcap_src; connect-src $hcap_src";
+		$hcap_csp_arr   = $this->parse_csp( $hcap_csp );
 
 		foreach ( $headers as $key => $header ) {
 			if ( strtolower( $key ) === $csp_key_lower ) {
@@ -522,7 +526,9 @@ class Main {
 		$settings                = $this->settings();
 		$div_logo_url            = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo.svg';
 		$div_logo_white_url      = HCAPTCHA_URL . '/assets/images/hcaptcha-div-logo-white.svg';
+		$custom_theme_color      = $settings ? $settings->get_custom_theme_color() : '';
 		$custom_theme_background = $settings ? $settings->get_custom_theme_background() : '';
+		$color                   = $custom_theme_color ?: 'initial';
 		$bg                      = $custom_theme_background ?: 'initial';
 		$delay                   = (int) ( $settings->get( 'delay' ) ?: 0 );
 		$animation_delay         = $delay >= 0 ? $delay / 100 + 2 : 2;
@@ -678,6 +684,53 @@ class Main {
 
 	div[style*="z-index: 2147483647"] div[style*="border-width: 11px"][style*="position: absolute"][style*="pointer-events: none"] {
 		border-style: none;
+	}
+
+	p.hcaptcha-invisible-disclosure {
+		padding: 0.5rem;
+		margin-bottom: 2rem !important;
+	}
+
+	.h-captcha[data-theme="light"] + p.hcaptcha-invisible-disclosure,
+	body.is-light-theme .h-captcha[data-theme="auto"] + p.hcaptcha-invisible-disclosure,
+	.h-captcha[data-theme="auto"] + p.hcaptcha-invisible-disclosure {
+		color: #333;
+		background-color: #fafafa;
+		border: 1px solid #e0e0e0;
+	}
+
+	.h-captcha[data-theme="dark"] + p.hcaptcha-invisible-disclosure,
+	body.is-dark-theme .h-captcha[data-theme="auto"] + p.hcaptcha-invisible-disclosure,
+	html.wp-dark-mode-active .h-captcha[data-theme="auto"] + p.hcaptcha-invisible-disclosure,
+	html.drdt-dark-mode .h-captcha[data-theme="auto"] + p.hcaptcha-invisible-disclosure {
+		color: #f5f5f5;
+		background-color: #333;
+		border: 1px solid #f5f5f5;
+	}
+
+	.h-captcha[data-theme="dark"] + p.hcaptcha-invisible-disclosure a,
+	body.is-dark-theme .h-captcha[data-theme="auto"] + p.hcaptcha-invisible-disclosure a,
+	html.wp-dark-mode-active .h-captcha[data-theme="auto"] + p.hcaptcha-invisible-disclosure a,
+	html.drdt-dark-mode .h-captcha[data-theme="auto"] + p.hcaptcha-invisible-disclosure a {
+		color: #f5f5f5;
+	}
+
+	@media (prefers-color-scheme: dark) {
+		.h-captcha[data-theme="auto"] + p.hcaptcha-invisible-disclosure {
+			color: #f5f5f5;
+			background-color: #333;
+			border: 1px solid #f5f5f5;
+		}
+
+		.h-captcha[data-theme="auto"] + p.hcaptcha-invisible-disclosure a {
+			color: #f5f5f5;
+		}
+	}
+
+	.h-captcha[data-theme="custom"] + p.hcaptcha-invisible-disclosure,
+	.h-captcha[data-theme="custom"] + p.hcaptcha-invisible-disclosure a {
+		color: ' . $color . ';
+		background-color: ' . $bg . ';
 	}
 ';
 
@@ -1057,7 +1110,7 @@ class Main {
 		$settings = $this->settings();
 
 		if ( $settings && $settings->is_on( 'statistics' ) ) {
-			// Clean up trashed events daily.
+			// Clean up expired active and trashed events daily.
 			as_schedule_recurring_action(
 				$tomorrow_6am,
 				DAY_IN_SECONDS,
@@ -1681,16 +1734,6 @@ class Main {
 				'otter-blocks/otter-blocks.php',
 				Otter\Form::class,
 			],
-			'Paid Memberships Pro Checkout'        => [
-				[ 'paid_memberships_pro_status', 'checkout' ],
-				'paid-memberships-pro/paid-memberships-pro.php',
-				PaidMembershipsPro\Checkout::class,
-			],
-			'Paid Memberships Pro Login'           => [
-				[ 'paid_memberships_pro_status', null ],
-				'paid-memberships-pro/paid-memberships-pro.php',
-				PaidMembershipsPro\Login::class,
-			],
 			'Passster Protect'                     => [
 				[ 'passster_status', 'protect' ],
 				'content-protector/content-protector.php',
@@ -1725,11 +1768,6 @@ class Main {
 				[ 'sendinblue_status', 'form' ],
 				'mailin/sendinblue.php',
 				Sendinblue::class,
-			],
-			'Simple Basic Contact Form'            => [
-				[ 'simple_basic_contact_form_status', 'form' ],
-				'simple-basic-contact-form/simple-basic-contact-form.php',
-				SimpleBasicContactForm\Form::class,
 			],
 			'Simple Download Monitor'              => [
 				[ 'simple_download_monitor_status', 'form' ],
@@ -1778,22 +1816,22 @@ class Main {
 			],
 			'Tutor Checkout'                       => [
 				[ 'tutor_status', 'checkout' ],
-				'tutor/tutor.php',
+				[ 'tutor-pro/tutor-pro.php', 'tutor/tutor.php' ],
 				Tutor\Checkout::class,
 			],
 			'Tutor Login'                          => [
 				[ 'tutor_status', 'login' ],
-				'tutor/tutor.php',
+				[ 'tutor-pro/tutor-pro.php', 'tutor/tutor.php' ],
 				Tutor\Login::class,
 			],
 			'Tutor LostPassword'                   => [
 				[ 'tutor_status', 'lost_pass' ],
-				'tutor/tutor.php',
+				[ 'tutor-pro/tutor-pro.php', 'tutor/tutor.php' ],
 				Tutor\LostPassword::class,
 			],
 			'Tutor Register'                       => [
 				[ 'tutor_status', 'register' ],
-				'tutor/tutor.php',
+				[ 'tutor-pro/tutor-pro.php', 'tutor/tutor.php' ],
 				Tutor\Register::class,
 			],
 			'Ultimate Addons Login'                => [
@@ -1860,6 +1898,11 @@ class Main {
 				[ 'woocommerce_status', 'order_tracking' ],
 				'woocommerce/woocommerce.php',
 				WC\OrderTracking::class,
+			],
+			'WooCommerce Order Withdrawal'         => [
+				[ 'woocommerce_status', 'order_withdrawal' ],
+				'woocommerce/woocommerce.php',
+				WC\OrderWithdrawal::class,
 			],
 			'WooCommerce Register'                 => [
 				[ 'woocommerce_status', 'register' ],

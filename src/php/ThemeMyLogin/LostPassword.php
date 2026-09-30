@@ -15,6 +15,16 @@ use HCaptcha\Abstracts\LostPasswordBase;
 class LostPassword extends LostPasswordBase {
 
 	/**
+	 * Init hooks.
+	 *
+	 * @return void
+	 */
+	protected function init_hooks(): void {
+		parent::init_hooks();
+		Assets::init();
+	}
+
+	/**
 	 * Nonce action.
 	 */
 	protected const ACTION = 'hcaptcha_theme_my_login_lost_password';

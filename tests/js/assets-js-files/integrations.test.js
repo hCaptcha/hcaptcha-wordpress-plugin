@@ -13,16 +13,23 @@ global.HCaptchaIntegrationsObject = {
 	ajaxUrl: 'https://test.test/wp-admin/admin-ajax.php',
 	action: 'test_action',
 	nonce: 'test_nonce',
+	activationPlanAction: 'test_activation_plan_action',
+	activationPlanNonce: 'test_activation_plan_nonce',
+	planAction: 'test_plan_action',
+	planNonce: 'test_plan_nonce',
 	activatePluginMsg: 'Activate %s plugin?',
 	deactivatePluginMsg: 'Deactivate %s plugin?',
 	activateThemeMsg: 'Activate %s theme?',
 	deactivateThemeMsg: 'Deactivate %s theme?',
+	deactivateAllMsg: 'Deactivate all',
+	dependenciesMsg: 'Also deactivate dependencies:',
 	installPluginMsg: 'Install %s plugin?',
 	installThemeMsg: 'Install %s theme?',
 	OKBtnText: 'OK',
 	CancelBtnText: 'Cancel',
 	selectThemeMsg: 'Select a theme',
 	onlyOneThemeMsg: 'Only one theme available',
+	loadingDepsMsg: 'Checking dependencies…',
 	unexpectedErrorMsg: 'Unexpected error',
 	themes: { Divi: 'Divi' },
 	defaultTheme: 'twentytwentyfive',
@@ -333,8 +340,10 @@ describe( 'integrations', () => {
 		window.kaggDialog = { confirm: jest.fn( ( cfg ) => cfg.onAction( true ) ) };
 		$( '.hcaptcha-integrations-acfe-status img' ).trigger( $.Event( 'click', { ctrlKey: true } ) );
 
-		expect( $( '#hcaptcha-admin-notices .hcaptcha-admin-notice' ).length ).toBe( 1 );
-		expect( $( '#hcaptcha-admin-notices .hcaptcha-admin-notice' ).text() ).toContain( 'Review Trusted IP Headers' );
+		const $notice = $( '#hcaptcha-admin-notices .hcaptcha-admin-notice' );
+
+		expect( $notice.length ).toBe( 1 );
+		expect( $notice.text() ).toContain( 'Review Trusted IP Headers' );
 		expect( $( '#hcaptcha-message' ).text() ).toContain( 'Activated' );
 	} );
 
@@ -466,7 +475,7 @@ describe( 'additional integrations coverage', () => {
 			},
 		} );
 
-		// Data-installed must be true, and the row should be in table matching status
+		// Data-installed must be true, and the row should be in table-matching status
 		expect( $tr.find( '.hcaptcha-integrations-logo' ).attr( 'data-installed' ) ).toBe( 'true' );
 		const shouldBeActive = ! initiallyInActiveTable;
 		const tableIdx = shouldBeActive ? 1 : 2;
@@ -507,7 +516,9 @@ describe( 'additional integrations coverage', () => {
 
 		// The newTheme value should be passed from the dialog select
 		expect( calls.length ).toBeGreaterThan( 0 );
-		expect( calls[ 0 ].data.newTheme ).toBe( 'Divi' );
+		const activationCall = calls.find( ( call ) => call.data.action === 'test_action' );
+
+		expect( activationCall.data.newTheme ).toBe( 'Divi' );
 	} );
 } );
 
@@ -600,7 +611,10 @@ describe( 'integrations.js extra branch coverage', () => {
 		$img.trigger( $.Event( 'click', { ctrlKey: true } ) );
 		expect( window.kaggDialog.confirm ).not.toHaveBeenCalled();
 		expect( postSpy ).toHaveBeenCalled();
-		const callData = postSpy.mock.calls[ 0 ][ 0 ].data;
+		const activationCall = postSpy.mock.calls.find(
+			( call ) => call[ 0 ].data.action === 'test_action',
+		);
+		const callData = activationCall[ 0 ].data;
 		expect( callData.install ).toBe( true );
 	} );
 
@@ -741,12 +755,35 @@ describe( 'integrations.js extra branch coverage', () => {
 		expect( postSpy ).not.toHaveBeenCalled();
 	} );
 
-	// Line 249: maybeToggleActivation called with false → early return, no AJAX.
-	test( 'maybeToggleActivation with confirmation=false does not post', () => {
+	// maybeToggleActivation called with false → only the activation plan is requested.
+	test( 'maybeToggleActivation with confirmation=false does not activate', () => {
 		window.kaggDialog = { confirm: jest.fn( ( cfg ) => cfg.onAction( false ) ) };
 		const $img = $( '.hcaptcha-integrations-acfe-status img' );
 		$img.trigger( 'click' );
-		expect( postSpy ).not.toHaveBeenCalled();
+
+		expect( postSpy ).toHaveBeenCalledTimes( 1 );
+		expect( postSpy.mock.calls[ 0 ][ 0 ].data.action ).toBe( 'test_activation_plan_action' );
+	} );
+
+	test( 'activation dialog shows the additional dependency notice', () => {
+		postSpy.mockImplementation( () => {
+			const deferred = $.Deferred();
+
+			deferred.resolve( {
+				success: true,
+				data: { notice: 'Elementor will also be activated.' },
+			} );
+
+			return deferred;
+		} );
+		window.kaggDialog = { confirm: jest.fn() };
+
+		$( '.hcaptcha-integrations-acfe-status img' ).trigger( 'click' );
+
+		const settings = window.kaggDialog.confirm.mock.calls[ 0 ][ 0 ];
+
+		expect( settings.content ).toContain( 'hcaptcha-activation-dependencies' );
+		expect( settings.content ).toContain( 'Elementor will also be activated.' );
 	} );
 
 	// Line 412: deactivate plugin sets deactivatePluginMsg (entity=plugin, fieldset enabled).
@@ -858,7 +895,10 @@ describe( 'integrations.js remaining branch coverage', () => {
 		const $themeImg = $( '.hcaptcha-integrations-twentytwentyone-theme img' );
 		expect( () => $themeImg.trigger( 'click' ) ).not.toThrow();
 		expect( postSpy ).toHaveBeenCalled();
-		const callData = postSpy.mock.calls[ 0 ][ 0 ].data;
+		const activationCall = postSpy.mock.calls.find(
+			( call ) => call[ 0 ].data.action === 'test_action',
+		);
+		const callData = activationCall[ 0 ].data;
 		expect( callData.newTheme ).toBe( '' );
 	} );
 
@@ -1033,7 +1073,7 @@ describe( 'swapThemes isolated', () => {
 		tr.appendChild( td );
 		$tbodyInactive.get( 0 ).appendChild( tr );
 
-		// Now call deactivate with an explicit label to move that row to active
+		// Now call deactivating with an explicit label to move that row to active
 		window.__integrationsTest.swapThemes( false, 'theme', 'Some Theme' );
 
 		expect( $activeTable.find( 'img[data-entity="theme"][data-label="Some Theme"]' ).length ).toBe( 1 );
@@ -1119,13 +1159,16 @@ describe( 'integrations edge branch coverage', () => {
 
 		$( '.hcaptcha-integrations-twentytwentyone-theme img' ).trigger( 'click' );
 
-		expect( calls[ 0 ].data.newTheme ).toBe( '' );
+		const activationCall = calls.find( ( call ) => call.data.action === 'test_action' );
+
+		expect( activationCall.data.newTheme ).toBe( '' );
 	} );
 
 	test( 'updateActivationStati moves inactive rows into active table and handles missing alt text', () => {
 		resetDom();
-		const inactiveTable = $( '.form-table' ).eq( 2 );
-		const activeTable = $( '.form-table' ).eq( 1 );
+		const $form = $( '.form-table' );
+		const inactiveTable = $form.eq( 2 );
+		const activeTable = $form.eq( 1 );
 		const row = $( '.hcaptcha-integrations-other-plugin' );
 		activeTable.find( 'img' ).first().removeAttr( 'alt' );
 		inactiveTable.find( 'tbody' ).append( row );
@@ -1159,5 +1202,286 @@ describe( 'integrations edge branch coverage', () => {
 		$( '.plain-plugin-row img' ).trigger( 'click' );
 
 		expect( calls[ 0 ].data.status ).toBe( '' );
+	} );
+} );
+
+describe( 'dependency deactivation controls', () => {
+	let postSpy;
+
+	beforeEach( () => {
+		document.body.innerHTML = getDom();
+		$( '.hcaptcha-integrations-acfe-status fieldset' ).removeAttr( 'disabled' );
+		window.hCaptchaIntegrations( $ );
+	} );
+
+	afterEach( () => {
+		postSpy?.mockRestore();
+		$( '.kagg-dialog' ).remove();
+	} );
+
+	test( 'shows unchecked dependencies and the master checkbox selects only available items', () => {
+		let dialogSettings;
+		const calls = [];
+		const plan = {
+			items: [
+				{
+					plugin: 'base/base.php',
+					name: 'Base',
+					depth: 0,
+					disabled: false,
+					reason: '',
+				},
+				{
+					plugin: 'shared/shared.php',
+					name: 'Shared',
+					depth: 0,
+					disabled: true,
+					reason: 'Required by: Other Plugin',
+				},
+			],
+		};
+
+		window.kaggDialog = {
+			confirm: jest.fn( ( settings ) => {
+				dialogSettings = settings;
+				/* language=HTML */
+				$( `<div class="kagg-dialog">${ settings.content }</div>` ).appendTo( document.body );
+			} ),
+		};
+		postSpy = jest.spyOn( $, 'post' ).mockImplementation( ( options ) => {
+			calls.push( options );
+			const deferred = $.Deferred();
+
+			if ( options.data.action === 'test_plan_action' ) {
+				deferred.resolve( { success: true, data: { plan } } );
+			} else {
+				deferred.resolve( { success: true, data: { message: 'Done', stati: [] } } );
+			}
+
+			return deferred;
+		} );
+
+		$( '.hcaptcha-integrations-acfe-status img' ).trigger( 'click' );
+
+		const $items = $( '.hcaptcha-dependency-item' );
+
+		expect( $items ).toHaveLength( 2 );
+		expect( $items.filter( ':checked' ) ).toHaveLength( 0 );
+		expect( $items.eq( 1 ).prop( 'disabled' ) ).toBe( true );
+
+		$( '.hcaptcha-dependency-all input' ).prop( 'checked', true ).trigger( 'change' );
+
+		expect( $items.eq( 0 ).prop( 'checked' ) ).toBe( true );
+		expect( $items.eq( 1 ).prop( 'checked' ) ).toBe( false );
+
+		dialogSettings.onAction( true );
+
+		const activationCall = calls.find( ( call ) => call.data.action === 'test_action' );
+
+		expect( activationCall.data.manageDependencies ).toBe( true );
+		expect( activationCall.data.dependencies ).toEqual( [ 'base/base.php' ] );
+	} );
+
+	test( 'ctrl click deactivates all available dependencies without a plan dialog', () => {
+		const calls = [];
+
+		window.kaggDialog = { confirm: jest.fn() };
+		postSpy = jest.spyOn( $, 'post' ).mockImplementation( ( options ) => {
+			calls.push( options );
+			const deferred = $.Deferred();
+
+			deferred.resolve( { success: true, data: { message: 'Done', stati: [] } } );
+
+			return deferred;
+		} );
+
+		$( '.hcaptcha-integrations-acfe-status img' ).trigger( $.Event( 'click', { ctrlKey: true } ) );
+
+		expect( calls ).toHaveLength( 1 );
+		expect( calls[ 0 ].data.action ).toBe( 'test_action' );
+		expect( calls[ 0 ].data.manageDependencies ).toBe( true );
+		expect( calls[ 0 ].data.deactivateAll ).toBe( true );
+		expect( window.kaggDialog.confirm ).not.toHaveBeenCalled();
+	} );
+} );
+
+describe( 'integration plan failures and changing dependencies', () => {
+	let requests;
+
+	beforeEach( () => {
+		document.body.innerHTML = getDom();
+		window.HCaptchaIntegrationsObject.themes = { Divi: 'Divi', twentytwentyone: 'Twenty Twenty-One' };
+		window.hCaptchaIntegrations( $ );
+		requests = [];
+		jest.spyOn( $, 'post' ).mockImplementation( ( options ) => {
+			const deferred = $.Deferred();
+			requests.push( { options, deferred } );
+			return deferred;
+		} );
+		window.kaggDialog = { confirm: jest.fn() };
+	} );
+
+	afterEach( () => {
+		jest.restoreAllMocks();
+		$( '.kagg-dialog' ).remove();
+		jest.useRealTimers();
+	} );
+
+	test( 'activation plan handles server and network errors', () => {
+		const image = $( '.hcaptcha-integrations-acfe-status img' );
+
+		image.trigger( 'click' );
+		requests[ 0 ].deferred.resolve( { success: false, data: { message: 'Cannot activate' } } );
+		expect( $( '#hcaptcha-message' ).text() ).toContain( 'Cannot activate' );
+
+		image.trigger( 'click' );
+		requests[ 1 ].deferred.resolve( { success: false, data: 'Plain error' } );
+		expect( $( '#hcaptcha-message' ).text() ).toContain( 'Plain error' );
+
+		image.trigger( 'click' );
+		requests[ 2 ].deferred.reject( { statusText: 'Network error' } );
+		expect( $( '#hcaptcha-message' ).text() ).toContain( 'Network error' );
+	} );
+
+	test( 'activation plan ignores superseded responses and failures', () => {
+		const image = $( '.hcaptcha-integrations-acfe-status img' );
+
+		image.trigger( 'click' );
+		image.trigger( 'click' );
+		image.trigger( 'click' );
+
+		requests[ 0 ].deferred.resolve( { success: false, data: 'stale response' } );
+		requests[ 1 ].deferred.reject( { statusText: 'stale failure' } );
+		expect( $( '#hcaptcha-message' ).text() ).not.toContain( 'stale' );
+
+		requests[ 2 ].deferred.resolve( { success: true, data: { notice: 'Ready' } } );
+		expect( window.kaggDialog.confirm ).toHaveBeenCalledWith(
+			expect.objectContaining( { type: 'activate' } ),
+		);
+	} );
+
+	test( 'deactivation plan handles malformed, unsuccessful and failed responses', () => {
+		$( '.hcaptcha-integrations-acfe-status fieldset' ).removeAttr( 'disabled' );
+		const image = $( '.hcaptcha-integrations-acfe-status img' );
+
+		image.trigger( 'click' );
+		requests[ 0 ].deferred.resolve( { data: {} } );
+		expect( $( '#hcaptcha-message' ).hasClass( 'notice-error' ) ).toBe( true );
+
+		image.trigger( 'click' );
+		requests[ 1 ].deferred.resolve( { success: false, data: { message: 'Blocked' } } );
+		expect( $( '#hcaptcha-message' ).text() ).toContain( 'Blocked' );
+
+		image.trigger( 'click' );
+		requests[ 2 ].deferred.resolve( { success: false, data: 'Plain error' } );
+		expect( $( '#hcaptcha-message' ).text() ).toContain( 'Plain error' );
+
+		image.trigger( 'click' );
+		requests[ 3 ].deferred.reject( { statusText: 'Network error' } );
+		expect( $( '#hcaptcha-message' ).text() ).toContain( 'Network error' );
+	} );
+
+	test( 'deactivation plan ignores superseded responses and failures', () => {
+		$( '.hcaptcha-integrations-acfe-status fieldset' ).removeAttr( 'disabled' );
+		const image = $( '.hcaptcha-integrations-acfe-status img' );
+
+		image.trigger( 'click' );
+		image.trigger( 'click' );
+		image.trigger( 'click' );
+		requests[ 0 ].deferred.resolve( { success: true, data: { plan: { items: [] } } } );
+		requests[ 1 ].deferred.reject( { statusText: 'stale failure' } );
+		expect( window.kaggDialog.confirm ).not.toHaveBeenCalled();
+		expect( $( '#hcaptcha-message' ).text() ).not.toContain( 'stale' );
+
+		requests[ 2 ].deferred.resolve( { success: true, data: { plan: { items: [] } } } );
+		expect( window.kaggDialog.confirm ).toHaveBeenCalledTimes( 1 );
+	} );
+
+	test( 'dependency selection updates master state and refreshes when theme changes', () => {
+		window.kaggDialog.confirm.mockImplementation( ( settings ) => {
+			$( `<div class="kagg-dialog">${ settings.content }</div>` ).appendTo( document.body );
+		} );
+		const image = $( '.hcaptcha-integrations-twentytwentyone-theme img' );
+
+		image.trigger( 'click' );
+		requests[ 0 ].deferred.resolve( {
+			success: true,
+			data: { plan: { items: [
+				{ plugin: 'a/a.php', name: 'A' },
+				{ plugin: 'b/b.php', name: 'B' },
+			] } },
+		} );
+
+		const items = $( '.hcaptcha-dependency-item' );
+		const master = $( '.hcaptcha-dependency-all input' );
+		items.eq( 0 ).prop( 'checked', true ).trigger( 'change' );
+		expect( master.prop( 'indeterminate' ) ).toBe( true );
+		items.eq( 1 ).prop( 'checked', true ).trigger( 'change' );
+		expect( master.prop( 'checked' ) ).toBe( true );
+		items.prop( 'checked', false ).first().trigger( 'change' );
+		expect( master.prop( 'indeterminate' ) ).toBe( false );
+
+		$( '.kagg-dialog select' ).val( 'Divi' ).trigger( 'change' );
+		expect( $( '.hcaptcha-deactivation-dependencies' ).text() ).toContain( 'Checking dependencies' );
+		expect( requests[ 1 ].options.data.newTheme ).toBe( 'Divi' );
+		requests[ 1 ].deferred.resolve( { success: true, data: { plan: { items: [] } } } );
+		expect( $( '.hcaptcha-dependency-item' ) ).toHaveLength( 0 );
+	} );
+
+	test( 'deactivation can be cancelled after the plan loads', () => {
+		$( '.hcaptcha-integrations-acfe-status fieldset' ).removeAttr( 'disabled' );
+		$( '.hcaptcha-integrations-acfe-status img' ).trigger( 'click' );
+		requests[ 0 ].deferred.resolve( { success: true, data: { plan: { items: [] } } } );
+
+		window.kaggDialog.confirm.mock.calls[ 0 ][ 0 ].onAction( false );
+
+		expect( requests ).toHaveLength( 1 );
+	} );
+
+	test( 'toggle response handles missing success and moves another active row', () => {
+		const image = $( '.hcaptcha-integrations-acfe-status img' );
+		$( '.form-table' ).eq( 2 ).find( 'tbody' ).append( $( '.hcaptcha-integrations-other-plugin' ) );
+
+		image.trigger( $.Event( 'click', { ctrlKey: true } ) );
+		requests[ 0 ].deferred.resolve( { data: {} } );
+		expect( $( '#hcaptcha-message' ).hasClass( 'notice-error' ) ).toBe( true );
+
+		image.trigger( $.Event( 'click', { ctrlKey: true } ) );
+		requests[ 1 ].deferred.resolve( {
+			success: true,
+			data: { message: 'Activated', stati: { other_plugin: true } },
+		} );
+		expect( $( '.hcaptcha-integrations-other-plugin' ).closest( '.form-table' )[ 0 ] )
+			.toBe( $( '.form-table' )[ 1 ] );
+	} );
+
+	test( 'dependency plan tolerates missing items and item names', () => {
+		$( '.hcaptcha-integrations-acfe-status fieldset' ).removeAttr( 'disabled' );
+		window.HCaptchaIntegrationsObject.dependenciesMsg = null;
+		window.kaggDialog.confirm.mockImplementation( ( settings ) => {
+			$( `<div class="kagg-dialog">${ settings.content }</div>` ).appendTo( document.body );
+		} );
+
+		$( '.hcaptcha-integrations-acfe-status img' ).trigger( 'click' );
+		requests[ 0 ].deferred.resolve( { success: true, data: { plan: {} } } );
+		expect( $( '.hcaptcha-dependency-item' ) ).toHaveLength( 0 );
+
+		$( '.kagg-dialog' ).remove();
+		$( '.hcaptcha-integrations-acfe-status img' ).trigger( 'click' );
+		requests[ 1 ].deferred.resolve( { success: true, data: { plan: { items: [ { plugin: 'a/a.php' } ] } } } );
+		expect( $( '.hcaptcha-dependency-item' ) ).toHaveLength( 1 );
+	} );
+
+	test( 'does not install test helpers when test mode is disabled', () => {
+		const exposed = window.__integrationsTest;
+
+		try {
+			window.__hCaptchaTestMode = false;
+			window.hCaptchaIntegrations( $ );
+		} finally {
+			window.__hCaptchaTestMode = true;
+		}
+
+		expect( window.__integrationsTest ).toBe( exposed );
 	} );
 } );

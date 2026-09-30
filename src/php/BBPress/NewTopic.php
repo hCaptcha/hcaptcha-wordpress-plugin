@@ -7,6 +7,8 @@
 
 namespace HCaptcha\BBPress;
 
+use HCaptcha\Helpers\EntryData;
+
 /**
  * Class New Topic.
  */
@@ -31,4 +33,23 @@ class NewTopic extends Base {
 	 * Verify hook.
 	 */
 	protected const VERIFY_HOOK = 'bbp_new_topic_pre_extras';
+
+	/**
+	 * Get the new topic's submitted fields.
+	 *
+	 * @return array
+	 */
+	protected function get_entry(): array {
+		$entry         = parent::get_entry();
+		$entry['data'] = EntryData::from_post(
+			[
+				'email'   => 'bbp_anonymous_email',
+				'name'    => 'bbp_anonymous_name',
+				'title'   => 'bbp_topic_title',
+				'message' => 'bbp_topic_content',
+			]
+		);
+
+		return $entry;
+	}
 }

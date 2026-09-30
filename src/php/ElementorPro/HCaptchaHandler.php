@@ -22,6 +22,7 @@ use ElementorPro\Modules\Forms\Classes\Form_Record;
 use ElementorPro\Modules\Forms\Module as FormsModule;
 use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Pages;
 use HCaptcha\Helpers\Utils;
@@ -598,16 +599,18 @@ class HCaptchaHandler {
 		$entry         = [
 			'form_date_gmt' => $post->post_modified_gmt ?? null,
 			'expected_id'   => $this->get_expected_id( $form_settings['id'] ?? 0 ),
-			'data'          => $sent_data,
+			'data'          => [],
 		];
 
 		$fields = $record->get( 'fields' );
 
 		foreach ( $fields as $field ) {
-			$type = $field['type'];
-			$id   = $field['id'];
+			$type  = (string) ( $field['type'] ?? '' );
+			$id    = (string) ( $field['id'] ?? '' );
+			$label = (string) ( $field['field_label'] ?? '' );
 
-			if ( 'email' === $type ) {
+			if ( array_key_exists( $id, $sent_data ) && EntryData::is_content_field_type( $type ) &&
+				! EntryData::has_sensitive_field( $id, $label ) ) {
 				$entry['data'][ $id ] = $sent_data[ $id ];
 			}
 		}

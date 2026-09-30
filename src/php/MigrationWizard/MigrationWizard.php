@@ -11,7 +11,6 @@ use HCaptcha\Helpers\Request;
 use HCaptcha\Helpers\Utils;
 use HCaptcha\Settings\General;
 use HCaptcha\Settings\Integrations;
-use HCaptcha\Settings\PluginSettingsBase;
 use WP_Error;
 
 /**
@@ -194,7 +193,7 @@ class MigrationWizard {
 								<?php
 
 								printf(
-									/* translators: %s: link to the integrations page. */
+									/* translators: %s: link to the integrations' page. */
 									esc_html__( 'You can manually configure hCaptcha integrations on the %s page.', 'hcaptcha-for-forms-and-more' ),
 									'<a href="' . esc_url( $integrations_url ) . '">' . esc_html__( 'Integrations', 'hcaptcha-for-forms-and-more' ) . '</a>'
 								);
@@ -296,7 +295,7 @@ class MigrationWizard {
 								<li><?php esc_html_e( 'Test your registration form.', 'hcaptcha-for-forms-and-more' ); ?></li>
 								<li><?php esc_html_e( 'Test your checkout page (if using WooCommerce).', 'hcaptcha-for-forms-and-more' ); ?></li>
 								<li><?php esc_html_e( 'Test your key contact forms.', 'hcaptcha-for-forms-and-more' ); ?></li>
-								<li><?php esc_html_e( 'Disable or remove old CAPTCHA plugins after verification.', 'hcaptcha-for-forms-and-more' ); ?></li>
+				<li><?php esc_html_e( 'Disable the old CAPTCHA in its plugin settings after verification.', 'hcaptcha-for-forms-and-more' ); ?></li>
 							</ul>
 						</div>
 
@@ -359,6 +358,7 @@ class MigrationWizard {
 	 * AJAX handler for applying migration.
 	 *
 	 * @return void
+	 * @noinspection PhpUnreachableStatementInspection
 	 */
 	public function ajax_apply(): void {
 		if ( ! check_ajax_referer( self::APPLY_NONCE, 'nonce', false ) ) {
@@ -374,7 +374,7 @@ class MigrationWizard {
 		if ( is_wp_error( $surfaces ) ) {
 			wp_send_json_error( [ 'message' => $surfaces->get_error_message() ] );
 
-			return;
+			return; // For testing purposes.
 		}
 
 		$result = $this->apply( $surfaces );
@@ -382,7 +382,7 @@ class MigrationWizard {
 		if ( is_wp_error( $result ) ) {
 			wp_send_json_error( [ 'message' => $result->get_error_message() ] );
 
-			return;
+			return; // For testing purposes.
 		}
 
 		wp_send_json_success(
@@ -467,7 +467,7 @@ class MigrationWizard {
 	}
 
 	/**
-	 * Create scanner instance.
+	 * Create a scanner instance.
 	 *
 	 * @return Scanner
 	 */

@@ -14,6 +14,7 @@ namespace HCaptcha\Helpers;
 
 use HCaptcha\Helpers\Minify\CSS;
 use HCaptcha\Helpers\Minify\JS;
+use HCaptcha\Settings\General;
 use HCaptcha\Settings\Integrations;
 use HCaptcha\Settings\PluginSettingsBase;
 use WP_Error;
@@ -46,6 +47,34 @@ class HCaptcha {
 	private static array $default_id = [
 		'source'  => [],
 		'form_id' => 0,
+	];
+
+	/**
+	 * Optional hCaptcha widget parameter names.
+	 */
+	private const OPTIONAL_WIDGET_PARAMS = [
+		'hl',
+		'tabindex',
+		'callback',
+		'expired-callback',
+		'chalexpired-callback',
+		'open-callback',
+		'close-callback',
+		'error-callback',
+		'orientation',
+	];
+
+	/**
+	 * Optional string hCaptcha widget parameter names.
+	 */
+	private const STRING_WIDGET_PARAMS = [
+		'hl',
+		'callback',
+		'expired-callback',
+		'chalexpired-callback',
+		'open-callback',
+		'close-callback',
+		'error-callback',
 	];
 
 	/**
@@ -84,14 +113,15 @@ class HCaptcha {
 		$args = wp_parse_args(
 			$args,
 			[
-				'action'  => '', // Action name for wp_nonce_field.
-				'name'    => '', // Nonce name for wp_nonce_field.
-				'sign'    => '', // Signature group.
-				'auto'    => false, // Whether a form has to be auto-verified.
-				'ajax'    => false, // Whether a form has to be auto-verified in ajax.
-				'force'   => $hcaptcha_force, // Whether to execute hCaptcha widget before submitting (like for invisible).
-				'theme'   => $hcaptcha_theme, // The hCaptcha theme.
-				'size'    => $hcaptcha_size, // The hCaptcha widget size.
+				'action'        => '', // Action name for wp_nonce_field.
+				'name'          => '', // Nonce name for wp_nonce_field.
+				'sign'          => '', // Signature group.
+				'auto'          => self::default_auto( $args ), // Legacy default for AJAX callers.
+				'ajax'          => false, // Whether a form is submitted via AJAX.
+				'force'         => $hcaptcha_force, // Whether to execute hCaptcha widget before submitting (like for invisible).
+				'theme'         => $hcaptcha_theme, // The hCaptcha theme.
+				'size'          => $hcaptcha_size, // The hCaptcha widget size.
+				'widget_params' => [], // Additional documented hCaptcha render parameters.
 				/**
 				 * The hCaptcha widget id.
 				 * Example of id:
@@ -100,8 +130,8 @@ class HCaptcha {
 				 *   'form_id' => 23
 				 * ]
 				 */
-				'id'      => [],
-				'protect' => true, // Protection status. When true, hCaptcha should be added.
+				'id'            => [],
+				'protect'       => true, // Protection status. When true, hCaptcha should be added.
 			]
 		);
 
@@ -144,18 +174,21 @@ class HCaptcha {
 		}
 
 		$hcaptcha_classes = self::get_hcaptcha_classes();
+		$widget_params    = self::get_widget_params( $args, $hcaptcha_site_key );
 
 		?>
 		<h-captcha
 			class="<?php echo esc_attr( implode( ' ', $hcaptcha_classes ) ); ?>"
-			data-sitekey="<?php echo esc_attr( $hcaptcha_site_key ); ?>"
-			data-theme="<?php echo esc_attr( $args['theme'] ); ?>"
-			data-size="<?php echo esc_attr( $args['size'] ); ?>"
+			data-sitekey="<?php echo esc_attr( $widget_params['sitekey'] ); ?>"
+			data-theme="<?php echo esc_attr( $widget_params['theme'] ); ?>"
+			data-size="<?php echo esc_attr( $widget_params['size'] ); ?>"<?php self::display_optional_widget_params( $widget_params ); ?>
 			data-auto="<?php echo $args['auto'] ? 'true' : 'false'; ?>"
 			data-ajax="<?php echo $args['ajax'] ? 'true' : 'false'; ?>"
 			data-force="<?php echo $args['force'] ? 'true' : 'false'; ?>">
 		</h-captcha>
 		<?php
+
+		self::display_invisible_disclosure( $args, $widget_params );
 
 		if ( ! empty( $args['action'] ) && ! empty( $args['name'] ) ) {
 			wp_nonce_field( $args['action'], $args['name'] );
@@ -191,6 +224,17 @@ class HCaptcha {
 	}
 
 	/**
+	 * Preserve the old auto default when a caller specifies only ajax.
+	 *
+	 * @param array $args Form arguments.
+	 *
+	 * @return bool
+	 */
+	private static function default_auto( array $args ): bool {
+		return filter_var( $args['ajax'] ?? false, FILTER_VALIDATE_BOOLEAN );
+	}
+
+	/**
 	 * Validate hCaptcha form arguments.
 	 *
 	 * @param array $args Arguments.
@@ -213,25 +257,25 @@ class HCaptcha {
 		$allowed_themes = [ 'light', 'dark', 'auto' ];
 		$allowed_sizes  = [ 'normal', 'compact', 'invisible' ];
 
-		$args['action'] = (string) $args['action'];
-		$args['name']   = (string) $args['name'];
-		$args['sign']   = (string) $args['sign'];
-		$auto           = filter_var( $args['auto'], FILTER_VALIDATE_BOOLEAN );
-		$args['ajax']   = filter_var( $args['ajax'], FILTER_VALIDATE_BOOLEAN );
-		$args['auto']   = $args['ajax'] ? true : $auto;
-		$args['force']  = filter_var( $args['force'], FILTER_VALIDATE_BOOLEAN );
-		$args['theme']  = in_array( (string) $args['theme'], $allowed_themes, true )
+		$args['action']        = (string) $args['action'];
+		$args['name']          = (string) $args['name'];
+		$args['sign']          = (string) $args['sign'];
+		$args['auto']          = filter_var( $args['auto'], FILTER_VALIDATE_BOOLEAN );
+		$args['ajax']          = filter_var( $args['ajax'], FILTER_VALIDATE_BOOLEAN );
+		$args['force']         = filter_var( $args['force'], FILTER_VALIDATE_BOOLEAN );
+		$args['theme']         = in_array( (string) $args['theme'], $allowed_themes, true )
 			? (string) $args['theme']
 			: $hcaptcha_theme;
-		$args['theme']  = $bg ? 'custom' : $args['theme'];
-		$args['size']   = in_array( (string) $args['size'], $allowed_sizes, true )
+		$args['theme']         = $bg ? 'custom' : $args['theme'];
+		$args['size']          = in_array( (string) $args['size'], $allowed_sizes, true )
 			? (string) $args['size']
 			: $hcaptcha_size;
-		$honeypot       = array_key_exists( 'honeypot', $args )
+		$args['widget_params'] = (array) $args['widget_params'];
+		$honeypot              = array_key_exists( 'honeypot', $args )
 			? filter_var( $args['honeypot'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE )
 			: null;
-		$args['id']     = (array) $args['id'];
-		$args['id']     = [
+		$args['id']            = (array) $args['id'];
+		$args['id']            = [
 			'source'  => (array) ( empty( $args['id']['source'] ) ? self::$default_id['source'] : $args['id']['source'] ),
 			'form_id' => $args['id']['form_id'] ?? self::$default_id['form_id'],
 		];
@@ -246,6 +290,163 @@ class HCaptcha {
 		$args['protect'] = filter_var( $args['protect'], FILTER_VALIDATE_BOOLEAN );
 
 		return $args;
+	}
+
+	/**
+	 * Get documented hCaptcha render parameters for a widget.
+	 *
+	 * @param array  $args              Form arguments.
+	 * @param string $hcaptcha_site_key hCaptcha site key.
+	 *
+	 * @return array
+	 */
+	private static function get_widget_params( array $args, string $hcaptcha_site_key ): array {
+		$params = array_merge(
+			[
+				'sitekey' => $hcaptcha_site_key,
+				'theme'   => $args['theme'],
+				'size'    => $args['size'],
+			],
+			$args['widget_params']
+		);
+
+		/**
+		 * Filters documented hCaptcha render parameters for an individual widget.
+		 *
+		 * The callback parameter is chained after the plugin's internal callback.
+		 *
+		 * @param array $params hCaptcha render parameters.
+		 * @param array $args   Validated hCaptcha form arguments.
+		 */
+		$params = (array) apply_filters( 'hcap_widget_params', $params, $args );
+
+		$params['sitekey']     = self::get_scalar_widget_param( $params, 'sitekey', $hcaptcha_site_key );
+		$params['theme']       = self::get_scalar_widget_param( $params, 'theme', $args['theme'] );
+		$params['size']        = self::get_scalar_widget_param( $params, 'size', $args['size'] );
+		$params['tabindex']    = self::get_widget_tabindex( $params );
+		$params['orientation'] = self::get_widget_orientation( $params );
+
+		foreach ( self::STRING_WIDGET_PARAMS as $param ) {
+			$params[ $param ] = trim( self::get_scalar_widget_param( $params, $param ) );
+		}
+
+		return $params;
+	}
+
+	/**
+	 * Get a scalar widget parameter.
+	 *
+	 * @param array  $params  hCaptcha render parameters.
+	 * @param string $param   Parameter name.
+	 * @param string $default_value Default value.
+	 *
+	 * @return string
+	 */
+	private static function get_scalar_widget_param( array $params, string $param, string $default_value = '' ): string {
+		return is_scalar( $params[ $param ] ?? null ) ? (string) $params[ $param ] : $default_value;
+	}
+
+	/**
+	 * Get a widget tabindex parameter.
+	 *
+	 * @param array $params hCaptcha render parameters.
+	 *
+	 * @return string
+	 */
+	private static function get_widget_tabindex( array $params ): string {
+		$tabindex = filter_var( $params['tabindex'] ?? null, FILTER_VALIDATE_INT );
+
+		return false === $tabindex ? '' : (string) $tabindex;
+	}
+
+	/**
+	 * Get a widget orientation parameter.
+	 *
+	 * @param array $params hCaptcha render parameters.
+	 *
+	 * @return string
+	 */
+	private static function get_widget_orientation( array $params ): string {
+		$orientation = self::get_scalar_widget_param( $params, 'orientation' );
+
+		return in_array( $orientation, [ 'portrait', 'landscape' ], true ) ? $orientation : '';
+	}
+
+	/**
+	 * Display optional hCaptcha widget parameters as data attributes.
+	 *
+	 * @param array $params hCaptcha render parameters.
+	 *
+	 * @return void
+	 */
+	private static function display_optional_widget_params( array $params ): void {
+		foreach ( self::OPTIONAL_WIDGET_PARAMS as $param ) {
+			if ( '' === $params[ $param ] ) {
+				continue;
+			}
+
+			printf(
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Attribute names are allowlisted and values are escaped.
+				'%1$sdata-%2$s="%3$s"',
+				esc_html( "\n\t\t\t" ),
+				esc_attr( $param ),
+				esc_attr( $params[ $param ] )
+			);
+		}
+
+		echo esc_html( "\n" );
+	}
+
+	/**
+	 * Display the invisible hCaptcha disclosure.
+	 *
+	 * @param array $args          Validated hCaptcha form arguments.
+	 * @param array $widget_params Validated hCaptcha widget parameters.
+	 *
+	 * @return void
+	 */
+	private static function display_invisible_disclosure( array $args, array $widget_params ): void {
+		if ( 'invisible' !== $widget_params['size'] ) {
+			return;
+		}
+
+		/**
+		 * Filters whether to print the invisible hCaptcha disclosure.
+		 *
+		 * @param bool  $display       Whether to display the disclosure.
+		 * @param array $args          Validated hCaptcha form arguments.
+		 * @param array $widget_params Validated hCaptcha widget parameters.
+		 */
+		if ( ! apply_filters( 'hcap_print_invisible_disclosure', false, $args, $widget_params ) ) {
+			return;
+		}
+
+		?>
+		<p class="hcaptcha-invisible-disclosure">
+			<?php
+			echo esc_html__(
+				'This site is protected by hCaptcha.',
+				'hcaptcha-for-forms-and-more'
+			);
+			echo '<br>';
+			echo wp_kses_post(
+				sprintf(
+				/* translators: 1: hCaptcha privacy policy link, 2: hCaptcha terms of service link. */
+					__(
+						'Its %1$s and %2$s apply.',
+						'hcaptcha-for-forms-and-more'
+					),
+					'<a href="https://www.hcaptcha.com/privacy">' .
+						esc_html__( 'Privacy Policy', 'hcaptcha-for-forms-and-more' ) .
+						'</a>',
+					'<a href="https://www.hcaptcha.com/terms">' .
+						esc_html__( 'Terms of Service', 'hcaptcha-for-forms-and-more' ) .
+						'</a>'
+				)
+			);
+			?>
+		</p>
+		<?php
 	}
 
 	/**
@@ -264,7 +465,7 @@ class HCaptcha {
 			return;
 		}
 
-		$honeypot = null === $honeypot ? $settings->is_on( 'honeypot' ) : $honeypot;
+		$honeypot = $honeypot ?? $settings->is_on( 'honeypot' );
 
 		if ( ! $honeypot ) {
 			return;
@@ -985,6 +1186,7 @@ class HCaptcha {
 			'Maori'               => 'mi',
 			'Marathi'             => 'mr',
 			'Mongolian'           => 'mn',
+			'Montenegrin'         => 'me',
 			'Nepali'              => 'ne',
 			'Norwegian'           => 'no',
 			'Nyanja'              => 'ny',
@@ -992,6 +1194,7 @@ class HCaptcha {
 			'Persian'             => 'fa',
 			'Polish'              => 'pl',
 			'Portuguese'          => 'pt',
+			'Portuguese (Brazil)' => 'pt-BR',
 			'Pashto'              => 'ps',
 			'Punjabi'             => 'pa',
 			'Romanian'            => 'ro',
@@ -1184,16 +1387,43 @@ class HCaptcha {
 	 * @return void
 	 */
 	public static function save_license_level(): void {
-		// Check the license level.
-		$result = hcap_check_site_config();
+		$live_mode = static function () {
+			return General::MODE_LIVE;
+		};
+		$option    = (array) get_option( PluginSettingsBase::OPTION_NAME, [] );
+
+		// The saved license belongs to the stored Live credentials, regardless of the active test mode.
+		add_filter( 'hcap_mode', $live_mode, PHP_INT_MAX );
+
+		try {
+			$settings = hcaptcha()->settings();
+
+			if ( '' === $settings->get_site_key() || '' === $settings->get_secret_key() ) {
+				$option['license'] = 'free';
+
+				update_option( PluginSettingsBase::OPTION_NAME, $option );
+
+				return;
+			}
+
+			// Check the license level.
+			$result = hcap_check_site_config();
+		} finally {
+			remove_filter( 'hcap_mode', $live_mode, PHP_INT_MAX );
+		}
 
 		if ( $result['error'] ?? false ) {
 			return;
 		}
 
-		$pro               = $result['features']['custom_theme'] ?? false;
-		$license           = $pro ? 'pro' : 'free';
-		$option            = get_option( PluginSettingsBase::OPTION_NAME, [] );
+		$pro     = $result['features']['custom_theme'] ?? false;
+		$license = $pro ? 'pro' : 'free';
+
+		// Site config cannot distinguish Pro from Enterprise without a siteverify response.
+		if ( $pro && 'enterprise' === ( $option['license'] ?? '' ) ) {
+			$license = 'enterprise';
+		}
+
 		$option['license'] = $license;
 
 		// Save license level in settings.

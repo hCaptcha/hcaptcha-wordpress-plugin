@@ -136,7 +136,7 @@ class Admin extends Base {
 			return $output;
 		}
 
-		[ $form, $form_start, $form_end ] = $m;
+		[ $form, $form_start, $form_end ] = (array) $m;
 
 		if ( ! preg_match( '~<div id="post-body".+?>~s', $output, $m ) ) {
 			return $output;
@@ -371,6 +371,7 @@ class Admin extends Base {
 	 * @return void
 	 * @noinspection PhpUndefinedFunctionInspection
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection PhpUnreachableStatementInspection
 	 */
 	public function update_form(): void {
 		if ( ! check_ajax_referer( self::UPDATE_FORM_ACTION, 'nonce', false ) ) {
@@ -434,6 +435,7 @@ class Admin extends Base {
 	 * @param string $form Form.
 	 *
 	 * @return mixed
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	private function new_form( string $form ) {
 		// New form.
@@ -456,9 +458,11 @@ class Admin extends Base {
 			$atts
 		);
 
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Contact Form 7 hook.
 		do_action( 'wpcf7_shortcode_callback', $contact_form, $atts );
 
 		// Add hCaptcha to the form.
+		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WordPress core hook.
 		return apply_filters( 'do_shortcode_tag', $live_form, 'contact-form-7', [], [] );
 	}
 }

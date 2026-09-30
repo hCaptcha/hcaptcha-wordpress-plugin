@@ -54,4 +54,16 @@ class Login extends LoginBase {
 	private function is_tutor_login_form(): bool {
 		return HCaptcha::did_filter( 'tutor_login_credentials' );
 	}
+
+	/**
+	 * Include the submitted login name in anti-spam checks.
+	 *
+	 * @return array
+	 */
+	protected function get_login_entry(): array {
+		$entry         = parent::get_login_entry();
+		$entry['data'] = EntryData::login();
+
+		return $entry;
+	}
 }

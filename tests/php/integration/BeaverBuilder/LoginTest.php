@@ -16,6 +16,7 @@ use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
 use ReflectionClass;
+use ReflectionException;
 use WP_Error;
 use WP_User;
 
@@ -50,6 +51,20 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	 * @var bool
 	 */
 	protected static bool $force_plugin_load_hooks = true;
+
+	/**
+	 * Set up the test.
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function setUp(): void {
+		parent::setUp();
+
+		hcaptcha()->settings()->set( 'honeypot', 'on' );
+		hcaptcha()->settings()->set( 'set_min_submit_time', 'on' );
+		$this->set_protected_property( hcaptcha(), 'supported_forms', null );
+	}
 
 	/**
 	 * Tear down the test.
@@ -90,7 +105,6 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	 * Test add_beaver_builder_captcha().
 	 *
 	 * @return void
-	 * @noinspection PhpParamsInspection
 	 */
 	public function test_add_beaver_builder_captcha(): void {
 		$button    = '<div class="fl-button-wrap some"><button class="fl-button">Submit</button></div>';
@@ -130,7 +144,6 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	 * Test add_beaver_builder_captcha() when login limit not exceeded.
 	 *
 	 * @return void
-	 * @noinspection PhpParamsInspection
 	 */
 	public function test_add_beaver_builder_captcha_when_login_limit_not_exceeded(): void {
 		$some_out = 'some output';
@@ -147,6 +160,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	 * Test hCaptcha in a form rendered by the live Beaver Builder module.
 	 *
 	 * @return void
+	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_live_login_form(): void {
 		$subject  = new Login();
@@ -174,6 +188,8 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 		self::assertStringContainsString( 'name="fl-login-form-name"', $html );
 		self::assertStringContainsString( 'class="fl-input-group fl-hcaptcha"', $html );
 		self::assertStringContainsString( 'name="hcaptcha_login_nonce"', $html );
+		self::assertStringContainsString( 'name="hcap_hp_test"', $html );
+		self::assertStringContainsString( 'name="hcap_hp_sig"', $html );
 		self::assertSame( 10, has_filter( 'fl_builder_render_module_content', [ $subject, 'add_beaver_builder_captcha' ] ) );
 	}
 
@@ -181,7 +197,6 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	 * Test verify().
 	 *
 	 * @return void
-	 * @noinspection PhpParamsInspection
 	 */
 	public function test_verify(): void {
 		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
@@ -220,6 +235,30 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 		$subject = new Login();
 
 		self::assertEquals( $expected, $subject->verify( $user, 'some password' ) );
+	}
+
+	/**
+	 * Test verify() with a filled honeypot.
+	 *
+	 * @return void
+	 */
+	public function test_verify_filled_honeypot(): void {
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$GLOBALS['wp_current_filter'] = [ 'wp_ajax_nopriv_fl_builder_login_form_submit' ];
+
+		$user = new WP_User( 1 );
+
+		$this->prepare_verify_post_html( 'hcaptcha_login_nonce', 'hcaptcha_login' );
+		$this->prepare_widget_id();
+
+		$_POST['hcap_hp_test'] = 'bot';
+
+		add_filter( 'hcap_login_limit_exceeded', '__return_true' );
+
+		$result = ( new Login() )->verify( $user, 'some password' );
+
+		self::assertInstanceOf( WP_Error::class, $result );
+		self::assertSame( 'Anti-spam check failed.', $result->get_error_message() );
 	}
 
 	/**

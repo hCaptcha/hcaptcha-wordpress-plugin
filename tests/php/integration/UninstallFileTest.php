@@ -8,7 +8,10 @@
 namespace HCaptcha\Tests\Integration;
 
 use HCaptcha\Abstracts\LoginBase;
+use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\Admin\Events\Events;
+use HCaptcha\Helpers\FormSubmitTimeStore;
+use HCaptcha\Helpers\LoginAttempts;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\Settings\PluginSettingsBase;
 use KAGG\Settings\Abstracts\SettingsBase;
@@ -59,7 +62,10 @@ class UninstallFileTest extends HCaptchaWPTestCase {
 		];
 		$network_settings  = [ 'some network settings' ];
 		$login_data        = [ 'some login data' ];
+		$login_address     = '192.0.2.50';
 		$migrated_versions = [ 'some migration data' ];
+		$login_attempts    = new LoginAttempts();
+		$auto_verify_name  = 'hcaptcha_auto_verify_form_' . hash( 'sha256', '/autoverify' );
 
 		if ( $is_multisite ) {
 			update_site_option( PluginSettingsBase::OPTION_NAME, $settings );
@@ -76,7 +82,12 @@ class UninstallFileTest extends HCaptchaWPTestCase {
 		update_option( PluginSettingsBase::OPTION_NAME, $settings );
 		update_option( PluginSettingsBase::OPTION_NAME . SettingsBase::NETWORK_WIDE, $network_settings );
 		update_option( LoginBase::LOGIN_DATA, $login_data );
+		update_option( FormSubmitTimeStore::REGISTRY_OPTION, [ 'some form timing data' ], false );
+		update_option( LoginAttempts::RETIREMENT_OPTION, '1', false );
+		update_option( $auto_verify_name, [ 'form registration' ], false );
+		set_transient( AutoVerify::TRANSIENT, [ 'form registration' ] );
 		update_option( Migrations::MIGRATED_VERSIONS_OPTION_NAME, $migrated_versions );
+		$login_attempts->increment( $login_address, time(), MINUTE_IN_SECONDS );
 
 		$table_name      = 'hcaptcha_events';
 		$full_table_name = $wpdb->prefix . $table_name;
@@ -132,6 +143,11 @@ class UninstallFileTest extends HCaptchaWPTestCase {
 		self::assertSame( $settings, get_option( PluginSettingsBase::OPTION_NAME ) );
 		self::assertSame( $network_settings, get_option( PluginSettingsBase::OPTION_NAME . SettingsBase::NETWORK_WIDE ) );
 		self::assertSame( $login_data, get_option( LoginBase::LOGIN_DATA ) );
+		self::assertSame( [ 'some form timing data' ], get_option( FormSubmitTimeStore::REGISTRY_OPTION ) );
+		self::assertSame( '1', get_option( LoginAttempts::RETIREMENT_OPTION ) );
+		self::assertSame( [ 'form registration' ], get_option( $auto_verify_name ) );
+		self::assertSame( [ 'form registration' ], get_transient( AutoVerify::TRANSIENT ) );
+		self::assertSame( 1, $login_attempts->read( $login_address, time() ) );
 		self::assertSame( $migrated_versions, get_option( Migrations::MIGRATED_VERSIONS_OPTION_NAME ) );
 
 		$settings = [ 'cleanup_on_uninstall' => [ 'on' ] ];
@@ -149,6 +165,11 @@ class UninstallFileTest extends HCaptchaWPTestCase {
 		self::assertFalse( get_option( PluginSettingsBase::OPTION_NAME ) );
 		self::assertFalse( get_option( PluginSettingsBase::OPTION_NAME . SettingsBase::NETWORK_WIDE ) );
 		self::assertFalse( get_option( LoginBase::LOGIN_DATA ) );
+		self::assertFalse( get_option( FormSubmitTimeStore::REGISTRY_OPTION ) );
+		self::assertFalse( get_option( LoginAttempts::RETIREMENT_OPTION ) );
+		self::assertFalse( get_option( $auto_verify_name ) );
+		self::assertFalse( get_transient( AutoVerify::TRANSIENT ) );
+		self::assertSame( 0, $login_attempts->read( $login_address, time() ) );
 		self::assertFalse( get_option( Migrations::MIGRATED_VERSIONS_OPTION_NAME ) );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching

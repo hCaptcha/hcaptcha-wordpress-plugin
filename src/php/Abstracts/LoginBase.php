@@ -8,7 +8,9 @@
 namespace HCaptcha\Abstracts;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\LoginAttempts;
 use WP_Error;
 use WP_User;
 
@@ -28,7 +30,7 @@ abstract class LoginBase {
 	protected const NONCE = 'hcaptcha_login_nonce';
 
 	/**
-	 * Login attempts data option name.
+	 * Legacy login attempts the data option name.
 	 */
 	public const LOGIN_DATA = 'hcaptcha_login_data';
 
@@ -40,11 +42,29 @@ abstract class LoginBase {
 	protected $ip;
 
 	/**
-	 * Login attempts data.
+	 * Login attempts store.
 	 *
-	 * @var array
+	 * @var LoginAttempts
 	 */
-	protected $login_data;
+	protected LoginAttempts $login_attempts;
+
+	/**
+	 * Login attempts record captured before authentication.
+	 *
+	 * @var string|null
+	 */
+	protected ?string $login_attempts_reset_token = null;
+
+	/**
+	 * The last native WordPress failed-login event recorded in this request.
+	 *
+	 * All enabled LoginBase integrations receive wp_login_failed. Deduplicating
+	 * that action prevents one authentication failure from incrementing once per
+	 * enabled integration.
+	 *
+	 * @var int
+	 */
+	private static int $last_wp_login_failed_action = 0;
 
 	/**
 	 * The hCaptcha was shown by the current class.
@@ -64,11 +84,12 @@ abstract class LoginBase {
 	 * Constructor.
 	 */
 	public function __construct() {
-		$this->ip         = hcap_get_user_ip();
-		$this->login_data = get_option( self::LOGIN_DATA, [] );
+		$this->ip             = hcap_get_user_ip();
+		$this->login_attempts = new LoginAttempts();
+		$this->login_attempts->retire_legacy();
 
-		if ( ! isset( $this->login_data[ $this->ip ] ) || ! is_array( $this->login_data[ $this->ip ] ) ) {
-			$this->login_data[ $this->ip ] = [];
+		if ( 0 < $this->get_login_limit() ) {
+			$this->login_attempts_reset_token = $this->login_attempts->get_reset_token( $this->ip, time() );
 		}
 
 		$this->init_hooks();
@@ -143,7 +164,7 @@ abstract class LoginBase {
 			$id_info['valid'] &&
 			$this->get_expected_id() === $id_info['id'] &&
 			HCaptcha::widget_id_value( $id_info['id'] ) === $widget_id &&
-			null === HCaptcha::check_signature( static::class, 'login' )
+			$this->is_login_verification_owner()
 		) {
 			return null;
 		}
@@ -152,7 +173,7 @@ abstract class LoginBase {
 	}
 
 	/**
-	 * Allow native WordPress login verification to defer to the signed owner.
+	 * Allow shared WordPress login verification to defer to the signed owner.
 	 *
 	 * The owner remains responsible for validating hCaptcha later in the same
 	 * wp_authenticate_user filter chain.
@@ -162,7 +183,20 @@ abstract class LoginBase {
 	 * @return bool
 	 */
 	public function allow_wp_login_skip_verification( $can_skip ): bool {
-		return (bool) $can_skip || null === HCaptcha::check_signature( static::class, 'login' );
+		return $can_skip || $this->is_login_verification_owner();
+	}
+
+	/**
+	 * Whether this signed owner still participates in the authentication chain.
+	 *
+	 * Integrations can remove another login verifier. Its signature must not
+	 * authorize delegation after its verification callback has been removed.
+	 *
+	 * @return bool
+	 */
+	private function is_login_verification_owner(): bool {
+		return false !== has_filter( 'wp_authenticate_user', [ $this, 'check_signature' ] ) &&
+			null === HCaptcha::check_signature( static::class, 'login' );
 	}
 
 	/**
@@ -198,10 +232,18 @@ abstract class LoginBase {
 	/**
 	 * Whether a valid signature can skip login verification.
 	 *
+	 * The signature identifies the rendering integration but does not preserve
+	 * a threshold-dependent authorization decision. Always use the current bounded
+	 * login-attempt state for the submitting requester. No client-held adaptive
+	 * exemption remains, so signature age or session cannot extend that exemption.
+	 * Above the threshold, only delegation to a signed owner in the same filter
+	 * chain can skip this handler; the owner must verify its challenge.
+	 *
 	 * @return bool
 	 */
 	protected function can_skip_login_verification(): bool {
-		return true;
+		return ! $this->is_login_limit_exceeded() ||
+			apply_filters( 'hcap_wp_login_can_skip_verification', false );
 	}
 
 	/**
@@ -260,9 +302,7 @@ abstract class LoginBase {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function login( string $user_login, WP_User $user ): void {
-		unset( $this->login_data[ $this->ip ] );
-
-		update_option( self::LOGIN_DATA, $this->login_data, false );
+		$this->login_attempts->reset( $this->ip, $this->login_attempts_reset_token );
 	}
 
 	/**
@@ -276,26 +316,23 @@ abstract class LoginBase {
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
 	public function login_failed( string $username, $error = null ): void {
-		$this->login_data[ $this->ip ][] = time();
+		if ( doing_action( 'wp_login_failed' ) ) {
+			$action_count = did_action( 'wp_login_failed' );
 
-		$now            = time();
-		$settings       = hcaptcha()->settings();
-		$login_interval = (int) ( $settings ? $settings->get( 'login_interval' ) : 0 );
+			if ( self::$last_wp_login_failed_action === $action_count ) {
+				return;
+			}
 
-		foreach ( $this->login_data as & $login_datum ) {
-			$login_datum = array_values(
-				array_filter(
-					$login_datum,
-					static function ( $time ) use ( $now, $login_interval ) {
-						return $time > $now - $login_interval * MINUTE_IN_SECONDS;
-					}
-				)
-			);
+			self::$last_wp_login_failed_action = $action_count;
 		}
 
-		unset( $login_datum );
+		$login_limit = $this->get_login_limit();
 
-		update_option( self::LOGIN_DATA, $this->login_data, false );
+		if ( 0 === $login_limit ) {
+			return;
+		}
+
+		$this->login_attempts->increment( $this->ip, time(), $this->get_login_interval() );
 	}
 
 	/**
@@ -348,19 +385,8 @@ abstract class LoginBase {
 	 * @return bool
 	 */
 	protected function is_login_limit_exceeded(): bool {
-		$now               = time();
-		$settings          = hcaptcha()->settings();
-		$login_limit       = (int) ( $settings ? $settings->get( 'login_limit' ) : 0 );
-		$login_interval    = (int) ( $settings ? $settings->get( 'login_interval' ) : 0 );
-		$login_data_for_ip = $this->login_data[ $this->ip ] ?? [];
-		$count             = count(
-			array_filter(
-				$login_data_for_ip,
-				static function ( $time ) use ( $now, $login_interval ) {
-					return $time > $now - $login_interval * MINUTE_IN_SECONDS;
-				}
-			)
-		);
+		$login_limit = $this->get_login_limit();
+		$count       = 0 === $login_limit ? 0 : $this->login_attempts->read( $this->ip, time() );
 
 		/**
 		 * Filters the login limit exceeded status.
@@ -368,6 +394,40 @@ abstract class LoginBase {
 		 * @param bool $is_login_limit_exceeded The protection status of a form.
 		 */
 		return apply_filters( 'hcap_login_limit_exceeded', $count >= $login_limit );
+	}
+
+	/**
+	 * Get the bounded login failure limit.
+	 *
+	 * @return int
+	 */
+	private function get_login_limit(): int {
+		$settings       = hcaptcha()->settings();
+		$login_limit    = (int) ( $settings ? $settings->get( 'login_limit' ) : 0 );
+		$login_interval = (int) ( $settings ? $settings->get( 'login_interval' ) : 0 );
+		$max_minutes    = intdiv( LoginAttempts::MAX_TTL, MINUTE_IN_SECONDS );
+
+		if ( $login_limit > 0 && $login_interval > $max_minutes ) {
+			return 0;
+		}
+
+		return min( max( 0, $login_limit ), LoginAttempts::MAX_FAILURES );
+	}
+
+	/**
+	 * Get the bounded login interval in seconds.
+	 *
+	 * Invalid or excessive values fail-safe by retaining state for the maximum
+	 * supported interval.
+	 *
+	 * @return int
+	 */
+	private function get_login_interval(): int {
+		$settings       = hcaptcha()->settings();
+		$login_interval = (int) ( $settings ? $settings->get( 'login_interval' ) : 0 );
+		$max_minutes    = intdiv( LoginAttempts::MAX_TTL, MINUTE_IN_SECONDS );
+
+		return min( max( 1, $login_interval ), $max_minutes ) * MINUTE_IN_SECONDS;
 	}
 
 	/**
@@ -384,13 +444,7 @@ abstract class LoginBase {
 			return $user;
 		}
 
-		$error_message = API::verify(
-			[
-				'nonce_name'   => static::NONCE,
-				'nonce_action' => static::ACTION,
-				'expected_id'  => $this->get_expected_id(),
-			]
-		);
+		$error_message = API::verify( $this->get_login_entry() );
 
 		if ( null === $error_message ) {
 			return $user;
@@ -399,6 +453,24 @@ abstract class LoginBase {
 		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
 
 		return new WP_Error( $code, $error_message, 400 );
+	}
+
+	/**
+	 * Get hCaptcha verification data for a login form.
+	 *
+	 * @return array
+	 */
+	protected function get_login_entry(): array {
+		return [
+			'nonce_name'   => static::NONCE,
+			'nonce_action' => static::ACTION,
+			'data'         => EntryData::from_post(
+				[
+					'username' => [ 'log', 'username', 'user_login', 'eael-user-login' ],
+				]
+			),
+			'expected_id'  => $this->get_expected_id(),
+		];
 	}
 
 	/**

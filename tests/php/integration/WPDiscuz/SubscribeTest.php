@@ -39,6 +39,11 @@ class SubscribeTest extends HCaptchaWPTestCase {
 	public function setUp(): void {
 		parent::setUp();
 
+		hcaptcha()->settings()->set( 'honeypot', 'on' );
+		hcaptcha()->settings()->set( 'set_min_submit_time', 'on' );
+		hcaptcha()->settings()->set( 'wpdiscuz_status', 'subscribe_form' );
+		$this->set_protected_property( hcaptcha(), 'supported_forms', null );
+
 		$options                  = Mockery::mock( 'WpdiscuzOptions' );
 		$options->recaptcha       = [
 			'siteKey'       => 'some site key',
@@ -110,6 +115,7 @@ class SubscribeTest extends HCaptchaWPTestCase {
 
 		self::assertFalse( wp_script_is( 'wpdiscuz-google-recaptcha', 'registered' ) );
 		self::assertFalse( wp_script_is( 'wpdiscuz-google-recaptcha' ) );
+		self::assertTrue( wp_script_is( 'hcaptcha-wpdiscuz-comment' ) );
 	}
 
 	/**
@@ -132,7 +138,11 @@ class SubscribeTest extends HCaptchaWPTestCase {
 
 		$subject->add_hcaptcha();
 
-		self::assertSame( $expected, ob_get_clean() );
+		$output = (string) ob_get_clean();
+
+		self::assertSame( $expected, $output );
+		self::assertStringContainsString( 'name="hcap_hp_test"', $output );
+		self::assertStringContainsString( 'name="hcap_hp_sig"', $output );
 	}
 
 	/**

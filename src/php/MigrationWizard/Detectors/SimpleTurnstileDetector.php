@@ -76,8 +76,6 @@ class SimpleTurnstileDetector extends AbstractDetector {
 			'cfturnstile_mailpoet'         => 'mailpoet_form',
 			'cfturnstile_mepr_login'       => 'memberpress_login',  // Always off. Turnstile maps it to the cfturnstile_login.
 			'cfturnstile_mepr_register'    => 'memberpress_register',
-			'cfturnstile_pmp_checkout'     => 'pmp_checkout',
-			'cfturnstile_pmp_login'        => 'pmp_login', // Always off. Turnstile maps it to the cfturnstile_login.
 			'cfturnstile_um_login'         => 'ultimate_member_login',
 			'cfturnstile_um_password'      => 'ultimate_member_password',
 			'cfturnstile_um_register'      => 'ultimate_member_register',

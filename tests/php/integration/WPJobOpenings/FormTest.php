@@ -12,8 +12,10 @@
 
 namespace HCaptcha\Tests\Integration\WPJobOpenings;
 
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WPJobOpenings\Form;
+use ReflectionException;
 
 /**
  * Test FormTest class.
@@ -21,6 +23,20 @@ use HCaptcha\WPJobOpenings\Form;
  * @group job-openings
  */
 class FormTest extends HCaptchaWPTestCase {
+	/**
+	 * Set up the test.
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function setUp(): void {
+		parent::setUp();
+
+		hcaptcha()->settings()->set( 'honeypot', 'on' );
+		hcaptcha()->settings()->set( 'set_min_submit_time', 'on' );
+		hcaptcha()->settings()->set( 'wp_job_openings_status', 'form' );
+		$this->set_protected_property( hcaptcha(), 'supported_forms', null );
+	}
 
 	/**
 	 * Tear down the test.
@@ -29,6 +45,8 @@ class FormTest extends HCaptchaWPTestCase {
 	 */
 	public function tearDown(): void {
 		unset( $GLOBALS['awsm_response'] );
+
+		parent::tearDown();
 	}
 
 	/**
@@ -75,7 +93,12 @@ class FormTest extends HCaptchaWPTestCase {
 		echo $html;
 
 		$subject->add_captcha( $form_attrs );
-		self::assertSame( $expected, ob_get_clean() );
+		$output = (string) ob_get_clean();
+
+		self::assertSame( $expected, $output );
+		self::assertStringContainsString( 'name="hcap_hp_test"', $output );
+		self::assertStringContainsString( 'name="hcap_hp_sig"', $output );
+		self::assertTrue( wp_script_is( 'hcaptcha-wp-job-openings' ) );
 	}
 
 	/**
@@ -114,5 +137,30 @@ class FormTest extends HCaptchaWPTestCase {
 		$subject->verify();
 
 		self::assertSame( [ 'error' => [ 'The hCaptcha is invalid.' ] ], $awsm_response );
+	}
+
+	/**
+	 * Test verify() with a filled honeypot.
+	 *
+	 * @return void
+	 */
+	public function test_verify_filled_honeypot(): void {
+		global $awsm_response;
+
+		$awsm_response = [];
+
+		$this->prepare_verify_post( Form::NONCE, Form::ACTION );
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'wp-job-openings/wp-job-openings.php' ],
+				'form_id' => 5,
+			]
+		);
+		$_POST['hcap_hp_test']                 = 'bot';
+
+		( new Form() )->verify();
+
+		self::assertSame( [ 'error' => [ 'Anti-spam check failed.' ] ], $awsm_response );
 	}
 }

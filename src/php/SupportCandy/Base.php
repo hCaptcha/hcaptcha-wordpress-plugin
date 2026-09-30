@@ -76,7 +76,7 @@ abstract class Base {
 	}
 
 	/**
-	 * Catch Support Candy do shortcode tag filter.
+	 * Catch Support Candy do_shortcode_tag filter.
 	 *
 	 * @param string|mixed $output Shortcode output.
 	 * @param string       $tag    Shortcode name.
@@ -87,7 +87,7 @@ abstract class Base {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function support_candy_shortcode_tag( $output, string $tag, $attr, array $m ) {
-		if ( 'supportcandy' === $tag ) {
+		if ( in_array( $tag, [ 'supportcandy', 'wpsc_create_ticket' ], true ) ) {
 			$this->did_support_candy_shortcode_tag_filter = true;
 		}
 

@@ -253,7 +253,16 @@ body.settings_page_hcaptcha {
 	cursor: help;
 }
 
-#hcaptcha-options .helper:hover .helper-content {
+#hcaptcha-options .helper:focus {
+	outline: none;
+}
+
+#hcaptcha-options .helper:focus-visible::before {
+	box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--wp-admin-theme-color, #3858e9);
+}
+
+#hcaptcha-options .helper:hover .helper-content,
+#hcaptcha-options .helper:focus-within .helper-content {
 	display: block;
 	z-index: 1;
 }

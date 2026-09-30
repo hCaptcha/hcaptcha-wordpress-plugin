@@ -33,7 +33,8 @@
     "ext-json": "*",
     "geoip2/geoip2": "^v2.13.0",
     "matthiasmullie/minify": "^1.3.75",
-    "woocommerce/action-scheduler": "^3.9.3"
+    "woocommerce/action-scheduler": "^3.9.3",
+    "ext-ctype": "*"
   },
   "require-dev": {
     "ext-fileinfo": "*",
@@ -58,7 +59,7 @@
       "KAGG\\Settings\\Abstracts\\": "src/php/Settings/Abstracts"
     },
     "classmap": [
-      "vendors"
+      "vendor_prefixed"
     ]
   },
   "autoload-dev": {
@@ -69,19 +70,19 @@
     }
   },
   "scripts": {
+    "pre-autoload-dump": "HCaptcha\\Scoper\\Scoper::pre_autoload_dump",
     "post-cmd": "HCaptcha\\Scoper\\Scoper::post_cmd",
     "post-install-cmd": "@post-cmd",
     "post-update-cmd": "@post-cmd",
-    "post-package-install": "HCaptcha\\Scoper\\Scoper::post_package_install",
-    "post-package-update": "HCaptcha\\Scoper\\Scoper::post_package_update",
-    "post-package-uninstall": "HCaptcha\\Scoper\\Scoper::post_package_uninstall",
     "phpcs": "vendor/bin/phpcs --colors --standard=phpcs.xml",
     "integration": "codecept run integration -c codeception.yml",
+    "integration:multisite": "codecept run multisite -c codeception.yml",
     "integration:parallel": "@php tests/php/run-parallel.php integration",
     "unit": "codecept run unit -c codeception.yml"
   },
   "extra": {
     "scope-packages": [
+      "composer/ca-bundle",
       "geoip2/geoip2",
       "matthiasmullie/minify",
       "matthiasmullie/path-converter",

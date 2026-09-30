@@ -77,6 +77,8 @@ class Comment extends CommentBase {
 
 		$this->form_id = (int) $post_id;
 
+		$is_divi = false !== strpos( $submit_field, 'et_pb_submit' );
+
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
@@ -85,11 +87,13 @@ class Comment extends CommentBase {
 				'source'  => HCaptcha::get_class_source( __CLASS__ ),
 				'form_id' => $this->form_id,
 			],
+			'ajax'   => $this->active && ! $is_divi && hcaptcha()->settings()->is_on( 'ajax_forms' ),
+			'auto'   => false,
 		];
 
 		if (
 			! $this->active ||
-			false !== strpos( $submit_field, 'et_pb_submit' )
+			$is_divi
 		) {
 			// If not active or Divi comment form, just add a signature.
 			$args['protect'] = false;

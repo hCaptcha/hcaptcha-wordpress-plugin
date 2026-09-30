@@ -8,12 +8,15 @@
 namespace HCaptcha\Divi;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
  * Class EmailOptin.
  */
 class EmailOptin {
+	use Component;
+
 	/**
 	 * Script handle.
 	 */
@@ -79,13 +82,7 @@ class EmailOptin {
 	 * @return void
 	 */
 	public function verify(): void {
-		$error_message = API::verify(
-			[
-				'nonce_name'   => self::NONCE,
-				'nonce_action' => self::ACTION,
-				'expected_id'  => $this->get_expected_id(),
-			]
-		);
+		$error_message = API::verify( $this->get_entry() );
 
 		if ( null === $error_message ) {
 			return;
@@ -95,13 +92,33 @@ class EmailOptin {
 	}
 
 	/**
+	 * Get the submitted signup fields.
+	 *
+	 * @return array
+	 */
+	private function get_entry(): array {
+		return [
+			'nonce_name'   => self::NONCE,
+			'nonce_action' => self::ACTION,
+			'data'         => EntryData::from_post(
+				[
+					'email'      => 'et_email',
+					'first_name' => 'et_firstname',
+					'last_name'  => 'et_lastname',
+				]
+			),
+			'expected_id'  => $this->get_expected_id(),
+		];
+	}
+
+	/**
 	 * Get expected hCaptcha widget id.
 	 *
 	 * @return array
 	 */
 	private function get_expected_id(): array {
 		return [
-			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'source'  => $this->get_active_divi_source( __CLASS__ ),
 			'form_id' => 'email_optin',
 		];
 	}

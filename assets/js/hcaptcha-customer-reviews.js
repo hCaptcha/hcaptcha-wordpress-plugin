@@ -30,6 +30,8 @@ const customerReviews = window.hCaptchaCustomerReviews || ( function( document, 
 		},
 
 		ready() {
+			$( document ).on( 'ajaxComplete', app.ajaxComplete );
+
 			$( document ).on(
 				'click',
 				'#tab-title-reviews a, #tab-title-cr_qna a, ' +
@@ -50,15 +52,18 @@ const customerReviews = window.hCaptchaCustomerReviews || ( function( document, 
 				const urlParams = new URLSearchParams( data );
 				const action = urlParams.get( 'action' );
 				let $node;
+				let $fstNode;
 
 				switch ( action ) {
 					case 'cr_submit_review':
 						$node = $( '#review_form' );
+						$fstNode = $( '#tab-reviews' );
 						break;
 					case 'cr_new_qna':
 						const questionID = urlParams.get( 'questionID' );
 
 						$node = questionID ? $( `[data-question="${ questionID }"]` ) : $( '#cr_qna' );
+						$fstNode = $( '#tab-cr_qna' );
 						break;
 					default:
 						return;
@@ -70,7 +75,39 @@ const customerReviews = window.hCaptchaCustomerReviews || ( function( document, 
 					'hcaptcha_customer_reviews_nonce',
 					$node,
 				);
+
+				const fstToken = $fstNode.find( '[name="hcap_fst_token"]' ).val();
+
+				if ( typeof fstToken === 'string' ) {
+					const params = new URLSearchParams( options.data );
+
+					params.set( 'hcap_fst_token', fstToken );
+					options.data = params.toString();
+				}
 			} );
+		},
+
+		/**
+		 * Refresh hCaptcha data after a protected Customer Reviews AJAX request.
+		 *
+		 * @param {Object} event    The event object.
+		 * @param {Object} xhr      The XMLHttpRequest object.
+		 * @param {Object} settings The AJAX settings object.
+		 *
+		 * @return {void}
+		 */
+		ajaxComplete( event, xhr, settings ) {
+			const action = helper.getAction( settings, 'action' );
+
+			if ( ! [ 'cr_submit_review', 'cr_new_qna' ].includes( action ) ) {
+				return;
+			}
+
+			hCaptchaBindEvents();
+
+			if ( typeof window.hCaptchaFST?.getToken === 'function' ) {
+				window.hCaptchaFST.getToken();
+			}
 		},
 	};
 

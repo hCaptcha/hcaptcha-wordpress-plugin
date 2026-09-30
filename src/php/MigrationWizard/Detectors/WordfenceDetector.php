@@ -61,12 +61,12 @@ class WordfenceDetector extends AbstractDetector {
 		global $wpdb;
 
 		$results = [];
-		$table   = $wpdb->base_prefix . 'wfls_settings';
+		$table   = esc_sql( $wpdb->base_prefix . 'wfls_settings' );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT `name`, `value` FROM `{$table}` WHERE `name` IN (%s, %s, %s)", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT `name`, `value` FROM `$table` WHERE `name` IN (%s, %s, %s)", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				'enable-auth-captcha',
 				'recaptcha-site-key',
 				'recaptcha-secret'

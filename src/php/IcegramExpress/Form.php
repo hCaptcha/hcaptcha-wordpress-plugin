@@ -57,6 +57,13 @@ class Form {
 	private bool $in_widget = false;
 
 	/**
+	 * Whether an hCaptcha-protected form was shown.
+	 *
+	 * @var bool
+	 */
+	private bool $form_shown = false;
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -221,7 +228,7 @@ class Form {
 	 * @return void
 	 */
 	public function print_footer_scripts(): void {
-		if ( ! $this->show_in_popup ) {
+		if ( ! $this->form_shown ) {
 			return;
 		}
 
@@ -310,6 +317,8 @@ class Form {
 	 * @return string
 	 */
 	private function add_hcaptcha_to_form( int $form_id, ?array $attr, string $output ): string {
+		$this->form_shown = true;
+
 		$hcaptcha = HCaptcha::form( $this->get_args( $form_id ) );
 
 		if ( $this->show_in_popup( $form_id, $attr ) ) {

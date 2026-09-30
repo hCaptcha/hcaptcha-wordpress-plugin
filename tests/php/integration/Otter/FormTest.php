@@ -20,6 +20,7 @@ use ReflectionClass;
 use ReflectionException;
 use ThemeIsle\GutenbergBlocks\Integration\Form_Data_Request;
 use WP_Block;
+use WP_Block_Type_Registry;
 use WP_REST_Request;
 use WP_REST_Response;
 
@@ -55,7 +56,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	protected static bool $force_plugin_load_hooks = true;
 
 	/**
-	 * Test a live Otter form block and request object.
+	 * Test a live Otter form block and request an object.
 	 */
 	public function test_live_form_block(): void {
 		$form_id = 'live-form';
@@ -71,7 +72,7 @@ HTML;
 
 		self::assertTrue( is_plugin_active( static::$plugin ) );
 		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/otter-blocks/' ), $class_file );
-		self::assertTrue( \WP_Block_Type_Registry::get_instance()->is_registered( 'themeisle-blocks/form' ) );
+		self::assertTrue( WP_Block_Type_Registry::get_instance()->is_registered( 'themeisle-blocks/form' ) );
 		self::assertSame( 10, has_filter( 'otter_form_anti_spam_validation', [ $integration, 'verify' ] ) );
 		self::assertStringContainsString( 'otter-form__container', $html );
 		self::assertStringContainsString( 'class="h-captcha"', $html );
@@ -389,7 +390,7 @@ HTML;
 		self::assertSame( 'jane@example.com', $entry['data']['email'] );
 		self::assertSame( 'Jane Doe', $entry['data']['name'] );
 		self::assertSame( 'Jane Doe', $entry['data']['Name'] );
-		self::assertSame( 'Hello world', $entry['data']['Message'] );
+		self::assertSame( [ 'Hello', 'world' ], $entry['data']['Message'] );
 		self::assertSame( 'Field value', $entry['data']['field-id'] );
 		self::assertArrayNotHasKey( 'Empty', $entry['data'] );
 	}

@@ -50,12 +50,9 @@ class LostPassword {
 	 */
 	public function add_hcaptcha(): void {
 		$args = [
-			'action' => HCAPTCHA_ACTION,
-			'name'   => HCAPTCHA_NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'lost_password',
-			],
+			'action' => self::ACTION,
+			'name'   => self::NONCE,
+			'id'     => $this->get_expected_id(),
 		];
 
 		?>
@@ -76,12 +73,38 @@ class LostPassword {
 	 * @return WP_Error|null|mixed
 	 */
 	public function verify( $errors ) {
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify( $this->get_entry() );
 
 		if ( ! $error_message ) {
 			return $errors;
 		}
 
 		return HCaptcha::add_error_message( $errors, $error_message );
+	}
+
+	/**
+	 * Get lost-password data for hCaptcha and anti-spam verification.
+	 *
+	 * @return array
+	 */
+	private function get_entry(): array {
+		return [
+			'nonce_name'   => self::NONCE,
+			'nonce_action' => self::ACTION,
+			'data'         => EntryData::lost_password(),
+			'expected_id'  => $this->get_expected_id(),
+		];
+	}
+
+	/**
+	 * Get the expected widget id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => 'lost_password',
+		];
 	}
 }
