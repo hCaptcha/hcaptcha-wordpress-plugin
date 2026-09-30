@@ -17,7 +17,7 @@ use HCaptcha\Settings\Tools;
 /**
  * Class NotificationsBase.
  *
- * BAse class for Notifications and What's New.
+ * Base class for Notifications and What's New.
  */
 abstract class NotificationsBase {
 
@@ -94,6 +94,8 @@ abstract class NotificationsBase {
 			$urls['command_palette_img']    = HCAPTCHA_URL . '/assets/images/magnifying-glass.svg';
 			$urls['theme_editor']           = $urls['general'] . '#config_params';
 			$urls['theme_editor_img']       = HCAPTCHA_URL . '/assets/images/advanced-theme-editor.jpg';
+			$urls['anti_spam_checks']       = $urls['anti_spam_page'] . '#antispam_1';
+			$urls['anti_spam_checks_img']   = HCAPTCHA_URL . '/assets/images/smarter-anti-spam-checks.png';
 		}
 
 		return $urls;

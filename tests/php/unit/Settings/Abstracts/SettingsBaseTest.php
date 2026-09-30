@@ -215,6 +215,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	public function test_init_hooks( bool $is_active, bool $is_main_menu_page ): void {
 		$plugin_base_name = 'hcaptcha-wordpress-plugin/hcaptcha.php';
 		$option_name      = 'hcaptcha_settings';
+		$option_group     = 'hcaptcha_settings_group';
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
@@ -222,8 +223,15 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'is_tab_active' )->once()->with( $subject )->andReturn( $is_active );
 		$subject->shouldReceive( 'plugin_basename' )->andReturn( $plugin_base_name );
 		$subject->shouldReceive( 'option_name' )->andReturn( $option_name );
+		$subject->shouldReceive( 'option_group' )->andReturn( $option_group );
 
 		WP_Mock::expectActionAdded( 'admin_enqueue_scripts', [ $subject, 'base_admin_enqueue_scripts' ] );
+		WP_Mock::expectFilterAdded(
+			'option_page_capability_' . $option_group,
+			[ $subject, 'get_settings_capability' ],
+			10,
+			0
+		);
 
 		if ( $is_main_menu_page ) {
 			WP_Mock::expectActionAdded( 'plugins_loaded', [ $subject, 'load_plugin_textdomain' ] );
@@ -734,16 +742,16 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	/**
 	 * Test add_settings_page().
 	 *
-	 * @param bool $is_main_menu_page Whether it is the main menu page.
+	 * @param bool   $is_main_menu_page Whether it is the main menu page.
+	 * @param string $capability      Required capability.
 	 *
 	 * @dataProvider dp_test_add_settings_page
 	 * @throws ReflectionException ReflectionException.
 	 */
-	public function test_add_settings_page( bool $is_main_menu_page ): void {
+	public function test_add_settings_page( bool $is_main_menu_page, string $capability ): void {
 		$page_title     = 'General';
 		$tab_page_title = 'Integrations';
 		$menu_title     = 'hCaptcha';
-		$capability     = 'manage_options';
 		$slug           = 'hcaptcha';
 		$tab_slug       = 'hcaptcha-integrations';
 		$icon_url       = HCAPTCHA_TEST_URL . '/assets/images/hcaptcha-icon.svg';
@@ -756,6 +764,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'menu_title' )->andReturn( $menu_title );
 		$subject->shouldReceive( 'option_page' )->andReturn( $slug );
 		$subject->shouldReceive( 'icon_url' )->andReturn( $icon_url );
+		$subject->shouldReceive( 'get_settings_capability' )->andReturn( $capability );
 
 		$this->set_protected_property( $subject, 'position', $position );
 
@@ -790,8 +799,9 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 */
 	public function dp_test_add_settings_page(): array {
 		return [
-			'Main menu page' => [ true ],
-			'Submenu page'   => [ false ],
+			'Site main menu page'    => [ true, 'manage_options' ],
+			'Network main menu page' => [ true, 'manage_network_options' ],
+			'Submenu page'           => [ false, 'manage_options' ],
 		];
 	}
 
@@ -813,6 +823,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'page_title' )->andReturn( $page_title );
 		$subject->shouldReceive( 'menu_title' )->andReturn( $menu_title );
 		$subject->shouldReceive( 'option_page' )->andReturn( $slug );
+		$subject->shouldReceive( 'get_settings_capability' )->andReturn( $capability );
 		$this->set_protected_property( $subject, 'parent_slug', $parent_slug );
 
 		$callback = [ $subject, 'settings_base_page' ];
@@ -832,6 +843,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 
 		$subject = Mockery::mock( SettingsBase::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'can_manage_settings' )->once()->andReturn( true );
 		$subject->shouldReceive( 'get_active_tab' )->once()->andReturn( $page );
 
 		$expected = '<div class="wrap"></div>';
@@ -839,6 +851,22 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		ob_start();
 		$subject->settings_base_page();
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Test settings_base_page() when the current user cannot manage the active settings scope.
+	 */
+	public function test_settings_base_page_denies_access(): void {
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'can_manage_settings' )->once()->andReturn( false );
+		$subject->shouldReceive( 'get_active_tab' )->never();
+
+		WP_Mock::userFunction( 'wp_die' )->with( 'You are not allowed to access this page.' )->once();
+
+		ob_start();
+		$subject->settings_base_page();
+		self::assertSame( '', ob_get_clean() );
 	}
 
 	/**
@@ -1989,7 +2017,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				],
 				'<input  name="hcaptcha_settings[some_id]"' .
 				' id="some_id" type="text" placeholder="" value="some text" autocomplete="" data-lpignore="" data-1p-ignore="" class="regular-text" />' .
-				'<span class="helper"><span class="helper-content">This is a helper</span></span>',
+				'<span class="helper" tabindex="0"><span class="helper-content" role="tooltip">This is a helper</span></span>',
 			],
 			'Text with supplemental' => [
 				[
@@ -2016,8 +2044,10 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	 * @return array
 	 */
 	private function dp_password_field_callback(): array {
+		$secret_mask = str_repeat( '*', 35 );
+
 		return [
-			'Password' => [
+			'Password'                 => [
 				[
 					'label'        => 'some label',
 					'section'      => 'some_section',
@@ -2031,6 +2061,38 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				],
 				'<input  name="hcaptcha_settings[some_id]"' .
 				' id="some_id" type="password" placeholder="" value="some password" autocomplete="new-password" data-lpignore="true" data-1p-ignore="true" class="regular-text" />',
+			],
+			'Sensitive password'       => [
+				[
+					'label'        => 'some label',
+					'section'      => 'some_section',
+					'type'         => 'password',
+					'placeholder'  => $secret_mask,
+					'helper'       => '',
+					'supplemental' => '',
+					'default'      => 'network secret',
+					'field_id'     => 'secret_key',
+					'disabled'     => false,
+					'sensitive'    => true,
+				],
+				'<input  name="hcaptcha_settings[secret_key]"' .
+				' id="secret_key" type="password" placeholder="' . $secret_mask . '" value="" autocomplete="new-password" data-lpignore="true" data-1p-ignore="true" class="regular-text" />',
+			],
+			'Empty sensitive password' => [
+				[
+					'label'        => 'some label',
+					'section'      => 'some_section',
+					'type'         => 'password',
+					'placeholder'  => $secret_mask,
+					'helper'       => '',
+					'supplemental' => '',
+					'default'      => '',
+					'field_id'     => 'secret_key',
+					'disabled'     => false,
+					'sensitive'    => true,
+				],
+				'<input  name="hcaptcha_settings[secret_key]"' .
+				' id="secret_key" type="password" placeholder="" value="" autocomplete="new-password" data-lpignore="true" data-1p-ignore="true" class="regular-text" />',
 			],
 		];
 	}
@@ -2158,6 +2220,24 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				'<fieldset ><label for="some_id_1" data-antispam="hcaptcha"><input id="some_id_1"' .
 				' name="hcaptcha_settings[some_id][]" type="checkbox" value="on"   />' .
 				'</label><br/></fieldset>',
+			],
+			'Checkbox with helper'       => [
+				[
+					'label'        => 'checkbox with helper',
+					'section'      => 'some_section',
+					'type'         => 'checkbox',
+					'placeholder'  => '',
+					'helper'       => '',
+					'helpers'      => [ 'on' => 'This is a helper' ],
+					'supplemental' => '',
+					'default'      => '',
+					'field_id'     => 'some_id',
+					'disabled'     => false,
+				],
+				'<fieldset ><label for="some_id_1" ><input id="some_id_1"' .
+				' name="hcaptcha_settings[some_id][]" type="checkbox" value="on"   />' .
+				'</label><span class="helper" tabindex="0"><span class="helper-content" role="tooltip">' .
+				'This is a helper</span></span><br/></fieldset>',
 			],
 		];
 	}
@@ -2820,6 +2900,21 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test that a user without network settings access cannot update an option.
+	 */
+	public function test_update_option_denies_network_settings_without_capability(): void {
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_network_wide' )->once()->andReturn( true );
+		$subject->shouldReceive( 'can_manage_settings' )->once()->andReturn( false );
+		$subject->shouldReceive( 'init_settings' )->never();
+
+		WP_Mock::userFunction( 'update_option' )->never();
+
+		$subject->update_option( 'key', 'value' );
+	}
+
+	/**
 	 * Test pre_update_option_filter().
 	 *
 	 * @param array $form_fields Form fields.
@@ -2894,6 +2989,34 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				'old_value'   => [ 'no_checkbox' => '1' ],
 				'expected'    => [
 					'no_checkbox'   => '0',
+					'_network_wide' => [],
+				],
+			],
+			'blank sensitive field preserved' => [
+				'form_fields' => [
+					'secret_key' => [
+						'type'      => 'password',
+						'sensitive' => true,
+					],
+				],
+				'value'       => [ 'secret_key' => '' ],
+				'old_value'   => [ 'secret_key' => 'network-secret' ],
+				'expected'    => [
+					'secret_key'    => 'network-secret',
+					'_network_wide' => [],
+				],
+			],
+			'sensitive field replaced' => [
+				'form_fields' => [
+					'secret_key' => [
+						'type'      => 'password',
+						'sensitive' => true,
+					],
+				],
+				'value'       => [ 'secret_key' => 'replacement-secret' ],
+				'old_value'   => [ 'secret_key' => 'network-secret' ],
+				'expected'    => [
+					'secret_key'    => 'replacement-secret',
 					'_network_wide' => [],
 				],
 			],
@@ -3279,6 +3402,46 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		$network_wide = [];
 
 		self::assertFalse( $subject->$method() );
+	}
+
+	/**
+	 * Test get_settings_capability().
+	 *
+	 * @param bool   $network_wide Whether network-wide settings are active.
+	 * @param string $expected     Expected capability.
+	 *
+	 * @dataProvider dp_test_get_settings_capability
+	 */
+	public function test_get_settings_capability( bool $network_wide, string $expected ): void {
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+		$subject->shouldReceive( 'is_network_wide' )->once()->andReturn( $network_wide );
+
+		self::assertSame( $expected, $subject->get_settings_capability() );
+	}
+
+	/**
+	 * Data provider for test_get_settings_capability().
+	 *
+	 * @return array
+	 */
+	public function dp_test_get_settings_capability(): array {
+		return [
+			'site settings'    => [ false, 'manage_options' ],
+			'network settings' => [ true, 'manage_network_options' ],
+		];
+	}
+
+	/**
+	 * Test can_manage_settings().
+	 */
+	public function test_can_manage_settings(): void {
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+		$subject->shouldReceive( 'get_settings_capability' )->once()->andReturn( 'manage_network_options' );
+
+		WP_Mock::userFunction( 'current_user_can' )
+			->with( 'manage_network_options' )->once()->andReturn( false );
+
+		self::assertFalse( $subject->can_manage_settings() );
 	}
 
 	/**

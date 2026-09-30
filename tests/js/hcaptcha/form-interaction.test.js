@@ -53,6 +53,22 @@ describe( 'FormInteraction', () => {
 				<input id="billing_first_name">
 				<h-captcha class="h-captcha hcaptcha-api-delayed"></h-captcha>
 			</form>
+			<form id="tutor-login-form">
+				<input name="log">
+				<h-captcha class="h-captcha hcaptcha-api-delayed"></h-captcha>
+			</form>
+			<form id="tutor-registration-form">
+				<input name="email">
+				<h-captcha class="h-captcha hcaptcha-api-delayed"></h-captcha>
+			</form>
+			<form class="tutor-forgot-password-form">
+				<input name="user_login">
+				<h-captcha class="h-captcha hcaptcha-api-delayed"></h-captcha>
+			</form>
+			<form id="tutor-checkout-form">
+				<input name="billing_email">
+				<h-captcha class="h-captcha hcaptcha-api-delayed"></h-captcha>
+			</form>
 			<form class="wpforms-form">
 				<input name="wpforms[fields][1]">
 				<h-captcha class="h-captcha hcaptcha-api-delayed"></h-captcha>
@@ -125,6 +141,10 @@ describe( 'FormInteraction', () => {
 		'.wpcf7-form input',
 		'.elementor-form input',
 		'.woocommerce-checkout input',
+		'#tutor-login-form input',
+		'#tutor-registration-form input',
+		'.tutor-forgot-password-form input',
+		'#tutor-checkout-form input',
 		'.wpforms-form input',
 		'.et_pb_contact_form input',
 		'#eael-login-form input',
@@ -219,5 +239,22 @@ describe( 'FormInteraction', () => {
 		);
 
 		expect( listener ).not.toHaveBeenCalled();
+	} );
+
+	test( 'Tab keyup clears keyboard navigation, while other keys leave it intact', () => {
+		app.keyboardNavigation = true;
+		app.handleKeyUp( { key: 'Shift' } );
+		expect( app.keyboardNavigation ).toBe( true );
+
+		app.handleKeyUp( { key: 'Tab' } );
+		expect( app.keyboardNavigation ).toBe( false );
+	} );
+
+	test( 'ignores a target that is not an element', () => {
+		app.init();
+		app.loadForTarget( document );
+
+		expect( listener ).not.toHaveBeenCalled();
+		expect( wp.hooks.applyFilters ).not.toHaveBeenCalled();
 	} );
 } );

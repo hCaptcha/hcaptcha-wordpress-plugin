@@ -11,6 +11,7 @@ use HCaptcha\Admin\OnboardingWizard;
 
 use HCaptcha\AntiSpam\AntiSpam;
 use HCaptcha\AntiSpam\Honeypot;
+use HCaptcha\Dependencies\PluginDependencyManager;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use HCaptcha\Helpers\Utils;
@@ -50,6 +51,16 @@ class Integrations extends PluginSettingsBase {
 	public const ACTIVATE_ACTION = 'hcaptcha-integrations-activate';
 
 	/**
+	 * Build activation plan ajax action.
+	 */
+	public const ACTIVATION_PLAN_ACTION = 'hcaptcha-integrations-activation-plan';
+
+	/**
+	 * Build deactivation plan ajax action.
+	 */
+	public const DEACTIVATION_PLAN_ACTION = 'hcaptcha-integrations-deactivation-plan';
+
+	/**
 	 * Header section id.
 	 */
 	public const SECTION_HEADER = 'header';
@@ -65,7 +76,7 @@ class Integrations extends PluginSettingsBase {
 	public const SECTION_DISABLED = 'disabled';
 
 	/**
-	 * Plugin dependencies not specified in their headers.
+	 * Additional plugin dependencies, including fallbacks for missing plugin headers.
 	 * Key is a plugin slug.
 	 * Value is a plugin slug or an array of slugs.
 	 */
@@ -88,6 +99,7 @@ class Integrations extends PluginSettingsBase {
 		'fluentformpro/fluentformpro.php'                                   => 'fluentform/fluentform.php',
 		'metform/metform.php'                                               => 'elementor/elementor.php',
 		'sfwd-lms/sfwd_lms.php'                                             => 'learndash-hub/learndash-hub.php',
+		'tutor-pro/tutor-pro.php'                                           => 'tutor/tutor.php',
 		'ultimate-elementor/ultimate-elementor.php'                         => 'elementor/elementor.php',
 		'woocommerce-germanized/woocommerce-germanized.php'                 => 'woocommerce/woocommerce.php',
 		'woocommerce-paypal-payments/woocommerce-paypal-payments.php'       => 'woocommerce/woocommerce.php',
@@ -183,6 +195,8 @@ class Integrations extends PluginSettingsBase {
 
 		add_action( 'kagg_settings_header', [ $this, 'search_box' ] );
 		add_action( 'wp_ajax_' . self::ACTIVATE_ACTION, [ $this, 'activate' ] );
+		add_action( 'wp_ajax_' . self::ACTIVATION_PLAN_ACTION, [ $this, 'activation_plan' ] );
+		add_action( 'wp_ajax_' . self::DEACTIVATION_PLAN_ACTION, [ $this, 'deactivation_plan' ] );
 		add_action( 'after_switch_theme', [ $this, 'after_switch_theme_action' ], 0 );
 		add_filter( 'hcaptcha_activate_plugins', [ $this, 'filter_activate_plugins' ], 0 );
 	}
@@ -265,7 +279,7 @@ class Integrations extends PluginSettingsBase {
 	 */
 	public function init_form_fields(): void {
 		$this->form_fields = [
-			'show_antispam_coverage'           => [
+			'show_antispam_coverage'         => [
 				'type'    => 'checkbox',
 				'section' => self::SECTION_HEADER,
 				'options' => [
@@ -273,7 +287,7 @@ class Integrations extends PluginSettingsBase {
 				],
 				'helper'  => __( 'Shows icons for built-in antispam methods (Honeypot, Time check) for supported integrations, including inactive ones.', 'hcaptcha-for-forms-and-more' ),
 			],
-			'wp_status'                        => [
+			'wp_status'                      => [
 				'entity'  => 'core',
 				'label'   => 'WP Core',
 				'type'    => 'checkbox',
@@ -285,14 +299,14 @@ class Integrations extends PluginSettingsBase {
 					'register'           => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'acfe_status'                      => [
+			'acfe_status'                    => [
 				'label'   => 'ACF Extended',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'ACF Extended Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'affiliates_status'                => [
+			'affiliates_status'              => [
 				'label'   => 'Affiliates',
 				'type'    => 'checkbox',
 				'options' => [
@@ -300,14 +314,14 @@ class Integrations extends PluginSettingsBase {
 					'register' => __( 'Affiliates Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'asgaros_status'                   => [
+			'asgaros_status'                 => [
 				'label'   => 'Asgaros',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'avada_status'                     => [
+			'avada_status'                   => [
 				'entity'  => 'theme',
 				'label'   => 'Avada',
 				'type'    => 'checkbox',
@@ -315,14 +329,14 @@ class Integrations extends PluginSettingsBase {
 					'form' => __( 'Avada Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'back_in_stock_notifier_status'    => [
+			'back_in_stock_notifier_status'  => [
 				'label'   => 'Back In Stock Notifier',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Back In Stock Notifier Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'bbp_status'                       => [
+			'bbp_status'                     => [
 				'label'   => 'bbPress',
 				'type'    => 'checkbox',
 				'options' => [
@@ -333,7 +347,7 @@ class Integrations extends PluginSettingsBase {
 					'reply'     => __( 'Reply Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'beaver_builder_status'            => [
+			'beaver_builder_status'          => [
 				'label'   => 'Beaver Builder',
 				'logo'    => 'svg',
 				'type'    => 'checkbox',
@@ -342,7 +356,7 @@ class Integrations extends PluginSettingsBase {
 					'login'   => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'blocksy_status'                   => [
+			'blocksy_status'                 => [
 				'label'   => 'blocksy',
 				'entity'  => 'theme',
 				'logo'    => 'svg',
@@ -353,7 +367,7 @@ class Integrations extends PluginSettingsBase {
 					'waitlist'             => __( 'Waitlist Form (Pro)', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'brizy_status'                     => [
+			'brizy_status'                   => [
 				'label'   => 'Brizy',
 				'logo'    => 'svg',
 				'type'    => 'checkbox',
@@ -361,7 +375,7 @@ class Integrations extends PluginSettingsBase {
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'bp_status'                        => [
+			'bp_status'                      => [
 				'label'   => 'BuddyPress',
 				'logo'    => 'svg',
 				'type'    => 'checkbox',
@@ -370,7 +384,7 @@ class Integrations extends PluginSettingsBase {
 					'registration' => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'classified_listing_status'        => [
+			'classified_listing_status'      => [
 				'label'   => 'Classified Listing',
 				'type'    => 'checkbox',
 				'options' => [
@@ -380,14 +394,14 @@ class Integrations extends PluginSettingsBase {
 					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'coblocks_status'                  => [
+			'coblocks_status'                => [
 				'label'   => 'CoBlocks',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'colorlib_customizer_status'       => [
+			'colorlib_customizer_status'     => [
 				'label'   => 'Colorlib Login Customizer',
 				'type'    => 'checkbox',
 				'options' => [
@@ -396,7 +410,7 @@ class Integrations extends PluginSettingsBase {
 					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'cf7_status'                       => [
+			'cf7_status'                     => [
 				'label'   => 'Contact Form 7',
 				'logo'    => 'svg',
 				'type'    => 'checkbox',
@@ -407,7 +421,7 @@ class Integrations extends PluginSettingsBase {
 					'replace_rsc' => __( 'Replace Really Simple CAPTCHA', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'customer_reviews_status'          => [
+			'customer_reviews_status'        => [
 				'label'   => 'Customer Reviews',
 				'logo'    => 'svg',
 				'type'    => 'checkbox',
@@ -416,7 +430,7 @@ class Integrations extends PluginSettingsBase {
 					'review' => __( 'Review Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'divi_status'                      => [
+			'divi_status'                    => [
 				'entity'  => 'theme',
 				'label'   => 'Divi',
 				'type'    => 'checkbox',
@@ -427,7 +441,7 @@ class Integrations extends PluginSettingsBase {
 					'login'       => __( 'Divi Login Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'divi_builder_status'              => [
+			'divi_builder_status'            => [
 				'label'   => 'Divi Builder',
 				'type'    => 'checkbox',
 				'options' => [
@@ -437,14 +451,14 @@ class Integrations extends PluginSettingsBase {
 					'login'       => __( 'Divi Builder Login Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'download_manager_status'          => [
+			'download_manager_status'        => [
 				'label'   => 'Download Manager',
 				'type'    => 'checkbox',
 				'options' => [
 					'button' => __( 'Button', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'easy_digital_downloads_status'    => [
+			'easy_digital_downloads_status'  => [
 				'label'   => 'Easy Digital Downloads',
 				'logo'    => 'svg',
 				'type'    => 'checkbox',
@@ -455,7 +469,7 @@ class Integrations extends PluginSettingsBase {
 					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'elementor_pro_status'             => [
+			'elementor_pro_status'           => [
 				'label'   => 'Elementor Pro',
 				'logo'    => 'svg',
 				'type'    => 'checkbox',
@@ -464,7 +478,7 @@ class Integrations extends PluginSettingsBase {
 					'login' => __( 'Login', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'essential_addons_status'          => [
+			'essential_addons_status'        => [
 				'label'   => 'Essential Addons',
 				'type'    => 'checkbox',
 				'options' => [
@@ -472,14 +486,14 @@ class Integrations extends PluginSettingsBase {
 					'register' => __( 'Register', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'essential_blocks_status'          => [
+			'essential_blocks_status'        => [
 				'label'   => 'Essential Blocks',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'events_manager_status'            => [
+			'events_manager_status'          => [
 				'label'   => 'Events Manager',
 				'logo'    => 'svg',
 				'type'    => 'checkbox',
@@ -487,7 +501,7 @@ class Integrations extends PluginSettingsBase {
 					'booking' => __( 'Booking', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'extra_status'                     => [
+			'extra_status'                   => [
 				'entity'  => 'theme',
 				'label'   => 'Extra',
 				'logo'    => 'svg',
@@ -499,14 +513,14 @@ class Integrations extends PluginSettingsBase {
 					'login'       => __( 'Extra Login Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'fluent_status'                    => [
+			'fluent_status'                  => [
 				'label'   => 'Fluent Forms',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'formidable_forms_status'          => [
+			'formidable_forms_status'        => [
 				'label'   => 'Formidable Forms',
 				'logo'    => 'svg',
 				'type'    => 'checkbox',
@@ -514,14 +528,14 @@ class Integrations extends PluginSettingsBase {
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'forminator_status'                => [
+			'forminator_status'              => [
 				'label'   => 'Forminator',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'give_wp_status'                   => [
+			'give_wp_status'                 => [
 				'label'   => 'GiveWP',
 				'logo'    => 'svg',
 				'type'    => 'checkbox',
@@ -529,7 +543,7 @@ class Integrations extends PluginSettingsBase {
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'gravity_status'                   => [
+			'gravity_status'                 => [
 				'label'   => 'Gravity Forms',
 				'logo'    => 'svg',
 				'type'    => 'checkbox',
@@ -538,21 +552,21 @@ class Integrations extends PluginSettingsBase {
 					'embed' => __( 'Form Embed', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'html_forms_status'                => [
+			'html_forms_status'              => [
 				'label'   => 'HTML Forms',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'icegram_express_status'           => [
+			'icegram_express_status'         => [
 				'label'   => 'Icegram Express',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'jetpack_status'                   => [
+			'jetpack_status'                 => [
 				'label'   => 'Jetpack',
 				'logo'    => 'svg',
 				'type'    => 'checkbox',
@@ -560,7 +574,7 @@ class Integrations extends PluginSettingsBase {
 					'contact' => __( 'Contact Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'kadence_status'                   => [
+			'kadence_status'                 => [
 				'label'   => 'Kadence',
 				'logo'    => 'svg',
 				'type'    => 'checkbox',
@@ -569,7 +583,7 @@ class Integrations extends PluginSettingsBase {
 					'advanced_form' => __( 'Kadence Advanced Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'learn_dash_status'                => [
+			'learn_dash_status'              => [
 				'label'   => 'LearnDash LMS',
 				'logo'    => 'svg',
 				'type'    => 'checkbox',
@@ -579,7 +593,7 @@ class Integrations extends PluginSettingsBase {
 					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'learn_press_status'               => [
+			'learn_press_status'             => [
 				'label'   => 'LearnPress',
 				'type'    => 'checkbox',
 				'options' => [
@@ -588,7 +602,7 @@ class Integrations extends PluginSettingsBase {
 					'register' => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'login_signup_popup_status'        => [
+			'login_signup_popup_status'      => [
 				'label'   => 'Login Signup Popup',
 				'type'    => 'checkbox',
 				'options' => [
@@ -596,7 +610,7 @@ class Integrations extends PluginSettingsBase {
 					'register' => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'mailchimp_status'                 => [
+			'mailchimp_status'               => [
 				'label'   => 'Mailchimp for WP',
 				'logo'    => 'svg',
 				'type'    => 'checkbox',
@@ -604,7 +618,7 @@ class Integrations extends PluginSettingsBase {
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'mailpoet_status'                  => [
+			'mailpoet_status'                => [
 				'label'   => 'MailPoet',
 				'logo'    => 'svg',
 				'type'    => 'checkbox',
@@ -612,14 +626,14 @@ class Integrations extends PluginSettingsBase {
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'maintenance_status'               => [
+			'maintenance_status'             => [
 				'label'   => 'Maintenance',
 				'type'    => 'checkbox',
 				'options' => [
 					'login' => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'memberpress_status'               => [
+			'memberpress_status'             => [
 				'label'   => 'MemberPress',
 				'logo'    => 'svg',
 				'type'    => 'checkbox',
@@ -628,7 +642,7 @@ class Integrations extends PluginSettingsBase {
 					'register' => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'metform_status'                   => [
+			'metform_status'                 => [
 				'label'   => 'MetForm',
 				'logo'    => 'svg',
 				'type'    => 'checkbox',
@@ -636,44 +650,35 @@ class Integrations extends PluginSettingsBase {
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'ninja_status'                     => [
+			'ninja_status'                   => [
 				'label'   => 'Ninja Forms',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'otter_status'                     => [
+			'otter_status'                   => [
 				'label'   => 'Otter Blocks',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'paid_memberships_pro_status'      => [
-				'label'   => 'Paid Memberships Pro',
-				'logo'    => 'svg',
-				'type'    => 'checkbox',
-				'options' => [
-					'checkout' => __( 'Checkout Form', 'hcaptcha-for-forms-and-more' ),
-					'login'    => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
-				],
-			],
-			'passster_status'                  => [
+			'passster_status'                => [
 				'label'   => 'Passster',
 				'type'    => 'checkbox',
 				'options' => [
 					'protect' => __( 'Protection Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'password_protected_status'        => [
+			'password_protected_status'      => [
 				'label'   => 'Password Protected',
 				'type'    => 'checkbox',
 				'options' => [
 					'protect' => __( 'Protection Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'profile_builder_status'           => [
+			'profile_builder_status'         => [
 				'label'   => 'Profile Builder',
 				'type'    => 'checkbox',
 				'options' => [
@@ -682,14 +687,14 @@ class Integrations extends PluginSettingsBase {
 					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'quform_status'                    => [
+			'quform_status'                  => [
 				'label'   => 'Quform',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'sendinblue_status'                => [
+			'sendinblue_status'              => [
 				'label'   => 'Brevo',
 				'logo'    => 'svg',
 				'type'    => 'checkbox',
@@ -697,21 +702,14 @@ class Integrations extends PluginSettingsBase {
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'simple_basic_contact_form_status' => [
-				'label'   => 'Simple Basic Contact Form',
-				'type'    => 'checkbox',
-				'options' => [
-					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
-				],
-			],
-			'simple_download_monitor_status'   => [
+			'simple_download_monitor_status' => [
 				'label'   => 'Simple Download Monitor',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'simple_membership_status'         => [
+			'simple_membership_status'       => [
 				'label'   => 'Simple Membership',
 				'type'    => 'checkbox',
 				'options' => [
@@ -720,7 +718,7 @@ class Integrations extends PluginSettingsBase {
 					'lost_pass' => __( 'Password Reset Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'spectra_status'                   => [
+			'spectra_status'                 => [
 				'label'   => 'Spectra',
 				'logo'    => 'svg',
 				'type'    => 'checkbox',
@@ -728,21 +726,21 @@ class Integrations extends PluginSettingsBase {
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'subscriber_status'                => [
+			'subscriber_status'              => [
 				'label'   => 'Subscriber',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'supportcandy_status'              => [
+			'supportcandy_status'            => [
 				'label'   => 'Support Candy',
 				'type'    => 'checkbox',
 				'options' => [
 					'form' => __( 'Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'theme_my_login_status'            => [
+			'theme_my_login_status'          => [
 				'label'   => 'Theme My Login',
 				'type'    => 'checkbox',
 				'options' => [
@@ -750,7 +748,7 @@ class Integrations extends PluginSettingsBase {
 					'lost_pass' => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'tutor_status'                     => [
+			'tutor_status'                   => [
 				'label'   => 'Tutor LMS',
 				'logo'    => 'svg',
 				'type'    => 'checkbox',
@@ -761,7 +759,7 @@ class Integrations extends PluginSettingsBase {
 					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'ultimate_addons_status'           => [
+			'ultimate_addons_status'         => [
 				'label'   => 'Ultimate Addons',
 				'logo'    => 'svg',
 				'type'    => 'checkbox',
@@ -770,7 +768,7 @@ class Integrations extends PluginSettingsBase {
 					'register' => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'ultimate_member_status'           => [
+			'ultimate_member_status'         => [
 				'label'   => 'Ultimate Member',
 				'type'    => 'checkbox',
 				'options' => [
@@ -779,7 +777,7 @@ class Integrations extends PluginSettingsBase {
 					'register'  => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'users_wp_status'                  => [
+			'users_wp_status'                => [
 				'label'   => 'Users WP',
 				'type'    => 'checkbox',
 				'options' => [
@@ -788,7 +786,7 @@ class Integrations extends PluginSettingsBase {
 					'register' => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'woocommerce_status'               => [
+			'woocommerce_status'             => [
 				'label'   => 'WooCommerce',
 				'type'    => 'checkbox',
 				'options' => [
@@ -797,31 +795,32 @@ class Integrations extends PluginSettingsBase {
 					'login'              => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
 					'lost_pass'          => __( 'Lost Password Form', 'hcaptcha-for-forms-and-more' ),
 					'order_tracking'     => __( 'Order Tracking Form', 'hcaptcha-for-forms-and-more' ),
+					'order_withdrawal'   => __( 'Order Withdrawal Form', 'hcaptcha-for-forms-and-more' ),
 					'register'           => __( 'Register Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'woocommerce_germanized_status'    => [
+			'woocommerce_germanized_status'  => [
 				'label'   => 'WooCommerce Germanized',
 				'type'    => 'checkbox',
 				'options' => [
 					'return_request' => __( 'Return Request Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'paypal_payments_status'           => [
+			'paypal_payments_status'         => [
 				'label'   => 'WooCommerce PayPal Payments',
 				'type'    => 'checkbox',
 				'options' => [
 					'button' => __( 'PayPal Button', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'woocommerce_wishlists_status'     => [
+			'woocommerce_wishlists_status'   => [
 				'label'   => 'WooCommerce Wishlists',
 				'type'    => 'checkbox',
 				'options' => [
 					'create_list' => __( 'Create List Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'wordfence_status'                 => [
+			'wordfence_status'               => [
 				'label'   => 'Wordfence',
 				'logo'    => 'svg',
 				'type'    => 'checkbox',
@@ -829,7 +828,7 @@ class Integrations extends PluginSettingsBase {
 					'login' => __( 'Login Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'wpforms_status'                   => [
+			'wpforms_status'                 => [
 				'label'   => 'WPForms',
 				'type'    => 'checkbox',
 				'options' => [
@@ -837,7 +836,7 @@ class Integrations extends PluginSettingsBase {
 					'embed' => __( 'Form Embed', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'wpdiscuz_status'                  => [
+			'wpdiscuz_status'                => [
 				'label'   => 'WPDiscuz',
 				'type'    => 'checkbox',
 				'options' => [
@@ -845,7 +844,7 @@ class Integrations extends PluginSettingsBase {
 					'subscribe_form' => __( 'Subscribe Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'wpforo_status'                    => [
+			'wpforo_status'                  => [
 				'label'   => 'WPForo',
 				'type'    => 'checkbox',
 				'options' => [
@@ -853,7 +852,7 @@ class Integrations extends PluginSettingsBase {
 					'reply'     => __( 'Reply Form', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
-			'wp_job_openings_status'           => [
+			'wp_job_openings_status'         => [
 				'label'   => 'WP Job Openings',
 				'type'    => 'checkbox',
 				'options' => [
@@ -1175,30 +1174,37 @@ class Integrations extends PluginSettingsBase {
 			self::HANDLE,
 			self::OBJECT,
 			[
-				'ajaxUrl'             => admin_url( 'admin-ajax.php' ),
-				'action'              => self::ACTIVATE_ACTION,
-				'nonce'               => wp_create_nonce( self::ACTIVATE_ACTION ),
+				'ajaxUrl'              => admin_url( 'admin-ajax.php' ),
+				'action'               => self::ACTIVATE_ACTION,
+				'nonce'                => wp_create_nonce( self::ACTIVATE_ACTION ),
+				'activationPlanAction' => self::ACTIVATION_PLAN_ACTION,
+				'activationPlanNonce'  => wp_create_nonce( self::ACTIVATION_PLAN_ACTION ),
+				'planAction'           => self::DEACTIVATION_PLAN_ACTION,
+				'planNonce'            => wp_create_nonce( self::DEACTIVATION_PLAN_ACTION ),
 				/* translators: 1: Plugin name. */
-				'installPluginMsg'    => __( 'Install and activate %s plugin?', 'hcaptcha-for-forms-and-more' ),
+				'installPluginMsg'     => __( 'Install and activate %s plugin?', 'hcaptcha-for-forms-and-more' ),
 				/* translators: 1: Theme name. */
-				'installThemeMsg'     => __( 'Install and activate %s theme?', 'hcaptcha-for-forms-and-more' ),
+				'installThemeMsg'      => __( 'Install and activate %s theme?', 'hcaptcha-for-forms-and-more' ),
 				/* translators: 1: Plugin name. */
-				'activatePluginMsg'   => __( 'Activate %s plugin?', 'hcaptcha-for-forms-and-more' ),
+				'activatePluginMsg'    => __( 'Activate %s plugin?', 'hcaptcha-for-forms-and-more' ),
 				/* translators: 1: Plugin name. */
-				'deactivatePluginMsg' => __( 'Deactivate %s plugin?', 'hcaptcha-for-forms-and-more' ),
+				'deactivatePluginMsg'  => __( 'Deactivate %s plugin?', 'hcaptcha-for-forms-and-more' ),
 				/* translators: 1: Theme name. */
-				'activateThemeMsg'    => __( 'Activate %s theme?', 'hcaptcha-for-forms-and-more' ),
+				'activateThemeMsg'     => __( 'Activate %s theme?', 'hcaptcha-for-forms-and-more' ),
 				/* translators: 1: Theme name. */
-				'deactivateThemeMsg'  => __( 'Deactivate %s theme?', 'hcaptcha-for-forms-and-more' ),
-				'selectThemeMsg'      => __( 'Select theme to activate:', 'hcaptcha-for-forms-and-more' ),
-				'onlyOneThemeMsg'     => __( 'Cannot deactivate the only theme on the site.', 'hcaptcha-for-forms-and-more' ),
-				'suggestActivate'     => $suggest_activate,
-				'suggestActivateMsg'  => __( 'Activate plugin or theme by clicking on its logo.', 'hcaptcha-for-forms-and-more' ),
-				'unexpectedErrorMsg'  => __( 'Unexpected error.', 'hcaptcha-for-forms-and-more' ),
-				'OKBtnText'           => __( 'OK', 'hcaptcha-for-forms-and-more' ),
-				'CancelBtnText'       => __( 'Cancel', 'hcaptcha-for-forms-and-more' ),
-				'themes'              => $this->get_themes(),
-				'defaultTheme'        => $this->get_default_theme(),
+				'deactivateThemeMsg'   => __( 'Deactivate %s theme?', 'hcaptcha-for-forms-and-more' ),
+				'selectThemeMsg'       => __( 'Select theme to activate:', 'hcaptcha-for-forms-and-more' ),
+				'onlyOneThemeMsg'      => __( 'Cannot deactivate the only theme on the site.', 'hcaptcha-for-forms-and-more' ),
+				'dependenciesMsg'      => __( 'Also deactivate dependencies:', 'hcaptcha-for-forms-and-more' ),
+				'deactivateAllMsg'     => __( 'Deactivate all', 'hcaptcha-for-forms-and-more' ),
+				'loadingDepsMsg'       => __( 'Checking dependencies…', 'hcaptcha-for-forms-and-more' ),
+				'suggestActivate'      => $suggest_activate,
+				'suggestActivateMsg'   => __( 'Activate plugin or theme by clicking on its logo.', 'hcaptcha-for-forms-and-more' ),
+				'unexpectedErrorMsg'   => __( 'Unexpected error.', 'hcaptcha-for-forms-and-more' ),
+				'OKBtnText'            => __( 'OK', 'hcaptcha-for-forms-and-more' ),
+				'CancelBtnText'        => __( 'Cancel', 'hcaptcha-for-forms-and-more' ),
+				'themes'               => $this->get_themes(),
+				'defaultTheme'         => $this->get_default_theme(),
 			]
 		);
 
@@ -1222,6 +1228,116 @@ class Integrations extends PluginSettingsBase {
 	}
 
 	/**
+	 * Ajax action to describe dependencies activated with a plugin or theme.
+	 *
+	 * @return void
+	 * @noinspection PhpUnreachableStatementInspection
+	 */
+	public function activation_plan(): void {
+		$this->run_checks( self::ACTIVATION_PLAN_ACTION );
+
+		$this->entity = (string) Request::filter_input( INPUT_POST, 'entity' );
+		$status       = str_replace( '-', '_', (string) Request::filter_input( INPUT_POST, 'status' ) );
+		$entity_name  = $this->form_fields[ $status ]['label'] ?? '';
+
+		if ( ! in_array( $this->entity, [ 'plugin', 'theme' ], true ) ) {
+			wp_send_json_error(
+				esc_html__( 'Unsupported integration entity.', 'hcaptcha-for-forms-and-more' )
+			);
+
+			return; // For testing purposes.
+		}
+
+		$permission_error = $this->get_activation_error( true, $entity_name, '' );
+
+		if ( null !== $permission_error ) {
+			wp_send_json_error( esc_html( $permission_error->get_error_message() ) );
+
+			return; // For testing purposes.
+		}
+
+		$plan         = $this->build_activation_plan( $status, $entity_name );
+		$plugin_names = array_column( $plan['items'], 'name' );
+		$notice       = '';
+
+		if ( $plugin_names ) {
+			$notice = sprintf(
+				/* translators: %s: comma-separated list of plugin names. */
+				__( '%s will also be activated.', 'hcaptcha-for-forms-and-more' ),
+				implode( ', ', $plugin_names )
+			);
+		}
+
+		wp_send_json_success( [ 'notice' => esc_html( $notice ) ] );
+	}
+
+	/**
+	 * Ajax action to build a plugin dependency deactivation plan.
+	 *
+	 * @return void
+	 * @noinspection PhpUnreachableStatementInspection
+	 */
+	public function deactivation_plan(): void {
+		$this->run_checks( self::DEACTIVATION_PLAN_ACTION );
+
+		$this->entity = (string) Request::filter_input( INPUT_POST, 'entity' );
+		$new_theme    = (string) Request::filter_input( INPUT_POST, 'newTheme' );
+		$status       = str_replace( '-', '_', (string) Request::filter_input( INPUT_POST, 'status' ) );
+		$entity_name  = $this->form_fields[ $status ]['label'] ?? '';
+
+		if ( ! in_array( $this->entity, [ 'plugin', 'theme' ], true ) ) {
+			wp_send_json_error(
+				esc_html__( 'Unsupported integration entity.', 'hcaptcha-for-forms-and-more' )
+			);
+
+			return; // For testing purposes.
+		}
+
+		$permission_error = 'plugin' === $this->entity
+			? $this->get_plugin_activation_error()
+			: $this->get_theme_switch_error();
+
+		if ( null !== $permission_error ) {
+			wp_send_json_error( esc_html( $permission_error->get_error_message() ) );
+
+			return; // For testing purposes.
+		}
+
+		$plugins = 'plugin' === $this->entity ? $this->get_status_plugins( $status ) : [];
+		$plan    = $this->build_deactivation_plan( $plugins, $entity_name, $new_theme );
+
+		if ( $plan['rootBlockedBy'] ) {
+			$this->send_deactivation_blocked_error( $plan['rootBlockedBy'] );
+
+			return; // For testing purposes.
+		}
+
+		wp_send_json_success( [ 'plan' => $plan ] );
+	}
+
+	/**
+	 * Build the current activation plan.
+	 *
+	 * @param string $status      Integration status.
+	 * @param string $entity_name Integration entity name.
+	 *
+	 * @return array
+	 */
+	protected function build_activation_plan( string $status, string $entity_name ): array {
+		$manager       = $this->get_dependency_manager();
+		$include_roots = 'theme' === $this->entity;
+		$plugins       = $include_roots
+			? $manager->get_additional_dependencies( $entity_name )
+			: $this->filter_activate_plugins( $this->get_status_plugins( $status ) );
+
+		return $manager->get_activation_plan(
+			$plugins,
+			$this->get_active_plugin_slugs(),
+			$include_roots
+		);
+	}
+
+	/**
 	 * Ajax action to activate/deactivate the plugin / theme.
 	 *
 	 * @return void
@@ -1230,18 +1346,35 @@ class Integrations extends PluginSettingsBase {
 	public function activate(): void {
 		$this->run_checks( self::ACTIVATE_ACTION );
 
-		$this->install = filter_input( INPUT_POST, 'install', FILTER_VALIDATE_BOOLEAN );
-		$activate      = filter_input( INPUT_POST, 'activate', FILTER_VALIDATE_BOOLEAN );
-		$this->entity  = filter_input( INPUT_POST, 'entity', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
-		$new_theme     = filter_input( INPUT_POST, 'newTheme', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
-		$status        = filter_input( INPUT_POST, 'status', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
-		$status        = str_replace( '-', '_', $status );
-		$entity_name   = $this->form_fields[ $status ]['label'] ?? '';
+		$this->install         = filter_input( INPUT_POST, 'install', FILTER_VALIDATE_BOOLEAN );
+		$activate              = filter_input( INPUT_POST, 'activate', FILTER_VALIDATE_BOOLEAN );
+		$this->entity          = filter_input( INPUT_POST, 'entity', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$new_theme             = filter_input( INPUT_POST, 'newTheme', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$status                = filter_input( INPUT_POST, 'status', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$status                = str_replace( '-', '_', $status );
+		$entity_name           = $this->form_fields[ $status ]['label'] ?? '';
+		$manage_dependencies   = filter_var(
+			Request::filter_input( INPUT_POST, 'manageDependencies' ),
+			FILTER_VALIDATE_BOOLEAN
+		);
+		$deactivate_all        = filter_var(
+			Request::filter_input( INPUT_POST, 'deactivateAll' ),
+			FILTER_VALIDATE_BOOLEAN
+		);
+		$selected_dependencies = (array) Request::filter_input( INPUT_POST, 'dependencies' );
 
-		if ( 'plugin' === $this->entity && ! current_user_can( 'activate_plugins' ) ) {
+		if ( ! in_array( $this->entity, [ 'plugin', 'theme' ], true ) ) {
 			wp_send_json_error(
-				esc_html__( 'You are not allowed to activate or deactivate plugins on this site.', 'hcaptcha-for-forms-and-more' )
+				esc_html__( 'Unsupported integration entity.', 'hcaptcha-for-forms-and-more' )
 			);
+
+			return; // For testing purposes.
+		}
+
+		$permission_error = $this->get_activation_error( $activate, $entity_name, $new_theme );
+
+		if ( null !== $permission_error ) {
+			wp_send_json_error( esc_html( $permission_error->get_error_message() ) );
 
 			return; // For testing purposes.
 		}
@@ -1250,24 +1383,301 @@ class Integrations extends PluginSettingsBase {
 		http_response_code( 200 );
 
 		if ( 'plugin' === $this->entity ) {
-			$entities = [];
+			$entities = $this->get_status_plugins( $status );
 
-			foreach ( hcaptcha()->modules as $module ) {
-				if ( $module[0][0] === $status ) {
-					$entities[] = (array) $module[1];
+			if ( ! $activate && $manage_dependencies ) {
+				$plan = $this->build_deactivation_plan( $entities, $entity_name, $new_theme );
+
+				if ( $plan['rootBlockedBy'] ) {
+					$this->send_deactivation_blocked_error( $plan['rootBlockedBy'] );
+
+					return; // For testing purposes.
 				}
-			}
 
-			$entities = array_unique( array_merge( [], ...$entities ) );
+				$entities = $this->get_deactivation_plugins(
+					$plan,
+					$selected_dependencies,
+					$deactivate_all,
+					$this->get_current_theme_consumer()
+				);
+			}
 
 			$this->process_plugins( $activate, $entities, $entity_name );
 		}
 
 		if ( 'theme' === $this->entity ) {
-			$theme = $activate ? $entity_name : $new_theme;
+			$theme             = $activate ? $entity_name : $new_theme;
+			$replacement_theme = $this->get_replacement_theme( $new_theme );
+
+			if ( ! $activate && $manage_dependencies ) {
+				$plan    = $this->build_deactivation_plan( [], $entity_name, $new_theme );
+				$plugins = $this->get_deactivation_plugins(
+					$plan,
+					$selected_dependencies,
+					$deactivate_all,
+					$this->get_theme_consumer( $replacement_theme )
+				);
+
+				$this->process_theme( $theme, $plugins );
+
+				return;
+			}
 
 			$this->process_theme( $theme );
 		}
+	}
+
+	/**
+	 * Get the theme that will replace the active theme.
+	 *
+	 * @param string $new_theme Requested replacement theme.
+	 *
+	 * @return string
+	 */
+	protected function get_replacement_theme( string $new_theme ): string {
+		return $new_theme ?: $this->get_default_theme();
+	}
+
+	/**
+	 * Get plugins assigned to an integration status.
+	 *
+	 * @param string $status Integration status.
+	 *
+	 * @return string[]
+	 */
+	protected function get_status_plugins( string $status ): array {
+		$plugins = [];
+
+		foreach ( hcaptcha()->modules as $module ) {
+			if ( $module[0][0] === $status ) {
+				$plugins = array_merge( $plugins, (array) $module[1] );
+			}
+		}
+
+		return array_values( array_unique( $plugins ) );
+	}
+
+	/**
+	 * Build the current deactivation plan.
+	 *
+	 * @param string[] $plugins     Root plugins.
+	 * @param string   $entity_name Integration entity name.
+	 * @param string   $new_theme   Theme that will become active.
+	 *
+	 * @return array
+	 */
+	protected function build_deactivation_plan(
+		array $plugins,
+		string $entity_name,
+		string $new_theme
+	): array {
+		$manager        = $this->get_dependency_manager();
+		$active_plugins = $this->get_active_plugin_slugs();
+		$include_roots  = 'theme' === $this->entity;
+
+		if ( $include_roots ) {
+			$current_theme = $this->get_theme_consumer( '', $entity_name );
+			$plugins       = $current_theme ? (array) reset( $current_theme ) : [];
+
+			if ( ! $plugins ) {
+				$plugins = $manager->get_additional_dependencies( $entity_name );
+			}
+
+			$external_consumers = $this->get_theme_consumer( $this->get_replacement_theme( $new_theme ) );
+		} else {
+			$external_consumers = $this->get_current_theme_consumer();
+		}
+
+		$plan               = $manager->get_deactivation_plan(
+			$plugins,
+			$active_plugins,
+			$include_roots,
+			$external_consumers
+		);
+		$permission_message = '';
+
+		if ( $include_roots && $plan['items'] && null !== $this->get_plugin_activation_error() ) {
+			$permission_message = __(
+				'You are not allowed to deactivate plugins on this site.',
+				'hcaptcha-for-forms-and-more'
+			);
+
+			foreach ( $plan['items'] as &$item ) {
+				$item['disabled'] = true;
+			}
+
+			unset( $item );
+		}
+
+		foreach ( $plan['items'] as &$item ) {
+			$item['reason'] = $item['requiredBy']
+				? sprintf(
+					/* translators: %s: comma-separated list of plugin or theme names. */
+					__( 'Required by: %s', 'hcaptcha-for-forms-and-more' ),
+					implode( ', ', $item['requiredBy'] )
+				)
+				: $permission_message;
+		}
+
+		unset( $item );
+
+		return $plan;
+	}
+
+	/**
+	 * Get plugins that can safely be deactivated from a plan.
+	 *
+	 * @param array    $plan               Deactivation plan.
+	 * @param string[] $selected           Selected dependency plugins.
+	 * @param bool     $deactivate_all     Deactivate every available dependency.
+	 * @param array    $external_consumers Additional active dependency consumers.
+	 *
+	 * @return string[]
+	 */
+	protected function get_deactivation_plugins(
+		array $plan,
+		array $selected,
+		bool $deactivate_all,
+		array $external_consumers
+	): array {
+		if ( $deactivate_all ) {
+			$selected = [];
+
+			foreach ( $plan['items'] as $item ) {
+				if ( empty( $item['disabled'] ) ) {
+					$selected[] = $item['plugin'];
+				}
+			}
+		}
+
+		return $this->get_dependency_manager()->get_safe_deactivation_plugins(
+			$plan,
+			$selected,
+			$this->get_active_plugin_slugs(),
+			$external_consumers
+		);
+	}
+
+	/**
+	 * Get the dependency manager.
+	 *
+	 * @return PluginDependencyManager
+	 */
+	protected function get_dependency_manager(): PluginDependencyManager {
+		return new PluginDependencyManager(
+			$this->plugins,
+			self::PLUGIN_DEPENDENCIES,
+			function ( string $plugin ): array {
+				return $this->get_plugin_data( $plugin );
+			}
+		);
+	}
+
+	/**
+	 * Get active installed plugin files.
+	 *
+	 * @return string[]
+	 */
+	protected function get_active_plugin_slugs(): array {
+		$active_plugins = [];
+		$main           = hcaptcha();
+
+		foreach ( array_keys( $this->plugins ) as $plugin ) {
+			if ( $main->is_plugin_active( $plugin ) ) {
+				$active_plugins[] = $plugin;
+			}
+		}
+
+		return $active_plugins;
+	}
+
+	/**
+	 * Get the active theme as a dependency consumer.
+	 *
+	 * @return array
+	 */
+	protected function get_current_theme_consumer(): array {
+		return $this->get_theme_consumer( '' );
+	}
+
+	/**
+	 * Get a theme and its configured plugin dependencies.
+	 *
+	 * @param string $theme         Theme stylesheet. Empty means the active theme.
+	 * @param string $fallback_name Fallback theme name.
+	 *
+	 * @return array
+	 */
+	protected function get_theme_consumer( string $theme, string $fallback_name = '' ): array {
+		$theme_object = $theme && isset( $this->themes[ $theme ] )
+			? $this->themes[ $theme ]
+			: wp_get_theme( $theme ?: null );
+		$keys         = array_filter( [ $theme, $fallback_name ] );
+		$name         = $fallback_name ?: $theme;
+
+		if ( $theme_object instanceof WP_Theme ) {
+			$keys[] = $theme_object->get_stylesheet();
+			$keys[] = $theme_object->get_template();
+			$keys[] = $theme_object->get( 'Name' );
+			$name   = $theme_object->get( 'Name' ) ?: $name;
+		}
+
+		$dependencies = [];
+		$manager      = $this->get_dependency_manager();
+
+		foreach ( array_unique( array_filter( $keys ) ) as $key ) {
+			$dependencies[] = $manager->get_additional_dependencies( (string) $key );
+		}
+
+		$dependencies = array_values( array_unique( array_merge( ...$dependencies ) ) );
+
+		return $dependencies ? [ ( $name ?: $theme ) => $dependencies ] : [];
+	}
+
+	/**
+	 * Send an error when a root plugin has active dependents.
+	 *
+	 * @param string[] $blocked_by Dependency consumer names.
+	 *
+	 * @return void
+	 */
+	protected function send_deactivation_blocked_error( array $blocked_by ): void {
+		wp_send_json_error(
+			esc_html(
+				sprintf(
+					/* translators: %s: comma-separated list of plugin or theme names. */
+					__( 'Cannot deactivate this plugin because it is required by: %s.', 'hcaptcha-for-forms-and-more' ),
+					implode( ', ', array_unique( $blocked_by ) )
+				)
+			)
+		);
+	}
+
+	/**
+	 * Get an activation permission error for the requested operation.
+	 *
+	 * @param bool   $activate    Whether to activate the entity.
+	 * @param string $entity_name Entity name.
+	 * @param string $new_theme   New theme slug.
+	 *
+	 * @return null|WP_Error Permission error, or null when activation is allowed.
+	 */
+	protected function get_activation_error( bool $activate, string $entity_name, string $new_theme ): ?WP_Error {
+		if ( 'plugin' === $this->entity ) {
+			return $this->get_plugin_activation_error();
+		}
+
+		$permission_error = $this->get_theme_switch_error();
+
+		if ( null !== $permission_error ) {
+			return $permission_error;
+		}
+
+		$theme   = $activate ? $entity_name : $new_theme;
+		$theme   = $theme ?: $this->get_default_theme();
+		$plugins = $this->get_dependency_manager()->get_additional_dependencies( $theme );
+
+		return $plugins ? $this->get_plugin_activation_error() : null;
 	}
 
 	/**
@@ -1338,24 +1748,83 @@ class Integrations extends PluginSettingsBase {
 		}
 
 		$this->deactivate_plugins( $plugins );
-
-		$message = sprintf(
-		/* translators: 1: Plugin name. */
-			__( '%s plugin is deactivated.', 'hcaptcha-for-forms-and-more' ),
-			$plugin_name
-		);
+		$message = $this->get_plugins_deactivated_message( $plugins, $plugin_name );
 
 		$this->send_json_success( esc_html( $message ) );
 	}
 
 	/**
+	 * Get a message listing deactivated plugins.
+	 *
+	 * @param string[] $plugins      Plugin files.
+	 * @param string   $fallback_name Fallback name when no plugin names are available.
+	 *
+	 * @return string
+	 */
+	protected function get_plugins_deactivated_message( array $plugins, string $fallback_name = '' ): string {
+		$plugin_names = [];
+		$manager      = $this->get_dependency_manager();
+
+		foreach ( $plugins as $plugin ) {
+			$plugin_names[] = $manager->get_plugin_name( $plugin );
+		}
+
+		$plugin_names = array_values( array_unique( array_filter( $plugin_names ) ) );
+
+		if ( ! $plugin_names && $fallback_name ) {
+			$plugin_names[] = $fallback_name;
+		}
+
+		if ( ! $plugin_names ) {
+			return '';
+		}
+
+		return sprintf(
+			/* translators: %s: comma-separated list of plugin names. */
+			_n(
+				'%s plugin is deactivated.',
+				'%s plugins are deactivated.',
+				count( $plugin_names ),
+				'hcaptcha-for-forms-and-more'
+			),
+			implode( ', ', $plugin_names )
+		);
+	}
+
+	/**
+	 * Deactivate plugins and return a message describing the result.
+	 *
+	 * @param string[] $plugins Plugin files.
+	 *
+	 * @return string
+	 */
+	protected function deactivate_plugins_with_message( array $plugins ): string {
+		if ( ! $plugins ) {
+			return '';
+		}
+
+		$this->deactivate_plugins( $plugins );
+
+		return $this->get_plugins_deactivated_message( $plugins );
+	}
+
+	/**
 	 * Activate a theme.
 	 *
-	 * @param string $theme Theme name to process.
+	 * @param string   $theme              Theme name to process.
+	 * @param string[] $deactivate_plugins Dependency plugins to deactivate after switching.
 	 *
 	 * @return void
 	 */
-	protected function process_theme( string $theme ): void {
+	protected function process_theme( string $theme, array $deactivate_plugins = [] ): void {
+		$permission_error = $this->get_theme_switch_error();
+
+		if ( null !== $permission_error ) {
+			$this->send_json_error( esc_html( $permission_error->get_error_message() ) );
+
+			return; // For testing purposes.
+		}
+
 		// With Ctrl+Click, $theme is empty.
 		$theme = $theme ?: $this->get_default_theme();
 
@@ -1371,9 +1840,20 @@ class Integrations extends PluginSettingsBase {
 			return; // For testing purposes.
 		}
 
-		$plugins = (array) ( self::PLUGIN_DEPENDENCIES[ $theme ] ?? [] );
+		$result = $this->activate_theme_dependencies( $theme );
 
-		$this->activate_plugins( $plugins, false );
+		if ( null !== $result ) {
+			$message = sprintf(
+			/* translators: 1: Theme name, 2: Error message. */
+				__( 'Error activating dependencies for %1$s theme: %2$s', 'hcaptcha-for-forms-and-more' ),
+				$theme,
+				$result->get_error_message()
+			);
+
+			$this->send_json_error( esc_html( $message ) );
+
+			return; // For testing purposes.
+		}
 
 		$result = $this->activate_theme( $theme );
 
@@ -1396,6 +1876,8 @@ class Integrations extends PluginSettingsBase {
 
 			return; // For testing purposes.
 		}
+
+		$deactivation_message = $this->deactivate_plugins_with_message( $deactivate_plugins );
 
 		$message = sprintf(
 		/* translators: 1: Theme name. */
@@ -1420,7 +1902,36 @@ class Integrations extends PluginSettingsBase {
 				);
 		}
 
+		if ( $deactivation_message ) {
+			$message .= ' ' . $deactivation_message;
+		}
+
 		$this->send_json_success( esc_html( $message ) );
+	}
+
+	/**
+	 * Activate the dependencies for a theme.
+	 *
+	 * @param string $theme Theme name.
+	 *
+	 * @return null|WP_Error Permission or activation error, or null on success.
+	 */
+	protected function activate_theme_dependencies( string $theme ) {
+		$plugins = $this->get_dependency_manager()->get_additional_dependencies( $theme );
+
+		if ( ! $plugins ) {
+			return null;
+		}
+
+		$permission_error = $this->get_plugin_activation_error();
+
+		if ( null !== $permission_error ) {
+			return $permission_error;
+		}
+
+		$result = $this->activate_plugins( $plugins, false );
+
+		return is_wp_error( $result ) && $result->has_errors() ? $result : null;
 	}
 
 	/**
@@ -1497,6 +2008,12 @@ class Integrations extends PluginSettingsBase {
 	 * @return null|true|WP_Error Null on success, WP_Error on failure. True if the plugin is already active.
 	 */
 	protected function maybe_activate_plugin( string $plugin ) {
+		$permission_error = $this->get_plugin_activation_error();
+
+		if ( null !== $permission_error ) {
+			return $permission_error;
+		}
+
 		// Always try to install a plugin, as some dependent plugins may require it.
 		ob_start();
 		$result = $this->install_plugin( $plugin );
@@ -1583,6 +2100,12 @@ class Integrations extends PluginSettingsBase {
 			return true;
 		}
 
+		$permission_error = $this->get_plugin_activation_error();
+
+		if ( null !== $permission_error ) {
+			return $permission_error;
+		}
+
 		$network_wide = is_multisite() && $this->is_network_wide();
 
 		// Block redirects upon plugin activation.
@@ -1638,40 +2161,7 @@ class Integrations extends PluginSettingsBase {
 	 * @return array
 	 */
 	private function plugin_dependencies( string $plugin ): array {
-		$plugin_headers   = $this->get_plugin_data( $plugin );
-		$requires_plugins = $plugin_headers['RequiresPlugins'] ?? '';
-		$wp_dependencies  = $this->plugin_dirs_to_slugs(
-			array_filter( array_map( 'trim', explode( ',', $requires_plugins ) ) )
-		);
-		$dependencies     = (array) ( self::PLUGIN_DEPENDENCIES[ $plugin ] ?? [] );
-
-		return array_unique( array_merge( $wp_dependencies, $dependencies ) );
-	}
-
-	/**
-	 * Convert plugin directories to slugs.
-	 *
-	 * @param array $dirs Plugin directories.
-	 *
-	 * @return array
-	 */
-	protected function plugin_dirs_to_slugs( array $dirs ): array {
-		if ( ! $dirs ) {
-			return [];
-		}
-
-		$slugs          = array_keys( $this->plugins );
-		$converted_dirs = [];
-
-		foreach ( $dirs as $dir ) {
-			$slug = preg_grep( "#^$dir/#", $slugs );
-
-			if ( $slug ) {
-				$converted_dirs[] = reset( $slug );
-			}
-		}
-
-		return $converted_dirs;
+		return $this->get_dependency_manager()->get_dependencies( $plugin );
 	}
 
 	/**
@@ -1753,6 +2243,12 @@ class Integrations extends PluginSettingsBase {
 	 * @return null|true|WP_Error Null on success, WP_Error on failure.
 	 */
 	protected function activate_theme( string $theme ) {
+		$permission_error = $this->get_theme_switch_error();
+
+		if ( null !== $permission_error ) {
+			return $permission_error;
+		}
+
 		if ( wp_get_theme()->get_stylesheet() === $theme ) {
 			return true;
 		}
@@ -1774,6 +2270,51 @@ class Integrations extends PluginSettingsBase {
 		ob_end_clean();
 
 		return null;
+	}
+
+	/**
+	 * Get a plugin activation permission error.
+	 *
+	 * @return null|WP_Error Permission error, or null when activation is allowed.
+	 */
+	protected function get_plugin_activation_error(): ?WP_Error {
+		if ( ! current_user_can( 'activate_plugins' ) ) {
+			return new WP_Error(
+				'not_allowed',
+				__(
+					'You are not allowed to activate or deactivate plugins on this site.',
+					'hcaptcha-for-forms-and-more'
+				)
+			);
+		}
+
+		if (
+			is_multisite() && $this->is_network_wide() &&
+			! current_user_can( 'manage_network_plugins' )
+		) {
+			return new WP_Error(
+				'not_allowed',
+				__( 'You are not allowed to manage plugins for this network.', 'hcaptcha-for-forms-and-more' )
+			);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Get a theme switching permission error.
+	 *
+	 * @return null|WP_Error Permission error, or null when switching is allowed.
+	 */
+	protected function get_theme_switch_error(): ?WP_Error {
+		if ( current_user_can( 'switch_themes' ) ) {
+			return null;
+		}
+
+		return new WP_Error(
+			'not_allowed',
+			__( 'You are not allowed to switch themes on this site.', 'hcaptcha-for-forms-and-more' )
+		);
 	}
 
 	/**
@@ -1975,9 +2516,7 @@ class Integrations extends PluginSettingsBase {
 	 */
 	protected function get_plugin_data( string $plugin, bool $markup = true, bool $translate = true ): array {
 		if ( ! function_exists( 'get_plugin_data' ) ) {
-			// @CodeCoverageIgnoreStart
-			require_once ABSPATH . 'wp-admin/includes/plugin.php';
-			// @CodeCoverageIgnoreEnd
+			$this->load_plugin_data_api();
 		}
 
 		$plugin_file = $this->get_plugin_file( $plugin );
@@ -1987,6 +2526,15 @@ class Integrations extends PluginSettingsBase {
 		}
 
 		return get_plugin_data( $plugin_file, $markup, $translate );
+	}
+
+	/**
+	 * Load WordPress plugin metadata functions.
+	 *
+	 * @codeCoverageIgnore WordPress core is outside the unit test environment.
+	 */
+	protected function load_plugin_data_api(): void {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 	}
 
 	/**

@@ -8,7 +8,9 @@
 namespace HCaptcha\Tests\Integration\Divi;
 
 use HCaptcha\Divi\Contact;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use Mockery;
 use ReflectionException;
 use WP_Block;
 
@@ -41,6 +43,20 @@ class ContactTest extends HCaptchaPluginWPTestCase {
 	 * @var string[]
 	 */
 	protected static array $theme_expected_incorrect_usage = [ "add_theme_support( 'title-tag' )" ];
+
+	/**
+	 * Set up the test.
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function setUp(): void {
+		parent::setUp();
+
+		hcaptcha()->settings()->set( 'honeypot', 'on' );
+		hcaptcha()->settings()->set( 'set_min_submit_time', 'on' );
+		$this->set_protected_property( hcaptcha(), 'supported_forms', null );
+	}
 
 	/**
 	 * Tear down the test.
@@ -87,6 +103,79 @@ class ContactTest extends HCaptchaPluginWPTestCase {
 		self::assertStringContainsString( '<h-captcha', $output );
 		self::assertStringContainsString( 'name="hcaptcha_divi_cf_nonce"', $output );
 		self::assertStringNotContainsString( 'class="et_pb_contact_right"', $output );
+	}
+
+	/**
+	 * Test honeypot output and widget source for a Divi component.
+	 *
+	 * @param string $component Active Divi component.
+	 * @param string $source    Expected source.
+	 *
+	 * @dataProvider dp_test_honeypot_for_component
+	 * @return void
+	 */
+	public function test_honeypot_for_component( string $component, string $source ): void {
+		$subject = Mockery::mock( Contact::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'get_active_divi_component' )->andReturn( $component );
+
+		$output = $subject->add_hcaptcha(
+			'<form><div class="et_contact_bottom_container"></div></form>',
+			'et_pb_contact_form'
+		);
+		$id     = HCaptcha::widget_id_value(
+			[
+				'source'  => [ $source ],
+				'form_id' => 'contact',
+			]
+		);
+
+		self::assertStringContainsString( 'value="' . esc_attr( $id ) . '"', $output );
+		self::assertStringContainsString( 'name="hcap_hp_test"', $output );
+		self::assertStringContainsString( 'name="hcap_hp_sig"', $output );
+	}
+
+	/**
+	 * Test that a filled Divi component contact honeypot is rejected.
+	 *
+	 * @param string $component Active Divi component.
+	 * @param string $source    Expected source.
+	 *
+	 * @dataProvider dp_test_honeypot_for_component
+	 * @return void
+	 */
+	public function test_filled_honeypot_for_component( string $component, string $source ): void {
+		$this->prepare_verify_post( 'hcaptcha_divi_cf_nonce', 'hcaptcha_divi_cf' );
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ $source ],
+				'form_id' => 'contact',
+			]
+		);
+		$_POST['hcap_hp_test']                 = 'bot';
+		$_POST['et_pb_contactform_submit_0']   = 'et_contact_proccess';
+
+		$subject = Mockery::mock( Contact::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'get_active_divi_component' )->andReturn( $component );
+
+		self::assertFalse( $subject->verify_4( false, 'et_pb_contact_form', [], [] ) );
+		self::assertSame( 'on', $this->get_protected_property( $subject, 'captcha' ) );
+	}
+
+	/**
+	 * Data provider for Divi component honeypot tests.
+	 *
+	 * @return array
+	 */
+	public function dp_test_honeypot_for_component(): array {
+		return [
+			'Divi Builder' => [ 'divi_builder', 'divi-builder/divi-builder.php' ],
+			'Extra theme'  => [ 'extra', 'Extra' ],
+		];
 	}
 
 	/**

@@ -24,13 +24,28 @@ use WP_Styles;
 class ProtectContentTest extends HCaptchaWPTestCase {
 
 	/**
+	 * Clearance cookie name.
+	 */
+	private const COOKIE_NAME = 'hcaptcha_content_protection';
+
+	/**
+	 * Browser session cookie name.
+	 */
+	private const SESSION_COOKIE_NAME = 'hcaptcha_content_protection_session';
+
+	/**
 	 * Tear down.
 	 *
 	 * @return void
 	 */
 	public function tearDown(): void {
-		unset( $_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD'], $_COOKIE['hcaptcha_content_protection'] );
-
+		unset(
+			$_SERVER['REQUEST_URI'],
+			$_SERVER['REQUEST_METHOD'],
+			$_SERVER['HTTPS'],
+			$_COOKIE[ self::COOKIE_NAME ],
+			$_COOKIE[ self::SESSION_COOKIE_NAME ]
+		);
 		parent::tearDown();
 	}
 
@@ -87,6 +102,7 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 		$subject->init();
 
 		self::assertSame( -PHP_INT_MAX, has_action( 'template_redirect', [ $subject, 'protect_content' ] ) );
+		self::assertSame( '/protected-content', $this->get_protected_property( $subject, 'resource_scope' ) );
 
 		// A percent-encoded path resolving to a protected URL is also protected.
 		remove_action( 'template_redirect', [ $subject, 'protect_content' ], -PHP_INT_MAX );
@@ -96,6 +112,24 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 		$subject->init();
 
 		self::assertSame( -PHP_INT_MAX, has_action( 'template_redirect', [ $subject, 'protect_content' ] ) );
+		self::assertSame( '/protected-content', $this->get_protected_property( $subject, 'resource_scope' ) );
+
+		// The most specific matching configured rule defines the resource set.
+		remove_action( 'template_redirect', [ $subject, 'protect_content' ], -PHP_INT_MAX );
+		update_option(
+			'hcaptcha_settings',
+			[
+				'protect_content' => [ 'on' ],
+				'protected_urls'  => "/members\n/members/admin",
+			]
+		);
+		hcaptcha()->init_hooks();
+
+		$_SERVER['REQUEST_URI'] = '/members/admin/dashboard';
+
+		$subject->init();
+
+		self::assertSame( '/members/admin', $this->get_protected_property( $subject, 'resource_scope' ) );
 
 		// The list is empty.
 		remove_action( 'template_redirect', [ $subject, 'protect_content' ], -PHP_INT_MAX );
@@ -149,6 +183,7 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 				return $is_valid_cookie;
 			}
 		);
+		$subject->shouldReceive( 'ensure_session_cookie' )->twice();
 
 		// The cookie is valid.
 		ob_start();
@@ -208,16 +243,32 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 		if ( $verified ) {
 			$time              = time();
 			$uri               = '/protected-content';
+			$scope             = '/protected-content';
+			$session_id        = 'v1.' . str_repeat( 'a', 64 );
+			$token             = str_repeat( 'b', 64 );
+			$cookie            = $this->create_clearance_cookie( $token, $session_id, $scope, $time + 300 );
 			$redirect_location = '';
 			$expected_location = $uri;
+			$_SERVER['HTTPS']  = 'on';
 
 			FunctionMocker::replace( 'time', $time );
 
-			$cookie = $time . '|' . wp_hash( $time );
-
 			$this->set_protected_property( $subject, 'request_uri', $uri );
+			$this->set_protected_property( $subject, 'resource_scope', $scope );
+			$_COOKIE[ self::SESSION_COOKIE_NAME ] = $session_id;
 			$subject->shouldAllowMockingProtectedMethods();
-			$subject->shouldReceive( 'setcookie' )->with( 'hcaptcha_content_protection', $cookie, $time + 300, '/' );
+			$subject->shouldReceive( 'generate_token' )->once()->andReturn( $token );
+			$subject->shouldReceive( 'setcookie' )->once()->with(
+				self::COOKIE_NAME,
+				$cookie,
+				[
+					'expires'  => $time + 300,
+					'path'     => '/',
+					'secure'   => true,
+					'httponly' => true,
+					'samesite' => 'Lax',
+				]
+			)->andReturnTrue();
 
 			add_filter(
 				'wp_redirect',
@@ -235,6 +286,60 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 
 			self::assertEquals( 'The hCaptcha is invalid.', $subject->verify() );
 		}
+	}
+
+	/**
+	 * Test that a successful challenge requires the pre-existing session cookie.
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_verify_requires_preexisting_session_cookie(): void {
+		$this->prepare_verify_post( 'hcaptcha_protect_content_nonce', 'hcaptcha_protect_content', true );
+
+		$subject = Mockery::mock( ProtectContent::class )->makePartial();
+
+		$this->set_protected_property( $subject, 'resource_scope', '/members' );
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldNotReceive( 'generate_token' );
+		$subject->shouldNotReceive( 'setcookie' );
+
+		self::assertSame(
+			'Your browser session could not be established. Please try again.',
+			$subject->verify()
+		);
+	}
+
+	/**
+	 * Test creating the independent browser session cookie.
+	 *
+	 * @return void
+	 */
+	public function test_ensure_session_cookie(): void {
+		$_SERVER['HTTPS'] = 'on';
+
+		$token   = str_repeat( 'c', 64 );
+		$subject = Mockery::mock( ProtectContent::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'generate_token' )->once()->andReturn( $token );
+		$subject->shouldReceive( 'setcookie' )->once()->with(
+			self::SESSION_COOKIE_NAME,
+			'v1.' . $token,
+			[
+				'expires'  => 0,
+				'path'     => '/',
+				'secure'   => true,
+				'httponly' => true,
+				'samesite' => 'Lax',
+			]
+		)->andReturnTrue();
+
+		$subject->ensure_session_cookie();
+
+		$_COOKIE[ self::SESSION_COOKIE_NAME ] = 'v1.' . $token;
+
+		$subject->ensure_session_cookie();
 	}
 
 	/**
@@ -258,29 +363,201 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 		$subject = Mockery::mock( ProtectContent::class )->makePartial();
 
 		$subject->shouldAllowMockingProtectedMethods();
+		$this->set_protected_property( $subject, 'resource_scope', '/members' );
 
-		// Some cookie.
-		$_COOKIE['hcaptcha_content_protection'] = '1|1';
+		// Malformed and legacy unbound cookies fail closed.
+		$_COOKIE[ self::COOKIE_NAME ] = 'not-a-clearance';
 
 		self::assertFalse( $subject->is_valid_cookie() );
 
-		// Valid cookie, not expired.
 		$time = time();
-
 		FunctionMocker::replace( 'time', $time );
 
-		$_COOKIE['hcaptcha_content_protection'] = $time . '|' . wp_hash( $time );
+		$_COOKIE[ self::COOKIE_NAME ] = $time . '|' . wp_hash( $time );
+
+		self::assertFalse( $subject->is_valid_cookie() );
+
+		$_COOKIE[ self::COOKIE_NAME ]         = [ 'v2.invalid' ];
+		$_COOKIE[ self::SESSION_COOKIE_NAME ] = 'v1.' . str_repeat( 'a', 64 );
+
+		self::assertFalse( $subject->is_valid_cookie() );
+
+		// A valid, unexpired token works in its bound session and scope.
+		$token      = str_repeat( 'b', 64 );
+		$session_id = 'v1.' . str_repeat( 'a', 64 );
+		$cookie     = $this->create_clearance_cookie( $token, $session_id, '/members', $time + 300 );
+
+		$_COOKIE[ self::COOKIE_NAME ]         = $cookie;
+		$_COOKIE[ self::SESSION_COOKIE_NAME ] = $session_id;
 
 		self::assertTrue( $subject->is_valid_cookie() );
 
-		// Valid cookie, but expired.
-		$time = time();
-
-		FunctionMocker::replace( 'time', $time );
-
-		$_COOKIE['hcaptcha_content_protection'] = $time - 301 . '|' . wp_hash( $time );
+		// A well-formed but tampered token fails the stateless integrity check.
+		$_COOKIE[ self::COOKIE_NAME ] = str_replace( $token, str_repeat( 'd', 64 ), $cookie );
 
 		self::assertFalse( $subject->is_valid_cookie() );
+
+		// Expired stateless clearance is rejected.
+		$_COOKIE[ self::COOKIE_NAME ] = $this->create_clearance_cookie(
+			$token,
+			$session_id,
+			'/members',
+			$time - 1
+		);
+
+		self::assertFalse( $subject->is_valid_cookie() );
+
+		// Even an intact signature cannot extend the fixed five-minute lifetime.
+		$_COOKIE[ self::COOKIE_NAME ] = $this->create_clearance_cookie(
+			$token,
+			$session_id,
+			'/members',
+			$time + 301
+		);
+
+		self::assertFalse( $subject->is_valid_cookie() );
+	}
+
+	/**
+	 * Test that copying the complete clearance response does not cross sessions.
+	 *
+	 * The session cookie is established on the earlier challenge response. A
+	 * successful clearance response contains only the clearance cookie, so moving
+	 * that complete response cookie set to another client lacks the binding. If
+	 * both cookies are stolen, that is session theft outside this protection model.
+	 *
+	 * @return void
+	 */
+	public function test_clearance_response_cannot_be_replayed_in_another_session(): void {
+		$this->prepare_verify_post( 'hcaptcha_protect_content_nonce', 'hcaptcha_protect_content', true );
+
+		$time             = time();
+		$token            = str_repeat( 'e', 64 );
+		$session_a        = 'v1.' . str_repeat( 'a', 64 );
+		$session_b        = 'v1.' . str_repeat( 'b', 64 );
+		$cookie           = $this->create_clearance_cookie( $token, $session_a, '/members', $time + 300 );
+		$response_cookies = [];
+		$subject          = Mockery::mock( ProtectContent::class )->makePartial();
+
+		FunctionMocker::replace( 'time', $time );
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'generate_token' )->once()->andReturn( $token );
+		$subject->shouldReceive( 'setcookie' )->once()->andReturnUsing(
+			static function ( string $name, string $value ) use ( &$response_cookies ): bool {
+				$response_cookies[ $name ] = $value;
+
+				return true;
+			}
+		);
+		$this->set_protected_property( $subject, 'resource_scope', '/members' );
+		$this->set_protected_property( $subject, 'request_uri', '/members' );
+		$_COOKIE[ self::SESSION_COOKIE_NAME ] = $session_a;
+
+		add_filter( 'wp_redirect', '__return_empty_string' );
+
+		self::assertSame( '', $subject->verify() );
+		self::assertSame( [ self::COOKIE_NAME => $cookie ], $response_cookies );
+
+		$_COOKIE = array_merge( $_COOKIE, $response_cookies );
+
+		self::assertTrue( $subject->is_valid_cookie() );
+
+		// Fresh client receives the complete successful clearance response.
+		$_COOKIE = $response_cookies;
+
+		self::assertFalse( $subject->is_valid_cookie() );
+
+		// Even an independently established session cannot use session A's token.
+		$_COOKIE[ self::SESSION_COOKIE_NAME ] = $session_b;
+
+		self::assertFalse( $subject->is_valid_cookie() );
+
+		$_COOKIE[ self::SESSION_COOKIE_NAME ] = $session_a;
+
+		self::assertTrue( $subject->is_valid_cookie() );
+	}
+
+	/**
+	 * Test navigation within one configured set and isolation from another set.
+	 *
+	 * @return void
+	 */
+	public function test_clearance_is_limited_to_configured_resource_set(): void {
+		$session_id = 'v1.' . str_repeat( 'a', 64 );
+		$cookie     = $this->create_clearance_cookie(
+			str_repeat( 'f', 64 ),
+			$session_id,
+			'/members',
+			time() + 300
+		);
+
+		update_option(
+			'hcaptcha_settings',
+			[
+				'protect_content' => [ 'on' ],
+				'protected_urls'  => "/members\n/private",
+			]
+		);
+		hcaptcha()->init_hooks();
+
+		$_COOKIE[ self::COOKIE_NAME ]         = $cookie;
+		$_COOKIE[ self::SESSION_COOKIE_NAME ] = $session_id;
+
+		$subject = $this->init_subject_for_uri( '/members/welcome' );
+
+		self::assertTrue( $subject->is_valid_cookie() );
+
+		$subject = $this->init_subject_for_uri( '/members/account' );
+
+		self::assertTrue( $subject->is_valid_cookie() );
+
+		$subject = $this->init_subject_for_uri( '/private/welcome' );
+
+		self::assertFalse( $subject->is_valid_cookie() );
+	}
+
+	/**
+	 * Create a signed clearance test fixture.
+	 *
+	 * @param string $token      Random clearance token.
+	 * @param string $session_id Browser session ID.
+	 * @param string $scope      Resource scope.
+	 * @param int    $expires    Expiration timestamp.
+	 *
+	 * @return string
+	 */
+	private function create_clearance_cookie( string $token, string $session_id, string $scope, int $expires ): string {
+		$key     = wp_salt( 'auth' );
+		$payload = implode(
+			'.',
+			[
+				'v2',
+				(string) $expires,
+				$token,
+				hash_hmac( 'sha256', 'session|' . $session_id, $key ),
+				hash_hmac( 'sha256', 'scope|' . $scope, $key ),
+			]
+		);
+
+		return $payload . '.' . hash_hmac( 'sha256', 'clearance|' . $payload, $key );
+	}
+
+	/**
+	 * Initialize a subject for a protected request URI.
+	 *
+	 * @param string $uri Request URI.
+	 *
+	 * @return ProtectContent
+	 */
+	private function init_subject_for_uri( string $uri ): ProtectContent {
+		$_SERVER['REQUEST_URI'] = $uri;
+
+		$subject = Mockery::mock( ProtectContent::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->init();
+
+		return $subject;
 	}
 
 	/**
@@ -317,6 +594,10 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 			]
 		);
 
+		ob_start();
+		hcaptcha()->print_inline_styles();
+		$hcaptcha_styles = (string) ob_get_clean();
+
 		// phpcs:disable WordPress.WP.EnqueuedResources.NonEnqueuedScript
 		$expected = <<<HTML
 		<html lang="en-US" dir="ltr">
@@ -331,10 +612,7 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 				<style>
 *{box-sizing:border-box;margin:0;padding:0}html{line-height:1.15;-webkit-text-size-adjust:100%;color:#5c6f8a;font-family:system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,Noto Sans,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji}body{display:flex;flex-direction:column;height:100vh;min-height:100vh;margin-top:0;margin-bottom:0}.main-content{margin:8rem auto;max-width:60rem;padding-left:1.5rem}@media (width <=720px){.main-content{margin-top:4rem}}.h2{font-size:1.5rem;font-weight:500;line-height:2.25rem}@media (width <=720px){.h2{font-size:1.25rem;line-height:1.5rem}}body.theme-dark{background-color:#1b1b1d;color:#e3e3e3}body.theme-dark a{color:#00bcb7}body.theme-dark a:hover{color:#00bcb7;text-decoration:underline}body.theme-dark .footer-inner{border-top:1px solid #e3e3e3}body.theme-light{background-color:#fff;color:#5c6f8a}body.theme-light a{color:#0075ab}body.theme-light a:hover{color:#0075ab;text-decoration:underline}body.theme-light .footer-inner{border-top:1px solid #5c6f8a}a{background-color:#fff0;color:#0075ab;text-decoration:none;transition:color .15s ease}a:hover{color:#0075ab;text-decoration:underline}.main-content{margin:8rem auto;max-width:60rem;padding-left:1.5rem;padding-right:1.5rem;width:100%}.spacer{margin:2rem 0}.spacer-top{margin-top:2rem}.spacer-bottom{margin-bottom:2rem}@media (width <=720px){.main-content{margin-top:4rem}}.main-wrapper{align-items:center;display:flex;flex:1;flex-direction:column}.h1{font-size:2.5rem;font-weight:500;line-height:3.75rem}.h2{font-weight:500}.core-msg,.h2{font-size:1.5rem;line-height:2.25rem}.core-msg{font-weight:400}@media (width <=720px){.h1{font-size:1.5rem;line-height:1.75rem}.h2{font-size:1.25rem}.core-msg,.h2{line-height:1.5rem}.core-msg{font-size:1rem}}.text-center{text-align:center}.footer{font-size:.75rem;line-height:1.125rem;margin:0 auto;max-width:60rem;padding-left:1.5rem;padding-right:1.5rem;width:100%}.footer-inner{border-top:1px solid #5c6f8a;padding-bottom:1rem;padding-top:1rem}.clearfix:after{clear:both;content:"";display:table}.footer-text{margin-bottom:.5rem}.core-msg,.zone-name-title{overflow-wrap:break-word}@media (width <=720px){.zone-name-title{margin-bottom:1rem}}@media (prefers-color-scheme:dark){body{background-color:#1b1b1d;color:#e3e3e3}body a{color:#00bcb7}body a:hover{color:#00bcb7;text-decoration:underline}.footer-inner{border-top:1px solid #e3e3e3}}.main-content .h-captcha{margin-bottom:0}#hcaptcha-submit{display:none}
 </style>
-<style>
-.h-captcha{position:relative;display:block;margin-bottom:2rem;padding:0;clear:both}.h-captcha[data-size="normal"]{width:302px;height:76px}.h-captcha[data-size="compact"]{width:158px;height:138px}.h-captcha[data-size="invisible"]{display:none}.h-captcha iframe{z-index:1}.h-captcha::before{content:"";display:block;position:absolute;top:0;left:0;background:url(http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/hcaptcha-div-logo.svg) no-repeat;border:1px solid #fff0;border-radius:4px;box-sizing:border-box}.h-captcha::after{content:"If you see this message, hCaptcha failed to load due to site errors.";font-family:-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,"Helvetica Neue",Arial,sans-serif;font-size:10px;font-weight:500;position:absolute;top:0;bottom:0;left:0;right:0;box-sizing:border-box;color:#bf1722;opacity:0}.h-captcha.hcaptcha-api-delayed::after{content:"The hCaptcha loading is delayed until user interaction with the form.";color:#555}.h-captcha:not(:has(iframe))::after{animation:hcap-msg-fade-in .3s ease forwards;animation-delay:2s}.h-captcha.hcaptcha-api-delayed:not(:has(iframe))::after{animation-delay:0s}.h-captcha:has(iframe)::after{animation:none;opacity:0}@keyframes hcap-msg-fade-in{to{opacity:1}}.h-captcha[data-size="normal"]::before{width:302px;height:76px;background-position:93.8% 28%}.h-captcha[data-size="normal"]::after{width:302px;height:76px;display:flex;flex-wrap:wrap;align-content:center;line-height:normal;padding:0 75px 0 10px}.h-captcha[data-size="compact"]::before{width:158px;height:138px;background-position:49.9% 78.8%}.h-captcha[data-size="compact"]::after{width:158px;height:138px;text-align:center;line-height:normal;padding:24px 10px 10px 10px}.h-captcha[data-theme="light"]::before,body.is-light-theme .h-captcha[data-theme="auto"]::before,.h-captcha[data-theme="auto"]::before{background-color:#fafafa;border:1px solid #e0e0e0}.h-captcha[data-theme="dark"]::before,body.is-dark-theme .h-captcha[data-theme="auto"]::before,html.wp-dark-mode-active .h-captcha[data-theme="auto"]::before,html.drdt-dark-mode .h-captcha[data-theme="auto"]::before{background-image:url(http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/hcaptcha-div-logo-white.svg);background-repeat:no-repeat;background-color:#333;border:1px solid #f5f5f5}@media (prefers-color-scheme:dark){.h-captcha[data-theme="auto"]::before{background-image:url(http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/hcaptcha-div-logo-white.svg);background-repeat:no-repeat;background-color:#333;border:1px solid #f5f5f5}}.h-captcha[data-theme="custom"]::before{background-color:initial}.h-captcha[data-size="invisible"]::before,.h-captcha[data-size="invisible"]::after{display:none}.h-captcha iframe{position:relative}div[style*="z-index: 2147483647"] div[style*="border-width: 11px"][style*="position: absolute"][style*="pointer-events: none"]{border-style:none}
-</style>
-			</style>
+$hcaptcha_styles			</style>
 					</head>
 		<body>
 		<div class="main-wrapper" role="main">

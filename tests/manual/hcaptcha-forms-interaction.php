@@ -81,10 +81,6 @@
 // Password Protected forms handled here:
 // - Site Password form.
 
-// Paid Memberships Pro forms handled here:
-// - Checkout form.
-// - Login form.
-
 // WooCommerce forms handled here:
 // - Add a Payment Method form.
 // - Checkout form (classic and block).
@@ -92,6 +88,12 @@
 // - Lost Password form.
 // - Order Tracking form.
 // - Registration form.
+
+// Tutor LMS forms handled here:
+// - Checkout form.
+// - Login form.
+// - Lost Password form.
+// - Student and instructor registration forms.
 
 // WPForms forms handled here:
 // - Form using automatic or embedded hCaptcha mode.
@@ -572,7 +574,7 @@ function hcap_forms_mark_kadence_form( $block_content, array $block ) {
 add_filter( 'render_block', 'hcap_forms_mark_kadence_form', 0, 2 );
 
 /**
- * Mark the request when MetForm renders a submit button widget.
+ * Mark the request when MetForm renders a Submit button widget.
  *
  * @param mixed $content Widget content.
  * @param mixed $widget  Elementor widget.
@@ -638,32 +640,6 @@ function hcap_forms_mark_password_protected_form(): void {
 }
 
 add_action( 'password_protected_below_password_field', 'hcap_forms_mark_password_protected_form', 0 );
-
-/**
- * Mark the request when Paid Memberships Pro renders a checkout form.
- *
- * @return void
- */
-function hcap_forms_mark_paid_memberships_pro_checkout_form(): void {
-	$GLOBALS['hcap_forms_has_paid_memberships_pro_form'] = true;
-}
-
-add_action( 'pmpro_checkout_before_submit_button', 'hcap_forms_mark_paid_memberships_pro_checkout_form', 0 );
-
-/**
- * Mark the request when Paid Memberships Pro renders a login form.
- *
- * @param mixed $content Login form HTML output.
- *
- * @return mixed
- */
-function hcap_forms_mark_paid_memberships_pro_login_form( $content ) {
-	$GLOBALS['hcap_forms_has_paid_memberships_pro_form'] = true;
-
-	return $content;
-}
-
-add_filter( 'pmpro_pages_shortcode_login', 'hcap_forms_mark_paid_memberships_pro_login_form', 0 );
 
 /**
  * Mark the request when WooCommerce renders an action-based protected form.
@@ -736,6 +712,35 @@ function hcap_forms_mark_woocommerce_order_tracking( $output, string $tag ) {
 }
 
 add_filter( 'do_shortcode_tag', 'hcap_forms_mark_woocommerce_order_tracking', 0, 2 );
+
+/**
+ * Mark the request when Tutor LMS renders a protected form.
+ *
+ * @return void
+ */
+function hcap_forms_mark_tutor_form(): void {
+	$GLOBALS['hcap_forms_has_tutor_form'] = true;
+}
+
+add_action( 'tutor_login_form_middle', 'hcap_forms_mark_tutor_form', 0 );
+add_action( 'tutor_lostpassword_form', 'hcap_forms_mark_tutor_form', 0 );
+add_action( 'tutor_student_reg_form_end', 'hcap_forms_mark_tutor_form', 0 );
+add_action( 'tutor_instructor_reg_form_end', 'hcap_forms_mark_tutor_form', 0 );
+
+/**
+ * Mark the request when Tutor LMS renders its checkout template.
+ *
+ * @param string|mixed $template Template name.
+ *
+ * @return void
+ */
+function hcap_forms_mark_tutor_checkout( $template ): void {
+	if ( 'ecommerce.checkout' === (string) $template ) {
+		$GLOBALS['hcap_forms_has_tutor_form'] = true;
+	}
+}
+
+add_action( 'tutor_load_template_before', 'hcap_forms_mark_tutor_checkout', 0 );
 
 /**
  * Mark the request when WPForms renders a form.
@@ -990,8 +995,8 @@ function hcap_forms_delay_api_event( $delay_api_event ) {
 		! empty( $GLOBALS['hcap_forms_has_ninja_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_otter_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_password_protected_form'] ) ||
-		! empty( $GLOBALS['hcap_forms_has_paid_memberships_pro_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_woocommerce_form'] ) ||
+		! empty( $GLOBALS['hcap_forms_has_tutor_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_wpforms_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_divi_form'] ) ||
 		! empty( $GLOBALS['hcap_forms_has_essential_addons_form'] ) ||

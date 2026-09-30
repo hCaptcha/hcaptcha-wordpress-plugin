@@ -46,10 +46,6 @@ function hcap_get_enabled_address_headers( array $address_headers ): array {
 		return [];
 	}
 
-	if ( hcap_use_legacy_address_headers( $settings->get_raw_settings() ) ) {
-		return $address_headers;
-	}
-
 	$trusted_address_headers = (array) $settings->get( 'trusted_address_headers' );
 
 	return array_values( array_intersect( $address_headers, $trusted_address_headers ) );
@@ -82,23 +78,6 @@ function hcap_filter_address_headers( array $address_headers, string $remote_add
 	$address_headers = array_filter( $address_headers, 'is_string' );
 
 	return array_values( array_unique( $address_headers ) );
-}
-
-/**
- * Whether to keep legacy address header behavior before upgrade migration runs.
- *
- * @param array|null $settings Raw settings.
- *
- * @return bool
- */
-function hcap_use_legacy_address_headers( ?array $settings ): bool {
-	if ( ! is_array( $settings ) || array_key_exists( 'trusted_address_headers', $settings ) ) {
-		return false;
-	}
-
-	$migrated_versions = (array) get_option( 'hcaptcha_versions', [] );
-
-	return ! array_key_exists( '5.0.0', $migrated_versions );
 }
 
 /**
@@ -199,6 +178,7 @@ function hcap_get_error_messages(): array {
 			'fst-too-fast'             => __( 'Form submitted too quickly.', 'hcaptcha-for-forms-and-more' ),
 			'fst-replayed-or-expired'  => __( 'Token replayed or expired.', 'hcaptcha-for-forms-and-more' ),
 			'fst-expired'              => __( 'Token expired.', 'hcaptcha-for-forms-and-more' ),
+			'fst-rate-limited'         => __( 'Too many requests (429). Please refresh the page and try again.', 'hcaptcha-for-forms-and-more' ),
 			'disposable-email'         => __( 'Please use a permanent email address.', 'hcaptcha-for-forms-and-more' ),
 		]
 	);

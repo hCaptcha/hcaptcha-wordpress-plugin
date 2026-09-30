@@ -88,8 +88,6 @@ class SimpleTurnstileDetectorTest extends HCaptchaTestCase {
 			'cfturnstile_mailpoet'         => '1',
 			'cfturnstile_mepr_login'       => '1',
 			'cfturnstile_mepr_register'    => '1',
-			'cfturnstile_pmp_checkout'     => '1',
-			'cfturnstile_pmp_login'        => '1',
 			'cfturnstile_um_login'         => '1',
 			'cfturnstile_um_password'      => '1',
 			'cfturnstile_um_register'      => '1',
@@ -117,7 +115,7 @@ class SimpleTurnstileDetectorTest extends HCaptchaTestCase {
 			$results
 		);
 
-		self::assertCount( 35, $results );
+		self::assertCount( 33, $results );
 		self::assertSame( $surfaces, array_values( array_unique( $surfaces ) ) );
 		self::assertContains( 'cf7_form', $surfaces );
 		self::assertContains( 'gravity_embed', $surfaces );

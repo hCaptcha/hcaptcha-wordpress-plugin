@@ -40,6 +40,15 @@ describe( 'app.js', () => {
 		expect( hCaptcha.getWidgetId ).toHaveBeenCalledWith( mockEl );
 	} );
 
+	test( 'does not initialize a second application instance', () => {
+		const existing = window.hCaptcha;
+		jest.resetModules();
+
+		require( '../../../src/js/hcaptcha/app.js' );
+
+		expect( window.hCaptcha ).toBe( existing );
+	} );
+
 	test( 'hCaptchaReset should call reset with the given element', () => {
 		const mockEl = {};
 		window.hCaptchaReset( mockEl );

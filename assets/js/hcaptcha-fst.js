@@ -4,6 +4,8 @@
  * @param HCaptchaFSTObject.ajaxUrl
  * @param HCaptchaFSTObject.issueTokenAction
  * @param HCaptchaFSTObject.issueTokenNonce
+ * @param HCaptchaFSTObject.issueTokenContext
+ * @param HCaptchaFSTObject.postId
  */
 
 /**
@@ -12,6 +14,58 @@
  * @param {Document} document The document instance.
  */
 const fst = window.hCaptchaFST || ( function( document ) {
+	const rateLimitedToken = 'hcaptcha-fst-error:fst-rate-limited';
+	const tokenStorageKey = [
+		'hcaptcha-fst-token',
+		HCaptchaFSTObject.issueTokenContext,
+		window.location.pathname,
+		window.location.search,
+	].join( ':' );
+
+	/**
+	 * Read the token retained for the current browser tab.
+	 *
+	 * @return {string} Stored token.
+	 */
+	const getStoredToken = () => {
+		try {
+			return window.sessionStorage.getItem( tokenStorageKey ) ?? '';
+		} catch {
+			return '';
+		}
+	};
+
+	/**
+	 * Retain or clear the current browser tab token.
+	 *
+	 * @param {string} token Token value.
+	 */
+	const storeToken = ( token ) => {
+		try {
+			if ( token ) {
+				window.sessionStorage.setItem( tokenStorageKey, token );
+			} else {
+				window.sessionStorage.removeItem( tokenStorageKey );
+			}
+		} catch {
+			// Storage can be unavailable in privacy-restricted browser contexts.
+		}
+	};
+
+	let currentToken = getStoredToken();
+	let pendingRequest = null;
+
+	/**
+	 * Update all form timing fields together.
+	 *
+	 * @param {string} token Token value.
+	 */
+	const setToken = ( token ) => {
+		document.querySelectorAll( '[name="hcap_fst_token"]' ).forEach( ( element ) => {
+			element.value = token;
+		} );
+	};
+
 	/**
 	 * Public functions and properties.
 	 *
@@ -27,17 +81,22 @@ const fst = window.hCaptchaFST || ( function( document ) {
 		},
 
 		getToken() {
-			( async function() {
-				const bodyClassName = document.body.className;
-				let postId = bodyClassName.match( /post-id-(\d+)/ )?.[ 1 ] ?? '';
-				postId = bodyClassName.match( /page-id-(\d+)/ )?.[ 1 ] ?? postId;
+			if ( pendingRequest ) {
+				return pendingRequest;
+			}
+
+			pendingRequest = ( async function() {
 				const formBody = new URLSearchParams();
+				let issueError = '';
 
 				formBody.set( 'action', HCaptchaFSTObject.issueTokenAction );
 				formBody.set( 'nonce', HCaptchaFSTObject.issueTokenNonce );
-				formBody.set( 'postId', postId );
+				formBody.set( 'context', HCaptchaFSTObject.issueTokenContext );
+				formBody.set( 'postId', HCaptchaFSTObject.postId );
 
-				let token = '';
+				if ( currentToken ) {
+					formBody.set( 'replaceToken', currentToken );
+				}
 
 				try {
 					const res = await fetch( HCaptchaFSTObject.ajaxUrl, {
@@ -52,17 +111,31 @@ const fst = window.hCaptchaFST || ( function( document ) {
 
 					const body = await res.json();
 
-					if ( res.ok && body?.success ) {
-						token = body?.data?.token ?? '';
+					const token = body?.data?.token ?? '';
+
+					if ( res.ok && body?.success && token ) {
+						currentToken = token;
+						storeToken( currentToken );
+						setToken( currentToken );
+
+						return;
+					}
+
+					if ( 429 === res.status && 'fst-rate-limited' === body?.data?.code ) {
+						issueError = rateLimitedToken;
 					}
 				} catch {
-					// Intentionally leave the token empty on any error.
+					// The server may have replaced the prior token before the response failed.
+				} finally {
+					pendingRequest = null;
 				}
 
-				document.querySelectorAll( '[name="hcap_fst_token"]' ).forEach( ( element ) => {
-					element.value = token;
-				} );
+				currentToken = '';
+				storeToken( currentToken );
+				setToken( issueError );
 			}() );
+
+			return pendingRequest;
 		},
 	};
 

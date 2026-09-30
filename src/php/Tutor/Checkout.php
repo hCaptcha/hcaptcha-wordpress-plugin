@@ -87,10 +87,7 @@ class Checkout {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'checkout',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		$hcaptcha = HCaptcha::form( $args );
@@ -104,12 +101,12 @@ class Checkout {
 	}
 
 	/**
-	 * Verify checkout form.
+	 * Verify the checkout form.
 	 *
 	 * @return void
 	 */
 	public function verify(): void {
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify( $this->get_entry() );
 
 		if ( null !== $error_message ) {
 			$current_user_id = get_current_user_id();
@@ -117,5 +114,31 @@ class Checkout {
 			set_transient( CheckoutController::PAY_NOW_ERROR_TRANSIENT_KEY . $current_user_id, [ $error_message ] );
 			remove_all_actions( 'tutor_action_tutor_pay_now' );
 		}
+	}
+
+	/**
+	 * Get checkout data for hCaptcha and anti-spam verification.
+	 *
+	 * @return array
+	 */
+	private function get_entry(): array {
+		return [
+			'nonce_name'   => self::NONCE,
+			'nonce_action' => self::ACTION,
+			'data'         => EntryData::checkout(),
+			'expected_id'  => $this->get_expected_id(),
+		];
+	}
+
+	/**
+	 * Get the expected widget id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => 'checkout',
+		];
 	}
 }

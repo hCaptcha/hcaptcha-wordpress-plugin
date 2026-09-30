@@ -14,6 +14,7 @@ namespace HCaptcha\GiveWP;
 
 use Give\DonationForms\ValueObjects\DonationFormErrorTypes;
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use WP_Error;
@@ -183,6 +184,13 @@ abstract class Base {
 			'nonce_name'         => $check_nonce ? static::NAME : null,
 			'nonce_action'       => $check_nonce ? static::ACTION : null,
 			'h-captcha-response' => Request::filter_input( INPUT_POST, 'h-captcha-response' ),
+			'data'               => EntryData::from_post(
+				[
+					'email'      => [ 'give_email', 'email' ],
+					'first_name' => [ 'give_first', 'firstName' ],
+					'last_name'  => [ 'give_last', 'lastName' ],
+				]
+			),
 			'expected_id'        => $this->get_expected_id( $this->get_form_id() ),
 		];
 	}

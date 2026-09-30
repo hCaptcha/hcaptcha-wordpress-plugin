@@ -23,6 +23,11 @@ class AutoVerify {
 	public const TRANSIENT = 'hcaptcha_auto_verify';
 
 	/**
+	 * Prefix for persistent registrations, keyed by the form action path.
+	 */
+	private const OPTION_PREFIX = 'hcaptcha_auto_verify_form_';
+
+	/**
 	 * Maximum serialized transient size in bytes.
 	 */
 	public const MAX_TRANSIENT_SIZE = 512 * 1024;
@@ -43,6 +48,28 @@ class AutoVerify {
 	 * @var array
 	 */
 	protected array $registry = [];
+
+	/**
+	 * Delete stored form registrations during plugin uninstallation.
+	 *
+	 * @return void
+	 */
+	public static function delete_all(): void {
+		global $wpdb;
+
+		$like = $wpdb->esc_like( self::OPTION_PREFIX ) . '%';
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$option_names = $wpdb->get_col(
+			$wpdb->prepare( "SELECT option_name FROM $wpdb->options WHERE option_name LIKE %s", $like )
+		);
+
+		foreach ( $option_names as $option_name ) {
+			delete_option( $option_name );
+		}
+
+		delete_transient( self::TRANSIENT );
+	}
 
 	/**
 	 * Init class.
@@ -177,7 +204,10 @@ class AutoVerify {
 			self::HANDLE,
 			self::OBJECT,
 			[
-				'successMsg' => __( 'The form was submitted successfully.', 'hcaptcha-for-forms-and-more' ),
+				'successMsg'      => __( 'The form was submitted successfully.', 'hcaptcha-for-forms-and-more' ),
+				'submittingMsg'   => __( 'Submitting the form...', 'hcaptcha-for-forms-and-more' ),
+				'errorMsg'        => __( 'The form could not be submitted. Please try again.', 'hcaptcha-for-forms-and-more' ),
+				'networkErrorMsg' => __( 'Could not confirm whether the form was submitted. Check before trying again.', 'hcaptcha-for-forms-and-more' ),
 			]
 		);
 
@@ -358,6 +388,7 @@ class AutoVerify {
 				'action'    => $action,
 				'inputs'    => $this->get_visible_input_names( $form ),
 				'widget_id' => $widget_id_value,
+				'source'    => $this->get_registration_source(),
 				'args'      => $args,
 			];
 		}
@@ -443,6 +474,19 @@ class AutoVerify {
 		return isset( $_SERVER['REQUEST_URI'] ) ?
 			(string) filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
 			'';
+	}
+
+	/**
+	 * Identify the page that rendered a registration, including plain permalink pages.
+	 *
+	 * @return string
+	 */
+	private function get_registration_source(): string {
+		$post_id = get_queried_object_id();
+		$post_id = $post_id ?: url_to_postid( Request::current_url() );
+		$post_id = $post_id ?: (int) get_the_ID();
+
+		return $post_id ? 'post:' . $post_id : $this->get_request_uri();
 	}
 
 	/**
@@ -555,45 +599,7 @@ class AutoVerify {
 					'auto' => false,
 				]
 			);
-			$action       = $data['action'];
-
-			unset( $data['action'] );
-
-			$inputs    = (array) $data['inputs'];
-			$widget_id = (string) ( $data['widget_id'] ?? '' );
-			$args      = $data['args'];
-			$auto      = $args['auto'];
-
-			$key          = false;
-			$action_forms = $registered_forms[ $action ] ?? [];
-
-			foreach ( $action_forms as $index => $action_form ) {
-				if ( $this->is_same_registered_form_identity( (array) $action_form, $inputs, $widget_id ) ) {
-					$key = $index;
-					break;
-				}
-			}
-
-			$registered = false !== $key;
-
-			if ( $auto ) {
-				if ( $registered ) {
-					$action_forms[ $key ] = $data;
-				} else {
-					$action_forms[] = $data;
-				}
-
-				// Move the action to the end of the array to mark it as recently used.
-				unset( $registered_forms[ $action ] );
-
-				$registered_forms[ $action ] = array_values( $action_forms );
-
-				continue;
-			}
-
-			if ( $registered ) {
-				$this->remove_registered_form( $registered_forms, $action, $action_forms, $key );
-			}
+			$this->update_form_registration( $registered_forms, $data );
 		}
 
 		$registered_forms = $this->limit_transient_size( $registered_forms );
@@ -604,6 +610,90 @@ class AutoVerify {
 			/** This filter is documented in wp-includes/pluggable.php. */
 			apply_filters( 'nonce_life', constant( 'DAY_IN_SECONDS' ) ) // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 		);
+	}
+
+	/**
+	 * Update one action in the transient and its persistent registration.
+	 *
+	 * @param array $registered_forms Registered forms.
+	 * @param array $data             Form data.
+	 *
+	 * @return void
+	 */
+	private function update_form_registration( array &$registered_forms, array $data ): void {
+		$action = $data['action'];
+
+		unset( $data['action'] );
+
+		$inputs       = (array) $data['inputs'];
+		$widget_id    = (string) ( $data['widget_id'] ?? '' );
+		$option_name  = $this->get_option_name( $action );
+		$saved_forms  = get_option( $option_name, false );
+		$key          = false;
+		$action_forms = is_array( $saved_forms ) ? $saved_forms : ( $registered_forms[ $action ] ?? [] );
+
+		foreach ( $action_forms as $index => $action_form ) {
+			if (
+				( ! isset( $action_form['source'] ) || ( $data['source'] ?? null ) === $action_form['source'] ) &&
+				$this->is_same_registered_form_identity( (array) $action_form, $inputs, $widget_id )
+			) {
+				$key = $index;
+				break;
+			}
+		}
+
+		$registered = false !== $key;
+
+		if ( $data['args']['auto'] ) {
+			if ( $registered ) {
+				$action_forms[ $key ] = $data;
+			} else {
+				$action_forms[] = $data;
+			}
+
+			// Move the action to the end of the array to mark it as recently used.
+			unset( $registered_forms[ $action ] );
+
+			$registered_forms[ $action ] = array_values( $action_forms );
+			update_option( $option_name, $registered_forms[ $action ], false );
+
+			return;
+		}
+
+		$this->remove_form_registration( $registered_forms, $data, $action, $action_forms, $key );
+	}
+
+	/**
+	 * Remove a registration only from the page that created it.
+	 *
+	 * @param array     $registered_forms Registered forms.
+	 * @param array     $data             Rendered form data.
+	 * @param string    $action           Form action.
+	 * @param array     $action_forms     Forms registered for the action.
+	 * @param int|false $key              Form key.
+	 *
+	 * @return void
+	 */
+	private function remove_form_registration(
+		array &$registered_forms,
+		array $data,
+		string $action,
+		array $action_forms,
+		$key
+	): void {
+		if ( false === $key || ( $action_forms[ $key ]['source'] ?? null ) !== ( $data['source'] ?? null ) ) {
+			return;
+		}
+
+		$this->remove_registered_form( $registered_forms, $action, $action_forms, $key );
+
+		$option_name = $this->get_option_name( $action );
+
+		if ( $registered_forms[ $action ] ?? [] ) {
+			update_option( $option_name, $registered_forms[ $action ], false );
+		} else {
+			delete_option( $option_name );
+		}
 	}
 
 	/**
@@ -664,6 +754,17 @@ class AutoVerify {
 		}
 
 		unset( $registered_forms[ $action ] );
+	}
+
+	/**
+	 * Get the non-autoloaded option name for a form action path.
+	 *
+	 * @param string $action Form action path.
+	 *
+	 * @return string
+	 */
+	private function get_option_name( string $action ): string {
+		return self::OPTION_PREFIX . hash( 'sha256', $action );
 	}
 
 	/**
@@ -743,13 +844,13 @@ class AutoVerify {
 	 * @return array|null
 	 */
 	protected function get_registered_form( string $path ): ?array {
-		$registered_forms = get_transient( self::TRANSIENT );
+		$saved_forms  = get_option( $this->get_option_name( $path ), false );
+		$action_forms = is_array( $saved_forms ) ? $saved_forms : [];
 
-		if ( empty( $registered_forms ) ) {
-			return null;
+		if ( ! $action_forms ) {
+			$registered_forms = get_transient( self::TRANSIENT );
+			$action_forms     = (array) ( $registered_forms[ $path ] ?? [] );
 		}
-
-		$action_forms = (array) ( $registered_forms[ $path ] ?? [] );
 
 		if ( ! $action_forms ) {
 			return null;

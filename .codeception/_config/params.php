@@ -47,4 +47,6 @@ if ( false !== $shard && '' !== $shard ) {
 	$params['DB_NAME'] = $database_name;
 }
 
+$params['PLUGIN_ROOT_PATH'] = dirname( __DIR__, 2 );
+
 return $params;

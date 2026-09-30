@@ -15,6 +15,7 @@ use WP_Error;
  * Class Contact.
  */
 class Contact {
+	use RefreshTokens;
 
 	/**
 	 * Nonce action.
@@ -45,7 +46,7 @@ class Contact {
 	}
 
 	/**
-	 * Start output buffer before template part.
+	 * Start the output buffer before the template part.
 	 *
 	 * @param string           $template_name Template name.
 	 * @param string           $located       Location.
@@ -63,7 +64,7 @@ class Contact {
 	}
 
 	/**
-	 * Stop output buffer after template part and add captcha.
+	 * Stop the output buffer after the template part and add captcha.
 	 *
 	 * @param string           $template_name Template name.
 	 * @param string           $located       Location.
@@ -78,6 +79,8 @@ class Contact {
 		}
 
 		$template = ob_get_clean();
+
+		$this->enqueue_refresh_tokens_script();
 
 		$args = [
 			'action' => self::ACTION,

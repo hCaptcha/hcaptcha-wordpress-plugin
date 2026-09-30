@@ -1095,7 +1095,8 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	grid-template-areas:
 		"logged delay"
 		"recaptcha delay"
-		"cleanup-on-uninstall network";
+		"cleanup-on-uninstall ajax"
+		". network";
 	gap: 0 20px;
 	padding: 15px 20px;
 }
@@ -1106,6 +1107,10 @@ h3.closed .hcaptcha-section-header-toggle:after {
 
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-off-when-logged-in {
 	grid-area: logged;
+}
+
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-ajax-forms {
+	grid-area: ajax;
 }
 
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-recaptcha-compat-off {
@@ -1125,6 +1130,7 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	width: auto;
 }
 
+.hcaptcha-section-other + table tbody tr.hcaptcha-general-ajax-forms th,
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-recaptcha-compat-off th,
 .hcaptcha-section-other + table tbody tr.hcaptcha-general-cleanup-on-uninstall th,
 .hcaptcha-section-other + table tbody tr.hcaptcha-general--network-wide th {
@@ -1182,6 +1188,18 @@ h3.closed .hcaptcha-section-header-toggle:after {
 
 .hcaptcha-section-statistics + table tbody tr td {
 	width: max-content;
+}
+
+.hcaptcha-section-statistics + table tbody tr.hcaptcha-general-statistics td {
+	width: max-content;
+	min-width: 0;
+}
+
+.hcaptcha-section-statistics + table tbody tr.hcaptcha-general-statistics .helper-content {
+	max-width: calc(100vw - 40px);
+	white-space: normal;
+	overflow-wrap: anywhere;
+	line-height: 1.5;
 }
 
 @media (max-width: 900px) {
@@ -1346,6 +1364,7 @@ h3.closed .hcaptcha-section-header-toggle:after {
 		"logged"
 		"recaptcha"
 		"cleanup-on-uninstall"
+		"ajax"
 		"network";
 	}
 
@@ -1364,5 +1383,9 @@ h3.closed .hcaptcha-section-header-toggle:after {
 
 	.hcaptcha-section-statistics + table tbody tr td {
 		width: unset !important;
+	}
+
+	.hcaptcha-section-statistics + table tbody tr.hcaptcha-general-statistics td {
+		width: max-content !important;
 	}
 }

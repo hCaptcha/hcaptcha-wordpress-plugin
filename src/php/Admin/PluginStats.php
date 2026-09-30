@@ -7,7 +7,6 @@
 
 namespace HCaptcha\Admin;
 
-use HCaptcha\Main;
 use HCaptcha\Settings\SystemInfo;
 
 /**
@@ -69,7 +68,7 @@ class PluginStats {
 	/**
 	 * Send plugin statistics.
 	 *
-	 * @param bool $force_send Whether to force sending stats. Default is false.
+	 * @param bool $force_send Bypass the stored Statistics setting. The allow filter still applies.
 	 *
 	 * @return void
 	 * @noinspection ForgottenDebugOutputInspection
@@ -78,7 +77,7 @@ class PluginStats {
 		$allow = $force_send || hcaptcha()->settings()->is_on( 'statistics' );
 
 		/**
-		 * Allow sending plugin statistics.
+		 * Override the Statistics setting and forced-send decision.
 		 *
 		 * @param bool $allow Allow sending plugin statistics.
 		 */
@@ -158,21 +157,13 @@ class PluginStats {
 			return [];
 		}
 
-		$settings   = hcaptcha()->settings();
-		$license    = (int) $settings->is_pro() ? 'Pro' : 'Publisher';
-		$api_host   = $settings->get( 'api_host' );
-		$backend    = $settings->get( 'backend' );
-		$enterprise = (
-			( ! empty( $api_host ) && Main::API_HOST !== $api_host ) ||
-			! empty( $settings->get( 'asset_host' ) ) ||
-			! empty( $settings->get( 'endpoint' ) ) ||
-			! empty( $settings->get( 'host' ) ) ||
-			! empty( $settings->get( 'image_host' ) ) ||
-			! empty( $settings->get( 'report_api' ) ) ||
-			! empty( $settings->get( 'sentry' ) ) ||
-			( ! empty( $backend ) && Main::VERIFY_HOST !== $backend )
-		);
-		$license    = 'Pro' === $license && $enterprise ? 'Enterprise' : $license;
+		$settings       = hcaptcha()->settings();
+		$license_levels = [
+			'free'       => 'Publisher',
+			'pro'        => 'Pro',
+			'enterprise' => 'Enterprise',
+		];
+		$license        = $license_levels[ $settings->get_license() ];
 
 		$stats['hCaptcha']   = HCAPTCHA_VERSION;
 		$stats['License']    = $license;

@@ -43,9 +43,34 @@ class FormSubmitTime {
 	private const TRANSIENT_PREFIX = 'hcap_fst_nonce_';
 
 	/**
+	 * Default token lifetime in seconds.
+	 */
+	public const DEFAULT_TOKEN_TTL = 600;
+
+	/**
+	 * Minimum token lifetime in seconds.
+	 */
+	public const MIN_TOKEN_TTL = 60;
+
+	/**
+	 * Maximum token lifetime in seconds.
+	 */
+	public const MAX_TOKEN_TTL = 3600;
+
+	/**
 	 * Token ID length.
 	 */
 	private const TOKEN_ID_LENGTH = 32;
+
+	/**
+	 * Maximum accepted replacement token length.
+	 */
+	private const MAX_TOKEN_LENGTH = 512;
+
+	/**
+	 * Marker submitted when token issuance is rate limited.
+	 */
+	private const RATE_LIMITED_TOKEN = 'hcaptcha-fst-error:fst-rate-limited';
 
 	/**
 	 * Constructor.
@@ -96,13 +121,16 @@ class FormSubmitTime {
 		);
 
 		DelayedScript::enqueue( self::HANDLE );
+		$post_id = (string) absint( get_queried_object_id() );
 
 		wp_print_inline_script_tag(
 			'var ' . self::OBJECT . ' = ' . wp_json_encode(
 				[
-					'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
-					'issueTokenAction' => self::ISSUE_TOKEN_ACTION,
-					'issueTokenNonce'  => wp_create_nonce( self::ISSUE_TOKEN_ACTION ),
+					'ajaxUrl'           => admin_url( 'admin-ajax.php' ),
+					'issueTokenAction'  => self::ISSUE_TOKEN_ACTION,
+					'issueTokenNonce'   => wp_create_nonce( self::ISSUE_TOKEN_ACTION ),
+					'issueTokenContext' => $this->context_from_post_id( $post_id ),
+					'postId'            => $post_id,
 				]
 			) . ';'
 		);
@@ -111,28 +139,57 @@ class FormSubmitTime {
 	/**
 	 * Generates and issues a token with a unique payload.
 	 *
-	 * This function creates a token with specific details such as form ID, issuance time,
-	 * time-to-live (TTL), and unique nonce. It applies filters for TTL customization,
-	 * stores the nonce in a transient for a limited period, and ensures headers
-	 * prevent caching. Finally, it outputs the generated token in a JSON format and stops execution.
+	 * TTL is clamped to 60-3,600 seconds. Issuance is limited to 10 outstanding
+	 * tokens per trusted client identity and 1,000 per site. The bounded registry
+	 * is database-authoritative and uses a fixed lock, including when a persistent
+	 * object cache is active. Overflow returns HTTP 429; storage contention or
+	 * failure returns HTTP 503 without issuing a token.
 	 *
 	 * @return void Outputs a JSON-encoded token and terminates the script execution.
+	 * @noinspection PhpUnreachableStatementInspection
 	 */
 	public function issue_token(): void {
 		if ( ! check_ajax_referer( self::ISSUE_TOKEN_ACTION, 'nonce', false ) ) {
 			wp_send_json_error();
+
+			return; // For testing purposes.
 		}
 
-		$post_id   = Request::filter_input( INPUT_POST, 'postId' );
+		$settings = hcaptcha()->settings();
+
+		if ( ! $settings || ! $settings->is_on( 'set_min_submit_time' ) ) {
+			$this->send_issue_error( 'fst-disabled', 403 );
+
+			return;
+		}
+
+		$post_id = $this->validate_issue_context();
+
+		if ( is_wp_error( $post_id ) ) {
+			$this->send_issue_error( $post_id->get_error_code(), 400 );
+
+			return;
+		}
+
 		$issued_at = time();
 
 		/**
 		 * Filters the time-to-live (TTL) for the Form Submit Time token.
 		 *
+		 * Values are clamped to 60-3,600 seconds.
+		 *
 		 * @param int $ttl The time-to-live in seconds. Default is 600 seconds (10 minutes).
 		 */
-		$ttl = absint( apply_filters( 'hcap_fst_token_ttl', 600 ) );
-		$ttl = max( $ttl, 60 ); // Minimum TTL is 60 seconds (1 minute).
+		$ttl = absint( apply_filters( 'hcap_fst_token_ttl', self::DEFAULT_TOKEN_TTL ) );
+		$ttl = min( max( $ttl, self::MIN_TOKEN_TTL ), self::MAX_TOKEN_TTL );
+
+		$client_ip = hcap_get_user_ip( false );
+
+		if ( false === $client_ip ) {
+			$this->send_issue_error( 'fst-invalid-client', 400 );
+
+			return;
+		}
 
 		$payload   = [
 			'post_id'   => $post_id,
@@ -142,9 +199,25 @@ class FormSubmitTime {
 		];
 		$token     = $this->token_from_payload( $payload );
 		$signature = $this->parse_token( $token )[1];
-		$transient = self::TRANSIENT_PREFIX . $signature;
+		$client_id = hash_hmac( 'sha256', $client_ip, wp_salt( 'nonce' ) );
+		$replace   = $this->replacement_from_request();
+		$stored    = ( new FormSubmitTimeStore() )->reserve(
+			$signature,
+			$payload,
+			$client_id,
+			$issued_at + $ttl,
+			$issued_at,
+			$replace['signature'],
+			$replace['payload']
+		);
 
-		set_transient( $transient, $payload, $ttl );
+		if ( is_wp_error( $stored ) ) {
+			$status = 'fst-rate-limited' === $stored->get_error_code() ? 429 : 503;
+
+			$this->send_issue_error( $stored->get_error_code(), $status );
+
+			return;
+		}
 
 		if ( function_exists( 'nocache_headers' ) ) {
 			nocache_headers();
@@ -174,13 +247,17 @@ class FormSubmitTime {
 	 * delete the nonce after verification. Returns an error if the verification fails or true on success.
 	 *
 	 * @param int  $min_submit_time The minimum time, in seconds, that must elapse since the token was issued.
-	 * @param bool $delete_nonce    Optional. Whether to delete the nonce after successful verification.
-	 *                              Default is true.
+	 * @param bool $delete_nonce    Optional. Whether to consume the token after it is found, including when
+	 *                              the timing check fails. Default is true.
 	 *
 	 * @return true|WP_Error Returns true if the token is successfully verified, otherwise returns a WP_Error object.
 	 */
 	public function verify_token( int $min_submit_time, bool $delete_nonce = true ) {
 		$token = Request::filter_input( INPUT_POST, 'hcap_fst_token' );
+
+		if ( self::RATE_LIMITED_TOKEN === $token ) {
+			return hcap_get_wp_error( 'fst-rate-limited' );
+		}
 
 		$payload   = $this->payload_from_token( $token );
 		$signature = $this->parse_token( $token )[1];
@@ -189,28 +266,25 @@ class FormSubmitTime {
 			return $payload;
 		}
 
-		$now       = time();
-		$issued_at = (int) ( $payload['issued_at'] ?? 0 );
-		$ttl       = (int) ( $payload['ttl'] ?? 0 );
-		$transient = self::TRANSIENT_PREFIX . $signature;
+		$storage = $this->get_token_storage( $signature, $payload );
 
-		if ( get_transient( $transient ) !== $payload ) {
-			return hcap_get_wp_error( 'fst-replayed-or-expired' );
+		if ( is_wp_error( $storage ) ) {
+			return $storage;
 		}
 
-		if ( $now - $issued_at < $min_submit_time ) {
-			return hcap_get_wp_error( 'fst-too-fast' );
+		$timing = $this->check_token_timing( $payload, $min_submit_time );
+
+		if ( ! $delete_nonce ) {
+			return $timing;
 		}
 
-		if ( $now - $issued_at > $ttl ) {
-			return hcap_get_wp_error( 'fst-expired' );
+		$consumed = $this->consume_token( $signature, $payload, $storage );
+
+		if ( is_wp_error( $consumed ) ) {
+			return $consumed;
 		}
 
-		if ( $delete_nonce ) {
-			delete_transient( $transient );
-		}
-
-		return true;
+		return $timing;
 	}
 
 	/**
@@ -253,10 +327,23 @@ class FormSubmitTime {
 			return new WP_Error( 'fst_bad_b64', __( 'Decode error.', 'hcaptcha-for-forms-and-more' ) );
 		}
 
-		$payload  = Utils::json_decode_arr( $json );
-		$token_id = (string) ( $payload['token_id'] ?? '' );
+		$payload   = Utils::json_decode_arr( $json );
+		$token_id  = $payload['token_id'] ?? null;
+		$issued_at = $payload['issued_at'] ?? null;
+		$ttl       = $payload['ttl'] ?? null;
+		$post_id   = $payload['post_id'] ?? null;
 
-		if ( self::TOKEN_ID_LENGTH !== strlen( $token_id ) ) {
+		if (
+			! is_int( $issued_at ) ||
+			$issued_at <= 0 ||
+			! is_int( $ttl ) ||
+			$ttl < self::MIN_TOKEN_TTL ||
+			$ttl > self::MAX_TOKEN_TTL ||
+			( ! is_int( $post_id ) && ! is_string( $post_id ) ) ||
+			! is_string( $token_id ) ||
+			self::TOKEN_ID_LENGTH !== strlen( $token_id ) ||
+			( '' !== (string) $post_id && ! ctype_digit( (string) $post_id ) )
+		) {
 			return new WP_Error( 'fst_bad_payload', __( 'Invalid payload.', 'hcaptcha-for-forms-and-more' ) );
 		}
 
@@ -276,5 +363,165 @@ class FormSubmitTime {
 		$signature = $token_arr[1] ?? '';
 
 		return [ $data, $signature ];
+	}
+
+	/**
+	 * Create the signed page/form context published with the AJAX nonce.
+	 *
+	 * @param string $post_id Normalized queried object ID.
+	 *
+	 * @return string Signed context.
+	 */
+	private function context_from_post_id( string $post_id ): string {
+		return $post_id . '|' . wp_hash( self::ISSUE_TOKEN_ACTION . '|' . $post_id );
+	}
+
+	/**
+	 * Validate the requested page/form context.
+	 *
+	 * @return string|WP_Error Normalized post ID or an error.
+	 */
+	private function validate_issue_context() {
+		$post_id = Request::filter_input( INPUT_POST, 'postId' );
+		$context = Request::filter_input( INPUT_POST, 'context' );
+
+		if ( ! is_string( $post_id ) || ! is_string( $context ) || ! ctype_digit( $post_id ) ) {
+			return new WP_Error(
+				'fst-invalid-context',
+				__( 'Invalid form timing context.', 'hcaptcha-for-forms-and-more' )
+			);
+		}
+
+		$post_id  = (string) absint( $post_id );
+		$expected = $this->context_from_post_id( $post_id );
+
+		if ( ! hash_equals( $expected, $context ) ) {
+			return new WP_Error(
+				'fst-invalid-context',
+				__( 'Invalid form timing context.', 'hcaptcha-for-forms-and-more' )
+			);
+		}
+
+		return $post_id;
+	}
+
+	/**
+	 * Read an optional, bounded replacement token from the request.
+	 *
+	 * Invalid, expired, consumed, and cross-client tokens are ignored by the store,
+	 * and issuance remains subject to the normal quotas.
+	 *
+	 * @return array{signature: string, payload: array} Replacement details.
+	 */
+	private function replacement_from_request(): array {
+		$token = Request::filter_input( INPUT_POST, 'replaceToken' );
+
+		if ( ! is_string( $token ) || '' === $token || self::MAX_TOKEN_LENGTH < strlen( $token ) ) {
+			return [
+				'signature' => '',
+				'payload'   => [],
+			];
+		}
+
+		$payload = $this->payload_from_token( $token );
+
+		if ( is_wp_error( $payload ) ) {
+			return [
+				'signature' => '',
+				'payload'   => [],
+			];
+		}
+
+		return [
+			'signature' => $this->parse_token( $token )[1],
+			'payload'   => $payload,
+		];
+	}
+
+	/**
+	 * Send a controlled issuance error.
+	 *
+	 * @param string $code   Error code.
+	 * @param int    $status HTTP status.
+	 *
+	 * @return void
+	 */
+	private function send_issue_error( string $code, int $status ): void {
+		wp_send_json_error( [ 'code' => $code ], $status );
+	}
+
+	/**
+	 * Locate a token state in the bounded registry or the legacy transient store.
+	 *
+	 * @param string $signature Token signature.
+	 * @param array  $payload   Token payload.
+	 *
+	 * @return array|WP_Error Storage details or an error.
+	 */
+	private function get_token_storage( string $signature, array $payload ) {
+		$store  = new FormSubmitTimeStore();
+		$stored = $store->has( $signature, $payload );
+
+		if ( is_wp_error( $stored ) ) {
+			return $stored;
+		}
+
+		$transient     = self::TRANSIENT_PREFIX . $signature;
+		$legacy_stored = false === $stored && get_transient( $transient ) === $payload;
+
+		if ( ! $stored && ! $legacy_stored ) {
+			return hcap_get_wp_error( 'fst-replayed-or-expired' );
+		}
+
+		return [
+			'store'     => $store,
+			'stored'    => $stored,
+			'transient' => $transient,
+		];
+	}
+
+	/**
+	 * Check token timing constraints.
+	 *
+	 * @param array $payload         Token payload.
+	 * @param int   $min_submit_time Minimum submit time.
+	 *
+	 * @return true|WP_Error True on success, error otherwise.
+	 */
+	private function check_token_timing( array $payload, int $min_submit_time ) {
+		$now       = time();
+		$issued_at = (int) $payload['issued_at'];
+		$ttl       = (int) $payload['ttl'];
+
+		if ( $issued_at > $now ) {
+			return new WP_Error( 'fst_bad_payload', __( 'Invalid payload.', 'hcaptcha-for-forms-and-more' ) );
+		}
+
+		if ( $now - $issued_at < $min_submit_time ) {
+			return hcap_get_wp_error( 'fst-too-fast' );
+		}
+
+		if ( $now - $issued_at > $ttl ) {
+			return hcap_get_wp_error( 'fst-expired' );
+		}
+
+		return true;
+	}
+
+	/**
+	 * Consume token state after a verification attempt.
+	 *
+	 * @param string $signature Token signature.
+	 * @param array  $payload   Token payload.
+	 * @param array  $storage   Storage details.
+	 *
+	 * @return true|WP_Error True on success, error otherwise.
+	 */
+	private function consume_token( string $signature, array $payload, array $storage ) {
+		if ( $storage['stored'] ) {
+			return $storage['store']->consume( $signature, $payload );
+		}
+
+		return $storage['store']->consume_legacy( $storage['transient'], $payload );
 	}
 }

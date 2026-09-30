@@ -1,3 +1,32 @@
+= 5.4.0 =
+* Added optional AJAX submission for standard WordPress comment forms, with inline error messages.
+* Added form data processing for anti-spam checks in 10 popular integrations: WordPress Core, WooCommerce, Divi, Ultimate Addons for Elementor, Essential Addons, Mailchimp, Maintenance, Ultimate Member, bbPress, and GiveWP.
+* Added filtering of form fields identified as passwords, verification tokens, or payment details before anti-spam processing.
+* Improved an anti-spam entry collection to retain additional non-sensitive fields and avoid overwriting fields with duplicate labels.
+* Added Tutor LMS Pro integration.
+* Added Tutor LMS form data processing for anti-spam checks on login, registration, password recovery, and checkout.
+* Added Tutor LMS login, registration, password recovery, and checkout forms to the optional form-interaction API loading.
+* Added hCaptcha protection to the WooCommerce Order Withdrawal Form.
+* Added Essential Blocks form migration from Google reCAPTCHA to the Migration Wizard.
+* Added Tutor LMS Pro reCAPTCHA migration for Tutor LMS and WordPress login and registration forms.
+* Added an optional invisible hCaptcha disclosure controlled by the `hcap_print_invisible_disclosure` filter.
+* Added Montenegrin and Brazilian Portuguese hCaptcha widget locales.
+* Added support for documented per-widget hCaptcha render parameters through the `hcap_widget_params` filter.
+* Updated the Custom Themes editor and default theme to match the latest documented hCaptcha theme schema.
+* Improved plugin and theme dependency management on the Integrations page with activation notices and safe, selectable dependency deactivation.
+* Improved compatibility with Plugin Check (PCP).
+* Improved server-side verification.
+* Removed Paid Memberships Pro and Simple Basic Contact Form integrations after their WordPress.org closures.
+* Fixed Auto-Verification bypass after its transient expires or evicts a protected form and prevented other pages from removing its registration.
+* Fixed automatically added CSP sources, allowing unsafe JavaScript sources only for Enterprise accounts.
+* Fixed the Form Submit Time token lifecycle across page reloads and failed submissions to prevent stale tokens from exhausting issuance limits.
+* Fixed license detection when switching between Live and test modes.
+* Fixed saving credentials after an automatic site configuration check.
+* Fixed the Secret Key field appearing empty when a key is configured.
+* Fixed LearnPress checkout verification fatal error and prevented account creation before hCaptcha validation.
+* Fixed Google reCAPTCHA appearing in the Beaver Builder editor when its reCAPTCHA field is disabled.
+* Fixed reusing an expired token after a failed AJAX submission for several integrations.
+
 = 5.3.0 =
 * Added the Advanced Theme Editor with a live widget and challenge previews and direct JSON editing.
 * Added an Anti-Spam option to disable authenticated XML-RPC requests.

@@ -16,7 +16,7 @@ node_modules/
 ## Ignore Composer dependencies
 vendor/
 
-vendors/
+vendor_prefixed/
 
 ## Ignore minified and generated files
 *.min.js

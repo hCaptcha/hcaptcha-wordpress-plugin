@@ -8,10 +8,12 @@
 namespace HCaptcha\Admin\Events;
 
 use Exception;
+use HCaptcha\Helpers\DB;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\Settings\General;
 use HCaptcha\Settings\PluginSettingsBase;
+use Throwable;
 
 /**
  * Class Events.
@@ -49,7 +51,7 @@ class Events {
 	public const STATUS_TRASH = 'trash';
 
 	/**
-	 * Cleanup Trash action.
+	 * Events retention cleanup action.
 	 */
 	public const CLEANUP_ACTION = 'hcap_cleanup_events_trash';
 
@@ -57,6 +59,26 @@ class Events {
 	 * Trash retention in days.
 	 */
 	public const TRASH_RETENTION_DAYS = 30;
+
+	/**
+	 * Active event retention in days.
+	 */
+	public const ACTIVE_RETENTION_DAYS = 30;
+
+	/**
+	 * Maximum number of retained event rows.
+	 */
+	public const MAX_ROWS = 10000;
+
+	/**
+	 * Anonymous failure sampling window in seconds.
+	 */
+	public const ANONYMOUS_FAILURE_SAMPLE_SECONDS = 300;
+
+	/**
+	 * Maximum number of rows removed per status in one cleanup pass.
+	 */
+	public const CLEANUP_BATCH_SIZE = 100;
 
 	/**
 	 * Verify request hook priority.
@@ -128,10 +150,57 @@ class Events {
 			return $result;
 		}
 
-		$settings   = hcaptcha()->settings();
+		$settings = hcaptcha()->settings();
+
+		if ( ! $settings || ! $settings->is_on( 'statistics' ) ) {
+			return $result;
+		}
+
+		$event_id = self::get_event_id( $error_info );
+
+		if ( self::should_skip_event( $event_id ) ) {
+			return $result;
+		}
+
+		$event = self::prepare_event( $event_id, $error_info, $settings );
+
+		try {
+			if ( ! self::acquire_write_lock() ) {
+				return $result;
+			}
+
+			try {
+				self::cleanup_expired_rows();
+
+				if ( ! self::has_capacity() || self::is_sampled_anonymous_failure( $result, $event ) ) {
+					return $result;
+				}
+
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+				$wpdb->insert( $wpdb->prefix . self::TABLE_NAME, $event );
+			} finally {
+				self::release_write_lock();
+			}
+		} catch ( Throwable $e ) {
+			// Statistics are best-effort and must never change the verification result.
+			return $result;
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Prepare event data for storage.
+	 *
+	 * @param array  $event_id   Event ID.
+	 * @param object $error_info Error info.
+	 * @param object $settings   Plugin settings.
+	 *
+	 * @return array
+	 */
+	private static function prepare_event( array $event_id, object $error_info, object $settings ): array {
 		$ip         = '';
 		$user_agent = '';
-		$uuid       = '';
 
 		if ( $settings->is_on( 'collect_ua' ) ) {
 			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
@@ -150,27 +219,15 @@ class Events {
 			}
 		}
 
-		$event_id = self::get_event_id( $error_info );
-
-		if ( self::should_skip_event( $event_id ) ) {
-			return $result;
-		}
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-		$wpdb->insert(
-			$wpdb->prefix . self::TABLE_NAME,
-			[
-				'source'      => (string) wp_json_encode( $event_id['source'] ),
-				'form_id'     => sanitize_text_field( $event_id['form_id'] ),
-				'ip'          => $ip,
-				'user_agent'  => $user_agent,
-				'uuid'        => $uuid,
-				'error_codes' => (string) wp_json_encode( $error_info->codes ?? [] ),
-				'date_gmt'    => (string) gmdate( 'Y-m-d H:i:s' ),
-			]
-		);
-
-		return $result;
+		return [
+			'source'      => (string) wp_json_encode( $event_id['source'] ),
+			'form_id'     => sanitize_text_field( $event_id['form_id'] ),
+			'ip'          => $ip,
+			'user_agent'  => $user_agent,
+			'uuid'        => '',
+			'error_codes' => (string) wp_json_encode( $error_info->codes ?? [] ),
+			'date_gmt'    => (string) gmdate( 'Y-m-d H:i:s' ),
+		];
 	}
 
 	/**
@@ -455,6 +512,7 @@ class Events {
 		    KEY uuid (uuid),
 		    KEY date_gmt (date_gmt),
 		    KEY status_date_gmt (status, date_gmt),
+		    KEY status_trashed_at_gmt (status, trashed_at_gmt),
 		    KEY status_source_form (status, source($source_index_length), form_id)
 		) $charset_collate";
 
@@ -557,49 +615,277 @@ class Events {
 				[ General::class ] === $event_id['source'] &&
 				General::CHECK_CONFIG_FORM_ID === $event_id['form_id']
 			) ||
-			! self::table_exists()
+			! self::table_exists() ||
+			! self::is_trash_schema_ready() ||
+			! self::is_retention_schema_ready()
 		);
 	}
 
 	/**
-	 * Cleanup trashed events older than the retention window.
+	 * Cleanup active and trashed events older than their retention windows.
 	 *
 	 * @return void
 	 */
 	public static function cleanup_trash(): void {
-		global $wpdb;
-
 		$settings = hcaptcha()->settings();
 
 		if (
 			! $settings ||
 			! $settings->is_on( 'statistics' ) ||
 			! self::table_exists() ||
-			! self::is_trash_schema_ready()
+			! self::is_trash_schema_ready() ||
+			! self::is_retention_schema_ready() ||
+			! self::acquire_write_lock()
 		) {
 			return;
 		}
 
+		try {
+			self::cleanup_expired_rows();
+		} finally {
+			self::release_write_lock();
+		}
+	}
+
+	/**
+	 * Whether the Events table has the retention schema.
+	 *
+	 * @return bool
+	 */
+	public static function is_retention_schema_ready(): bool {
+		global $wpdb;
+
+		if ( ! self::table_exists() ) {
+			return false;
+		}
+
 		$table_name = $wpdb->prefix . self::TABLE_NAME;
-		$date_gmt   = gmdate(
-			'Y-m-d H:i:s',
-			time() - self::TRASH_RETENTION_DAYS * constant( 'DAY_IN_SECONDS' )
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$columns = (array) $wpdb->get_col(
+			$wpdb->prepare(
+				'SELECT COLUMN_NAME
+					FROM INFORMATION_SCHEMA.STATISTICS
+					WHERE table_schema = DATABASE()
+						AND table_name = %s
+						AND index_name = %s
+					ORDER BY SEQ_IN_INDEX',
+				$table_name,
+				'status_trashed_at_gmt'
+			)
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		return [ 'status', 'trashed_at_gmt' ] === $columns;
+	}
+
+	/**
+	 * Remove a bounded batch of expired active and trashed events.
+	 *
+	 * @return void
+	 */
+	private static function cleanup_expired_rows(): void {
+		self::delete_expired_rows(
+			self::STATUS_ACTIVE,
+			'date_gmt',
+			'status_date_gmt',
+			self::ACTIVE_RETENTION_DAYS
+		);
+		self::delete_expired_rows(
+			self::STATUS_TRASH,
+			'trashed_at_gmt',
+			'status_trashed_at_gmt',
+			self::TRASH_RETENTION_DAYS
+		);
+	}
+
+	/**
+	 * Remove a bounded batch of expired rows for one status.
+	 *
+	 * @param string $status      Event status.
+	 * @param string $date_column Retention date column.
+	 * @param string $index       Retention index.
+	 * @param int    $days        Retention in days.
+	 *
+	 * @return void
+	 */
+	private static function delete_expired_rows( string $status, string $date_column, string $index, int $days ): void {
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . self::TABLE_NAME;
+		$date_gmt   = gmdate( 'Y-m-d H:i:s', time() - $days * constant( 'DAY_IN_SECONDS' ) );
+		$batch_size = self::get_cleanup_batch_size();
 
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$ids = (array) $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT id FROM $table_name FORCE INDEX ($index)
+					WHERE status = %s
+						AND $date_column IS NOT NULL
+						AND $date_column < %s
+					ORDER BY $date_column, id
+					LIMIT %d",
+				$status,
+				$date_gmt,
+				$batch_size
+			)
+		);
+
+		if ( ! $ids ) {
+			return;
+		}
+
+		$in = DB::prepare_in( $ids, '%d' );
+
 		$wpdb->query(
 			$wpdb->prepare(
-				"DELETE FROM $table_name
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"DELETE FROM $table_name WHERE id IN($in) AND status = %s",
+				$status
+			)
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+	}
+
+	/**
+	 * Get the cleanup batch size.
+	 *
+	 * @return int
+	 */
+	private static function get_cleanup_batch_size(): int {
+		/**
+		 * Filters the event cleanup batch size for tests and constrained hosts.
+		 *
+		 * The value can lower, but cannot raise, the built-in bound.
+		 *
+		 * @param int $batch_size Cleanup batch size.
+		 */
+		$batch_size = (int) apply_filters( 'hcap_events_cleanup_batch_size', self::CLEANUP_BATCH_SIZE );
+
+		return max( 1, min( self::CLEANUP_BATCH_SIZE, $batch_size ) );
+	}
+
+	/**
+	 * Whether another event row can be allocated.
+	 *
+	 * @return bool
+	 */
+	private static function has_capacity(): bool {
+		global $wpdb;
+
+		/**
+		 * Filters the event row limit for deterministic tests and smaller sites.
+		 *
+		 * The value can lower, but cannot raise, the built-in hard limit.
+		 *
+		 * @param int $max_rows Maximum retained rows.
+		 */
+		$max_rows   = (int) apply_filters( 'hcap_events_max_rows', self::MAX_ROWS );
+		$max_rows   = max( 1, min( self::MAX_ROWS, $max_rows ) );
+		$table_name = $wpdb->prefix . self::TABLE_NAME;
+
+		// The primary-key offset reads at most the configured number of rows, including on legacy oversized tables.
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$result = $wpdb->query(
+			$wpdb->prepare(
+				"SELECT id FROM $table_name FORCE INDEX (PRIMARY) ORDER BY id LIMIT %d, 1",
+				$max_rows - 1
+			)
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		return 0 === $result;
+	}
+
+	/**
+	 * Whether an anonymous failure matches a recent retained sample.
+	 *
+	 * @param mixed $result Verification result.
+	 * @param array $event  Event data.
+	 *
+	 * @return bool
+	 */
+	private static function is_sampled_anonymous_failure( $result, array $event ): bool {
+		global $wpdb;
+
+		if ( null === $result || is_user_logged_in() ) {
+			return false;
+		}
+
+		$table_name = $wpdb->prefix . self::TABLE_NAME;
+		$date_gmt   = gmdate( 'Y-m-d H:i:s', time() - self::ANONYMOUS_FAILURE_SAMPLE_SECONDS );
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$result = $wpdb->query(
+			$wpdb->prepare(
+				"SELECT id FROM $table_name FORCE INDEX (status_source_form)
 					WHERE status = %s
-						AND trashed_at_gmt IS NOT NULL
-						AND trashed_at_gmt < %s",
-				self::STATUS_TRASH,
+						AND source = %s
+						AND form_id = %s
+						AND ip = %s
+						AND user_agent = %s
+						AND uuid = %s
+						AND error_codes = %s
+						AND date_gmt >= %s
+					LIMIT 1",
+				self::STATUS_ACTIVE,
+				$event['source'],
+				$event['form_id'],
+				$event['ip'],
+				$event['user_agent'],
+				$event['uuid'],
+				$event['error_codes'],
 				$date_gmt
 			)
 		);
 		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		return false === $result || 0 < $result;
+	}
+
+	/**
+	 * Acquire the per-site event allocation lock without waiting.
+	 *
+	 * @return bool
+	 */
+	private static function acquire_write_lock(): bool {
+		global $wpdb;
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$acquired = $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK(%s, 0)', self::get_write_lock_name() ) );
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		return '1' === (string) $acquired;
+	}
+
+	/**
+	 * Release the per-site event allocation lock.
+	 *
+	 * @return void
+	 */
+	private static function release_write_lock(): void {
+		global $wpdb;
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->get_var( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', self::get_write_lock_name() ) );
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+	}
+
+	/**
+	 * Get the per-site event allocation lock name.
+	 *
+	 * @return string
+	 */
+	private static function get_write_lock_name(): string {
+		global $wpdb;
+
+		return 'hcap_events_' . md5( $wpdb->prefix . self::TABLE_NAME );
 	}
 
 	/**

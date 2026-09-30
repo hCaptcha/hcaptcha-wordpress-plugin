@@ -5,15 +5,23 @@
  * @package HCaptcha\Tests
  */
 
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedFunctionInspection */
+/** @noinspection PhpUndefinedNamespaceInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
+
 namespace HCaptcha\Tests\Unit\Settings;
 
 use HCaptcha\MigrationWizard\MigrationWizard;
+use HCaptcha\Settings\SettingsTransfer;
 use HCaptcha\Settings\Tools;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use Mockery;
 use ReflectionClass;
+use RuntimeException;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Mock;
+use function Patchwork\redefine;
 
 /**
  * Class ToolsTest
@@ -252,19 +260,62 @@ class ToolsTest extends HCaptchaTestCase {
 
 		$export_data = [ 'some' => 'data' ];
 
-		// Use overload to mock the internally instantiated class.
-		$transfer = Mockery::mock( 'overload:HCaptcha\Settings\SettingsTransfer' );
+		// Replace the method even when another test has already loaded SettingsTransfer.
+		$transfer = Mockery::mock( SettingsTransfer::class );
 
 		$transfer->shouldReceive( 'build_export_payload' )
 			->with( $include_keys )
 			->once()
 			->andReturn( $export_data );
 
+		redefine( SettingsTransfer::class . '::build_export_payload', [ $transfer, 'build_export_payload' ] );
+
 		WP_Mock::userFunction( 'wp_send_json' )
 			->with( $export_data )
 			->once();
 
 		$subject->ajax_handle_export();
+	}
+
+	/**
+	 * Test that a valid export nonce does not bypass network settings permissions.
+	 *
+	 * @param string $include_keys Include keys request value.
+	 *
+	 * @dataProvider dp_test_ajax_handle_export_denies_network_settings
+	 */
+	public function test_ajax_handle_export_denies_network_settings( string $include_keys ): void {
+		$_POST['include_keys'] = $include_keys;
+
+		$subject = Mockery::mock( Tools::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_network_wide' )->once()->andReturn( true );
+
+		WP_Mock::userFunction( 'check_ajax_referer' )
+			->with( Tools::EXPORT_ACTION, 'nonce', false )->once()->andReturn( true );
+		WP_Mock::userFunction( 'current_user_can' )
+			->with( 'manage_network_options' )->once()->andReturn( false );
+		WP_Mock::userFunction( 'wp_send_json_error' )
+			->with( 'You are not allowed to perform this action.' )->once()
+			->andThrow( new RuntimeException( 'Export denied.' ) );
+		WP_Mock::userFunction( 'wp_send_json' )->never();
+
+		$this->expectException( RuntimeException::class );
+		$this->expectExceptionMessage( 'Export denied.' );
+
+		$subject->ajax_handle_export();
+	}
+
+	/**
+	 * Data provider for test_ajax_handle_export_denies_network_settings().
+	 *
+	 * @return array
+	 */
+	public function dp_test_ajax_handle_export_denies_network_settings(): array {
+		return [
+			'without keys' => [ 'off' ],
+			'with keys'    => [ 'on' ],
+		];
 	}
 
 	/**
@@ -289,11 +340,13 @@ class ToolsTest extends HCaptchaTestCase {
 
 		FunctionMocker::replace( 'is_uploaded_file', true );
 
-		$transfer = Mockery::mock( 'overload:HCaptcha\Settings\SettingsTransfer' );
+		$transfer = Mockery::mock( SettingsTransfer::class );
 		$transfer->shouldReceive( 'apply_import_payload' )
 			->with( $decoded_data, false )
 			->once()
 			->andReturn( null );
+
+		redefine( SettingsTransfer::class . '::apply_import_payload', [ $transfer, 'apply_import_payload' ] );
 
 		WP_Mock::userFunction( 'is_wp_error' )->andReturn( false );
 
@@ -336,11 +389,13 @@ class ToolsTest extends HCaptchaTestCase {
 
 		$error->shouldReceive( 'get_error_message' )->andReturn( $error_message );
 
-		$transfer = Mockery::mock( 'overload:HCaptcha\Settings\SettingsTransfer' );
+		$transfer = Mockery::mock( SettingsTransfer::class );
 
 		$transfer->shouldReceive( 'apply_import_payload' )
 			->with( $decoded_data, false )
 			->andReturn( $error );
+
+		redefine( SettingsTransfer::class . '::apply_import_payload', [ $transfer, 'apply_import_payload' ] );
 
 		WP_Mock::userFunction( 'is_wp_error' )->with( $error )->andReturn( true );
 
@@ -379,11 +434,45 @@ class ToolsTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test import failure when the uploaded file cannot be read.
+	 */
+	public function test_ajax_handle_import_rejects_unreadable_file(): void {
+		$subject = Mockery::mock( Tools::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'run_checks' )->with( Tools::IMPORT_ACTION )->once();
+
+		$_FILES['import_file'] = [
+			'tmp_name' => 'unreadable.json',
+			'error'    => UPLOAD_ERR_OK,
+		];
+
+		FunctionMocker::replace( 'is_uploaded_file', true );
+
+		WP_Mock::userFunction( 'wp_send_json_error' )
+			->with( [ 'message' => 'Import failed.' ] )
+			->once();
+
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler -- Unreadable test file intentionally warns.
+		set_error_handler(
+			static function () {
+				return true;
+			}
+		);
+
+		try {
+			$subject->ajax_handle_import();
+		} finally {
+			restore_error_handler();
+		}
+	}
+
+	/**
 	 * Test section_callback() default (sections are open).
 	 */
 	public function test_section_callback(): void {
-		$subject = Mockery::mock( Tools::class )->makePartial()->shouldAllowMockingProtectedMethods();
-		$user    = (object) [ 'ID' => 1 ];
+		$subject = Mockery::mock( Tools::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$user = (object) [ 'ID' => 1 ];
 
 		$wizard = $this->set_migration_wizard( $subject );
 		$wizard->shouldReceive( 'render_section' )->once();
@@ -425,8 +514,9 @@ class ToolsTest extends HCaptchaTestCase {
 	 * Test section_callback() with closed sections from user meta.
 	 */
 	public function test_section_callback_closed_sections(): void {
-		$subject = Mockery::mock( Tools::class )->makePartial()->shouldAllowMockingProtectedMethods();
-		$user    = (object) [ 'ID' => 1 ];
+		$subject = Mockery::mock( Tools::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$user = (object) [ 'ID' => 1 ];
 
 		$wizard = $this->set_migration_wizard( $subject );
 		$wizard->shouldReceive( 'render_section' )->once();

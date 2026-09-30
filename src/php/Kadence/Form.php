@@ -8,6 +8,7 @@
 namespace HCaptcha\Kadence;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use WP_Block;
@@ -166,18 +167,23 @@ class Form extends Base {
 
 			$type = $field['type'];
 
-			if ( ! in_array( $type, [ 'text', 'email', 'textarea' ], true ) ) {
+			$label = (string) $field['label'];
+
+			if (
+				! array_key_exists( "kb_field_$id", $form_data ) ||
+				! EntryData::is_content_field_type( (string) $type ) ||
+				EntryData::has_sensitive_field( (string) $id, $label )
+			) {
 				continue;
 			}
 
-			$label = $field['label'];
 			$value = $form_data[ "kb_field_$id" ] ?? '';
 
 			if ( 'email' === $type ) {
 				$entry['data']['email'] = $value;
 			}
 
-			$entry['data'][ $label ] = $value;
+			EntryData::add_field( $entry['data'], $label, $value, (string) $id );
 		}
 
 		return $entry;

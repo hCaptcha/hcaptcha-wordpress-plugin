@@ -14,6 +14,10 @@ use HCaptcha\Helpers\HCaptcha;
  * Class Form.
  */
 class Form {
+	/**
+	 * Script handle.
+	 */
+	private const HANDLE = 'hcaptcha-wp-job-openings';
 
 	/**
 	 * Nonce action.
@@ -65,6 +69,8 @@ class Form {
 	public function add_captcha( $form_attrs ): void {
 		$html = ob_get_clean();
 
+		$this->enqueue_scripts();
+
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
@@ -82,6 +88,23 @@ class Form {
 
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo $html;
+	}
+
+	/**
+	 * Enqueue WP Job Openings script.
+	 *
+	 * @return void
+	 */
+	private function enqueue_scripts(): void {
+		$min = hcap_min_suffix();
+
+		wp_enqueue_script(
+			self::HANDLE,
+			HCAPTCHA_URL . "/assets/js/hcaptcha-wp-job-openings$min.js",
+			[ 'jquery' ],
+			HCAPTCHA_VERSION,
+			true
+		);
 	}
 
 	/**

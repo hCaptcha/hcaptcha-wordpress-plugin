@@ -12,6 +12,7 @@
 
 namespace HCaptcha\Tests\Integration\ACFE;
 
+use acfe_field_recaptcha;
 use HCaptcha\ACFE\Form;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
@@ -63,6 +64,8 @@ class FormTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test a live ACF Extended form with its reCAPTCHA field replaced by hCaptcha.
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_live_form_render(): void {
 		$field_group_key = 'group_hcaptcha_acfe_integration';
@@ -114,7 +117,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		self::assertTrue( is_plugin_active( 'advanced-custom-fields-pro/acf.php' ) );
 		self::assertTrue( is_plugin_active( 'acf-extended/acf-extended.php' ) );
 		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/acf-extended/' ), $plugin_file );
-		self::assertInstanceOf( \acfe_field_recaptcha::class, $field_type );
+		self::assertInstanceOf( acfe_field_recaptcha::class, $field_type );
 		self::assertSame( 11, has_action( Form::RENDER_HOOK, [ $integration, 'add_hcaptcha' ] ) );
 		self::assertStringContainsString( 'class="acfe-form"', $html );
 		self::assertStringContainsString( 'name="acf[field_hcaptcha_acfe_name]"', $html );
@@ -173,6 +176,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 * @return void
 	 *
 	 * @dataProvider dp_test_remove_recaptcha_render
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_remove_recaptcha_render( array $field, $expected ): void {
 		$recaptcha = acf_get_field_type( 'acfe_recaptcha' );
@@ -263,6 +267,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 * Test remove_recaptcha_verify().
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_remove_recaptcha_verify(): void {
 		$value = 'some value';
@@ -456,6 +461,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 * @param array|false|int $form Form data.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	private function register_acf_form( $form ): void {
 		if ( false === $form ) {
@@ -473,6 +479,8 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
+	 * @noinspection PhpUndefinedFunctionInspection
+	 * @noinspection PhpParamsInspection
 	 */
 	public function test_get_entry_and_data(): void {
 		$post_id   = wp_insert_post(
@@ -488,6 +496,12 @@ class FormTest extends HCaptchaPluginWPTestCase {
 			'field_name'              => 'Jane Doe',
 			'field_email'             => 'jane.doe@example.com',
 			'field_array'             => [ 'Hello', 'World' ],
+			'field_repeater'          => [
+				[
+					'field_opinion'  => 'Great',
+					'field_password' => 'do-not-copy',
+				],
+			],
 			'field_empty'             => '',
 			'field_key_without_label' => 'Value',
 			''                        => 'empty-key-value',
@@ -513,6 +527,25 @@ class FormTest extends HCaptchaPluginWPTestCase {
 				'label' => 'Message',
 				'type'  => 'textarea',
 				'name'  => 'message',
+			],
+			'field_repeater'          => [
+				'label'      => 'Answers',
+				'type'       => 'repeater',
+				'name'       => 'answers',
+				'sub_fields' => [
+					[
+						'key'   => 'field_opinion',
+						'label' => 'Ваше мнение',
+						'name'  => 'opinion',
+						'type'  => 'text',
+					],
+					[
+						'key'   => 'field_password',
+						'label' => 'Password',
+						'name'  => 'password',
+						'type'  => 'password',
+					],
+				],
 			],
 			'field_key_without_label' => [
 				'label' => '',
@@ -557,7 +590,8 @@ class FormTest extends HCaptchaPluginWPTestCase {
 				'Name'                    => 'Jane Doe',
 				'email'                   => 'jane.doe@example.com',
 				'Email'                   => 'jane.doe@example.com',
-				'Message'                 => 'Hello World',
+				'Message'                 => [ 'Hello', 'World' ],
+				'Answers'                 => [ [ 'field_opinion' => 'Great' ] ],
 				'field_key_without_label' => 'Value',
 				'name'                    => 'Jane Doe',
 			],
@@ -570,6 +604,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_get_form(): void {
 		$subject  = new Form();

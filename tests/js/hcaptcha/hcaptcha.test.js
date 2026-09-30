@@ -980,7 +980,7 @@ describe( 'HCaptcha', () => {
 		hCaptcha.foundForms.push( { hCaptchaId: idB, submitButtonElement: submitB, widgetId: 'wb' } );
 		const aelBSpy = jest.spyOn( submitB, 'addEventListener' );
 
-		// Form C: no submit button -> skip
+		// Form C: no Submit button -> skip
 		const formC = document.createElement( 'form' );
 		const widgetC = document.createElement( 'div' );
 		widgetC.className = 'h-captcha';
@@ -1068,7 +1068,7 @@ describe( 'HCaptcha', () => {
 	test( 'callback dispatches event and submits when size is invisible', () => {
 		const token = 'tok-invisible';
 
-		// Spy on submit and mock getParams
+		// Spy on submitting and mock getParams
 		const submitSpy = jest.spyOn( hCaptcha, 'submit' ).mockImplementation( () => {
 		} );
 		jest.spyOn( hCaptcha, 'getParams' ).mockReturnValue( { size: 'invisible' } );
@@ -1190,6 +1190,18 @@ describe( 'HCaptcha', () => {
 
 		// Cleanup
 		document.body.removeChild( form );
+	} );
+
+	test( 'runCallback resolves a nested named callback', () => {
+		const token = 'tok-custom-callback';
+		const responseKey = 'response-key';
+		window.widgetCallbacks = { onSuccess: jest.fn() };
+
+		hCaptcha.runCallback( 'widgetCallbacks.onSuccess', token, responseKey );
+
+		expect( window.widgetCallbacks.onSuccess ).toHaveBeenCalledWith( token, responseKey );
+
+		delete window.widgetCallbacks;
 	} );
 
 	// applyAutoTheme tests
@@ -1344,6 +1356,157 @@ describe( 'HCaptcha', () => {
 
 		// Cleanup
 		document.body.removeChild( el );
+	} );
+
+	test( 'render passes documented per-widget parameters', () => {
+		const el = document.createElement( 'div' );
+
+		el.className = 'h-captcha';
+		el.dataset.sitekey = 'site-key';
+		el.dataset.theme = 'light';
+		el.dataset.size = 'normal';
+		el.dataset.hl = 'fr';
+		el.dataset.tabindex = '-1';
+		el.dataset.callback = 'widgetCallbacks.onSuccess';
+		el.dataset.expiredCallback = 'widgetCallbacks.onExpired';
+		el.dataset.chalexpiredCallback = 'widgetCallbacks.onChallengeExpired';
+		el.dataset.openCallback = 'widgetCallbacks.onOpen';
+		el.dataset.closeCallback = 'widgetCallbacks.onClose';
+		el.dataset.errorCallback = 'widgetCallbacks.onError';
+		el.dataset.orientation = 'landscape';
+
+		jest.spyOn( hCaptcha, 'observeDarkMode' ).mockImplementation( () => {
+		} );
+		jest.spyOn( hCaptcha, 'observePasswordManagers' ).mockImplementation( () => {
+		} );
+		jest.spyOn( hCaptcha, 'applyAutoTheme' ).mockImplementation( ( params ) => params );
+		const pluginCallback = jest.fn();
+
+		jest.spyOn( hCaptcha, 'getParams' ).mockReturnValue( {
+			theme: 'light',
+			callback: pluginCallback,
+		} );
+		window.widgetCallbacks = { onSuccess: jest.fn() };
+
+		global.hcaptcha = {
+			render: jest.fn( () => 'wid-params' ),
+		};
+
+		expect( hCaptcha.render( el ) ).toBe( 'wid-params' );
+		expect( global.hcaptcha.render ).toHaveBeenCalledWith( el, {
+			sitekey: 'site-key',
+			theme: 'light',
+			size: 'normal',
+			callback: expect.any( Function ),
+			hl: 'fr',
+			tabindex: '-1',
+			'expired-callback': 'widgetCallbacks.onExpired',
+			'chalexpired-callback': 'widgetCallbacks.onChallengeExpired',
+			'open-callback': 'widgetCallbacks.onOpen',
+			'close-callback': 'widgetCallbacks.onClose',
+			'error-callback': 'widgetCallbacks.onError',
+			orientation: 'landscape',
+		} );
+
+		const renderParams = global.hcaptcha.render.mock.calls[ 0 ][ 1 ];
+
+		renderParams.callback( 'token', 'response-key' );
+
+		expect( pluginCallback ).toHaveBeenCalledWith( 'token', 'response-key' );
+		expect( window.widgetCallbacks.onSuccess ).toHaveBeenCalledWith( 'token', 'response-key' );
+
+		delete window.widgetCallbacks;
+	} );
+} );
+
+describe( 'HCaptcha remaining callbacks and theme cases', () => {
+	let app;
+
+	beforeEach( () => {
+		app = new HCaptcha();
+		global.wp = { hooks: { applyFilters: jest.fn( ( hook, value ) => value ) } };
+	} );
+
+	afterEach( () => {
+		jest.restoreAllMocks();
+		delete global.wp;
+	} );
+
+	test( 'named callbacks ignore invalid and missing paths', () => {
+		window.hcaptchaCallbackTarget = { run: jest.fn(), missing: true };
+
+		app.runCallback( null );
+		app.runCallback( '' );
+		app.runCallback( 'window.missing.path' );
+		app.runCallback( 'window.hcaptchaCallbackTarget.missing' );
+		app.runCallback( 'window.hcaptchaCallbackTarget.run', 'token' );
+
+		expect( window.hcaptchaCallbackTarget.run ).toHaveBeenCalledWith( 'token' );
+		delete window.hcaptchaCallbackTarget;
+	} );
+
+	test( 'automatic theme remains light when a provider has no class attribute', () => {
+		app.darkElement = document.createElement( 'div' );
+		app.darkClass = 'dark-mode';
+
+		expect( app.applyAutoTheme( { theme: 'auto' } ).theme ).toBe( 'light' );
+	} );
+
+	test( 'a custom theme without checkbox fill leaves the widget theme attribute alone', () => {
+		const widget = document.createElement( 'div' );
+		widget.dataset.size = 'normal';
+		jest.spyOn( app, 'getParams' ).mockReturnValue( { theme: {} } );
+		jest.spyOn( app, 'observeDarkMode' ).mockImplementation( () => {} );
+		jest.spyOn( app, 'observePasswordManagers' ).mockImplementation( () => {} );
+		global.hcaptcha = { render: jest.fn( () => 'widget-id' ) };
+
+		expect( app.render( widget ) ).toBe( 'widget-id' );
+		expect( widget.dataset.theme ).toBeUndefined();
+	} );
+
+	test( 'a button without type is treated as an AJAX submit button', () => {
+		const button = document.createElement( 'button' );
+
+		expect( app.isAjaxSubmitButton( button ) ).toBe( true );
+		expect( wp.hooks.applyFilters ).toHaveBeenCalledWith( 'hcaptcha.ajaxSubmitButton', true, button );
+	} );
+
+	test( 'dark mode ignores unrelated classes and batches repeated toggles', () => {
+		jest.spyOn( app, 'getParams' ).mockReturnValue( { theme: 'auto' } );
+		const host = document.createElement( 'div' );
+		const bind = jest.spyOn( app, 'bindEvents' ).mockImplementation( () => {} );
+		jest.spyOn( app, 'setDarkData' ).mockImplementation( () => {
+			app.darkElement = host;
+			app.darkClass = 'dark-on';
+		} );
+		const originalObserver = global.MutationObserver;
+		const originalFrame = global.requestAnimationFrame;
+		let callback;
+		let scheduledFrame;
+		global.MutationObserver = jest.fn( function( cb ) {
+			callback = cb;
+			this.observe = jest.fn();
+		} );
+		global.requestAnimationFrame = jest.fn( ( cb ) => {
+			scheduledFrame = cb;
+		} );
+
+		try {
+			app.observeDarkMode();
+			host.className = 'unrelated';
+			callback( [ { oldValue: '' } ] );
+			expect( bind ).not.toHaveBeenCalled();
+
+			host.className = 'dark-on';
+			callback( [ { oldValue: 'unrelated' } ] );
+			callback( [ { oldValue: 'unrelated' } ] );
+			expect( global.requestAnimationFrame ).toHaveBeenCalledTimes( 1 );
+			scheduledFrame();
+			expect( bind ).toHaveBeenCalledTimes( 1 );
+		} finally {
+			global.MutationObserver = originalObserver;
+			global.requestAnimationFrame = originalFrame;
+		}
 	} );
 } );
 
@@ -1767,7 +1930,7 @@ describe( 'bindEvents', () => {
 		const backup = global.hcaptcha;
 		global.hcaptcha = { render: jest.fn( () => 'wid-re-enable' ) };
 
-		// Build a form with h-captcha and a disabled submit button.
+		// Build a form with h-captcha and a disabled Submit button.
 		const form = document.createElement( 'form' );
 		const widget = document.createElement( 'div' );
 		widget.className = 'h-captcha';

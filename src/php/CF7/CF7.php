@@ -12,6 +12,7 @@ namespace HCaptcha\CF7;
 
 use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Main;
 use WPCF7_FormTag;
@@ -456,8 +457,13 @@ class CF7 extends Base {
 		$form_tags              = $contact_form->scan_form_tags();
 
 		foreach ( $form_tags as $form_tag ) {
-			$type  = $form_tag->basetype;
-			$name  = $form_tag->name;
+			$type = $form_tag->basetype;
+			$name = $form_tag->name;
+
+			if ( EntryData::has_sensitive_field( (string) $type, (string) $name ) ) {
+				continue;
+			}
+
 			$value = $data[ $name ] ?? '';
 
 			if ( 'email' === $type ) {

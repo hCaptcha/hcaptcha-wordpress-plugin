@@ -12,6 +12,7 @@ namespace HCaptcha\BuddyPress;
 
 use BP_Groups_Group;
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 
@@ -134,7 +135,7 @@ class CreateGroup {
 	 * @return array
 	 */
 	private function get_data( BP_Groups_Group $bp_group ): array {
-		$data = [];
+		$data = EntryData::from_post( [] );
 
 		foreach ( [ 'name', 'description', 'date_created' ] as $field ) {
 			$value = $bp_group->$field ?? '';

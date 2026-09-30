@@ -8,9 +8,13 @@
 namespace HCaptcha\Tests\Integration\Divi;
 
 use HCaptcha\Divi\Login;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use Mockery;
 use ReflectionException;
 use WP_Block;
+use WP_Error;
+use WP_User;
 
 /**
  * Class LoginTest.
@@ -43,6 +47,19 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	protected static array $theme_expected_incorrect_usage = [ "add_theme_support( 'title-tag' )" ];
 
 	/**
+	 * Set up the test.
+	 *
+	 * @return void
+	 */
+	public function setUp(): void {
+		parent::setUp();
+
+		hcaptcha()->settings()->set( 'honeypot', 'on' );
+		hcaptcha()->settings()->set( 'set_min_submit_time', 'on' );
+		$this->set_protected_property( hcaptcha(), 'supported_forms', null );
+	}
+
+	/**
 	 * Test constructor and init_hooks().
 	 *
 	 * @return void
@@ -71,6 +88,82 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 		self::assertStringContainsString( '<h-captcha', $output );
 		self::assertStringContainsString( 'name="hcaptcha_login_nonce"', $output );
 		self::assertStringContainsString( 'class="hcaptcha-signature"', $output );
+	}
+
+	/**
+	 * Test honeypot output and widget source for a Divi component.
+	 *
+	 * @param string $component Active Divi component.
+	 * @param string $source    Expected source.
+	 *
+	 * @dataProvider dp_test_honeypot_for_component
+	 * @return void
+	 */
+	public function test_honeypot_for_component( string $component, string $source ): void {
+		hcaptcha()->settings()->set( $component . '_status', [ 'login' ] );
+		add_filter( 'hcap_login_limit_exceeded', '__return_true' );
+
+		$subject = Mockery::mock( Login::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'get_active_divi_component' )->andReturn( $component );
+
+		$output = $subject->add_hcaptcha_to_shortcode( '<form><p><button>Login</button></p></form>', Login::TAG );
+		$id     = HCaptcha::widget_id_value(
+			[
+				'source'  => [ $source ],
+				'form_id' => 'login',
+			]
+		);
+
+		self::assertStringContainsString( 'value="' . esc_attr( $id ) . '"', $output );
+		self::assertStringContainsString( 'name="hcap_hp_test"', $output );
+		self::assertStringContainsString( 'name="hcap_hp_sig"', $output );
+	}
+
+	/**
+	 * Test that a filled Divi component login honeypot is rejected.
+	 *
+	 * @param string $component Active Divi component.
+	 * @param string $source    Expected source.
+	 *
+	 * @dataProvider dp_test_honeypot_for_component
+	 * @return void
+	 */
+	public function test_filled_honeypot_for_component( string $component, string $source ): void {
+		$this->prepare_verify_post_html( 'hcaptcha_login_nonce', 'hcaptcha_login' );
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ $source ],
+				'form_id' => 'login',
+			]
+		);
+		$_POST['hcap_hp_test']                 = 'bot';
+
+		add_filter( 'hcap_login_limit_exceeded', '__return_true' );
+
+		$subject = Mockery::mock( Login::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'get_active_divi_component' )->andReturn( $component );
+
+		$result = $subject->login_base_verify( new WP_User( 1 ), 'password' );
+
+		self::assertInstanceOf( WP_Error::class, $result );
+		self::assertSame( 'Anti-spam check failed.', $result->get_error_message() );
+	}
+
+	/**
+	 * Data provider for Divi component honeypot tests.
+	 *
+	 * @return array
+	 */
+	public function dp_test_honeypot_for_component(): array {
+		return [
+			'Divi Builder' => [ 'divi_builder', 'divi-builder/divi-builder.php' ],
+			'Extra theme'  => [ 'extra', 'Extra' ],
+		];
 	}
 
 	/**
@@ -153,6 +246,28 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 
 		self::assertSame( 'Divi', get_template() );
 		self::assertSame( 'divi', $method->invoke( $subject ) );
+	}
+
+	/**
+	 * Test get_active_divi_component() with the Extra theme.
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_get_active_divi_component_with_extra(): void {
+		add_filter(
+			'pre_option_template',
+			static function () {
+				return 'Extra';
+			},
+			PHP_INT_MAX
+		);
+
+		$subject = new Login();
+		$method  = $this->set_method_accessibility( $subject, 'get_active_divi_component' );
+
+		self::assertSame( 'Extra', get_template() );
+		self::assertSame( 'extra', $method->invoke( $subject ) );
 	}
 
 	/**

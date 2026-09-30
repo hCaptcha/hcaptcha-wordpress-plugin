@@ -14,6 +14,7 @@ use Mockery;
 use ReflectionClass;
 use ReflectionException;
 use WP_Block;
+use WP_Block_Type_Registry;
 
 /**
  * Test NewsletterSubscribe class.
@@ -44,11 +45,11 @@ class NewsletterSubscribeTest extends HCaptchaPluginWPTestCase {
 	protected static array $plugin_load_hooks = [ 'init' ];
 
 	/**
-	 * Expected incorrect usage notices raised by the live plugin.
+	 * Optional incorrect usage notice raised by the live plugin.
 	 *
 	 * @var string[]
 	 */
-	protected static array $plugin_expected_incorrect_usage = [ "add_theme_support( 'title-tag' )" ];
+	protected static array $plugin_optional_incorrect_usage = [ "add_theme_support( 'title-tag' )" ];
 
 	/**
 	 * Enable the newsletter extension before Blocksy Companion is loaded.
@@ -81,7 +82,7 @@ class NewsletterSubscribeTest extends HCaptchaPluginWPTestCase {
 		self::assertTrue( is_plugin_active( static::$plugin ) );
 		self::assertSame( 'blocksy', get_stylesheet() );
 		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/blocksy-companion/' ), $plugin_file );
-		self::assertTrue( \WP_Block_Type_Registry::get_instance()->is_registered( 'blocksy/newsletter' ) );
+		self::assertTrue( WP_Block_Type_Registry::get_instance()->is_registered( 'blocksy/newsletter' ) );
 		self::assertStringContainsString( 'class="ct-newsletter-subscribe-form"', $output );
 		self::assertStringContainsString( '<button class="wp-element-button"', $output );
 		self::assertStringContainsString( 'Subscribe live', $output );
@@ -326,9 +327,9 @@ class NewsletterSubscribeTest extends HCaptchaPluginWPTestCase {
 			'h-captcha-response' => 'some-response',
 			'email'              => 'test@example.com',
 			'group'              => 'newsletter',
-			// Non-matching key — covers continue branch.
+			// Additional form field must be preserved.
 			'some_other_field'   => 'value',
-			// Uppercase key — covers strtolower + matching.
+			// A distinct key must not overwrite the canonical email.
 			'Email'              => 'upper@example.com',
 		];
 
@@ -338,9 +339,10 @@ class NewsletterSubscribeTest extends HCaptchaPluginWPTestCase {
 		self::assertSame( 'hcaptcha_blocksy_newsletter_subscribe', $actual['nonce_action'] );
 		self::assertSame( 'some-response', $actual['h-captcha-response'] );
 		self::assertNotNull( $actual['form_date_gmt'] );
-		// 'Email' key overwrites 'email' after strtolower.
-		self::assertSame( 'upper@example.com', $actual['data']['email'] );
+		self::assertSame( 'test@example.com', $actual['data']['email'] );
 		self::assertSame( 'newsletter', $actual['data']['group'] );
+		self::assertSame( 'value', $actual['data']['some_other_field'] );
+		self::assertSame( 'upper@example.com', $actual['data']['Email'] );
 		self::assertSame(
 			[
 				'source'  => HCaptcha::get_class_source( NewsletterSubscribe::class ),
@@ -348,7 +350,6 @@ class NewsletterSubscribeTest extends HCaptchaPluginWPTestCase {
 			],
 			$actual['expected_id']
 		);
-		self::assertArrayNotHasKey( 'some_other_field', $actual['data'] );
 	}
 
 	/**

@@ -51,8 +51,9 @@ class SystemInfoTest extends HCaptchaTestCase {
 	 * Test page_title().
 	 */
 	public function test_page_title(): void {
-		$subject = Mockery::mock( SystemInfo::class )->makePartial()->shouldAllowMockingProtectedMethods();
-		$method  = 'page_title';
+		$subject = Mockery::mock( SystemInfo::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$method = 'page_title';
 
 		self::assertSame( 'System Info', $subject->$method() );
 	}
@@ -61,8 +62,9 @@ class SystemInfoTest extends HCaptchaTestCase {
 	 * Test section_title().
 	 */
 	public function test_section_title(): void {
-		$subject = Mockery::mock( SystemInfo::class )->makePartial()->shouldAllowMockingProtectedMethods();
-		$method  = 'section_title';
+		$subject = Mockery::mock( SystemInfo::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$method = 'section_title';
 
 		self::assertSame( 'system-info', $subject->$method() );
 	}
@@ -470,9 +472,6 @@ Ninja Forms:
   Form:                               On
 Otter Blocks:                         
   Form:                               On
-Paid Memberships Pro:                 
-  Checkout Form:                      Off
-  Login Form:                         Off
 Passster:                             
   Protection Form:                    Off
 Password Protected:                   
@@ -483,8 +482,6 @@ Profile Builder:
   Register Form:                      Off
 Quform:                               
   Form:                               On
-Simple Basic Contact Form:            
-  Form:                               Off
 Simple Download Monitor:              
   Form:                               Off
 Simple Membership:                    
@@ -523,6 +520,7 @@ WooCommerce:
   Login Form:                         On
   Lost Password Form:                 On
   Order Tracking Form:                On
+  Order Withdrawal Form:              On
   Register Form:                      On
 WooCommerce Germanized:               
   Return Request Form:                Off
