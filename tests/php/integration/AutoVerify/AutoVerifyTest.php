@@ -32,6 +32,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		unset(
 			$_SERVER['REQUEST_METHOD'],
 			$_GET['pagename'],
+			$_GET['p'],
 			$_GET['page_id'],
 			$_GET['rest_route'],
 			$GLOBALS['current_screen']
@@ -75,63 +76,159 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 
 		self::assertFalse( get_transient( $subject::TRANSIENT ) );
 		apply_filters( 'the_content', $content );
-		self::assertSame( $expected, get_transient( $subject::TRANSIENT ) );
+		$path = array_key_first( $expected );
+		self::assertSame( $expected[ $path ], $this->get_registered_action_forms( $path ) );
+		self::assertFalse( get_transient( $subject::TRANSIENT ) );
 	}
 
 	/**
-	 * Test content_filter() limits the transient size using LRU eviction.
+	 * An actionless form on a query route must not claim unrelated home requests.
 	 *
-	 * @return void
+	 * @noinspection PhpArrayWriteIsNotUsedInspection
 	 */
-	public function test_content_filter_limits_transient_size_with_lru_eviction(): void {
+	public function test_query_route_form_does_not_claim_home(): void {
+		$page_id = $this->factory()->post->create(
+			[
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+			]
+		);
+		$subject = new AutoVerify();
+		$subject->init();
+
+		$_SERVER['REQUEST_URI'] = '/?page_id=' . $page_id . '&preview=true';
+		$_GET['page_id']        = (string) $page_id;
+		apply_filters( 'the_content', $this->get_test_content() );
+
+		$target_key  = 'post:' . $page_id . ':/';
+		$option_name = 'hcaptcha_auto_verify_form_' . hash( 'sha256', $target_key );
+
+		self::assertCount( 1, get_option( $option_name ) );
+		self::assertFalse( get_option( 'hcaptcha_auto_verify_form_' . hash( 'sha256', '/' ), false ) );
+
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$_SERVER['REQUEST_URI']    = '/';
+		$_POST['foo']              = 'bar';
+		unset( $_GET['page_id'] );
+		$subject->verify();
+
+		self::assertSame( [ 'foo' => 'bar' ], $_POST ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+
+		$_SERVER['REQUEST_URI'] = '/?page_id=' . $page_id . '&utm_source=test';
+		$_GET['page_id']        = (string) $page_id;
+		$_POST                  = [ 'test_input' => 'value' ];
+		$die_arr                = [];
+
+		add_filter(
+			'wp_die_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		$subject->verify();
+
+		self::assertSame( 'Bad hCaptcha signature!', $die_arr[0] ?? null );
+		self::assertSame( 403, $die_arr[2]['response'] ?? null );
+	}
+
+	/**
+	 * An explicit root action on a query page still targets the home route.
+	 */
+	public function test_explicit_home_action_on_query_page(): void {
+		$page_id = $this->factory()->post->create(
+			[
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+			]
+		);
+		$subject = new AutoVerify();
+		$subject->init();
+
+		$_SERVER['REQUEST_URI'] = '/?page_id=' . $page_id;
+		$_GET['page_id']        = (string) $page_id;
+		$content                = str_replace( '<form method="post">', '<form method="post" action="/">', $this->get_test_content() );
+		apply_filters( 'the_content', $content );
+
+		self::assertCount( 1, $this->get_registered_action_forms( '/' ) );
+		self::assertSame( [], $this->get_registered_action_forms( 'post:' . $page_id . ':/' ) );
+	}
+
+	/**
+	 * A real home form still protects posts to its path with query parameters.
+	 *
+	 * @noinspection PhpArrayWriteIsNotUsedInspection
+	 */
+	public function test_home_registration_protects_query_route(): void {
+		$page_id = $this->factory()->post->create();
+		$forms   = $this->get_test_registered_forms();
+		$form    = $forms[ array_key_first( $forms ) ][0];
+
+		update_option( 'hcaptcha_auto_verify_form_' . hash( 'sha256', '/' ), [ $form ], false );
+
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$_SERVER['REQUEST_URI']    = '/?p=' . $page_id;
+		$_GET['p']                 = (string) $page_id;
+		$_POST                     = [ 'foo' => 'bar' ];
+
+		$subject = new AutoVerify();
+
+		self::assertSame( [], $this->set_method_accessibility( $subject, 'get_registered_form_for_request' )->invoke( $subject ) );
+	}
+
+	/**
+	 * Adding a page selector to another endpoint cannot bypass its protection.
+	 */
+	public function test_page_selector_does_not_change_other_action(): void {
+		$subject = new AutoVerify();
+		$method  = $this->set_method_accessibility( $subject, 'get_target_key' );
+
+		self::assertSame( '/form', $method->invoke( $subject, '/form/?p=123' ) );
+		self::assertSame( '/form', $method->invoke( $subject, '/form/?page_id=123' ) );
+		self::assertSame( 'post:123:/', $method->invoke( $subject, '/?p=123' ) );
+	}
+
+	/**
+	 * A legacy Brevo registration must only apply to Brevo submissions.
+	 *
+	 * @noinspection PhpArrayWriteIsNotUsedInspection
+	 */
+	public function test_legacy_brevo_home_registration_ignores_other_posts(): void {
+		$registered_form              = $this->get_test_registered_forms();
+		$form                         = $registered_form[ array_key_first( $registered_form ) ][0];
+		$form['args']['id']['source'] = [ 'mailin/sendinblue.php' ];
+		$option_name                  = 'hcaptcha_auto_verify_form_' . hash( 'sha256', '/' );
+		$subject                      = new AutoVerify();
+
+		update_option( $option_name, [ $form ], false );
+		$_POST = [ 'edd_action' => 'activate_license' ];
+
+		self::assertNull( $this->set_method_accessibility( $subject, 'get_registered_form' )->invoke( $subject, '/' ) );
+
+		$_POST['sib_form_action'] = 'subscribe_form_submit';
+
+		self::assertSame( [], $this->set_method_accessibility( $subject, 'get_registered_form' )->invoke( $subject, '/' ) );
+	}
+
+	/**
+	 * Rendering several forms persists them without creating a transient.
+	 */
+	public function test_content_filter_does_not_write_transient(): void {
 		$content = $this->get_test_content();
 		$subject = new AutoVerify();
 
 		$subject->init();
 
 		$_SERVER['REQUEST_URI'] = '/path-one';
-
+		apply_filters( 'the_content', $content );
+		$_SERVER['REQUEST_URI'] = '/path-two';
 		apply_filters( 'the_content', $content );
 
-		$registered_forms = get_transient( AutoVerify::TRANSIENT );
-		$action_forms     = $registered_forms['/path-one'];
-		$two_paths        = [
-			'/path-one' => $action_forms,
-			'/path-two' => $action_forms,
-		];
-		$max_size         = strlen( maybe_serialize( $two_paths ) );
-		$size_filter      = static function () use ( $max_size ): int {
-			return $max_size;
-		};
-
-		add_filter( 'hcap_auto_verify_transient_max_size', $size_filter );
-
-		try {
-			$_SERVER['REQUEST_URI'] = '/path-two';
-
-			apply_filters( 'the_content', $content );
-
-			$_SERVER['REQUEST_URI'] = '/path-one';
-
-			apply_filters( 'the_content', $content );
-
-			$_SERVER['REQUEST_URI'] = '/path-new';
-
-			apply_filters( 'the_content', $content );
-
-			$new_action_forms              = $action_forms;
-			$new_action_forms[0]['source'] = '/path-new';
-			$expected                      = [
-				'/path-one' => $action_forms,
-				'/path-new' => $new_action_forms,
-			];
-			$actual                        = get_transient( AutoVerify::TRANSIENT );
-
-			self::assertSame( $expected, $actual );
-			self::assertLessThanOrEqual( $max_size, strlen( maybe_serialize( $actual ) ) );
-		} finally {
-			remove_filter( 'hcap_auto_verify_transient_max_size', $size_filter );
-		}
+		self::assertCount( 1, $this->get_registered_action_forms( '/path-one' ) );
+		self::assertCount( 1, $this->get_registered_action_forms( '/path-two' ) );
+		self::assertFalse( get_transient( AutoVerify::TRANSIENT ) );
 	}
 
 	/**
@@ -153,7 +250,9 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 
 		self::assertFalse( get_transient( $subject::TRANSIENT ) );
 		apply_filters( 'widget_block_content', $content, [], $wp_widget_block );
-		self::assertSame( $expected, get_transient( $subject::TRANSIENT ) );
+		$path = array_key_first( $expected );
+		self::assertSame( $expected[ $path ], $this->get_registered_action_forms( $path ) );
+		self::assertFalse( get_transient( $subject::TRANSIENT ) );
 	}
 
 	/**
@@ -179,7 +278,9 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 
 		self::assertFalse( get_transient( $subject::TRANSIENT ) );
 		apply_filters( 'the_content', $content );
-		self::assertSame( $expected, get_transient( $subject::TRANSIENT ) );
+		$path = array_key_first( $expected );
+		self::assertSame( $expected[ $path ], $this->get_registered_action_forms( $path ) );
+		self::assertFalse( get_transient( $subject::TRANSIENT ) );
 	}
 
 	/**
@@ -196,7 +297,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 
 		self::assertFalse( get_transient( $subject::TRANSIENT ) );
 		apply_filters( 'the_content', $content );
-		self::assertSame( [], get_transient( $subject::TRANSIENT ) );
+		self::assertFalse( get_transient( $subject::TRANSIENT ) );
 	}
 
 	/**
@@ -290,34 +391,17 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * A rendered form remains protected when its transient expires or is evicted.
-	 *
-	 * @param bool $evict Whether to evict the entry rather than delete the transient.
-	 *
-	 * @dataProvider dp_test_verify_form_without_transient_entry
+	 * A rendered form remains protected without a transient entry.
 	 */
-	public function test_verify_form_without_transient_entry( bool $evict ): void {
+	public function test_verify_form_without_transient_entry(): void {
 		$subject = new AutoVerify();
 		$subject->init();
 
 		$_SERVER['REQUEST_URI'] = '/path-one';
 		apply_filters( 'the_content', $this->get_test_content() );
 
-		if ( $evict ) {
-			$max_size = strlen( maybe_serialize( get_transient( AutoVerify::TRANSIENT ) ) );
-			$filter   = static function () use ( $max_size ): int {
-				return $max_size;
-			};
-
-			add_filter( 'hcap_auto_verify_transient_max_size', $filter );
-			$_SERVER['REQUEST_URI'] = '/path-two';
-			apply_filters( 'the_content', $this->get_test_content() );
-			remove_filter( 'hcap_auto_verify_transient_max_size', $filter );
-		} else {
-			delete_transient( AutoVerify::TRANSIENT );
-		}
-
-		self::assertEmpty( get_transient( AutoVerify::TRANSIENT )['/path-one'] ?? [] );
+		self::assertFalse( get_transient( AutoVerify::TRANSIENT ) );
+		self::assertCount( 1, $this->get_registered_action_forms( '/path-one' ) );
 
 		$_SERVER['REQUEST_METHOD'] = 'POST';
 		$_SERVER['REQUEST_URI']    = '/path-one';
@@ -340,18 +424,6 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Data provider for test_verify_form_without_transient_entry().
-	 *
-	 * @return array
-	 */
-	public function dp_test_verify_form_without_transient_entry(): array {
-		return [
-			'expired' => [ false ],
-			'evicted' => [ true ],
-		];
-	}
-
-	/**
 	 * Rendering a matching form on another page cannot remove its registration.
 	 */
 	public function test_non_owner_render_cannot_remove_registration(): void {
@@ -361,8 +433,8 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		$_SERVER['REQUEST_URI'] = '/victim';
 		apply_filters( 'the_content', $this->get_test_content() );
 
-		$registered_forms = get_transient( AutoVerify::TRANSIENT );
-		$widget_id        = $registered_forms['/victim'][0]['widget_id'];
+		$registered_forms = $this->get_registered_action_forms( '/victim' );
+		$widget_id        = $registered_forms[0]['widget_id'];
 		$attacker_form    = '<form method="post" action="/victim" class="h-captcha">' .
 			'<input type="hidden" name="hcaptcha-widget-id" value="' . esc_attr( $widget_id ) . '">' .
 			'<input type="text" name="test_input"></form>';
@@ -371,10 +443,10 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 
 		$attacker = new AutoVerify();
 		$attacker->content_filter( $attacker_form );
-		self::assertArrayHasKey( '/victim', get_transient( AutoVerify::TRANSIENT ) );
+		self::assertCount( 1, $this->get_registered_action_forms( '/victim' ) );
 		$attacker->content_filter( str_replace( '<input type="hidden" name="hcaptcha-widget-id" value="' . esc_attr( $widget_id ) . '">', '', $attacker_form ) );
 
-		self::assertSame( $registered_forms['/victim'], get_transient( AutoVerify::TRANSIENT )['/victim'] );
+		self::assertSame( $registered_forms, $this->get_registered_action_forms( '/victim' ) );
 	}
 
 	/**
@@ -389,14 +461,14 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		$_SERVER['REQUEST_URI'] = '/?page_id=' . $victim_id;
 		apply_filters( 'the_content', $this->get_test_content() );
 
-		$registered_forms = get_transient( AutoVerify::TRANSIENT );
+		$registered_forms = $this->get_registered_action_forms( 'post:' . $victim_id . ':/' );
 		$attacker_form    = '<form method="post" action="/?page_id=' . $victim_id . '" class="h-captcha">' .
 			'<input type="text" name="test_input"></form>';
 
 		$_SERVER['REQUEST_URI'] = '/?page_id=' . $attacker_id;
 		( new AutoVerify() )->content_filter( $attacker_form );
 
-		self::assertSame( $registered_forms['/'], get_transient( AutoVerify::TRANSIENT )['/'] );
+		self::assertSame( $registered_forms, $this->get_registered_action_forms( 'post:' . $victim_id . ':/' ) );
 	}
 
 	/**
@@ -409,8 +481,8 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		$_SERVER['REQUEST_URI'] = '/victim';
 		apply_filters( 'the_content', $this->get_test_content() );
 
-		$registered_forms = get_transient( AutoVerify::TRANSIENT );
-		$victim_form      = $registered_forms['/victim'][0];
+		$registered_forms = $this->get_registered_action_forms( '/victim' );
+		$victim_form      = $registered_forms[0];
 		$attacker_form    = '<form method="post" action="/victim" class="h-captcha">' .
 			'<input type="hidden" name="hcaptcha-widget-id" value="' . esc_attr( $victim_form['widget_id'] ) . '">' .
 			'<input type="text" name="test_input"></form>';
@@ -439,15 +511,15 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		$_SERVER['REQUEST_URI'] = '/victim';
 		apply_filters( 'the_content', $this->get_test_content() );
 
-		$registered_forms = get_transient( AutoVerify::TRANSIENT );
-		$widget_id        = $registered_forms['/victim'][0]['widget_id'];
+		$registered_forms = $this->get_registered_action_forms( '/victim' );
+		$widget_id        = $registered_forms[0]['widget_id'];
 		$regular_form     = '<form method="post" action="/victim" class="h-captcha">' .
 			'<input type="hidden" name="hcaptcha-widget-id" value="' . esc_attr( $widget_id ) . '">' .
 			'<input type="text" name="test_input"></form>';
 
 		( new AutoVerify() )->content_filter( $regular_form );
 
-		self::assertSame( [], get_transient( AutoVerify::TRANSIENT ) );
+		self::assertSame( [], $this->get_registered_action_forms( '/victim' ) );
 		self::assertNull( $this->set_method_accessibility( $subject, 'get_registered_form' )->invoke( $subject, '/victim' ) );
 	}
 
@@ -469,9 +541,10 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		$subject->init();
 		apply_filters( 'the_content', $this->get_test_content() );
 
-		$updated = get_transient( AutoVerify::TRANSIENT );
-		self::assertCount( 1, $updated[ $path ] );
-		self::assertSame( $request_uri, $updated[ $path ][0]['source'] );
+		$updated = $this->get_registered_action_forms( $path );
+		self::assertCount( 1, $updated );
+		self::assertSame( $request_uri, $updated[0]['source'] );
+		self::assertFalse( get_transient( AutoVerify::TRANSIENT ) );
 
 		$regular_form = '<form method="post" class="h-captcha">' .
 			'<input type="hidden" name="hcaptcha-widget-id" value="' . esc_attr( $widget_id ) . '">' .
@@ -480,6 +553,24 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		delete_transient( AutoVerify::TRANSIENT );
 
 		self::assertNull( $this->set_method_accessibility( $subject, 'get_registered_form' )->invoke( $subject, $path ) );
+	}
+
+	/**
+	 * Migrating one legacy action preserves other transient registrations.
+	 */
+	public function test_legacy_registration_preserves_other_actions(): void {
+		$registered_forms           = $this->get_test_registered_forms();
+		$path                       = array_key_first( $registered_forms );
+		$registered_forms['/other'] = $registered_forms[ $path ];
+		set_transient( AutoVerify::TRANSIENT, $registered_forms );
+
+		$_SERVER['REQUEST_URI'] = $this->get_test_request_uri();
+		$subject                = new AutoVerify();
+		$subject->init();
+		apply_filters( 'the_content', $this->get_test_content() );
+
+		self::assertCount( 1, $this->get_registered_action_forms( $path ) );
+		self::assertSame( [ '/other' => $registered_forms['/other'] ], get_transient( AutoVerify::TRANSIENT ) );
 	}
 
 	/**
@@ -822,6 +913,17 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		self::assertSame( [], $_POST );
 
 		self::assertSame( $expected, $die_arr );
+	}
+
+	/**
+	 * Get persisted registrations for one action.
+	 *
+	 * @param string $action Form action.
+	 *
+	 * @return array
+	 */
+	private function get_registered_action_forms( string $action ): array {
+		return (array) get_option( 'hcaptcha_auto_verify_form_' . hash( 'sha256', $action ), [] );
 	}
 
 	/**

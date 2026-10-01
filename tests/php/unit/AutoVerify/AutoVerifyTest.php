@@ -761,7 +761,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( AutoVerify::class )->makePartial();
 
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'update_transient' )->with( [] )->once();
+		$subject->shouldReceive( 'update_form_registrations' )->with( [] )->once();
 
 		$subject->register_forms( [] );
 	}
@@ -815,10 +815,10 @@ class AutoVerifyTest extends HCaptchaTestCase {
 		$this->set_protected_property( $subject, 'registry', $registry );
 
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'update_transient' )->with( [] )->once(); // Case 1.
-		$subject->shouldReceive( 'update_transient' )->with( $expected )->once(); // Case 2.
-		$subject->shouldReceive( 'update_transient' )->with( $expected_without_inputs )->once(); // Case 3.
-		$subject->shouldReceive( 'update_transient' )->with( $expected_without_auto )->once(); // Case 4.
+		$subject->shouldReceive( 'update_form_registrations' )->with( [] )->once(); // Case 1.
+		$subject->shouldReceive( 'update_form_registrations' )->with( $expected )->once(); // Case 2.
+		$subject->shouldReceive( 'update_form_registrations' )->with( $expected_without_inputs )->once(); // Case 3.
+		$subject->shouldReceive( 'update_form_registrations' )->with( $expected_without_auto )->once(); // Case 4.
 
 		// Case 1. Update transient to be called with [].
 		$subject->register_forms( $forms );
@@ -851,25 +851,15 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test update_transient().
-	 *
-	 * @param mixed $transient  Transient.
-	 * @param array $forms_data Forms data.
-	 * @param array $expected   Expected.
-	 *
-	 * @return void
-	 * @dataProvider dp_test_update_transient
-	 * @throws ReflectionException ReflectionException.
+	 * New registrations are persisted without writing a duplicate transient.
 	 */
-	public function test_update_transient( $transient, array $forms_data, array $expected ): void {
-		$day_in_seconds = 24 * 60 * 60;
+	public function test_update_form_registrations_does_not_write_transient(): void {
+		$data = [
+			'action' => '/autoverify',
+			'inputs' => [ 'test_input' ],
+			'args'   => [ 'auto' => true ],
+		];
 
-		FunctionMocker::replace(
-			'constant',
-			static function ( $name ) use ( $day_in_seconds ) {
-				return 'DAY_IN_SECONDS' === $name ? $day_in_seconds : 0;
-			}
-		);
 		WP_Mock::userFunction( 'wp_parse_args' )->andReturnUsing(
 			static function ( $args, $defaults ) {
 				return array_merge( $defaults, $args );
@@ -878,275 +868,26 @@ class AutoVerifyTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'get_transient' )
 			->with( AutoVerify::TRANSIENT )
 			->once()
-			->andReturn( $transient );
+			->andReturn( false );
 		WP_Mock::userFunction( 'get_option' )->andReturn( false );
-		WP_Mock::userFunction( 'update_option' )->andReturn( true );
-		WP_Mock::userFunction( 'delete_option' )->andReturn( true );
-		WP_Mock::userFunction( 'set_transient' )
-			->with( AutoVerify::TRANSIENT, $expected, $day_in_seconds )
-			->once();
-
-		$subject = Mockery::mock( AutoVerify::class )->makePartial();
-		$method  = 'update_transient';
-
-		$subject->$method( $forms_data );
-	}
-
-	/**
-	 * Test update_transient() limits the size and preserves recently used actions.
-	 *
-	 * @return void
-	 */
-	public function test_update_transient_limits_size_with_lru_eviction(): void {
-		$day_in_seconds = 24 * 60 * 60;
-		$args           = [
-			'action' => 'hcaptcha_action',
-			'name'   => 'hcaptcha_nonce',
-			'auto'   => true,
-		];
-		$action_forms   = [
-			[
-				'inputs' => [ 'test_input' ],
-				'args'   => $args,
-			],
-		];
-		$transient      = [
-			'/oldest' => $action_forms,
-			'/middle' => $action_forms,
-			'/newest' => $action_forms,
-		];
-		$forms_data     = [
-			[
-				'action' => '/oldest',
-				'inputs' => [ 'test_input' ],
-				'args'   => $args,
-			],
-		];
-		$expected       = [
-			'/newest' => $action_forms,
-			'/oldest' => $action_forms,
-		];
-
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize
-		$max_size = strlen( serialize( $expected ) );
-
-		FunctionMocker::replace(
-			'constant',
-			static function ( $name ) use ( $day_in_seconds ) {
-				return 'DAY_IN_SECONDS' === $name ? $day_in_seconds : 0;
-			}
-		);
-		WP_Mock::userFunction( 'wp_parse_args' )->andReturnUsing(
-			static function ( $values, $defaults ) {
-				return array_merge( $defaults, $values );
-			}
-		);
-		WP_Mock::userFunction( 'get_transient' )
-			->with( AutoVerify::TRANSIENT )
-			->once()
-			->andReturn( $transient );
-		WP_Mock::userFunction( 'get_option' )->andReturn( false );
-		WP_Mock::userFunction( 'update_option' )->andReturn( true );
-		WP_Mock::onFilter( 'hcap_auto_verify_transient_max_size' )
-			->with( AutoVerify::MAX_TRANSIENT_SIZE )
-			->reply( $max_size );
-		WP_Mock::userFunction( 'set_transient' )
-			->with( AutoVerify::TRANSIENT, $expected, $day_in_seconds )
-			->once();
-
-		$subject = Mockery::mock( AutoVerify::class )->makePartial();
-		$method  = 'update_transient';
-
-		$subject->shouldAllowMockingProtectedMethods();
-		$subject->$method( $forms_data );
-	}
-
-	/**
-	 * Data provider for test_update_transient().
-	 *
-	 * @return array
-	 */
-	public function dp_test_update_transient(): array {
-		$args            = [
-			'action' => 'hcaptcha_action',
-			'name'   => 'hcaptcha_nonce',
-			'auto'   => true,
-		];
-		$test_forms_data = [
-			[
-				'action' => '/autoverify',
-				'inputs' => [ 'test_input' ],
-				'args'   => $args,
-			],
-		];
-		$test_transient  = [
-			'/autoverify' =>
+		WP_Mock::userFunction( 'update_option' )
+			->with(
+				'hcaptcha_auto_verify_form_' . hash( 'sha256', '/autoverify' ),
 				[
 					[
 						'inputs' => [ 'test_input' ],
-						'args'   => $args,
+						'args'   => [ 'auto' => true ],
 					],
 				],
-		];
+				false
+			)
+			->once();
+		WP_Mock::userFunction( 'set_transient' )->never();
+		WP_Mock::userFunction( 'delete_transient' )->never();
 
-		return [
-			'Empty transient and forms_data'        => [
-				'transient'  => false,
-				'forms_data' => [],
-				'expected'   => [],
-			],
-			'Empty forms_data'                      => [
-				'transient'  => $test_transient,
-				'forms_data' => [],
-				'expected'   => $test_transient,
-			],
-			'Add new form'                          => [
-				'transient'  => [],
-				'forms_data' => $test_forms_data,
-				'expected'   => $test_transient,
-			],
-			'Add form with multiple inputs'         => [
-				'transient'  => [],
-				'forms_data' => [
-					[
-						'action' => '/autoverify',
-						'inputs' => [ 'test_input', 'test_input2' ],
-						'args'   => $args,
-					],
-				],
-				'expected'   => [
-					'/autoverify' => [
-						[
-							'inputs' => [ 'test_input', 'test_input2' ],
-							'args'   => $args,
-						],
-					],
-				],
-			],
-			'Add forms with same action'            => [
-				'transient'  => $test_transient,
-				'forms_data' => [
-					[
-						'action' => '/autoverify',
-						'inputs' => [ 'test_input' ],
-						'args'   => $args,
-					],
-					[
-						'action' => '/autoverify',
-						'inputs' => [ 'test_input1', 'test_input2' ],
-						'args'   => $args,
-					],
-					[
-						'action' => '/autoverify',
-						'inputs' => [ 'test_input3', 'test_input4' ],
-						'args'   => $args,
-					],
-				],
-				'expected'   => [
-					'/autoverify' => [
-						[
-							'inputs' => [ 'test_input' ],
-							'args'   => $args,
-						],
-						[
-							'inputs' => [ 'test_input1', 'test_input2' ],
-							'args'   => $args,
-						],
-						[
-							'inputs' => [ 'test_input3', 'test_input4' ],
-							'args'   => $args,
-						],
-					],
-				],
-			],
-			'Preserve forms with different widgets' => [
-				'transient'  => [],
-				'forms_data' => [
-					[
-						'action'    => '/autoverify',
-						'inputs'    => [ 'test_input' ],
-						'widget_id' => 'first-widget-id',
-						'args'      => $args,
-					],
-					[
-						'action'    => '/autoverify',
-						'inputs'    => [ 'test_input' ],
-						'widget_id' => 'second-widget-id',
-						'args'      => $args,
-					],
-				],
-				'expected'   => [
-					'/autoverify' => [
-						[
-							'inputs'    => [ 'test_input' ],
-							'args'      => $args,
-							'widget_id' => 'first-widget-id',
-						],
-						[
-							'inputs'    => [ 'test_input' ],
-							'args'      => $args,
-							'widget_id' => 'second-widget-id',
-						],
-					],
-				],
-			],
-			'Add forms with different actions'      => [
-				'transient'  => $test_transient,
-				'forms_data' => [
-					[
-						'action' => '/autoverify',
-						'inputs' => [ 'test_input', 'test_input2' ],
-						'args'   => $args,
-					],
-					[
-						'action' => '/autoverify2',
-						'inputs' => [ 'test_input3', 'test_input4' ],
-						'args'   => $args,
-					],
-				],
-				'expected'   => [
-					'/autoverify'  => [
-						[
-							'inputs' => [ 'test_input' ],
-							'args'   => $args,
-						],
-						[
-							'inputs' => [ 'test_input', 'test_input2' ],
-							'args'   => $args,
-						],
-					],
-					'/autoverify2' => [
-						[
-							'inputs' => [ 'test_input3', 'test_input4' ],
-							'args'   => $args,
-						],
-					],
-				],
-			],
-			'Remove form'                           => [
-				'transient'  => $test_transient,
-				'forms_data' => [
-					[
-						'action' => '/autoverify',
-						'inputs' => [ 'test_input' ],
-						'args'   => [ 'auto' => false ],
-					],
-					[
-						'action' => '/autoverify2',
-						'inputs' => [ 'test_input3', 'test_input4' ],
-						'args'   => $args,
-					],
-				],
-				'expected'   => [
-					'/autoverify2' => [
-						[
-							'inputs' => [ 'test_input3', 'test_input4' ],
-							'args'   => $args,
-						],
-					],
-				],
-			],
-		];
+		$subject = Mockery::mock( AutoVerify::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->update_form_registrations( [ $data ] );
 	}
 
 	/**

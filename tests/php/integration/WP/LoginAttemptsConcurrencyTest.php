@@ -52,7 +52,7 @@ class LoginAttemptsConcurrencyTest extends HCaptchaWPTestCase {
 	 */
 	public function test_concurrent_failures_retain_every_increment_and_enforce_threshold( bool $persistent_cache ): void {
 		$address       = '198.51.100.90';
-		$other_address = '203.0.113.90';
+		$other_address = $this->address_in_distinct_slot( $address );
 		$now           = time();
 		$jobs          = [];
 
@@ -121,7 +121,7 @@ class LoginAttemptsConcurrencyTest extends HCaptchaWPTestCase {
 	 */
 	public function test_concurrent_expiry_and_saturation_are_bounded( bool $persistent_cache ): void {
 		$expired_address   = '198.51.100.91';
-		$saturated_address = '203.0.113.91';
+		$saturated_address = $this->address_in_distinct_slot( $expired_address );
 		$now               = time();
 		$jobs              = [];
 
@@ -159,7 +159,7 @@ class LoginAttemptsConcurrencyTest extends HCaptchaWPTestCase {
 	 */
 	public function test_concurrent_success_reset_uses_compare_and_swap( bool $persistent_cache ): void {
 		$address       = '198.51.100.92';
-		$other_address = '203.0.113.92';
+		$other_address = $this->address_in_distinct_slot( $address );
 		$now           = time();
 
 		self::assertNotSame( $this->option_name( $address ), $this->option_name( $other_address ) );
@@ -632,6 +632,28 @@ class LoginAttemptsConcurrencyTest extends HCaptchaWPTestCase {
 		$slot = hexdec( substr( $hash, 0, 4 ) ) % LoginAttempts::SLOT_COUNT;
 
 		return LoginAttempts::OPTION_PREFIX . sprintf( '%04d', $slot );
+	}
+
+	/**
+	 * Find a second test address whose storage slot differs under the current salt.
+	 *
+	 * @param string $address First address.
+	 *
+	 * @return string
+	 * @throws RuntimeException When no distinct slot can be found.
+	 */
+	private function address_in_distinct_slot( string $address ): string {
+		$option_name = $this->option_name( $address );
+
+		for ( $suffix = 1; $suffix <= 254; ++$suffix ) {
+			$candidate = '203.0.113.' . $suffix;
+
+			if ( $option_name !== $this->option_name( $candidate ) ) {
+				return $candidate;
+			}
+		}
+
+		throw new RuntimeException( 'Cannot find a test address in a distinct login-attempt slot.' );
 	}
 
 	/**
