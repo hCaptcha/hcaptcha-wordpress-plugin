@@ -152,7 +152,7 @@ HTML;
 
 		$hcaptcha   = $this->get_hcap_form( $args );
 		$hcaptcha   = '<div class="elementor-field-group elementor-column elementor-col-100">' . $hcaptcha . '</div>';
-		$signatures = HCaptcha::get_signature( Login::class, 'login', true );
+		$signatures = HCaptcha::get_signature( Login::class, 'elementor-login', true );
 		$submit_div = '<div class="elementor-field-group elementor-column elementor-field-type-submit elementor-col-100">';
 		$expected   = str_replace( $submit_div, $hcaptcha . $signatures . "\n" . $submit_div, $form );
 
@@ -220,6 +220,46 @@ HTML;
 	}
 
 	/**
+	 * Test a real below-threshold form carries a signature that cannot preserve its exemption.
+	 *
+	 * @return void
+	 * @noinspection PhpParamsInspection
+	 */
+	public function test_rendered_below_threshold_form_requires_captcha_after_failure(): void {
+		update_option(
+			'hcaptcha_settings',
+			[
+				'elementor_pro_status' => [ 'login' ],
+				'wp_status'            => [],
+				'login_limit'          => 1,
+				'login_interval'       => 15,
+			]
+		);
+		hcaptcha()->init_hooks();
+		remove_all_actions( 'hcap_signature' );
+		remove_all_filters( 'wp_authenticate_user' );
+		remove_all_filters( 'hcap_wp_login_can_skip_verification' );
+		$subject = new Login();
+		$element = new ElementorLogin();
+		$user    = new WP_User( 1 );
+		$this->set_protected_property( $subject, 'ip', '203.0.113.20' );
+
+		ob_start();
+		$subject->before_render( $element );
+		echo '<form><div class="elementor-field-group"><button type="submit">Login</button></div></form>';
+		$subject->add_elementor_login_hcaptcha( $element );
+		$form = (string) ob_get_clean();
+
+		self::assertStringNotContainsString( '<h-captcha', $form );
+		$this->submit_signature( $form );
+		$this->mark_native_login_request();
+		self::assertTrue( HCaptcha::check_signature( Login::class, 'elementor-login' ) );
+		self::assertSame( $user, apply_filters( 'wp_authenticate_user', $user, 'password' ) );
+		$subject->login_failed( 'test-user' );
+		self::assertInstanceOf( WP_Error::class, apply_filters( 'wp_authenticate_user', $user, 'password' ) );
+	}
+
+	/**
 	 * Test a valid below-threshold signature cannot be replayed after the threshold is crossed.
 	 *
 	 * @return void
@@ -231,8 +271,9 @@ HTML;
 		update_option(
 			'hcaptcha_settings',
 			[
-				'login_limit'    => 1,
-				'login_interval' => 15,
+				'login_limit'          => 1,
+				'login_interval'       => 15,
+				'elementor_pro_status' => [ 'login' ],
 			]
 		);
 		hcaptcha()->init_hooks();
@@ -267,8 +308,9 @@ HTML;
 		update_option(
 			'hcaptcha_settings',
 			[
-				'login_limit'    => 0,
-				'login_interval' => 15,
+				'login_limit'          => 0,
+				'login_interval'       => 15,
+				'elementor_pro_status' => [ 'login' ],
 			]
 		);
 		hcaptcha()->init_hooks();
@@ -300,8 +342,9 @@ HTML;
 		update_option(
 			'hcaptcha_settings',
 			[
-				'login_limit'    => 1,
-				'login_interval' => 15,
+				'login_limit'          => 1,
+				'login_interval'       => 15,
+				'elementor_pro_status' => [ 'login' ],
 			]
 		);
 		hcaptcha()->init_hooks();
@@ -315,7 +358,7 @@ HTML;
 		$captcha = (string) ob_get_clean();
 
 		ob_start();
-		$subject->display_signature();
+		$subject->display_signature( 'elementor-login' );
 		$this->submit_signature( (string) ob_get_clean() );
 
 		$this->prepare_verify_post( 'hcaptcha_login_nonce', 'hcaptcha_login' );
@@ -328,7 +371,7 @@ HTML;
 		$this->mark_native_login_request();
 
 		self::assertStringContainsString( '<h-captcha', $captcha );
-		self::assertNull( HCaptcha::check_signature( Login::class, 'login' ) );
+		self::assertNull( HCaptcha::check_signature( Login::class, 'elementor-login' ) );
 		self::assertSame( $user, $subject->check_signature( $user, 'password' ) );
 	}
 

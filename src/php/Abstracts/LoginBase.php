@@ -30,6 +30,17 @@ abstract class LoginBase {
 	protected const NONCE = 'hcaptcha_login_nonce';
 
 	/**
+	 * Settings for signed login form contexts.
+	 */
+	private const FORM_SETTINGS = [
+		'wp-login'           => 'wp_status',
+		'elementor-login'    => 'elementor_pro_status',
+		'divi-login'         => 'divi_status',
+		'divi_builder-login' => 'divi_builder_status',
+		'extra-login'        => 'extra_status',
+	];
+
+	/**
 	 * Legacy login attempts the data option name.
 	 */
 	public const LOGIN_DATA = 'hcaptcha_login_data';
@@ -118,12 +129,15 @@ abstract class LoginBase {
 	/**
 	 * Display signature.
 	 *
+	 * @param string $form_id Signed rendering context, independent of the login threshold.
+	 *
 	 * @return void
 	 */
-	public function display_signature(): void {
+	public function display_signature( string $form_id = 'login' ): void {
 		$this->login_form_shown = true;
+		$form_id                = doing_action( 'login_form' ) && $this->is_wp_login_form() ? 'wp-login' : $form_id;
 
-		HCaptcha::display_signature( static::class, 'login', $this->hcaptcha_shown );
+		HCaptcha::display_signature( static::class, $form_id, $this->hcaptcha_shown );
 	}
 
 	/**
@@ -195,8 +209,53 @@ abstract class LoginBase {
 	 * @return bool
 	 */
 	private function is_login_verification_owner(): bool {
-		return false !== has_filter( 'wp_authenticate_user', [ $this, 'check_signature' ] ) &&
-			null === HCaptcha::check_signature( static::class, 'login' );
+		[ $check, $enabled ] = $this->get_login_signature();
+
+		return $this->is_login_enabled() &&
+			false !== has_filter( 'wp_authenticate_user', [ $this, 'check_signature' ] ) &&
+			$enabled && null === $check;
+	}
+
+	/**
+	 * Validate the rendering context and look up its current protection setting.
+	 *
+	 * Legacy signatures still require the current threshold. Only a valid signed
+	 * context can select a deliberately disabled form; missing or tampered fields
+	 * cannot turn a below-threshold signature into a permanent exemption.
+	 *
+	 * @return array{0: bool|null, 1: bool} Signature result and current protection setting.
+	 */
+	private function get_login_signature(): array {
+		$check = HCaptcha::check_signature( static::class, 'login' );
+
+		if ( false !== $check ) {
+			return [ $check, true ];
+		}
+
+		foreach ( self::FORM_SETTINGS as $form_id => $setting ) {
+			$check = HCaptcha::check_signature( static::class, $form_id );
+
+			if ( false !== $check ) {
+				$enabled = hcaptcha()->settings()->is( $setting, 'login' );
+
+				if ( 'wp-login' === $form_id ) {
+					/**
+					 * Filters whether the signed native login form is protected.
+					 *
+					 * Integrations such as Wordfence can deliberately disable native
+					 * hCaptcha protection while leaving the WordPress setting enabled.
+					 * This filter applies only after the native context is validated.
+					 *
+					 * @param bool $enabled Whether native login protection is enabled.
+					 */
+					$enabled = (bool) apply_filters( 'hcap_wp_login_protection_enabled', $enabled );
+				}
+
+				return [ $check, $enabled ];
+			}
+		}
+
+		return [ false, true ];
 	}
 
 	/**
@@ -209,11 +268,15 @@ abstract class LoginBase {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function check_signature( $user, string $password ) {
-		if ( ! $this->is_wp_login_form() ) {
+		if ( ! $this->is_wp_login_form() || ! $this->is_login_enabled() ) {
 			return $user;
 		}
 
-		$check = HCaptcha::check_signature( static::class, 'login' );
+		[ $check, $enabled ] = $this->get_login_signature();
+
+		if ( ! $enabled ) {
+			return $user;
+		}
 
 		if ( $check && $this->can_skip_login_verification() ) {
 			return $user;
@@ -227,6 +290,18 @@ abstract class LoginBase {
 		}
 
 		return $this->login_base_verify( $user, $password );
+	}
+
+	/**
+	 * Whether this integration's login protection is enabled.
+	 *
+	 * Most integrations are loaded only when enabled. Always-loaded integrations
+	 * override this method so they cannot verify or own a disabled login form.
+	 *
+	 * @return bool
+	 */
+	protected function is_login_enabled(): bool {
+		return true;
 	}
 
 	/**

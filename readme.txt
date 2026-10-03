@@ -1054,6 +1054,7 @@ Instructions for popular native integrations are below:
 == Changelog ==
 
 = 5.4.1 =
+* Fixed WordPress login authentication when login integrations have different protection settings.
 * Improved Auto-Verification compatibility with forms on query-based page URLs and Brevo forms, while simplifying form registration storage.
 
 = 5.4.0 =

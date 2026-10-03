@@ -5,8 +5,12 @@
  * @package HCaptcha\Tests
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+
 namespace HCaptcha\Tests\Integration\BBPress;
 
+use BBP_Shortcodes;
 use HCaptcha\BBPress\Login;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
@@ -48,13 +52,15 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test the login form rendered by the live bbPress shortcode.
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_live_login_form(): void {
 		hcaptcha()->settings()->set( 'bbp_status', 'login' );
 
 		new Login();
 
-		$shortcodes_file = wp_normalize_path( ( new ReflectionClass( \BBP_Shortcodes::class ) )->getFileName() );
+		$shortcodes_file = wp_normalize_path( ( new ReflectionClass( BBP_Shortcodes::class ) )->getFileName() );
 		$template        = bbp_get_template_part( 'form', 'user-login' );
 
 		ob_start();
@@ -143,6 +149,8 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	 * @return void
 	 */
 	public function test_allow_wp_login_skip_verification(): void {
+		update_option( 'hcaptcha_settings', [ 'bbp_status' => [ 'login' ] ] );
+		hcaptcha()->init_hooks();
 		$subject = new Login();
 
 		self::assertTrue( $subject->allow_wp_login_skip_verification( true ) );
@@ -178,6 +186,8 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	 * @return void
 	 */
 	public function test_defer_auto_verification(): void {
+		update_option( 'hcaptcha_settings', [ 'bbp_status' => [ 'login' ] ] );
+		hcaptcha()->init_hooks();
 		$registered_form = [];
 		$subject         = new Login();
 		$login_path      = (string) wp_parse_url( wp_login_url(), PHP_URL_PATH );

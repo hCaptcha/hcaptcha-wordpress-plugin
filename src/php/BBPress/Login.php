@@ -79,8 +79,17 @@ class Login extends LoginBase {
 		$this->bbpress_login_form = false;
 
 		// Check the login status, because the class is always loading when bbPress is active.
-		if ( hcaptcha()->settings()->is( 'bbp_status', 'login' ) ) {
+		if ( $this->is_login_enabled() ) {
 			$this->add_captcha();
 		}
+	}
+
+	/**
+	 * Whether bbPress login protection is enabled.
+	 *
+	 * @return bool
+	 */
+	protected function is_login_enabled(): bool {
+		return hcaptcha()->settings()->is( 'bbp_status', 'login' );
 	}
 }
