@@ -28,7 +28,10 @@ class AutoVerify {
 	private const OPTION_PREFIX = 'hcaptcha_auto_verify_form_';
 
 	/**
-	 * Maximum serialized transient size in bytes.
+	 * Legacy transient size limit, retained for compatibility.
+	 *
+	 * @deprecated Registrations are stored in persistent options.
+	 * @noinspection PhpUnused
 	 */
 	public const MAX_TRANSIENT_SIZE = 512 * 1024;
 
@@ -266,7 +269,17 @@ class AutoVerify {
 			return null;
 		}
 
-		$path            = $this->get_path( $request_uri );
+		$path       = $this->get_path( $request_uri );
+		$target_key = $this->get_target_key( $request_uri );
+
+		if ( $target_key !== $path ) {
+			$registered_form = $this->get_registered_form( $target_key );
+
+			if ( null !== $registered_form ) {
+				return $registered_form;
+			}
+		}
+
 		$registered_form = $path ? $this->get_registered_form( $path ) : null;
 
 		if ( null !== $registered_form ) {
@@ -393,7 +406,7 @@ class AutoVerify {
 			];
 		}
 
-		$this->update_transient( $forms_data );
+		$this->update_form_registrations( $forms_data );
 	}
 
 	/**
@@ -412,7 +425,65 @@ class AutoVerify {
 
 		$form_action = $form_action ?: $this->get_request_uri();
 
-		return $this->get_path( $form_action );
+		return $this->get_target_key( $form_action );
+	}
+
+	/**
+	 * Distinguish WordPress query routes sharing the same URL path.
+	 *
+	 * @param string $url Form target or request URL.
+	 *
+	 * @return string
+	 */
+	private function get_target_key( string $url ): string {
+		$path = $this->get_path( $url );
+
+		if ( '' === $path && 0 === strpos( $url, '?' ) ) {
+			$path = $this->get_path( $this->get_request_uri() );
+		}
+
+		$query = wp_parse_url( $url, PHP_URL_QUERY );
+
+		if ( ! is_string( $query ) || '' === $query ) {
+			return $path;
+		}
+
+		parse_str( $query, $query_vars );
+		$post_id = $this->get_query_post_id( $query_vars );
+
+		if ( ! $post_id ) {
+			return $path;
+		}
+
+		$home_path  = $this->get_path( home_url( '/' ) );
+		$index_path = ( '/' === $home_path ? '' : $home_path ) . '/index.php';
+
+		return $path === $home_path || $path === $index_path ? 'post:' . $post_id . ':' . $path : $path;
+	}
+
+	/**
+	 * Get the post selected by WordPress query variables.
+	 *
+	 * @param array $query_vars Parsed query variables.
+	 *
+	 * @return int
+	 */
+	private function get_query_post_id( array $query_vars ): int {
+		foreach ( [ 'page_id', 'p' ] as $key ) {
+			$value = $query_vars[ $key ] ?? null;
+
+			if ( is_scalar( $value ) && ctype_digit( (string) $value ) ) {
+				return (int) $value;
+			}
+		}
+
+		if ( ! empty( $query_vars['pagename'] ) && is_string( $query_vars['pagename'] ) ) {
+			$page = get_page_by_path( $query_vars['pagename'] );
+
+			return $page->ID ?? 0;
+		}
+
+		return 0;
 	}
 
 	/**
@@ -576,13 +647,14 @@ class AutoVerify {
 	}
 
 	/**
-	 * Update form data in transient.
+	 * Persist form registrations and retire corresponding legacy transient entries.
 	 *
-	 * @param array $forms_data Forms data to update in transient.
+	 * @param array $forms_data Forms data to register.
 	 */
-	protected function update_transient( array $forms_data ): void {
+	protected function update_form_registrations( array $forms_data ): void {
 		$transient        = get_transient( self::TRANSIENT );
-		$registered_forms = $transient ?: [];
+		$legacy_forms     = is_array( $transient ) ? $transient : [];
+		$registered_forms = $legacy_forms;
 
 		foreach ( $forms_data as $form_data ) {
 			$data         = wp_parse_args(
@@ -599,28 +671,36 @@ class AutoVerify {
 					'auto' => false,
 				]
 			);
-			$this->update_form_registration( $registered_forms, $data );
+			if ( $this->update_form_registration( $registered_forms, $data ) ) {
+				unset( $legacy_forms[ $data['action'] ] );
+			}
 		}
 
-		$registered_forms = $this->limit_transient_size( $registered_forms );
+		if ( ! is_array( $transient ) || $legacy_forms === $transient ) {
+			return;
+		}
 
-		set_transient(
-			self::TRANSIENT,
-			$registered_forms,
-			/** This filter is documented in wp-includes/pluggable.php. */
-			apply_filters( 'nonce_life', constant( 'DAY_IN_SECONDS' ) ) // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
-		);
+		if ( $legacy_forms ) {
+			set_transient(
+				self::TRANSIENT,
+				$legacy_forms,
+				/** This filter is documented in wp-includes/pluggable.php. */
+				apply_filters( 'nonce_life', constant( 'DAY_IN_SECONDS' ) ) // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+			);
+		} else {
+			delete_transient( self::TRANSIENT );
+		}
 	}
 
 	/**
-	 * Update one action in the transient and its persistent registration.
+	 * Update one action in its persistent registration.
 	 *
 	 * @param array $registered_forms Registered forms.
 	 * @param array $data             Form data.
 	 *
-	 * @return void
+	 * @return bool Whether a registration was persisted or removed.
 	 */
-	private function update_form_registration( array &$registered_forms, array $data ): void {
+	private function update_form_registration( array &$registered_forms, array $data ): bool {
 		$action = $data['action'];
 
 		unset( $data['action'] );
@@ -651,16 +731,13 @@ class AutoVerify {
 				$action_forms[] = $data;
 			}
 
-			// Move the action to the end of the array to mark it as recently used.
-			unset( $registered_forms[ $action ] );
-
 			$registered_forms[ $action ] = array_values( $action_forms );
 			update_option( $option_name, $registered_forms[ $action ], false );
 
-			return;
+			return true;
 		}
 
-		$this->remove_form_registration( $registered_forms, $data, $action, $action_forms, $key );
+		return $this->remove_form_registration( $registered_forms, $data, $action, $action_forms, $key );
 	}
 
 	/**
@@ -672,7 +749,7 @@ class AutoVerify {
 	 * @param array     $action_forms     Forms registered for the action.
 	 * @param int|false $key              Form key.
 	 *
-	 * @return void
+	 * @return bool Whether a registration was removed.
 	 */
 	private function remove_form_registration(
 		array &$registered_forms,
@@ -680,9 +757,9 @@ class AutoVerify {
 		string $action,
 		array $action_forms,
 		$key
-	): void {
+	): bool {
 		if ( false === $key || ( $action_forms[ $key ]['source'] ?? null ) !== ( $data['source'] ?? null ) ) {
-			return;
+			return false;
 		}
 
 		$this->remove_registered_form( $registered_forms, $action, $action_forms, $key );
@@ -694,6 +771,8 @@ class AutoVerify {
 		} else {
 			delete_option( $option_name );
 		}
+
+		return true;
 	}
 
 	/**
@@ -768,75 +847,6 @@ class AutoVerify {
 	}
 
 	/**
-	 * Limit the serialized transient size by removing the least recently used actions.
-	 *
-	 * @param array $registered_forms Registered forms.
-	 *
-	 * @return array
-	 */
-	private function limit_transient_size( array $registered_forms ): array {
-		$empty_array_size = $this->get_serialized_array_wrapper_size( 0 );
-
-		/**
-		 * Filters the maximum serialized size of the auto-verify transient.
-		 *
-		 * @param int $max_size Maximum size in bytes.
-		 */
-		$max_size = (int) apply_filters( 'hcap_auto_verify_transient_max_size', self::MAX_TRANSIENT_SIZE );
-		$max_size = max( $empty_array_size, $max_size );
-
-		$entry_sizes            = [];
-		$payload_size           = 0;
-		$registered_forms_count = count( $registered_forms );
-
-		foreach ( $registered_forms as $action => $action_forms ) {
-			$entry_size             = $this->get_serialized_array_entry_size( $action, $action_forms );
-			$entry_sizes[ $action ] = $entry_size;
-			$payload_size          += $entry_size;
-		}
-
-		while (
-			$registered_forms &&
-			$this->get_serialized_array_wrapper_size( $registered_forms_count ) + $payload_size > $max_size
-		) {
-			$action        = array_key_first( $registered_forms );
-			$payload_size -= $entry_sizes[ $action ];
-
-			unset( $registered_forms[ $action ], $entry_sizes[ $action ] );
-
-			--$registered_forms_count;
-		}
-
-		return $registered_forms;
-	}
-
-	/**
-	 * Get the serialized size of an array wrapper.
-	 *
-	 * @param int $count Number of array entries.
-	 *
-	 * @return int
-	 */
-	private function get_serialized_array_wrapper_size( int $count ): int {
-		return strlen( 'a:' . $count . ':{' ) + 1;
-	}
-
-	/**
-	 * Get the serialized size of an array entry.
-	 *
-	 * @param int|string $key   Array key.
-	 * @param mixed      $value Array value.
-	 *
-	 * @return int
-	 */
-	private function get_serialized_array_entry_size( $key, $value ): int {
-		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize
-		$serialized_entry = serialize( [ $key => $value ] );
-
-		return strlen( $serialized_entry ) - $this->get_serialized_array_wrapper_size( 1 );
-	}
-
-	/**
 	 * Get registered form.
 	 *
 	 * @param string $path URL path.
@@ -851,6 +861,12 @@ class AutoVerify {
 			$registered_forms = get_transient( self::TRANSIENT );
 			$action_forms     = (array) ( $registered_forms[ $path ] ?? [] );
 		}
+
+		if ( ! $action_forms ) {
+			return null;
+		}
+
+		$action_forms = $this->get_applicable_action_forms( $action_forms );
 
 		if ( ! $action_forms ) {
 			return null;
@@ -881,6 +897,30 @@ class AutoVerify {
 		$registered_form = apply_filters( 'hcap_auto_verify_unmatched_form', [], $path, $widget_id );
 
 		return is_array( $registered_form ) ? $registered_form : null;
+	}
+
+	/**
+	 * Exclude Brevo forms when Brevo will not process the submission.
+	 *
+	 * @param array $action_forms Forms registered for the action.
+	 *
+	 * @return array
+	 */
+	private function get_applicable_action_forms( array $action_forms ): array {
+		if ( 'subscribe_form_submit' === Request::filter_input( INPUT_POST, 'sib_form_action' ) ) {
+			return $action_forms;
+		}
+
+		return array_values(
+			array_filter(
+				$action_forms,
+				static function ( $form ): bool {
+					$source = (array) ( $form['args']['id']['source'] ?? [] );
+
+					return ! in_array( 'mailin/sendinblue.php', $source, true );
+				}
+			)
+		);
 	}
 
 	/**

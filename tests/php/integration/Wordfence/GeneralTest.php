@@ -7,6 +7,7 @@
 
 // phpcs:disable Generic.Commenting.DocComment.MissingShort
 /** @noinspection PhpLanguageLevelInspection */
+/** @noinspection PhpUndefinedNamespaceInspection */
 /** @noinspection PhpUndefinedClassInspection */
 // phpcs:enable Generic.Commenting.DocComment.MissingShort
 
@@ -118,6 +119,11 @@ class GeneralTest extends HCaptchaPluginWPTestCase {
 		hcaptcha()->init_hooks();
 
 		$subject = new General();
+
+		self::assertSame(
+			10,
+			has_filter( 'hcap_wp_login_protection_enabled', [ $subject, 'filter_wp_login_protection_enabled' ] )
+		);
 
 		if ( 'login' === $wordfence_status ) {
 			self::assertSame( [ 'on' ], hcaptcha()->settings()->get( 'recaptcha_compat_off' ) );

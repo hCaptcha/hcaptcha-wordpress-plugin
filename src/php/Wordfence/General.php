@@ -38,6 +38,8 @@ class General {
 	 * @return void
 	 */
 	protected function init_hooks(): void {
+		add_filter( 'hcap_wp_login_protection_enabled', [ $this, 'filter_wp_login_protection_enabled' ] );
+
 		if ( hcaptcha()->settings()->is( 'wordfence_status', 'login' ) ) {
 			// Disable reCAPTCHA compatibility, otherwise a Wordfence login script fails and cannot show 2FA.
 			hcaptcha()->settings()->set( 'recaptcha_compat_off', [ 'on' ] );
@@ -53,6 +55,17 @@ class General {
 		}
 
 		add_action( 'login_head', [ $this, 'print_inline_styles' ], 20 );
+	}
+
+	/**
+	 * Apply the current Wordfence setting to signed native login protection.
+	 *
+	 * @param bool $enabled Whether native login protection is enabled.
+	 *
+	 * @return bool
+	 */
+	public function filter_wp_login_protection_enabled( bool $enabled ): bool {
+		return $enabled && hcaptcha()->settings()->is( 'wordfence_status', 'login' );
 	}
 
 	/**
