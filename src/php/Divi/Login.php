@@ -82,15 +82,10 @@ class Login extends LoginBase {
 	 * @noinspection UnnecessaryCastingInspection
 	 */
 	private function add_divi_login_hcaptcha( string $output ): string {
-		if ( ! $this->is_login_limit_exceeded() ) {
-			return $output;
-		}
-
 		$hcaptcha = '';
-		$theme    = $this->get_active_divi_component();
 
 		// Check the login status, because the class is always loading when a Divi component is active.
-		if ( hcaptcha()->settings()->is( $theme . '_status', 'login' ) ) {
+		if ( $this->is_login_enabled() ) {
 			ob_start();
 
 			$this->add_captcha();
@@ -102,7 +97,7 @@ class Login extends LoginBase {
 		/**
 		 * Display hCaptcha signature.
 		 */
-		do_action( 'hcap_signature' );
+		do_action( 'hcap_signature', $this->get_active_divi_component() . '-login' );
 
 		$signatures = (string) ob_get_clean();
 
@@ -111,6 +106,15 @@ class Login extends LoginBase {
 
 		// Insert hCaptcha.
 		return (string) preg_replace( $pattern, $replacement, $output );
+	}
+
+	/**
+	 * Whether the active Divi component's login protection is enabled.
+	 *
+	 * @return bool
+	 */
+	protected function is_login_enabled(): bool {
+		return hcaptcha()->settings()->is( $this->get_active_divi_component() . '_status', 'login' );
 	}
 
 	/**

@@ -1,3 +1,7 @@
+= 5.4.1 =
+* Fixed WordPress login authentication when login integrations have different protection settings.
+* Improved Auto-Verification compatibility with forms on query-based page URLs and Brevo forms, while simplifying form registration storage.
+
 = 5.4.0 =
 * Added optional AJAX submission for standard WordPress comment forms, with inline error messages.
 * Added form data processing for anti-spam checks in 10 popular integrations: WordPress Core, WooCommerce, Divi, Ultimate Addons for Elementor, Essential Addons, Mailchimp, Maintenance, Ultimate Member, bbPress, and GiveWP.

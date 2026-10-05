@@ -65,17 +65,10 @@ class Login extends LoginBase {
 
 		$form = (string) ob_get_clean();
 
-		if ( ! $this->is_login_limit_exceeded() ) {
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			echo $form;
-
-			return;
-		}
-
 		$hcaptcha = '';
 
 		// Check the login status, because the class is always loading when Elementor Pro is active.
-		if ( hcaptcha()->settings()->is( 'elementor_pro_status', 'login' ) ) {
+		if ( $this->is_login_enabled() ) {
 			ob_start();
 			$this->add_captcha();
 
@@ -88,7 +81,7 @@ class Login extends LoginBase {
 		/**
 		 * Display hCaptcha signature.
 		 */
-		do_action( 'hcap_signature' );
+		do_action( 'hcap_signature', 'elementor-login' );
 
 		$signatures = (string) ob_get_clean();
 
@@ -98,6 +91,15 @@ class Login extends LoginBase {
 
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo $form;
+	}
+
+	/**
+	 * Whether Elementor Pro login protection is enabled.
+	 *
+	 * @return bool
+	 */
+	protected function is_login_enabled(): bool {
+		return hcaptcha()->settings()->is( 'elementor_pro_status', 'login' );
 	}
 
 	/**

@@ -374,6 +374,10 @@ jobs:
           wp plugin is-installed bb-plugin
           echo "available=true" >> "$GITHUB_OUTPUT"
 
+      - name: Generate changelog for tests
+        working-directory: ${{ env.wp-plugin-directory }}
+        run: .github/scripts/update-changelog.sh --generate-only
+
       - name: Run WP tests with private test plugins
         if: steps.test_plugins.outputs.available == 'true'
         working-directory: ${{ env.wp-plugin-directory }}

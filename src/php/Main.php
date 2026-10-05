@@ -1097,7 +1097,7 @@ class Main {
 		$offset_hours = ( $gmt_offset > 0 ? '-' : '+' ) . absint( $gmt_offset ) . ' hours';
 		$tomorrow_6am = strtotime( 'tomorrow 06:00 am ' . $offset_hours );
 
-		// Update Maxmind database every 15 days.
+		// Update MaxMind database every 15 days.
 		as_schedule_recurring_action(
 			$tomorrow_6am,
 			15 * DAY_IN_SECONDS,

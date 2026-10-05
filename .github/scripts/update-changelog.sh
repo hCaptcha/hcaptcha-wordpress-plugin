@@ -24,6 +24,12 @@ sed -i "/^= $latest_version =$/,/^= [0-9]\+\.[0-9]\+\.[0-9]\+ =$/ {/^= $latest_v
 # Append the latest changelog section from readme.txt to changelog.txt
 { echo -e "$latest_section"; cat changelog.txt; } > temp.txt && mv temp.txt changelog.txt
 
+# Generate the file without changing Git configuration, committing, or pushing.
+if [ "${1:-}" = "--generate-only" ]; then
+  echo "Changelog generated from readme.txt."
+  exit 0
+fi
+
 # Check if there are changes in changelog.txt
 if git diff --quiet changelog.txt; then
   echo "No changes in changelog.txt."

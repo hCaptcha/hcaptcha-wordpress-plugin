@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, recaptcha, antispam, spam
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 5.4.0
+Stable tag: 5.4.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -1052,6 +1052,10 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 5.4.1 =
+* Fixed WordPress login authentication when login integrations have different protection settings.
+* Improved Auto-Verification compatibility with forms on query-based page URLs and Brevo forms, while simplifying form registration storage.
 
 = 5.4.0 =
 * Added optional AJAX submission for standard WordPress comment forms, with inline error messages.

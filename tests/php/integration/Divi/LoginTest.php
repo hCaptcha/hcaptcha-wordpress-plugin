@@ -9,6 +9,7 @@ namespace HCaptcha\Tests\Integration\Divi;
 
 use HCaptcha\Divi\Login;
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\LoginAttempts;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
 use ReflectionException;
@@ -57,6 +58,17 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 		hcaptcha()->settings()->set( 'honeypot', 'on' );
 		hcaptcha()->settings()->set( 'set_min_submit_time', 'on' );
 		$this->set_protected_property( hcaptcha(), 'supported_forms', null );
+	}
+
+	/**
+	 * Clear login-attempt state after each test.
+	 *
+	 * @return void
+	 */
+	public function tearDown(): void {
+		LoginAttempts::delete_all();
+
+		parent::tearDown();
 	}
 
 	/**
@@ -196,6 +208,46 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 		$subject = new Login();
 
 		self::assertSame( $output, $subject->add_hcaptcha_to_shortcode( $output, Login::TAG ) );
+	}
+
+	/**
+	 * Test a real below-threshold Divi form cannot preserve its exemption after a failed login.
+	 *
+	 * @return void
+	 */
+	public function test_rendered_below_threshold_form_requires_captcha_after_failure(): void {
+		update_option(
+			'hcaptcha_settings',
+			[
+				'divi_status'    => [ 'login' ],
+				'wp_status'      => [],
+				'login_limit'    => 1,
+				'login_interval' => 15,
+			]
+		);
+		hcaptcha()->init_hooks();
+		remove_all_actions( 'hcap_signature' );
+		remove_all_filters( 'wp_authenticate_user' );
+		remove_all_filters( 'hcap_wp_login_can_skip_verification' );
+		$subject = new Login();
+		$user    = new WP_User( 1 );
+		$this->set_protected_property( $subject, 'ip', '203.0.113.21' );
+		$form = $subject->add_hcaptcha_to_shortcode( '<form><p><button>Login</button></p></form>', Login::TAG );
+
+		self::assertStringNotContainsString( '<h-captcha', $form );
+		preg_match( '/name="(hcaptcha-signature-[^"]+)"\s+value="([^"]+)"/', $form, $matches );
+		self::assertCount( 3, $matches );
+		$_POST[ html_entity_decode( $matches[1], ENT_QUOTES ) ] = html_entity_decode( $matches[2], ENT_QUOTES );
+		// phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
+		$GLOBALS['wp_actions']['login_init']           = 1;
+		$GLOBALS['wp_actions']['login_form_login']     = 1;
+		$GLOBALS['wp_filters']['login_link_separator'] = 1;
+		// phpcs:enable WordPress.WP.GlobalVariablesOverride.Prohibited
+
+		self::assertTrue( HCaptcha::check_signature( Login::class, 'divi-login' ) );
+		self::assertSame( $user, apply_filters( 'wp_authenticate_user', $user, 'password' ) );
+		$subject->login_failed( 'test-user' );
+		self::assertInstanceOf( WP_Error::class, apply_filters( 'wp_authenticate_user', $user, 'password' ) );
 	}
 
 	/**
