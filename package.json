@@ -83,7 +83,7 @@
     "picomatch@npm:^4": "^4.0.5",
     "postcss": "^8.5.25",
     "qs": "^6.15.3",
-    "serialize-javascript": "^7.1.2",
+    "serialize-javascript": "^7.1.4",
     "svgo": "^4.1.0",
     "tar": "^7.5.22",
     "undici": "^7.29.0"
