@@ -10,6 +10,7 @@ namespace HCaptcha\AutoVerify;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
+use WP_Query;
 use WP_Widget_Block;
 
 /**
@@ -26,6 +27,11 @@ class AutoVerify {
 	 * Prefix for persistent registrations, keyed by the form action path.
 	 */
 	private const OPTION_PREFIX = 'hcaptcha_auto_verify_form_';
+
+	/**
+	 * Public WordPress query variables selecting a single post.
+	 */
+	private const QUERY_SELECTORS = [ 'page_id', 'p', 'pagename', 'name', 'attachment_id', 'subpost_id', 'attachment', 'subpost' ];
 
 	/**
 	 * Legacy transient size limit, retained for compatibility.
@@ -286,13 +292,19 @@ class AutoVerify {
 			return $registered_form;
 		}
 
-		$canonical_path = $this->get_canonical_request_path();
+		foreach ( $this->get_canonical_request_keys() as $canonical_key ) {
+			if ( ! $canonical_key || $canonical_key === $path || $canonical_key === $target_key ) {
+				continue;
+			}
 
-		if ( ! $canonical_path || $canonical_path === $path ) {
-			return null;
+			$registered_form = $this->get_registered_form( $canonical_key );
+
+			if ( null !== $registered_form ) {
+				return $registered_form;
+			}
 		}
 
-		return $this->get_registered_form( $canonical_path );
+		return null;
 	}
 
 	/**
@@ -326,13 +338,20 @@ class AutoVerify {
 	 * @return array
 	 */
 	private function get_entry( string $name, string $action, array $expected_id ): array {
-		return [
+		$entry = [
 			'nonce_name'         => $name,
 			'nonce_action'       => $action,
 			'h-captcha-response' => Request::filter_input( INPUT_POST, 'h-captcha-response' ),
 			'data'               => $this->get_data(),
 			'expected_id'        => $expected_id,
 		];
+
+		/**
+		 * Filter entry data for the server-registered automatic form.
+		 *
+		 * @param array $entry Verification entry with the registered form identity.
+		 */
+		return (array) apply_filters( 'hcap_auto_verify_entry', $entry );
 	}
 
 	/**
@@ -417,15 +436,212 @@ class AutoVerify {
 	 * @return string
 	 */
 	private function get_form_action( string $form ): string {
-		$form_action = '';
+		$form_action = $this->get_form_action_attribute( $form );
+		$form_action = trim( str_replace( [ "\t", "\r", "\n" ], '', $form_action ), "\x00..\x20" );
 
-		if ( preg_match( '#<form\s[\S\s]*?action="(.*?)"[\S\s]*?>#', $form, $m ) ) {
-			$form_action = $m[1];
+		if ( '' === $form_action ) {
+			$form_action = $this->get_request_uri();
+		} else {
+			$form_action = $this->resolve_form_action( $form_action );
 		}
 
-		$form_action = $form_action ?: $this->get_request_uri();
-
 		return $this->get_target_key( $form_action );
+	}
+
+	/**
+	 * Read the first action attribute from the form's opening tag.
+	 *
+	 * @param string $form Form.
+	 *
+	 * @return string
+	 */
+	private function get_form_action_attribute( string $form ): string {
+
+		// Read only the opening tag, consuming quoted values before inspecting the next attribute.
+		if ( preg_match( '#<form(?=[\x09\x0a\x0c\x0d\x20/>])(?:[^>"\']|"[^"]*"|\'[^\']*\')*>#i', $form, $tag ) ) {
+			preg_match_all(
+				'#([^\x09\x0a\x0c\x0d\x20=/>]+)(?:[\x09\x0a\x0c\x0d\x20]*=[\x09\x0a\x0c\x0d\x20]*(?:"([^"]*)"|\'([^\']*)\'|([^\x09\x0a\x0c\x0d\x20>]*)))?#',
+				substr( $tag[0], 5, -1 ),
+				$attributes,
+				PREG_SET_ORDER | PREG_UNMATCHED_AS_NULL
+			);
+
+			foreach ( $attributes as $attribute ) {
+				if ( 'action' !== strtolower( $attribute[1] ) ) {
+					continue;
+				}
+
+				// Browsers use the first duplicate attribute and decode its entities once.
+				return $this->decode_action_attribute( $attribute[2] ?? $attribute[3] ?? $attribute[4] ?? '' );
+			}
+		}
+
+		return '';
+	}
+
+	/**
+	 * Decode HTML attribute references once, including browser forms without semicolons.
+	 *
+	 * @param string $value Attribute value.
+	 *
+	 * @return string
+	 */
+	private function decode_action_attribute( string $value ): string {
+		$legacy = [ 'AMP', 'COPY', 'GT', 'LT', 'QUOT', 'REG', 'amp', 'gt', 'lt', 'quot' ];
+
+		foreach ( get_html_translation_table( HTML_ENTITIES, ENT_QUOTES | ENT_HTML401 ) as $character => $entity ) {
+			if ( preg_match( '/^(?:\xc2[\xa0-\xbf]|\xc3[\x80-\xbf])$/', $character ) ) {
+				$legacy[] = substr( $entity, 1, -1 );
+			}
+		}
+
+		return preg_replace_callback(
+			'/&#(?:[xX][0-9a-fA-F]+|[0-9]+);?|&([a-zA-Z][a-zA-Z0-9]*)(;|(?![a-zA-Z0-9=]))/',
+			function ( array $matches ) use ( $legacy ): string {
+				if ( 0 === strpos( $matches[0], '&#' ) ) {
+					return $this->decode_numeric_reference( $matches[0] );
+				}
+
+				if ( ';' !== $matches[2] && ! in_array( $matches[1], $legacy, true ) ) {
+					return $matches[0];
+				}
+
+				return html_entity_decode( '&' . $matches[1] . ';', ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+			},
+			$value
+		);
+	}
+
+	/**
+	 * Decode a numeric reference with HTML's replacement and legacy control mapping.
+	 *
+	 * @param string $reference Numeric character reference.
+	 *
+	 * @return string
+	 */
+	private function decode_numeric_reference( string $reference ): string {
+		$number = substr( rtrim( $reference, ';' ), 2 );
+		$code   = 'x' === strtolower( $number[0] ) ? hexdec( substr( $number, 1 ) ) : (float) $number;
+
+		if ( 0 === (int) $code || $code > 0x10ffff || ( $code >= 0xd800 && $code <= 0xdfff ) ) {
+			return "\xef\xbf\xbd";
+		}
+
+		$controls = [
+			0x80 => 0x20ac,
+			0x82 => 0x201a,
+			0x83 => 0x0192,
+			0x84 => 0x201e,
+			0x85 => 0x2026,
+			0x86 => 0x2020,
+			0x87 => 0x2021,
+			0x88 => 0x02c6,
+			0x89 => 0x2030,
+			0x8a => 0x0160,
+			0x8b => 0x2039,
+			0x8c => 0x0152,
+			0x8e => 0x017d,
+			0x91 => 0x2018,
+			0x92 => 0x2019,
+			0x93 => 0x201c,
+			0x94 => 0x201d,
+			0x95 => 0x2022,
+			0x96 => 0x2013,
+			0x97 => 0x2014,
+			0x98 => 0x02dc,
+			0x99 => 0x2122,
+			0x9a => 0x0161,
+			0x9b => 0x203a,
+			0x9c => 0x0153,
+			0x9e => 0x017e,
+			0x9f => 0x0178,
+		];
+		$code     = $controls[ (int) $code ] ?? (int) $code;
+
+		if ( $code < 0x80 ) {
+			return chr( $code );
+		}
+
+		if ( $code < 0x800 ) {
+			return chr( 0xc0 | ( $code >> 6 ) ) . chr( 0x80 | ( $code & 0x3f ) );
+		}
+
+		if ( $code < 0x10000 ) {
+			return chr( 0xe0 | ( $code >> 12 ) ) . chr( 0x80 | ( ( $code >> 6 ) & 0x3f ) ) . chr( 0x80 | ( $code & 0x3f ) );
+		}
+
+		return chr( 0xf0 | ( $code >> 18 ) ) . chr( 0x80 | ( ( $code >> 12 ) & 0x3f ) ) . chr( 0x80 | ( ( $code >> 6 ) & 0x3f ) ) . chr( 0x80 | ( $code & 0x3f ) );
+	}
+
+	/**
+	 * Resolve an action against the current document before decoding URL path octets.
+	 *
+	 * @param string $action Form action.
+	 *
+	 * @return string
+	 */
+	private function resolve_form_action( string $action ): string {
+		// Backslashes are path separators in browser HTTP URLs, but not in their queries.
+		$action = preg_replace_callback(
+			'/^[^?#]*/',
+			static function ( array $matches ): string {
+				return str_replace( '\\', '/', $matches[0] );
+			},
+			$action
+		);
+		$parts  = (array) wp_parse_url( $action );
+		$base   = (array) wp_parse_url( $this->get_request_uri() );
+		$origin = isset( $parts['host'] ) || isset( $parts['scheme'] );
+		$path   = $parts['path'] ?? '';
+
+		if ( $origin ) {
+			$path = '' === $path ? '/' : $path;
+		} elseif ( '' === $path ) {
+			$path = $base['path'] ?? '/';
+		} elseif ( '/' !== $path[0] ) {
+			$base_path = $base['path'] ?? '/';
+			$path      = substr( $base_path, 0, (int) strrpos( $base_path, '/' ) + 1 ) . $path;
+		}
+
+		$query = $this->get_action_query( $parts, $base, $origin );
+
+		return $this->normalize_action_path( $path ) . ( '' !== $query ? '?' . $query : '' );
+	}
+
+	/**
+	 * A pathless relative action inherits the document query unless it supplies one.
+	 *
+	 * @param array $parts  Action URL parts.
+	 * @param array $base   Document URL parts.
+	 * @param bool  $origin Whether the action specifies an origin.
+	 *
+	 * @return string
+	 */
+	private function get_action_query( array $parts, array $base, bool $origin ): string {
+		return $parts['query'] ?? ( ! $origin && ! isset( $parts['path'] ) ? ( $base['query'] ?? '' ) : '' );
+	}
+
+	/**
+	 * Remove browser dot segments while retaining empty segments and encoded separators.
+	 *
+	 * @param string $path Action path.
+	 *
+	 * @return string
+	 */
+	private function normalize_action_path( string $path ): string {
+		$segments = [];
+
+		foreach ( explode( '/', ltrim( $path, '/' ) ) as $segment ) {
+			$dot_segment = str_ireplace( '%2e', '.', $segment );
+
+			if ( '..' === $dot_segment ) {
+				array_pop( $segments );
+			} elseif ( '.' !== $dot_segment ) {
+				$segments[] = $segment;
+			}
+		}
+
+		return '/' . implode( '/', $segments );
 	}
 
 	/**
@@ -449,16 +665,21 @@ class AutoVerify {
 		}
 
 		parse_str( $query, $query_vars );
-		$post_id = $this->get_query_post_id( $query_vars );
 
-		if ( ! $post_id ) {
+		if ( ! array_filter( array_intersect_key( $query_vars, array_flip( self::QUERY_SELECTORS ) ) ) ) {
 			return $path;
 		}
 
 		$home_path  = $this->get_path( home_url( '/' ) );
 		$index_path = ( '/' === $home_path ? '' : $home_path ) . '/index.php';
 
-		return $path === $home_path || $path === $index_path ? 'post:' . $post_id . ':' . $path : $path;
+		if ( $path !== $home_path && $path !== $index_path ) {
+			return $path;
+		}
+
+		$post_id = $this->get_query_post_id( $query_vars );
+
+		return $post_id ? 'post:' . $post_id . ':' . $path : $path;
 	}
 
 	/**
@@ -469,21 +690,22 @@ class AutoVerify {
 	 * @return int
 	 */
 	private function get_query_post_id( array $query_vars ): int {
-		foreach ( [ 'page_id', 'p' ] as $key ) {
-			$value = $query_vars[ $key ] ?? null;
+		$query_vars = array_intersect_key( $query_vars, array_flip( array_merge( self::QUERY_SELECTORS, [ 'post_type' ] ) ) );
 
-			if ( is_scalar( $value ) && ctype_digit( (string) $value ) ) {
-				return (int) $value;
-			}
+		if ( ! array_filter( array_intersect_key( $query_vars, array_flip( self::QUERY_SELECTORS ) ) ) ) {
+			return 0;
 		}
 
-		if ( ! empty( $query_vars['pagename'] ) && is_string( $query_vars['pagename'] ) ) {
-			$page = get_page_by_path( $query_vars['pagename'] );
+		// Use the installed core's selector normalization, aliases and precedence.
+		$query = new WP_Query(
+			$query_vars + [
+				'posts_per_page' => 1,
+				'no_found_rows'  => true,
+			]
+		);
 
-			return $page->ID ?? 0;
-		}
-
-		return 0;
+		// Retain page-qualified action keys even when a numeric target does not exist yet.
+		return $query->get_queried_object_id() ?: (int) ( $query->query_vars['page_id'] ?: $query->query_vars['p'] );
 	}
 
 	/**
@@ -504,36 +726,50 @@ class AutoVerify {
 	}
 
 	/**
-	 * Get the canonical path of the current WordPress request.
+	 * Get equivalent registration keys for the current WordPress page.
 	 *
-	 * @return string
+	 * @return array
 	 */
-	private function get_canonical_request_path(): string {
-		$post_id = url_to_postid( Request::current_url() );
-
-		if ( ! $post_id ) {
-			$pagename = Request::filter_input( INPUT_GET, 'pagename' );
-
-			if ( is_string( $pagename ) && '' !== $pagename ) {
-				$page = get_page_by_path( $pagename );
-
-				if ( $page ) {
-					$post_id = $page->ID;
-				}
-			}
+	private function get_canonical_request_keys(): array {
+		// The native login script does not route page selectors through WordPress's main query.
+		if ( 'wp-login.php' === basename( Request::filter_input( INPUT_SERVER, 'SCRIPT_NAME' ) ) ) {
+			return [];
 		}
 
+		$query_vars = [];
+
+		foreach ( array_merge( self::QUERY_SELECTORS, [ 'post_type' ] ) as $key ) {
+			// Preserve WordPress's input and POST-before-GET precedence. WP_Query validates these selectors.
+			// Nonce is verified later, in API::verify().
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+			$query_vars[ $key ] = $_POST[ $key ] ?? $_GET[ $key ] ?? '';
+		}
+
+		$post_id = $this->get_query_post_id( $query_vars );
+		$post_id = $post_id ?: url_to_postid( Request::current_url() );
+
 		if ( ! $post_id ) {
-			return '';
+			return [];
 		}
 
 		$permalink = get_permalink( $post_id );
 
 		if ( ! is_string( $permalink ) ) {
-			return '';
+			return [];
 		}
 
-		return $this->get_path( $permalink );
+		$home_path  = $this->get_path( home_url( '/' ) );
+		$index_path = ( '/' === $home_path ? '' : $home_path ) . '/index.php';
+
+		// Existing registrations can use either plain permalink entry point.
+		return array_unique(
+			[
+				$this->get_target_key( $permalink ),
+				'post:' . $post_id . ':' . $home_path,
+				'post:' . $post_id . ':' . $index_path,
+				$this->get_path( $permalink ),
+			]
+		);
 	}
 
 	/**
@@ -543,7 +779,7 @@ class AutoVerify {
 	 */
 	private function get_request_uri(): string {
 		return isset( $_SERVER['REQUEST_URI'] ) ?
-			(string) filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
+			(string) filter_var( wp_unslash( $_SERVER['REQUEST_URI'] ), FILTER_SANITIZE_URL ) :
 			'';
 	}
 
@@ -796,16 +1032,80 @@ class AutoVerify {
 	 * Whether a request matches the registered form structure.
 	 *
 	 * @param array  $registered_form Registered form.
-	 * @param array  $post_keys Submitted input names.
+	 * @param array  $post Submitted form data.
 	 * @param string $widget_id Submitted widget ID.
 	 *
 	 * @return bool
 	 */
-	private function is_same_registered_form( array $registered_form, array $post_keys, string $widget_id ): bool {
+	private function is_same_registered_form( array $registered_form, array $post, string $widget_id ): bool {
 		$inputs               = (array) ( $registered_form['inputs'] ?? [] );
 		$registered_widget_id = (string) ( $registered_form['widget_id'] ?? '' );
 
-		return $widget_id && $registered_widget_id === $widget_id && ! array_diff( $inputs, $post_keys );
+		if ( ! $widget_id || $registered_widget_id !== $widget_id ) {
+			return false;
+		}
+
+		foreach ( $inputs as $input ) {
+			if ( ! $this->has_input( $input, $post ) ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check a registered HTML input name against PHP's parsed submission.
+	 *
+	 * @param string $name Input name.
+	 * @param array  $post Submitted form data.
+	 *
+	 * @return bool
+	 */
+	private function has_input( string $name, array $post ): bool {
+		// Let PHP normalize the root key without interpreting name characters as query separators.
+		parse_str( rawurlencode( $name ) . '=1', $parsed );
+
+		if ( ! $parsed ) {
+			return false;
+		}
+
+		preg_match_all( '/\[([^\]]*)\]/', $name, $matches );
+		$keys = array_merge( [ array_key_first( $parsed ) ], $matches[1] );
+
+		return $this->has_input_path( $post, $keys );
+	}
+
+	/**
+	 * Resolve named array keys, treating empty brackets as any submitted array element.
+	 *
+	 * @param mixed $value Submitted value.
+	 * @param array $keys  Remaining input name keys.
+	 *
+	 * @return bool
+	 */
+	private function has_input_path( $value, array $keys ): bool {
+		if ( ! $keys ) {
+			return true;
+		}
+
+		if ( ! is_array( $value ) ) {
+			return false;
+		}
+
+		$key = array_shift( $keys );
+
+		if ( '' !== $key ) {
+			return array_key_exists( $key, $value ) && $this->has_input_path( $value[ $key ], $keys );
+		}
+
+		foreach ( $value as $item ) {
+			if ( $this->has_input_path( $item, $keys ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -874,12 +1174,12 @@ class AutoVerify {
 
 		// Nonce is verified later, in \HCaptcha\Helpers\API::verify().
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$post_keys = array_keys( $_POST );
+		$post      = $_POST;
 		$widget_id = Request::filter_input( INPUT_POST, HCaptcha::HCAPTCHA_WIDGET_ID );
 		$widget_id = is_string( $widget_id ) ? $widget_id : '';
 
 		foreach ( $action_forms as $registered_form ) {
-			if ( $this->is_same_registered_form( (array) $registered_form, $post_keys, $widget_id ) ) {
+			if ( $this->is_same_registered_form( (array) $registered_form, $post, $widget_id ) ) {
 				return $registered_form;
 			}
 		}
@@ -937,19 +1237,47 @@ class AutoVerify {
 			return $content;
 		}
 
-		if (
-			preg_match_all(
-				'#<form [\S\s]+?class="[^"]*\bh-captcha\b[^"]*"[\S\s]+?</form>#',
-				$content,
-				$matches,
-				PREG_PATTERN_ORDER
-			)
-		) {
-			$forms = $matches[0];
+		$forms = $this->get_content_forms( $content );
 
+		if ( $forms ) {
 			$this->register_forms( $forms );
 		}
 
 		return $content;
+	}
+
+	/**
+	 * Find complete form elements without treating raw text or comments as markup.
+	 *
+	 * @param string $content Rendered content.
+	 *
+	 * @return array
+	 */
+	private function get_content_forms( string $content ): array {
+		$tag = '(?:[^>"\']|"[^"]*"|\'[^\']*\')*>';
+		preg_match_all(
+			'#<!--[\S\s]*?-->|<(script|style|textarea|title)(?=[\x09\x0a\x0c\x0d\x20/>])' . $tag . '[\S\s]*?</\1[\x09\x0a\x0c\x0d\x20]*>|</?form(?=[\x09\x0a\x0c\x0d\x20/>])' . $tag . '#i',
+			$content,
+			$matches,
+			PREG_OFFSET_CAPTURE
+		);
+		$forms = [];
+		$start = null;
+
+		foreach ( $matches[0] as [ $markup, $offset ] ) {
+			if ( null === $start && 0 === stripos( $markup, '<form' ) ) {
+				$start = $offset;
+			} elseif ( null !== $start && 0 === stripos( $markup, '</form' ) ) {
+				$form = substr( $content, $start, $offset + strlen( $markup ) - $start );
+
+				if ( preg_match( '#class="[^"]*\bh-captcha\b[^"]*"#', $form ) ) {
+					$forms[] = $form;
+				}
+
+				$start = null;
+			}
+		}
+
+		return $forms;
 	}
 }

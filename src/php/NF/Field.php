@@ -60,7 +60,7 @@ class Field extends NF_Abstracts_Field implements Base {
 	 *
 	 * @var string
 	 */
-	protected $_templates = 'hcaptcha';
+	protected $_templates = self::NAME;
 
 	/**
 	 * Settings.
@@ -111,10 +111,11 @@ class Field extends NF_Abstracts_Field implements Base {
 	public function hide_field_type( $hidden_field_types ): array {
 		$hidden_field_types = (array) $hidden_field_types;
 
-		// Remove the native hcaptcha field by Ninja Forms plugin.
-		$hidden_field_types = array_diff( $hidden_field_types, [ 'hcaptcha' ] );
-
-		$hidden_field_types[] = $this->_name;
+		foreach ( [ self::TYPE, $this->_name ] as $type ) {
+			if ( ! in_array( $type, $hidden_field_types, true ) ) {
+				$hidden_field_types[] = $type;
+			}
+		}
 
 		return $hidden_field_types;
 	}
@@ -151,15 +152,33 @@ class Field extends NF_Abstracts_Field implements Base {
 			'expected_id'        => $this->get_expected_id( $form_id ),
 		];
 
-		$name = [];
+		$name   = [];
+		$emails = [];
 
-		foreach ( $fields as $field ) {
-			$id       = $field['id'];
-			$settings = $form->get_field( $id )->get_settings();
-			$key      = $settings['key'];
-			$type     = $settings['type'];
-			$label    = $settings['label'];
-			$value    = $field['value'];
+		// Ninja Forms validates and saves the target form's server fields, not extra client IDs.
+		foreach ( $form->get_fields() as $form_field ) {
+			if ( is_object( $form_field ) ) {
+				$id       = $form_field->get_id();
+				$settings = $form_field->get_settings();
+			} elseif ( is_array( $form_field ) && isset( $form_field['id'], $form_field['settings'] ) ) {
+				$id       = $form_field['id'];
+				$settings = $form_field['settings'];
+			} else {
+				continue;
+			}
+
+			if ( ! is_array( $settings ) || ! isset( $fields[ $id ]['value'] ) ) {
+				continue;
+			}
+
+			$key   = $settings['key'];
+			$type  = $settings['type'];
+			$label = $settings['label'];
+			$value = $fields[ $id ]['value'];
+
+			if ( 'email' === $type ) {
+				$emails[] = $value;
+			}
 
 			if ( ! EntryData::is_content_field_type( (string) $type ) || EntryData::has_sensitive_field( (string) $key, (string) $label ) ) {
 				continue;
@@ -169,16 +188,12 @@ class Field extends NF_Abstracts_Field implements Base {
 				$name[] = $value;
 			}
 
-			if ( 'email' === $type ) {
-				$entry['data']['email'] = $value;
-			}
-
 			EntryData::add_field( $entry['data'], (string) $label, $value, (string) $id );
 		}
 
 		EntryData::add_name( $entry['data'], $name );
 
-		return $entry;
+		return EntryData::with_emails( $entry, $emails );
 	}
 
 	/**

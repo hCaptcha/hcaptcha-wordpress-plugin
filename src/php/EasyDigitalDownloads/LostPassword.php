@@ -8,6 +8,7 @@
 namespace HCaptcha\EasyDigitalDownloads;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Block;
 
@@ -40,7 +41,7 @@ class LostPassword {
 	 */
 	private function init_hooks(): void {
 		add_filter( 'render_block', [ $this, 'add_captcha' ], 10, 3 );
-		add_filter( 'edd_errors', [ $this, 'verify' ] );
+		add_action( 'edd_user_lost_password', [ $this, 'verify' ], 9 );
 	}
 
 	/**
@@ -61,10 +62,7 @@ class LostPassword {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'lost_password',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		return preg_replace(
@@ -75,37 +73,49 @@ class LostPassword {
 	}
 
 	/**
-	 * Verify login form.
+	 * Verify the native recovery request before EDD retrieves a password.
 	 *
-	 * @param array|mixed $errors Errors.
+	 * @param array|mixed $data Request selected by the EDD router.
 	 *
-	 * @return array|mixed
+	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function verify( $errors ) {
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$post_value = isset( $_POST['edd_action'] ) ?
-			sanitize_text_field( wp_unslash( $_POST['edd_action'] ) ) :
-			'';
-
-		if ( 'user_lost_password' !== $post_value ) {
-			return $errors;
+	public function verify( $data ): void {
+		// Match the native handler's method and nonce gates before checking CAPTCHA.
+		if (
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Match the native server method exactly.
+			'POST' !== ( $_SERVER['REQUEST_METHOD'] ?? '' ) ||
+			! is_array( $data ) ||
+			empty( $data['edd_lost-password_nonce'] ) ||
+			! is_scalar( $data['edd_lost-password_nonce'] ) ||
+			! wp_verify_nonce( $data['edd_lost-password_nonce'], 'edd-lost-password-nonce' )
+		) {
+			return;
 		}
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		$entry         = EntryData::with_emails( [ 'data' => EntryData::from_array( wp_unslash( $data ), [] ) ], [] );
+		$error_message = API::verify_post( self::NONCE, self::ACTION, $this->get_expected_id(), $entry );
 
 		if ( null === $error_message ) {
-			return $errors;
+			return;
 		}
 
 		// Prevent lost password action.
 		remove_action( 'edd_user_lost_password', 'edd_handle_lost_password_request' );
 
 		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
+		edd_set_error( $code, $error_message );
+	}
 
-		$errors          = $errors ? (array) $errors : [];
-		$errors[ $code ] = $error_message;
-
-		return $errors;
+	/**
+	 * Get the password recovery form identity.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => 'lost_password',
+		];
 	}
 }

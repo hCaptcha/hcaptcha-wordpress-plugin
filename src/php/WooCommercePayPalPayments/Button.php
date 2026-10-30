@@ -5,12 +5,17 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+
 namespace HCaptcha\WooCommercePayPalPayments;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Utils;
 use HCaptcha\WC\Checkout;
+use WC_Order;
 
 /**
  * Class Button.
@@ -67,6 +72,7 @@ class Button {
 		add_filter( 'render_block_woocommerce/cart-express-payment-block', [ $this, 'add_block_captcha' ] );
 		add_filter( 'render_block_woocommerce/checkout-express-payment-block', [ $this, 'add_checkout_block_captcha' ] );
 		add_filter( 'option_' . self::RECAPTCHA_SETTINGS_OPTION, [ $this, 'disable_recaptcha' ] );
+		add_filter( 'hcap_form_args', [ $this, 'require_checkout_challenge' ] );
 
 		add_action( 'wc_ajax_ppc-create-order', [ $this, 'verify' ], 0 );
 
@@ -94,9 +100,10 @@ class Button {
 		}
 
 		$args = [
-			'action' => self::ACTION,
-			'name'   => self::NONCE,
-			'id'     => [
+			'mandatory' => true,
+			'action'    => self::ACTION,
+			'name'      => self::NONCE,
+			'id'        => [
 				'source'  => HCaptcha::get_class_source( __CLASS__ ),
 				'form_id' => 'paypal_button',
 			],
@@ -138,9 +145,10 @@ class Button {
 		}
 
 		$args = [
-			'action' => self::ACTION,
-			'name'   => self::NONCE,
-			'id'     => [
+			'mandatory' => true,
+			'action'    => self::ACTION,
+			'name'      => self::NONCE,
+			'id'        => [
 				'source'  => HCaptcha::get_class_source( __CLASS__ ),
 				'form_id' => 'express_payment_block',
 			],
@@ -175,6 +183,26 @@ class Button {
 	}
 
 	/**
+	 * Keep the shared checkout challenge available to the unbound PayPal handler.
+	 *
+	 * @param array $args Form arguments.
+	 *
+	 * @return array
+	 */
+	public function require_checkout_challenge( array $args ): array {
+		$id = $args['id'] ?? [];
+
+		if (
+			'checkout' === ( $id['form_id'] ?? null ) &&
+			HCaptcha::get_class_source( Checkout::class ) === ( $id['source'] ?? [] )
+		) {
+			$args['mandatory'] = true;
+		}
+
+		return $args;
+	}
+
+	/**
 	 * Verify PayPal create order request.
 	 *
 	 * @return void
@@ -188,13 +216,90 @@ class Button {
 			return;
 		}
 
-		$error_message = API::verify_post_data( $entry['nonce'], $entry['action'], $data );
+		$verification  = $this->get_email_entry( $data );
+		$error_message = API::verify_post_data( $entry['nonce'], $entry['action'], $data, [], $verification );
 
 		if ( null === $error_message ) {
 			return;
 		}
 
 		wp_send_json_error( [ 'message' => $error_message ], 400 );
+	}
+
+	/**
+	 * Select the payer email using the native create-order context.
+	 *
+	 * @param array $data Native JSON request.
+	 *
+	 * @return array
+	 */
+	private function get_email_entry( array $data ): array {
+		if ( isset( $data['form_encoded'] ) && is_string( $data['form_encoded'] ) ) {
+			parse_str( $data['form_encoded'], $data['form'] );
+		}
+
+		$data = $this->normalize_request_data( $data );
+		$form = is_array( $data['form'] ?? null ) ? $data['form'] : [];
+
+		if ( 'pay-now' === ( $data['context'] ?? '' ) ) {
+			$email = $this->get_order_email( $data );
+		} elseif ( ! empty( $data['payer'] ) && is_array( $data['payer'] ) ) {
+			$email = $data['payer']['email_address'] ?? '';
+		} else {
+			$email = $form['billing_email'] ?? '';
+		}
+
+		$email = is_string( $email ) ? $email : '';
+
+		return EntryData::with_emails( [ 'data' => EntryData::from_array( $form, [] ) ], [ $email ] );
+	}
+
+	/**
+	 * Match the native RequestData sanitizer before selecting its canonical fields.
+	 *
+	 * @param array $data Decoded native JSON request.
+	 *
+	 * @return array
+	 */
+	private function normalize_request_data( array $data ): array {
+		$normalized = [];
+
+		foreach ( $data as $key => $value ) {
+			if ( 'form_encoded' === $key ) {
+				$normalized[ $key ] = $value;
+				continue;
+			}
+
+			$normalized[ sanitize_text_field( (string) $key ) ] = is_array( $value )
+				? $this->normalize_request_data( $value )
+				: sanitize_text_field( (string) $value );
+		}
+
+		return $normalized;
+	}
+
+	/**
+	 * Read an order's billing email only after the native pay-for-order checks.
+	 *
+	 * @param array $data Native JSON request.
+	 *
+	 * @return string
+	 * @noinspection PhpUndefinedFunctionInspection
+	 * @noinspection PhpUndefinedClassInspection
+	 */
+	private function get_order_email( array $data ): string {
+		// The native request sanitizer retains arrays, and the endpoint casts this selector to int.
+		$order_id  = (int) ( $data['order_id'] ?? 0 );
+		$order_key = is_string( $data['order_key'] ?? null ) ? $data['order_key'] : '';
+		$order     = $order_id && function_exists( 'wc_get_order' ) ? wc_get_order( $order_id ) : false;
+
+		// WooCommerce maps this capability for both owned and guest orders.
+		// phpcs:ignore WordPress.WP.Capabilities.Unknown
+		if ( ! $order instanceof WC_Order || ! $order->key_is_valid( $order_key ) || ! current_user_can( 'pay_for_order', $order_id ) ) {
+			return '';
+		}
+
+		return $order->get_billing_email();
 	}
 
 	/**

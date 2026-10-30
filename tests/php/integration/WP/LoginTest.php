@@ -14,6 +14,7 @@ use HCaptcha\Helpers\LoginAttempts;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WP\Login;
 use ReflectionException;
+use ReflectionProperty;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
 use WP_User;
@@ -36,6 +37,8 @@ class LoginTest extends HCaptchaWPTestCase {
 			$_POST['pwd'],
 			$_SERVER['REQUEST_METHOD'],
 			$_SERVER['REMOTE_ADDR'],
+			$_SERVER['SCRIPT_NAME'],
+			$_GET['page_id'],
 			$GLOBALS['wp_action']['login_init'],
 			$GLOBALS['wp_action']['login_form_login'],
 			$GLOBALS['wp_filters']['login_link_separator']
@@ -220,14 +223,41 @@ class LoginTest extends HCaptchaWPTestCase {
 	/**
 	 * Test AutoVerify defers a native login request that owns its signed widget.
 	 *
-	 * @return void
+	 * @param bool $page_selector Whether the login URL carries a page selector.
+	 *
+	 * @dataProvider dp_test_auto_verify_defers_native_login_request
 	 */
-	public function test_auto_verify_defers_native_login_request(): void {
+	public function test_auto_verify_defers_native_login_request( bool $page_selector ): void {
 		$_SERVER['REQUEST_METHOD'] = 'POST';
 		$_SERVER['REQUEST_URI']    = '/wp-login.php';
+		$_SERVER['SCRIPT_NAME']    = '/wp-login.php';
 
 		$this->prepare_native_login_owner_post();
-		$this->register_bbpress_lost_password_auto_form();
+
+		if ( $page_selector ) {
+			$page_id                 = $this->factory()->post->create( [ 'post_type' => 'page' ] );
+			$_GET['page_id']         = (string) $page_id;
+			$_SERVER['REQUEST_URI'] .= '?page_id=' . $page_id;
+			set_transient(
+				AutoVerify::TRANSIENT,
+				[
+					'post:' . $page_id . ':/' => [
+						[
+							'inputs'    => [ 'test_input' ],
+							'args'      => [
+								'id' => [
+									'source'  => [ AutoVerify::class ],
+									'form_id' => $page_id,
+								],
+							],
+							'widget_id' => 'page-widget',
+						],
+					],
+				]
+			);
+		} else {
+			$this->register_bbpress_lost_password_auto_form();
+		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$expected = $_POST;
@@ -249,6 +279,18 @@ class LoginTest extends HCaptchaWPTestCase {
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		self::assertSame( $expected, $_POST );
+	}
+
+	/**
+	 * Native login URLs must retain their signed verification owner.
+	 *
+	 * @return array
+	 */
+	public function dp_test_auto_verify_defers_native_login_request(): array {
+		return [
+			'login path'          => [ false ],
+			'login page selector' => [ true ],
+		];
 	}
 
 	/**
@@ -375,7 +417,6 @@ class LoginTest extends HCaptchaWPTestCase {
 	 */
 	public function test_login(): void {
 		$ip         = '1.1.1.1';
-		$ip2        = '2.2.2.2';
 		$now        = time();
 		$user_login = 'test-user';
 		$user       = new WP_User();
@@ -390,8 +431,22 @@ class LoginTest extends HCaptchaWPTestCase {
 		hcaptcha()->init_hooks();
 
 		$attempts = new LoginAttempts();
-		$attempts->increment( $ip, $now, 15 * MINUTE_IN_SECONDS );
-		$attempts->increment( $ip2, $now, 15 * MINUTE_IN_SECONDS );
+		self::assertSame( 1, $attempts->increment( $ip, $now, 15 * MINUTE_IN_SECONDS ) );
+
+		// A live slot collision fails closed, so select a separate slot for the second address.
+		$ip2 = '';
+
+		for ( $octet = 2; $octet <= 255; ++$octet ) {
+			$candidate = '2.2.2.' . $octet;
+
+			if ( 0 === $attempts->read( $candidate, $now ) ) {
+				$ip2 = $candidate;
+				break;
+			}
+		}
+
+		self::assertNotSame( '', $ip2 );
+		self::assertSame( 1, $attempts->increment( $ip2, $now, 15 * MINUTE_IN_SECONDS ) );
 
 		$subject = new Login();
 
@@ -411,7 +466,7 @@ class LoginTest extends HCaptchaWPTestCase {
 		$alloptions = wp_load_alloptions();
 
 		foreach ( array_keys( $alloptions ) as $option_name ) {
-			self::assertFalse( 0 === strpos( $option_name, LoginAttempts::OPTION_PREFIX ) );
+			self::assertNotSame( 0, strpos( $option_name, LoginAttempts::OPTION_PREFIX ) );
 		}
 	}
 
@@ -467,32 +522,41 @@ class LoginTest extends HCaptchaWPTestCase {
 	public function test_login_failed_is_deduplicated_across_integrations(): void {
 		$ip                   = '192.0.2.80';
 		$wp_login_failed_hook = $GLOBALS['wp_filter']['wp_login_failed'] ?? null;
+		$failed_event         = new ReflectionProperty( LoginBase::class, 'last_wp_login_failed_action' );
+		$failed_event->setAccessible( true );
+		$previous_event = $failed_event->getValue();
 
-		remove_all_actions( 'wp_login_failed' );
+		try {
+			// WPTestCase resets action counters without resetting this request-local deduplication state.
+			$failed_event->setValue( did_action( 'wp_login_failed' ) );
+			remove_all_actions( 'wp_login_failed' );
 
-		update_option(
-			'hcaptcha_settings',
-			[
-				'login_limit'    => 2,
-				'login_interval' => 15,
-			]
-		);
-		hcaptcha()->init_hooks();
+			update_option(
+				'hcaptcha_settings',
+				[
+					'login_limit'    => 2,
+					'login_interval' => 15,
+				]
+			);
+			hcaptcha()->init_hooks();
 
-		$subject  = new Login();
-		$subject2 = new Login();
+			$subject  = new Login();
+			$subject2 = new Login();
 
-		$this->set_protected_property( $subject, 'ip', $ip );
-		$this->set_protected_property( $subject2, 'ip', $ip );
+			$this->set_protected_property( $subject, 'ip', $ip );
+			$this->set_protected_property( $subject2, 'ip', $ip );
 
-		do_action( 'wp_login_failed', 'test-user' );
+			do_action( 'wp_login_failed', 'test-user' );
 
-		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
-		$GLOBALS['wp_filter']['wp_login_failed'] = $wp_login_failed_hook;
+			$attempts = $this->get_protected_property( $subject, 'login_attempts' );
 
-		$attempts = $this->get_protected_property( $subject, 'login_attempts' );
-
-		self::assertSame( 1, $attempts->read( $ip, time() ) );
+			self::assertSame( 1, $attempts->read( $ip, time() ) );
+		} finally {
+			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+			$GLOBALS['wp_filter']['wp_login_failed'] = $wp_login_failed_hook;
+			$failed_event->setValue( $previous_event );
+			$failed_event->setAccessible( false );
+		}
 	}
 
 	/**

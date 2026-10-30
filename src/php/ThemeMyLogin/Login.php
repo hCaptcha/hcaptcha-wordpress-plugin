@@ -5,10 +5,14 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+
 namespace HCaptcha\ThemeMyLogin;
 
 use HCaptcha\Abstracts\LoginBase;
 use HCaptcha\Helpers\API;
+use Theme_My_Login_Form;
 use WP_Error;
 use WP_User;
 
@@ -27,7 +31,24 @@ class Login extends LoginBase {
 		Assets::init();
 
 		add_action( 'login_form', [ $this, 'add_captcha' ] );
+		add_action( 'tml_render_form', [ $this, 'set_form_transport' ], 10, 2 );
 		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
+	}
+
+	/**
+	 * Refresh adaptive login forms so a newly required challenge can be rendered.
+	 *
+	 * @param string              $name Form name.
+	 * @param Theme_My_Login_Form $form Native form.
+	 *
+	 * @return void
+	 */
+	public function set_form_transport( string $name, Theme_My_Login_Form $form ): void {
+		if ( 'login' !== $name || $this->is_login_limit_exceeded() ) {
+			return;
+		}
+
+		$form->add_attribute( 'data-ajax', 0 );
 	}
 
 	/**
@@ -53,7 +74,7 @@ class Login extends LoginBase {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $user, string $password ) {
-		if ( false === doing_action( 'tml_action_login' ) ) {
+		if ( ! doing_action( 'tml_action_login' ) && ! doing_action( 'tml_action_ajax_login' ) ) {
 			return $user;
 		}
 
@@ -63,7 +84,8 @@ class Login extends LoginBase {
 
 		$error_message = API::verify_post_html(
 			self::NONCE,
-			self::ACTION
+			self::ACTION,
+			$this->get_expected_id()
 		);
 
 		if ( null === $error_message ) {

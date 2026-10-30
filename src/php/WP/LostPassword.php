@@ -8,6 +8,7 @@
 namespace HCaptcha\WP;
 
 use HCaptcha\Abstracts\LostPasswordBase;
+use WP_User;
 
 /**
  * Class LostPassword
@@ -41,23 +42,28 @@ class LostPassword extends LostPasswordBase {
 	protected const POST_VALUE = null;
 
 	/**
-	 * WP login action.
-	 */
-	private const WP_LOGIN_ACTION = 'lostpassword';
-
-	/**
 	 * Verify a lost password form.
 	 *
-	 * @param mixed $errors Error.
+	 * @param mixed              $errors Error.
+	 * @param WP_User|false|null $user   Native resolved recovery recipient.
 	 *
 	 * @return void
 	 */
-	public function verify( $errors ): void {
-		if ( ! $this->is_login_url() || ! $this->is_login_action() ) {
+	public function verify( $errors, $user = null ): void {
+		if ( ! $this->is_login_url() || ! $this->is_lost_password_action() ) {
 			return;
 		}
 
-		parent::verify( $errors );
+		parent::verify( $errors, $user );
+	}
+
+	/**
+	 * Whether native WordPress recovery can handle this request.
+	 *
+	 * @return bool
+	 */
+	protected function can_handle_request(): bool {
+		return $this->is_login_url() && $this->is_lost_password_action() && parent::can_handle_request();
 	}
 
 	/**
@@ -66,7 +72,7 @@ class LostPassword extends LostPasswordBase {
 	 * @return void
 	 */
 	public function add_captcha(): void {
-		if ( ! $this->is_login_url() || ! $this->is_login_action() ) {
+		if ( ! $this->is_login_url() || ! $this->is_lost_password_action() ) {
 			return;
 		}
 

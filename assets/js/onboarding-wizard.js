@@ -2,6 +2,7 @@
 
 /**
  * @param HCaptchaOnboardingObject.ajaxUrl
+ * @param HCaptchaOnboardingObject.antispamUrl
  * @param HCaptchaOnboardingObject.autoSetupNonce
  * @param HCaptchaOnboardingObject.autoSetupParam
  * @param HCaptchaOnboardingObject.currentStep
@@ -25,14 +26,16 @@
  * @param HCaptchaOnboardingObject.nonceParam
  * @param HCaptchaOnboardingObject.page
  * @param HCaptchaOnboardingObject.selectors
- * @param HCaptchaOnboardingObject.selectors.general.antispam
  * @param HCaptchaOnboardingObject.selectors.general.check_config
  * @param HCaptchaOnboardingObject.selectors.general.force
  * @param HCaptchaOnboardingObject.selectors.general.mode
  * @param HCaptchaOnboardingObject.selectors.general.save
  * @param HCaptchaOnboardingObject.selectors.general.site_key
+ * @param HCaptchaOnboardingObject.selectors.antispam.bot_detection
+ * @param HCaptchaOnboardingObject.selectors.antispam.save
  * @param HCaptchaOnboardingObject.selectors.integrations.integrations_list
  * @param HCaptchaOnboardingObject.selectors.integrations.save
+ * @param HCaptchaOnboardingObject.signupUrl
  * @param HCaptchaOnboardingObject.stepNonce
  * @param HCaptchaOnboardingObject.stepParam
  * @param HCaptchaOnboardingObject.steps
@@ -53,8 +56,9 @@ const onboarding = function( $ ) {
 
 	// Steps by page
 	const stepsByPage = {
-		general: [ 1, 2, 3, 4, 5, 6 ],
-		integrations: [ 7, 8 ],
+		general: [ 1, 2, 3, 4, 5 ],
+		antispam: [ 6, 7 ],
+		integrations: [ 8, 9 ],
 	};
 
 	// Targets map per step
@@ -63,10 +67,11 @@ const onboarding = function( $ ) {
 		2: { page: 'general', selector: cfg.selectors.general.mode },
 		3: { page: 'general', selector: cfg.selectors.general.check_config },
 		4: { page: 'general', selector: cfg.selectors.general.force },
-		5: { page: 'general', selector: cfg.selectors.general.antispam },
-		6: { page: 'general', selector: cfg.selectors.general.save },
-		7: { page: 'integrations', selector: cfg.selectors.integrations.integrations_list },
-		8: { page: 'integrations', selector: cfg.selectors.integrations.save },
+		5: { page: 'general', selector: cfg.selectors.general.save },
+		6: { page: 'antispam', selector: cfg.selectors.antispam.bot_detection },
+		7: { page: 'antispam', selector: cfg.selectors.antispam.save },
+		8: { page: 'integrations', selector: cfg.selectors.integrations.integrations_list },
+		9: { page: 'integrations', selector: cfg.selectors.integrations.save },
 	};
 
 	let $tooltip;
@@ -88,14 +93,25 @@ const onboarding = function( $ ) {
 		return m ? parseInt( m[ 1 ], 10 ) : 1;
 	}
 
-	function nextStep( current ) {
-		const n = stepNumber( current );
-
-		return 'step ' + ( n + 1 );
-	}
-
 	function inArray( needle, arr ) {
 		return arr.indexOf( needle ) !== -1;
+	}
+
+	function appendStepText( $container, step ) {
+		if ( step !== 1 ) {
+			$container.text( cfg.steps[ step ] );
+
+			return;
+		}
+
+		/* language=HTML */
+		$container.append( $( '<a class="hcap-onb-signup-link"></a>' )
+			.attr( {
+				href: cfg.signupUrl,
+				target: '_blank',
+				rel: 'noopener noreferrer',
+			} )
+			.text( cfg.steps[ step ] ) );
 	}
 
 	function setLocationHref( url ) {
@@ -144,8 +160,8 @@ const onboarding = function( $ ) {
 
 		removeTooltip();
 
-		if ( form && typeof form.submit === 'function' ) {
-			form.submit();
+		if ( form ) {
+			submitSettingsForm( autoSetupUrl );
 
 			return;
 		}
@@ -205,14 +221,17 @@ const onboarding = function( $ ) {
 		/* language=HTML */
 		const $list = $( '<ol class="hcap-onb-list"></ol>' );
 
-		for ( let i = 1; i <= 8; i++ ) {
+		for ( let i = 1; i <= 9; i++ ) {
 			/* language=HTML */
 			const $li = $( '<li />' )
-				.text( cfg.steps[ i ] )
 				.attr( 'data-step', i )
-				.attr( 'role', 'button' )
-				.attr( 'tabindex', '0' )
 				.addClass( 'hcap-onb-step' );
+
+			appendStepText( $li, i );
+
+			if ( i !== 1 ) {
+				$li.attr( 'role', 'button' ).attr( 'tabindex', '0' );
+			}
 
 			if ( 'step ' + i === current ) {
 				$li.addClass( 'current' );
@@ -438,7 +457,7 @@ const onboarding = function( $ ) {
 		}, 0 );
 	}
 
-	// Build congrats/rating popup shown after completion (step 8)
+	// Build congrats/rating popup shown after completion (step 9)
 	function buildCongratsModal( onDismiss = undefined ) {
 		/* language=HTML */
 		const $overlay = $( '<div class="hcap-onb-modal-overlay" />' );
@@ -569,27 +588,8 @@ const onboarding = function( $ ) {
 				return;
 			}
 
-			const next = nextStep( 'step ' + step );
-
-			if ( step === 6 && cfg.page === 'general' ) {
-				// Last General step → go Integrations
-				cfg.currentStep = next; // 'step 7'
-
-				postUpdate( next ).always( function() {
-					setLocationHref( cfg.integrationsUrl );
-				} );
-
-				return;
-			}
-
-			if ( step >= 8 ) {
-				// Completed via the Done button — show congrats popup
-				postUpdate( 'completed' ).always( function() {
-					buildCongratsModal( function() {
-						removeTooltip();
-						$( '.hcap-onb-panel' ).remove();
-					} );
-				} );
+			if ( [ 5, 7, 9 ].includes( step ) ) {
+				$( '#hcaptcha-options #submit' ).trigger( 'click' );
 
 				return;
 			}
@@ -600,10 +600,11 @@ const onboarding = function( $ ) {
 		/* language=HTML */
 		$tooltip = $( '<div class="hcap-onb-tip" role="dialog"></div>' );
 
-		const tipText = cfg.steps[ step ];
-
 		/* language=HTML */
-		$tooltip.append( $( '<div class="hcap-onb-tip-text"></div>' ).text( tipText ) );
+		const $tipText = $( '<div class="hcap-onb-tip-text"></div>' );
+
+		appendStepText( $tipText, step );
+		$tooltip.append( $tipText );
 
 		// For step 1 add a second line with a video link
 		if ( step === 1 ) {
@@ -697,8 +698,13 @@ const onboarding = function( $ ) {
 
 	// Navigation helper must be available regardless of early returns below
 	function goToStep( n ) {
-		const isGeneral = inArray( n, stepsByPage.general );
-		const base = isGeneral ? cfg.generalUrl : cfg.integrationsUrl;
+		let base = cfg.integrationsUrl;
+
+		if ( inArray( n, stepsByPage.general ) ) {
+			base = cfg.generalUrl;
+		} else if ( inArray( n, stepsByPage.antispam ) ) {
+			base = cfg.antispamUrl;
+		}
 
 		setLocationHref( buildUrl( base, {
 			[ cfg.stepParam ]: n,
@@ -710,6 +716,10 @@ const onboarding = function( $ ) {
 	$( document ).off( '.hcapOnbNav' );
 
 	$( document ).on( 'click.hcapOnbNav', '.hcap-onb-list li.hcap-onb-step', function( e ) {
+		if ( $( e.target ).closest( 'a' ).length ) {
+			return;
+		}
+
 		e.preventDefault();
 
 		const n = parseInt( $( this ).attr( 'data-step' ), 10 );
@@ -720,6 +730,10 @@ const onboarding = function( $ ) {
 	} );
 
 	$( document ).on( 'keydown.hcapOnbNav', '.hcap-onb-list li.hcap-onb-step', function( e ) {
+		if ( $( e.target ).closest( 'a' ).length ) {
+			return;
+		}
+
 		if ( e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar' ) {
 			e.preventDefault();
 
@@ -738,25 +752,51 @@ const onboarding = function( $ ) {
 		}
 	} );
 
-	// Also advance on real Save for steps 6 (General) and 8 (Integrations)
-	// For step 8 we first show the congrats popup, then proceed with submitting.
+	function submitSettingsForm( fallbackUrl = '' ) {
+		const form = $( '#hcaptcha-options' ).get( 0 );
+
+		if ( ! form ) {
+			return;
+		}
+
+		try {
+			if ( typeof form.submit === 'function' ) {
+				form.submit();
+			} else {
+				HTMLFormElement.prototype.submit.call( form );
+			}
+		} catch {
+			if ( fallbackUrl ) {
+				setLocationHref( fallbackUrl );
+			} else {
+				$( '#hcaptcha-options #submit' ).trigger( 'click' );
+			}
+		}
+	}
+
+	// Save each page before advancing to the next one.
 	$( document ).on( 'submit', '#hcaptcha-options', function( e ) {
 		const n = stepNumber( cfg.currentStep || 'step 1' );
 
-		if ( n === 6 && cfg.page === 'general' ) {
-			const next = 'step 7';
+		if ( ( n === 5 && cfg.page === 'general' ) || ( n === 7 && cfg.page === 'antispam' ) ) {
+			e.preventDefault();
+
+			const next = n === 5 ? 'step 6' : 'step 8';
+			const storageKey = n === 5 ? 'hcapOnbGoAntiSpam' : 'hcapOnbGoIntegrations';
 
 			cfg.currentStep = next;
-			postUpdate( next );
-
-			try {
-				if ( window.sessionStorage ) {
-					sessionStorage.setItem( 'hcapOnbGoIntegrations', '1' );
+			postUpdate( next ).always( function() {
+				try {
+					if ( window.sessionStorage ) {
+						sessionStorage.setItem( storageKey, '1' );
+					}
+				} catch {
+					// no-op
 				}
-			} catch {
-				// no-op
-			}
-		} else if ( n === 8 && cfg.page === 'integrations' ) {
+
+				submitSettingsForm();
+			} );
+		} else if ( n === 9 && cfg.page === 'integrations' ) {
 			if ( hcapOnbSubmitting ) {
 				return; // allow natural submit a second time
 			}
@@ -770,12 +810,7 @@ const onboarding = function( $ ) {
 					// After closing the modal, submit the form at once
 					hcapOnbSubmitting = true;
 
-					try {
-						$( '#hcaptcha-options' ).get( 0 ).submit();
-					} catch {
-						// fallback: trigger a click on the `submit` button
-						$( '#hcaptcha-options [type="submit"]' ).first().trigger( 'click' );
-					}
+					submitSettingsForm();
 				} );
 			} );
 		}
@@ -788,15 +823,32 @@ const onboarding = function( $ ) {
 	// Determine current numeric step
 	const num = stepNumber( current );
 
-	if ( num === 8 && sessionStorage.getItem( 'hcapOnbAutoSetup' ) === '1' ) {
+	let autoSetupCompleted = false;
+
+	try {
+		autoSetupCompleted = num === 9 && sessionStorage.getItem( 'hcapOnbAutoSetup' ) === '1';
+
+		if ( autoSetupCompleted ) {
+			sessionStorage.removeItem( 'hcapOnbAutoSetup' );
+		}
+	} catch {
+		// no-op
+	}
+
+	if ( autoSetupCompleted ) {
 		postUpdate( 'completed' ).always( function() {
 			buildCongratsModal();
 		} );
 	}
 
-	// If we just saved on the last General step, redirect to Integrations
+	// Redirect after saving General or Anti-Spam settings.
 	try {
-		if ( cfg.page === 'general' && num === 7 ) {
+		if ( cfg.page === 'general' && num === 6 ) {
+			if ( window.sessionStorage && sessionStorage.getItem( 'hcapOnbGoAntiSpam' ) === '1' ) {
+				sessionStorage.removeItem( 'hcapOnbGoAntiSpam' );
+				setLocationHref( cfg.antispamUrl );
+			}
+		} else if ( cfg.page === 'antispam' && num === 8 ) {
 			if ( window.sessionStorage && sessionStorage.getItem( 'hcapOnbGoIntegrations' ) === '1' ) {
 				sessionStorage.removeItem( 'hcapOnbGoIntegrations' );
 				setLocationHref( cfg.integrationsUrl );

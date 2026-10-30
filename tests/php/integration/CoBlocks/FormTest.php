@@ -19,6 +19,7 @@ use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
 use ReflectionClass;
 use WP_Block;
+use WP_Block_Type_Registry;
 
 /**
  * Test Form class.
@@ -59,7 +60,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 
 		self::assertTrue( is_plugin_active( static::$plugin ) );
 		self::assertStringStartsWith( wp_normalize_path( WP_PLUGIN_DIR . '/coblocks/' ), $plugin_file );
-		self::assertTrue( \WP_Block_Type_Registry::get_instance()->is_registered( 'coblocks/form' ) );
+		self::assertTrue( WP_Block_Type_Registry::get_instance()->is_registered( 'coblocks/form' ) );
 		self::assertStringContainsString( 'class="coblocks-form"', $output );
 		self::assertStringContainsString( '>Subscribe</button>', $output );
 		self::assertStringContainsString( '<h-captcha', $output );
@@ -278,10 +279,10 @@ HTML;
 			'value' => 'other',
 		];
 
-		// Unknown field type — covers second continue.
-		$_POST['field-phone'] = [
-			'label' => 'Phone',
-			'value' => '123456',
+		// Hidden fields are not submitted content.
+		$_POST['field-hidden'] = [
+			'label' => 'Hidden',
+			'value' => 'internal value',
 		];
 
 		$subject = new Form();
@@ -303,6 +304,186 @@ HTML;
 
 		self::assertSame( $expected, $subject->verify( $response, $parsed_args, $url ) );
 		self::assertFalse( has_filter( 'pre_http_request', [ $subject, 'verify' ] ) );
+	}
+
+	/**
+	 * The disposable-email policy checks the field CoBlocks selected for Reply-To.
+	 *
+	 * @dataProvider dp_test_sender_email_policy
+	 *
+	 * @param string|null $email_field_id Submitted native sender selector.
+	 * @param array       $fields         Submitted form fields.
+	 * @param string      $sender_email   Expected native sender address.
+	 * @param bool        $blocked        Whether the policy should reject the form.
+	 */
+	public function test_sender_email_policy( ?string $email_field_id, array $fields, string $sender_email, bool $blocked ): void {
+		$form_id = '5509c11f003ddee1ee47fbb0a2ffb7b47b57434c';
+		$this->prepare_verify_post( 'hcaptcha_coblocks_nonce', 'hcaptcha_coblocks' );
+		$this->prepare_widget_id( $form_id );
+		$_POST['form-hash'] = $form_id;
+
+		if ( null !== $email_field_id ) {
+			$_POST['email-field-id'] = $email_field_id;
+		}
+
+		foreach ( $fields as $key => $field ) {
+			// The native form nonce is checked when the handler processes this test submission.
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing
+			$_POST[ $key ] = $field;
+		}
+
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		add_filter(
+			'hcap_disposable_email_domains',
+			static function (): array {
+				return [ 'disposable.example' => true ];
+			}
+		);
+
+		$seen = [];
+		add_filter(
+			'hcap_is_disposable_email',
+			static function ( bool $disposable, string $email ) use ( &$seen ): bool {
+				$seen[] = $email;
+
+				return $disposable;
+			},
+			10,
+			2
+		);
+
+		$subject = new Form();
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$subject->before_form_submit( $_POST, [] );
+
+		// Native CoBlocks removes this selector before its reCAPTCHA request.
+		unset( $_POST['email-field-id'] );
+
+		$response = $subject->verify(
+			false,
+			[ 'body' => [ 'response' => 'hcaptcha_token' ] ],
+			CoBlocks_Form::GCAPTCHA_VERIFY_URL
+		);
+
+		self::assertSame( [ $sender_email ], $seen );
+		self::assertSame( wp_json_encode( [ 'success' => ! $blocked ] ), $response['body'] );
+	}
+
+	/**
+	 * Sender IDs, labels, and extra fields must not change the selected address.
+	 *
+	 * @return array
+	 */
+	public function dp_test_sender_email_policy(): array {
+		return [
+			'forged sensitive label'  => [
+				'field-email',
+				[
+					'field-email' => [
+						'label' => 'password',
+						'value' => 'user@disposable.example',
+					],
+				],
+				'user@disposable.example',
+				true,
+			],
+			'custom email label'      => [
+				'field-email-address',
+				[
+					'field-email-address' => [
+						'label' => 'Email Address',
+						'value' => 'user@disposable.example',
+					],
+				],
+				'user@disposable.example',
+				true,
+			],
+			'forged later alias'      => [
+				'field-email',
+				[
+					'field-email'      => [
+						'label' => 'Email',
+						'value' => 'user@disposable.example',
+					],
+					'fake-field-email' => [
+						'label' => 'Other',
+						'value' => 'safe@example.com',
+					],
+				],
+				'user@disposable.example',
+				true,
+			],
+			'non-email suffix'        => [
+				'field-contact-address',
+				[
+					'field-contact-address' => [
+						'label' => 'Contact',
+						'value' => 'user@disposable.example',
+					],
+				],
+				'user@disposable.example',
+				true,
+			],
+			'native default selector' => [
+				null,
+				[
+					'field-email' => [
+						'label' => 'Email',
+						'value' => 'user@disposable.example',
+					],
+				],
+				'user@disposable.example',
+				true,
+			],
+			'html suffix in sender'   => [
+				null,
+				[
+					'field-email' => [
+						'label' => 'Email',
+						'value' => 'user@disposable.example<br>',
+					],
+				],
+				'user@disposable.example',
+				true,
+			],
+			'encoded newline sender'  => [
+				null,
+				[
+					'field-email' => [
+						'label' => 'Email',
+						'value' => 'user@disposable.example%0A',
+					],
+				],
+				'user@disposable.example',
+				true,
+			],
+			'allowed html suffix'     => [
+				null,
+				[
+					'field-email' => [
+						'label' => 'Email',
+						'value' => 'safe@example.com<br>',
+					],
+				],
+				'safe@example.com',
+				false,
+			],
+			'allowed native sender'   => [
+				'field-contact-address',
+				[
+					'field-contact-address' => [
+						'label' => 'Contact',
+						'value' => 'safe@example.com',
+					],
+					'field-email'           => [
+						'label' => 'Email',
+						'value' => 'user@disposable.example',
+					],
+				],
+				'safe@example.com',
+				false,
+			],
+		];
 	}
 
 	/**

@@ -13,6 +13,8 @@
 namespace HCaptcha\Tests\Integration\Admin;
 
 use HCaptcha\Admin\Notifications;
+use HCaptcha\Admin\OnboardingWizard;
+use HCaptcha\Settings\General;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
 use tad\FunctionMocker\FunctionMocker;
@@ -88,13 +90,16 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		$expected = [
 			'register'            =>
 				[
-					'title'   => 'Get your hCaptcha site keys',
-					'message' => 'To use <a href="https://www.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk" target="_blank">hCaptcha</a>, please register <a href="https://www.hcaptcha.com/signup-interstitial/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk" target="_blank">here</a> to get your site and secret keys.',
-					'button'  =>
+					'title'       => 'Set up hCaptcha',
+					'message'     => 'To use the plugin, <a href="' . esc_url( 'https://www.hcaptcha.com/signup-interstitial/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk' ) . '" target="_blank" rel="noopener noreferrer">create an hCaptcha account</a> and get your keys. Then select Live mode below and enter your keys.',
+					'button'      =>
 						[
-							'url'  => 'https://www.hcaptcha.com/signup-interstitial/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk',
-							'text' => 'Get site keys',
+							'url'    => '',
+							'text'   => 'Show Setup Wizard',
+							'target' => '_self',
 						],
+					'notice_type' => 'warning',
+					'dismissible' => false,
 				],
 			'pro-free-trial'      =>
 				[
@@ -140,17 +145,17 @@ class NotificationsTest extends HCaptchaWPTestCase {
 			],
 			'statistics'          => [
 				'title'   => 'Events statistics and Forms admin page',
-				'message' => '<a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=general#statistics_1" target="_blank">Turn on</a> events statistics and <a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=forms" target="_blank">see</a> how your forms are used.',
+				'message' => '<a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=advanced#statistics_1" target="_blank">Turn on</a> events statistics and <a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=forms" target="_blank">see</a> how your forms are used.',
 				'button'  => [
-					'url'  => 'http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=general#statistics_1',
+					'url'  => 'http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=advanced#statistics_1',
 					'text' => 'Turn on stats',
 				],
 			],
 			'events_page'         => [
 				'title'   => 'Events admin page',
-				'message' => '<a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=general#statistics_1" target="_blank">Turn on</a> events statistics and <a href="https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not" target="_blank">upgrade to Pro</a> to <a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=events" target="_blank">see</a> retained statistics on form events.',
+				'message' => '<a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=advanced#statistics_1" target="_blank">Turn on</a> events statistics and <a href="https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not" target="_blank">upgrade to Pro</a> to <a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=events" target="_blank">see</a> retained statistics on form events.',
 				'button'  => [
-					'url'  => 'http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=general#statistics_1',
+					'url'  => 'http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=advanced#statistics_1',
 					'text' => 'Turn on stats',
 				],
 			],
@@ -181,7 +186,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 			],
 			'protect-content'     => [
 				'title'   => 'Protect Site Content',
-				'message' => '<a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=general#protect_content_1" target="_blank">Protect</a> selected site URLs from bots with hCaptcha. Works best with <a href="https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not" target="_blank">Pro</a> 99.9% passive mode.',
+				'message' => '<a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=advanced#protect_content_1" target="_blank">Protect</a> selected site URLs from bots with hCaptcha. Works best with <a href="https://dashboard.hcaptcha.com/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not" target="_blank">Pro</a> 99.9% passive mode.',
 				'button'  => [
 					'url'      => 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin/assets/images/demo/protect-content.gif',
 					'text'     => 'See an example',
@@ -220,12 +225,27 @@ class NotificationsTest extends HCaptchaWPTestCase {
 					'text' => 'Review headers',
 				],
 			],
+			'rest-api-protection' => [
+				'title'   => 'Unique REST API Protection',
+				'message' => 'hCaptcha now protects selected content in WordPress REST responses and search, verifies native REST comments, and blocks REST post-password attempts when the corresponding protections are enabled. No other plugin in our October 2026 review of the 10 most-installed WordPress.org plugins tagged captcha offered all three.',
+				'button'  => [
+					'url'  => 'http://test.test/wp-admin/options-general.php?page=hcaptcha&tab=advanced#protect_content_1',
+					'text' => 'Configure Content Protection',
+				],
+			],
 		];
 
 		switch ( $setting ) {
 			case 'not_empty_keys':
 				$site_key   = 'some_key';
 				$secret_key = 'secret_key';
+				update_option(
+					'hcaptcha_settings',
+					[
+						'site_key'   => $site_key,
+						'secret_key' => $secret_key,
+					]
+				);
 
 				unset( $expected['register'] );
 				break;
@@ -305,6 +325,16 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		hcaptcha()->init_hooks();
 		set_current_screen( 'hcaptcha' );
 		do_action( 'admin_menu' );
+
+		if ( isset( $expected['register'] ) ) {
+			$expected['register']['button']['url'] = add_query_arg(
+				[
+					OnboardingWizard::STEP_PARAM  => 1,
+					OnboardingWizard::NONCE_PARAM => wp_create_nonce( OnboardingWizard::STEP_ACTION ),
+				],
+				hcaptcha()->settings()->tab_url( General::class )
+			);
+		}
 
 		$subject = Mockery::mock( Notifications::class )->makePartial();
 
@@ -430,25 +460,15 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		);
 
 		$expected = '
-<div id="hcaptcha-notifications">
+<div id="hcaptcha-notifications" class="">
 	<div id="hcaptcha-notifications-header">
 		Notifications
 	</div>
-	<div
-			class="hcaptcha-notification notice notice-info is-dismissible inline"
-			data-id="register">
-		<div class="hcaptcha-notification-title">
-			Get your hCaptcha site keys
-		</div>
-		<p>To use <a
-				href="https://www.hcaptcha.com/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=sk"
-				target="_blank">hCaptcha</a>, please register <a
-				href="https://www.hcaptcha.com/signup-interstitial/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=sk"
-				target="_blank">here</a> to get your site and secret keys.</p>
+	<div class="hcaptcha-notification notice notice-warning inline" data-id="register">
+		<div class="hcaptcha-notification-title"> Set up hCaptcha </div>
+		<p>To use the plugin, <a href="https://www.hcaptcha.com/signup-interstitial/?r=wp&amp;utm_source=wordpress&amp;utm_medium=wpplugin&amp;utm_campaign=sk" target="_blank" rel="noopener noreferrer">create an hCaptcha account</a> and get your keys. Then select Live mode below and enter your keys.</p>
 		<div class="hcaptcha-notification-buttons hidden">
-			<a href="https://www.hcaptcha.com/signup-interstitial/?r=wp&#038;utm_source=wordpress&#038;utm_medium=wpplugin&#038;utm_campaign=sk"
-			   class="button button-primary " target="_blank">
-				Get site keys </a>
+			<a href="http://test.test/wp-admin/options-general.php?page=hcaptcha&amp;tab=general&amp;onboarding=1&amp;hcaptcha_onboarding_nonce=NONCE" class="button button-primary " target="_self"> Show Setup Wizard </a>
 		</div>
 	</div>
 	<div
@@ -501,7 +521,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		$subject->show();
 		$actual = $this->trim_tags( ob_get_clean() );
 
-		$header  = '<div id="hcaptcha-notifications"> <div id="hcaptcha-notifications-header"> Notifications </div>';
+		$header  = '<div id="hcaptcha-notifications" class=""> <div id="hcaptcha-notifications-header"> Notifications </div>';
 		$body    = '<div .+</div>';
 		$footer  = '<div id="hcaptcha-notifications-footer"> <div id="hcaptcha-navigation"> <span> <span id="hcaptcha-navigation-page">1</span> of <span id="hcaptcha-navigation-pages">x</span> </span> <a class="prev button disabled"></a> <a class="next button "></a> </div> </div> </div>';
 		$pattern = "#($header) ($body) ($footer)#";
@@ -530,6 +550,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 
 		$expected_notifications = $expected_notifications[0];
 		$actual_notifications   = $actual_notifications[0];
+		$actual_notifications   = preg_replace( '/hcaptcha_onboarding_nonce=[^"&]+/', 'hcaptcha_onboarding_nonce=NONCE', $actual_notifications );
 
 		if ( version_compare( $GLOBALS['wp_version'], '7.0-RC1', '>=' ) ) {
 			$expected_notifications = str_replace( '&#038;', '&amp;', $expected_notifications );
@@ -609,6 +630,7 @@ class NotificationsTest extends HCaptchaWPTestCase {
 
 		$expected_notifications = $expected_notifications[0];
 		$actual_notifications   = $actual_notifications[0];
+		$actual_notifications   = preg_replace( '/hcaptcha_onboarding_nonce=[^"&]+/', 'hcaptcha_onboarding_nonce=NONCE', $actual_notifications );
 
 		if ( version_compare( $GLOBALS['wp_version'], '7.0-RC1', '>=' ) ) {
 			$expected_notifications = str_replace( '&#038;', '&amp;', $expected_notifications );
@@ -630,6 +652,61 @@ class NotificationsTest extends HCaptchaWPTestCase {
 		ksort( $sorted_actual_notifications );
 
 		self::assertSame( $expected_notifications, $sorted_actual_notifications );
+	}
+
+	/**
+	 * The reset control should ignore dismissed notifications that cannot currently appear.
+	 */
+	public function test_has_dismissed_notifications(): void {
+		$user_id = 1;
+
+		wp_set_current_user( $user_id );
+
+		$subject = Mockery::mock( Notifications::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'get_notifications' )->andReturn(
+			[
+				'register' => [ 'dismissible' => false ],
+				'active'   => [],
+			]
+		);
+
+		delete_user_meta( $user_id, Notifications::HCAPTCHA_DISMISSED_META_KEY );
+		self::assertFalse( $subject->has_dismissed_notifications() );
+
+		update_user_meta( $user_id, Notifications::HCAPTCHA_DISMISSED_META_KEY, [ 'register', 'removed' ] );
+		self::assertFalse( $subject->has_dismissed_notifications() );
+
+		update_user_meta( $user_id, Notifications::HCAPTCHA_DISMISSED_META_KEY, [ 'active' ] );
+		self::assertTrue( $subject->has_dismissed_notifications() );
+	}
+
+	/**
+	 * Test that setup shows a single warning even if the old registration notice was dismissed.
+	 */
+	public function test_show_setup_only(): void {
+		$user_id = 1;
+
+		wp_set_current_user( $user_id );
+		delete_option( 'hcaptcha_settings' );
+		hcaptcha()->init_hooks();
+		add_filter( 'hcap_site_key', '__return_empty_string' );
+		add_filter( 'hcap_secret_key', '__return_empty_string' );
+		update_user_meta( $user_id, Notifications::HCAPTCHA_DISMISSED_META_KEY, [ 'register' ] );
+
+		$subject = new Notifications();
+
+		ob_start();
+		$subject->show( true );
+		$output = ob_get_clean();
+
+		self::assertSame( 1, substr_count( $output, 'class="hcaptcha-notification notice' ) );
+		self::assertStringContainsString( 'class="hcaptcha-setup-notice"', $output );
+		self::assertStringContainsString( 'notice-warning', $output );
+		self::assertStringContainsString( 'Then select Live mode below and enter your keys.', $output );
+		self::assertStringContainsString( 'Show Setup Wizard', $output );
+		self::assertStringContainsString( 'target="_self"', $output );
+		self::assertStringNotContainsString( 'is-dismissible', $output );
 	}
 
 	/**

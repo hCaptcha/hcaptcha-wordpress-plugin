@@ -165,12 +165,15 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 		// phpcs:enable Generic.Metrics.CyclomaticComplexity.TooHigh
 		$plugins_requiring_php = [
 			'7.4' => [
-				'contact-form-7/wp-contact-form-7.php',
 				'elementor/elementor.php',
 				'elementor-pro/elementor-pro.php',
 				'mailchimp-for-wp/mailchimp-for-wp.php',
 				'ninja-forms/ninja-forms.php',
 				'woocommerce/woocommerce.php',
+			],
+			'8.3' => [
+				'contact-form-7/wp-contact-form-7.php',
+				'really-simple-captcha/really-simple-captcha.php',
 			],
 		];
 
@@ -466,6 +469,15 @@ class HCaptchaPluginWPTestCase extends HCaptchaWPTestCase {
 	private function activate_test_plugin( string $plugin ): void {
 		if ( ! $plugin || is_plugin_active( $plugin ) ) {
 			return;
+		}
+
+		if ( 'contact-form-7/wp-contact-form-7.php' === $plugin ) {
+			$autoload = WP_PLUGIN_DIR . '/contact-form-7/vendor/autoload.php';
+
+			if ( is_readable( $autoload ) ) {
+				// CF7's relative vendor path resolves to the test runner's autoloader.
+				require_once $autoload;
+			}
 		}
 
 		$silent = isset( static::$plugin_loaded[ $plugin ] ) || in_array(

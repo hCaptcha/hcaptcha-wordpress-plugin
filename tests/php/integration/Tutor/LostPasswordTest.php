@@ -144,4 +144,116 @@ class LostPasswordTest extends HCaptchaPluginWPTestCase {
 
 		self::assertSame( 'Bad hCaptcha signature!', $result->get_error_message( 'bad-signature' ) );
 	}
+
+	/**
+	 * Skip recipient verification before the recovery request is verified.
+	 */
+	public function test_verify_recipient_without_verified_recovery(): void {
+		$errors = new WP_Error();
+
+		( new LostPassword() )->verify_recipient( $errors );
+
+		self::assertFalse( $errors->has_errors() );
+	}
+
+	/**
+	 * Tutor checks the final WordPress recipient without verifying the proof twice.
+	 *
+	 * @param bool $blocked Whether the recipient selected by WordPress is disposable.
+	 *
+	 * @return void
+	 * @dataProvider dp_email_policy
+	 */
+	public function test_native_recovery_recipient_policy( bool $blocked ): void {
+		$email = $blocked ? 'recipient@blocked.test' : 'recipient@allowed.test';
+		$user  = get_userdata( $this->factory()->user->create( [ 'user_email' => $email ] ) );
+		$input = get_userdata( $this->factory()->user->create( [ 'user_email' => 'input@allowed.test' ] ) );
+		$this->prepare_verify_post( 'hcaptcha_tutor_lost_password_nonce', 'hcaptcha_tutor_lost_password' );
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'tutor-pro/tutor-pro.php', 'tutor/tutor.php' ],
+				'form_id' => 'lost_password',
+			]
+		);
+		$_POST['user_login']                   = $input->user_login;
+		$_POST['email']                        = 'forged@allowed.test';
+		$checked                               = [];
+		$mailed                                = false;
+		$remote_calls                          = 0;
+		add_filter(
+			'lostpassword_user_data',
+			static function () use ( $user ) {
+				return $user;
+			}
+		);
+		add_filter(
+			'hcap_is_disposable_email',
+			static function ( $disposable, string $address ) use ( &$checked ): bool {
+				$checked[] = $address;
+
+				return 'recipient@blocked.test' === $address;
+			},
+			10,
+			2
+		);
+		add_filter(
+			'pre_wp_mail',
+			static function () use ( &$mailed ): bool {
+				$mailed = true;
+				return true;
+			}
+		);
+		add_filter(
+			'pre_http_request',
+			static function ( $preempt, array $args, string $url ) use ( &$remote_calls ) {
+				$remote_calls += 'https://api.hcaptcha.com/siteverify' === $url ? 1 : 0;
+
+				return $preempt;
+			},
+			PHP_INT_MAX,
+			3
+		);
+		new LostPassword();
+		self::assertNull( apply_filters( 'tutor_before_retrieve_password_form_process', null ) );
+		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Restore the request context exactly.
+		$had_remote_addr        = array_key_exists( 'REMOTE_ADDR', $_SERVER );
+		$remote_addr            = $_SERVER['REMOTE_ADDR'] ?? null;
+		$_SERVER['REMOTE_ADDR'] = '192.0.2.80';
+		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+
+		try {
+			$result = retrieve_password( $input->user_login );
+		} finally {
+			if ( $had_remote_addr ) {
+				$_SERVER['REMOTE_ADDR'] = $remote_addr;
+			} else {
+				unset( $_SERVER['REMOTE_ADDR'] );
+			}
+		}
+
+		if ( $blocked ) {
+			$this->assertWPError( $result );
+			self::assertSame( 'Please use a permanent email address.', $result->get_error_message( 'disposable-email' ) );
+			self::assertFalse( $mailed );
+		} else {
+			self::assertTrue( $result );
+			self::assertTrue( $mailed );
+		}
+
+		self::assertSame( [ $email ], $checked );
+		self::assertSame( 1, $remote_calls );
+	}
+
+	/**
+	 * Native recipient policy outcomes.
+	 *
+	 * @return array
+	 */
+	public function dp_email_policy(): array {
+		return [
+			'blocked recipient' => [ true ],
+			'allowed recipient' => [ false ],
+		];
+	}
 }

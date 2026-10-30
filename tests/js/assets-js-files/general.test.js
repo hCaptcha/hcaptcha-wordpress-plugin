@@ -172,26 +172,12 @@ function getDom() {
 			<button type="button" data-theme-editor-show-sample>Show real hCaptcha</button>
 			<button type="button" data-theme-editor-reset-theme>Reset theme</button>
 		</div>
-		<label><input type="checkbox" name="hcaptcha_settings[recaptcha_compat_off][]" /></label>
-
 		<!-- Section toggle target -->
 		<h3 class="togglable hcaptcha-section-keys closed"></h3>
 
-		<!-- Enterprise section marker + table with inputs -->
-		<h3 class="hcaptcha-section-enterprise"></h3>
-		<table><tbody>
-			<tr><td><input name="hcaptcha_settings[asset_host]" value="assethost.local" /></td></tr>
-			<tr><td><input name="hcaptcha_settings[endpoint]" value="endpoint.local" /></td></tr>
-			<tr><td><input name="hcaptcha_settings[host]" value="host.local" /></td></tr>
-			<tr><td><input name="hcaptcha_settings[image_host]" value="imghost.local" /></td></tr>
-			<tr><td><input name="hcaptcha_settings[report_api]" value="report.local" /></td></tr>
-			<tr><td><input name="hcaptcha_settings[sentry]" value="sentry.local" /></td></tr>
-			<tr><td><input name="hcaptcha_settings[api_host]" value="js.hcaptcha.com" /></td></tr>
-		</tbody></table>
-
 	</form>
 </div>
-<!-- Existing API script to be replaced by scriptUpdate() -->
+<!-- Existing API script -->
 <script id="hcaptcha-api" src="https://js.hcaptcha.com/1/api.js"></script>
 </body>
 </html>
@@ -327,24 +313,6 @@ describe( 'general.js basics', () => {
 
 		expect( hCaptcha.setParams ).not.toHaveBeenCalled();
 		expect( $( '.hcaptcha-theme-editor-json-status' ).hasClass( 'is-valid' ) ).toBe( true );
-	} );
-
-	test( 'scriptUpdate: rebuilds API script with params and clears sample', async () => {
-		bootGeneral();
-		// Enable recaptcha compat off and custom themes to get params in URL
-		$( "input[name='hcaptcha_settings[recaptcha_compat_off][]']" ).prop( 'checked', true );
-		$( "input[name='hcaptcha_settings[custom_themes][]']" ).prop( 'checked', true );
-		// Change an enterprise input to trigger scriptUpdate
-		$( "input[name='hcaptcha_settings[asset_host]']" ).val( 'http://assethost.local' ).trigger( 'change' );
-		await Promise.resolve();
-		const script = document.getElementById( 'hcaptcha-api' );
-		expect( script ).toBeTruthy();
-		expect( script.src ).toContain( 'onload=hCaptchaOnLoad' );
-		expect( script.src ).toContain( 'render=explicit' );
-		expect( script.src ).toContain( 'recaptchacompat=off' );
-		expect( script.src ).toContain( 'custom=true' );
-		// sample cleared
-		expect( $( '#hcaptcha-options .h-captcha' ).html() ).toBe( '' );
 	} );
 
 	test( 'credentials change does not disable submit and checkConfig success re-enables', async () => {
@@ -560,39 +528,6 @@ describe( 'checkChangeCredentials revert to initial', () => {
 
 		// Revert to initial value.
 		$site.val( 'live-key' ).trigger( 'change' );
-		expect( $submit.attr( 'disabled' ) ).toBeUndefined();
-	} );
-} );
-
-describe( 'checkChangeEnterpriseSettings revert to initial', () => {
-	jest.useFakeTimers();
-	let postSpy;
-
-	beforeEach( () => {
-		jest.clearAllMocks();
-		postSpy = jest.spyOn( $, 'post' ).mockImplementation( ( opts ) => {
-			const d = $.Deferred();
-			opts?.beforeSend?.();
-			setTimeout( () => d.resolve( { success: true } ), 0 );
-			return d;
-		} );
-	} );
-
-	afterEach( () => {
-		postSpy.mockRestore();
-	} );
-
-	test( 'reverts enterpriseSettingsChanged state when enterprise settings return to initial values', () => {
-		bootGeneral();
-		const $asset = $( "[name='hcaptcha_settings[asset_host]']" );
-		const $submit = $( '#submit' );
-
-		// Change enterprise input to trigger enterpriseSettingsChanged.
-		$asset.val( 'changed.local' ).trigger( 'change' );
-		expect( $submit.attr( 'disabled' ) ).toBeUndefined();
-
-		// Revert to initial value.
-		$asset.val( 'assethost.local' ).trigger( 'change' );
 		expect( $submit.attr( 'disabled' ) ).toBeUndefined();
 	} );
 } );
@@ -1211,18 +1146,6 @@ describe( 'remaining branch coverage', () => {
 		expect( $submit.attr( 'disabled' ) ).toBeUndefined();
 	} );
 
-	test( 'enterprise settings changed twice does not re-show notice', () => {
-		bootGeneral();
-		const $asset = $( "[name='hcaptcha_settings[asset_host]']" );
-		const $submit = $( '#submit' );
-
-		$asset.val( 'changed1.local' ).trigger( 'change' );
-		expect( $submit.attr( 'disabled' ) ).toBeUndefined();
-
-		$asset.val( 'changed2.local' ).trigger( 'change' );
-		expect( $submit.attr( 'disabled' ) ).toBeUndefined();
-	} );
-
 	test( 'keydown on non-readonly input is not prevented', () => {
 		bootGeneral();
 		$( "select[name='hcaptcha_settings[mode]']" ).val( 'live' ).trigger( 'change' );
@@ -1231,7 +1154,7 @@ describe( 'remaining branch coverage', () => {
 		$siteKey.trigger( event );
 		expect( event.isDefaultPrevented() ).toBe( false );
 	} );
-	test( 'clicking Save with changed credentials triggers checkConfig and scrolls', async () => {
+	test( 'clicking the bottom Save button with changed credentials triggers checkConfig and scrolls', async () => {
 		bootGeneral();
 		const $site = $( "[name='hcaptcha_settings[site_key]']" );
 		const $submit = $( '#submit' );
@@ -1256,18 +1179,6 @@ describe( 'remaining branch coverage', () => {
 		expect( checkClickSpy ).toHaveBeenCalled();
 		animSpy.mockRestore();
 		offsetSpy.mockRestore();
-	} );
-
-	test( 'scriptUpdate with empty enterprise values and empty api_host', () => {
-		bootGeneral();
-		// Clear all enterprise inputs.
-		$( '.hcaptcha-section-enterprise + table input' ).each( function() {
-			$( this ).val( '' );
-		} );
-		// Trigger enterprise change to call scriptUpdate.
-		$( "[name='hcaptcha_settings[asset_host]']" ).trigger( 'change' );
-		const script = document.getElementById( 'hcaptcha-api' );
-		expect( script.src ).toContain( 'js.hcaptcha.com' );
 	} );
 
 	test( 'checkConfig click with solved captcha calls onAction which invokes hCaptchaBindEvents', () => {
@@ -1363,7 +1274,7 @@ describe( 'additional general coverage', () => {
 		expect( editableEvent.preventDefault ).not.toHaveBeenCalled();
 	} );
 
-	test( 'submit click returns when credentials and enterprise settings are unchanged', () => {
+	test( 'submit click returns when credentials are unchanged', () => {
 		const event = $.Event( 'click' );
 		event.preventDefault = jest.fn();
 

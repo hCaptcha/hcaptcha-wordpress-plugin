@@ -1,4 +1,8 @@
 bootstrap: ./_bootstrap.php
+coverage:
+    include:
+        - ./src/php/*
+        - ./hcaptcha.php
 modules:
     enabled:
         - WPLoader

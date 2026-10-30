@@ -22,6 +22,7 @@ use Elementor\Widget_Base;
 use ElementorPro\Modules\Forms\Module as FormsModule;
 use ElementorPro\Plugin as ElementorProPlugin;
 use HCaptcha\ElementorPro\HCaptchaHandler;
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Settings\General;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
@@ -86,8 +87,8 @@ class HCaptchaHandlerTest extends HCaptchaPluginWPTestCase {
 
 		self::assertSame(
 			[
-				'email'   => 'reader@example.com',
 				'opinion' => 'Very useful',
+				'email'   => 'reader@example.com',
 			],
 			$entry['data']
 		);
@@ -173,7 +174,7 @@ class HCaptchaHandlerTest extends HCaptchaPluginWPTestCase {
 	 * @return void
 	 */
 	public function test_block_native_integration(): void {
-		$is_native_loaded = class_exists( HCaptcha_Handler::class, false );
+		$is_native_loaded = class_exists( HCaptcha_Handler::class );
 		$actions          = [
 			'elementor_pro/forms/field_types',
 			'elementor/element/form/section_form_fields/after_section_end',
@@ -220,6 +221,32 @@ class HCaptchaHandlerTest extends HCaptchaPluginWPTestCase {
 
 		wp_deregister_script( 'elementor-hcaptcha-api' );
 		wp_deregister_script( 'hcaptcha' );
+	}
+
+	/**
+	 * The native Elementor hCaptcha callbacks and scripts are removed when its handler is present.
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 * @group process-isolation-php74
+	 */
+	public function test_block_native_integration_with_loaded_handler(): void {
+		if ( ! class_exists( HCaptcha_Handler::class, false ) ) {
+			class_alias( get_class( new class() {} ), HCaptcha_Handler::class );
+		}
+
+		$action   = 'elementor_pro/forms/field_types';
+		$callback = [ HCaptcha_Handler::class, 'test_callback' ];
+		add_action( $action, $callback );
+		wp_register_script( 'elementor-hcaptcha-api', '', [], HCAPTCHA_VERSION, true );
+		wp_register_script( 'hcaptcha', '', [], HCAPTCHA_VERSION, true );
+
+		$subject = new HCaptchaHandler();
+		$subject->block_native_integration();
+
+		self::assertFalse( has_action( $action, $callback ) );
+		self::assertFalse( wp_script_is( 'elementor-hcaptcha-api', 'registered' ) );
+		self::assertFalse( wp_script_is( 'hcaptcha', 'registered' ) );
 	}
 
 	/**
@@ -1585,5 +1612,61 @@ CSS;
 		];
 
 		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
+	}
+	/**
+	 * Apply email policy to native sanitized custom email fields.
+	 *
+	 * @param bool $blocked Whether the trusted email is disposable.
+	 * @dataProvider dp_sec063_email_policy
+	 */
+	public function test_sec063_typed_email_policy( bool $blocked ): void {
+		$this->prepare_verify_request( 'sec063-challenge' );
+		$this->prepare_widget_id( 'form-1' );
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		set_transient( 'hcaptcha_disposable_email_blocklist', [ 'sec063-disposable.test' => true ] );
+		$record = Mockery::mock( Form_Record::class );
+		$record->shouldReceive( 'get' )->with( 'form_settings' )->andReturn( [ 'id' => 'form-1' ] );
+		$record->shouldReceive( 'get' )->with( 'sent_data' )->andReturn(
+			[
+				'billing_address' => $blocked ? 'person@sec063-disposable.test' : 'person@example.com',
+				'second_address'  => 'reader@example.com',
+				'email'           => 'spoof@sec063-disposable.test',
+			]
+		);
+		$record->shouldReceive( 'get' )->with( 'fields' )->andReturn(
+			[
+				[
+					'id'          => 'billing_address',
+					'type'        => 'email',
+					'field_label' => 'Payment contact',
+					'value'       => $blocked ? 'person@sec063-disposable.test' : 'person@example.com',
+				],
+				[
+					'id'    => 'second_address',
+					'type'  => 'email',
+					'value' => 'reader@example.com',
+				],
+				[
+					'id'    => 'email',
+					'type'  => 'text',
+					'value' => 'spoof@sec063-disposable.test',
+				],
+			]
+		);
+		$subject = new HCaptchaHandler();
+		$entry   = $this->set_method_accessibility( $subject, 'get_entry' )->invoke( $subject, $record );
+
+		self::assertSame( $blocked ? 'Please use a permanent email address.' : null, API::verify_request( null, $entry ) );
+	}
+	/**
+	 * Exercise both policy rejection and permanent address acceptance.
+	 *
+	 * @return array
+	 */
+	public function dp_sec063_email_policy(): array {
+		return [
+			'disposable' => [ true ],
+			'permanent'  => [ false ],
+		];
 	}
 }

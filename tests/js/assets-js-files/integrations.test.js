@@ -46,8 +46,6 @@ function getDom() {
 <div id="hcaptcha-options">
 	<input id="hcaptcha-integrations-search" type="text" />
 </div>
-<label><input type="checkbox" id="show_antispam_coverage_1" /></label>
-<div id="hcaptcha-antispam-legend" class="hcaptcha-antispam-legend" style="display: none;"></div>
 <div id="hcaptcha-admin-notices"></div>
 <div id="hcaptcha-message"></div>
 	<table class="form-table">
@@ -96,10 +94,6 @@ function getDom() {
 				</fieldset>
 			</td>
 		</tr>
-		</tbody>
-	</table>
-	<table class="form-table">
-		<tbody>
 		<tr class="hcaptcha-integrations-acfe-status">
 			<th scope="row">
 				<div class="hcaptcha-integrations-logo" data-installed="true">
@@ -205,26 +199,16 @@ describe( 'integrations', () => {
 		postSpy.mockRestore();
 	} );
 
-	test( 'setupHelpers creates helper icons and toggles visibility with the checkbox', () => {
+	test( 'does not create antispam indicators even when the saved checkbox is checked', () => {
+		$( 'body' ).append( '<input type="checkbox" id="show_antispam_coverage_1" checked>' );
 		const $label = $( '#antispam-label' );
-		// After init, helper should be inserted but hidden by default (checkbox unchecked)
-		let $helper = $label.next( '.helper' );
-		expect( $helper.length ).toBe( 1 );
-		expect( $helper.css( 'display' ) ).toBe( 'none' );
-		// It should contain icons for data-antispam-honeypot and data-antispam-fst
-		expect( $helper.find( 'i.antispam-honeypot' ).length ).toBe( 1 );
-		expect( $helper.find( 'i.antispam-fst' ).length ).toBe( 1 );
-
-		// Legend should be hidden by default
-		const $legend = $( '#hcaptcha-antispam-legend' );
-		expect( $legend.css( 'display' ) ).toBe( 'none' );
-
-		// Toggle the checkbox to show helpers and legend
 		const $cb = $( '#show_antispam_coverage_1' );
 		$cb.prop( 'checked', true ).trigger( 'change' );
-		$helper = $label.next( '.helper' );
-		expect( $helper.css( 'display' ) ).toBe( 'inline-flex' );
-		expect( $legend.css( 'display' ) ).not.toBe( 'none' );
+		window.hCaptchaIntegrations( $ );
+
+		expect( $label.next( '.helper' ).length ).toBe( 0 );
+		expect( $( 'i[class^="antispam"]' ).length ).toBe( 0 );
+		expect( $( '#hcaptcha-antispam-legend' ).length ).toBe( 0 );
 	} );
 
 	test( 'suggestActivate highlights element and shows success message when configured', () => {
@@ -448,7 +432,7 @@ describe( 'additional integrations coverage', () => {
 		d.resolve( { success: true, data: { message: 'ok', stati: [] } } );
 
 		// Should be moved into the active table (index 1) and enabled
-		const activeTable = $( '.form-table' ).eq( 1 );
+		const activeTable = $( '.form-table' ).eq( 0 );
 		expect( $tr.closest( '.form-table' )[ 0 ] ).toBe( activeTable[ 0 ] );
 		expect( $fieldset.is( ':disabled' ) ).toBe( false );
 	} );
@@ -463,7 +447,7 @@ describe( 'additional integrations coverage', () => {
 		const $img = $( '.hcaptcha-integrations-acfe-status img' );
 		const $tr = $img.closest( 'tr' );
 		const $formTable = $( '.form-table' );
-		const initiallyInActiveTable = $tr.closest( '.form-table' ).is( $formTable.eq( 1 ) );
+		const initiallyInActiveTable = $tr.closest( '.form-table' ).is( $formTable.eq( 0 ) );
 
 		// Trigger click and resolve with stati flipping acfe_status to the opposite
 		$img.trigger( $.Event( 'click', { ctrlKey: true } ) );
@@ -478,7 +462,7 @@ describe( 'additional integrations coverage', () => {
 		// Data-installed must be true, and the row should be in table-matching status
 		expect( $tr.find( '.hcaptcha-integrations-logo' ).attr( 'data-installed' ) ).toBe( 'true' );
 		const shouldBeActive = ! initiallyInActiveTable;
-		const tableIdx = shouldBeActive ? 1 : 2;
+		const tableIdx = shouldBeActive ? 0 : 1;
 		expect( $tr.closest( '.form-table' ).is( $formTable.eq( tableIdx ) ) ).toBe( true );
 	} );
 
@@ -847,7 +831,7 @@ describe( 'integrations.js remaining branch coverage', () => {
 	// Branch 6 (line 128): alt is falsy → use empty string.
 	test( 'insertIntoTable handles img with no alt attribute', () => {
 		// Add a row without alt to the active table.
-		const $activeTable = $( '.form-table' ).eq( 1 );
+		const $activeTable = $( '.form-table' ).eq( 0 );
 		const $tbody = $activeTable.find( 'tbody' );
 		const tr = document.createElement( 'tr' );
 		tr.className = 'hcaptcha-integrations-noalt-plugin';
@@ -859,21 +843,6 @@ describe( 'integrations.js remaining branch coverage', () => {
 		expect( () => {
 			$( '.hcaptcha-integrations-other-plugin img' ).trigger( 'click' );
 		} ).not.toThrow();
-	} );
-
-	// Branch 12 (line 173): duplicate data-antispam-* attribute → class not added twice.
-	test( 'setupHelper does not add duplicate antispam class icons', () => {
-		const label = document.createElement( 'label' );
-		label.setAttribute( 'data-antispam', '' );
-		label.setAttribute( 'data-antispam-honeypot', '' );
-		document.body.appendChild( label );
-
-		// Re-init to pick up the new label.
-		window.hCaptchaIntegrations( $ );
-
-		const $helper = $( label ).next( '.helper' );
-		// Should have exactly one icon for honeypot.
-		expect( $helper.find( 'i.antispam-honeypot' ).length ).toBe( 1 );
 	} );
 
 	// Branch 20 (line 265): select.value is null/undefined → return ''.
@@ -916,7 +885,7 @@ describe( 'integrations.js remaining branch coverage', () => {
 		const $tr = $( '.hcaptcha-integrations-acfe-status' );
 		$( '.hcaptcha-integrations-acfe-status img' ).trigger( $.Event( 'click', { ctrlKey: true } ) );
 
-		expect( $tr.closest( '.form-table' ).is( $( '.form-table' ).eq( 2 ) ) ).toBe( true );
+		expect( $tr.closest( '.form-table' ).is( $( '.form-table' ).eq( 1 ) ) ).toBe( true );
 	} );
 
 	// Branch 33 (line 380): entity data attr is falsy → entity = ''.
@@ -1013,14 +982,14 @@ describe( 'swapThemes isolated', () => {
 	test( 'does nothing when entity is not theme', () => {
 		resetDomLocal();
 		const $tables = $( '.form-table' );
-		const countBeforeActive = $tables.eq( 1 ).find( 'tbody > tr' ).length;
-		const countBeforeInactive = $tables.eq( 2 ).find( 'tbody > tr' ).length;
+		const countBeforeActive = $tables.eq( 0 ).find( 'tbody > tr' ).length;
+		const countBeforeInactive = $tables.eq( 1 ).find( 'tbody > tr' ).length;
 
 		// Direct call should not change anything for a non-theme entity
 		window.__integrationsTest.swapThemes( true, 'plugin' );
 
-		const countAfterActive = $tables.eq( 1 ).find( 'tbody > tr' ).length;
-		const countAfterInactive = $tables.eq( 2 ).find( 'tbody > tr' ).length;
+		const countAfterActive = $tables.eq( 0 ).find( 'tbody > tr' ).length;
+		const countAfterInactive = $tables.eq( 1 ).find( 'tbody > tr' ).length;
 
 		expect( countAfterActive ).toBe( countBeforeActive );
 		expect( countAfterInactive ).toBe( countBeforeInactive );
@@ -1029,8 +998,8 @@ describe( 'swapThemes isolated', () => {
 	test( 'activate: moves current active theme to inactive table', () => {
 		resetDomLocal();
 		const $tables = $( '.form-table' );
-		const $activeTable = $tables.eq( 1 );
-		const $inactiveTable = $tables.eq( 2 );
+		const $activeTable = $tables.eq( 0 );
+		const $inactiveTable = $tables.eq( 1 );
 
 		// Precondition: one active theme present, none inactive
 		expect( $activeTable.find( 'img[data-entity="theme"]' ).length ).toBe( 1 );
@@ -1046,8 +1015,8 @@ describe( 'swapThemes isolated', () => {
 	test( 'deactivate: moves selected inactive theme into active table', () => {
 		resetDomLocal();
 		const $tables = $( '.form-table' );
-		const $activeTable = $tables.eq( 1 );
-		const $inactiveTable = $tables.eq( 2 );
+		const $activeTable = $tables.eq( 0 );
+		const $inactiveTable = $tables.eq( 1 );
 
 		// First, move current active to inactive so the inactive table has a theme row
 		window.__integrationsTest.swapThemes( true, 'theme' );
@@ -1096,43 +1065,6 @@ describe( 'integrations edge branch coverage', () => {
 		jest.restoreAllMocks();
 	} );
 
-	test( 'setupHelpers returns when antispam coverage checkbox is disabled', () => {
-		document.body.innerHTML = getDom();
-		document.getElementById( 'show_antispam_coverage_1' ).disabled = true;
-		window.hCaptchaIntegrations( $ );
-
-		expect( $( '#antispam-label' ).next( '.helper' ).length ).toBe( 0 );
-	} );
-
-	test( 'setupHelper tolerates missing labels and duplicate antispam attributes', () => {
-		document.body.innerHTML = getDom();
-		const originalGet = $.fn.get;
-		let labelCalls = 0;
-		jest.spyOn( $.fn, 'get' ).mockImplementation( function( index ) {
-			if ( this.is( 'label[data-antispam]' ) ) {
-				labelCalls++;
-
-				if ( labelCalls === 1 ) {
-					return undefined;
-				}
-
-				return {
-					attributes: [
-						{ name: 'data-antispam-fst' },
-						{ name: 'data-antispam-fst' },
-					],
-				};
-			}
-
-			return originalGet.call( this, index );
-		} );
-		document.getElementById( 'antispam-label' ).insertAdjacentHTML( 'afterend', '<label data-antispam id="antispam-label-2">Second</label>' );
-
-		window.hCaptchaIntegrations( $ );
-
-		expect( labelCalls ).toBeGreaterThan( 1 );
-	} );
-
 	test( 'deactivate theme uses empty newTheme when dialog select value is undefined', () => {
 		resetDom();
 		window.kaggDialog = {
@@ -1167,8 +1099,8 @@ describe( 'integrations edge branch coverage', () => {
 	test( 'updateActivationStati moves inactive rows into active table and handles missing alt text', () => {
 		resetDom();
 		const $form = $( '.form-table' );
-		const inactiveTable = $form.eq( 2 );
-		const activeTable = $form.eq( 1 );
+		const inactiveTable = $form.eq( 1 );
+		const activeTable = $form.eq( 0 );
 		const row = $( '.hcaptcha-integrations-other-plugin' );
 		activeTable.find( 'img' ).first().removeAttr( 'alt' );
 		inactiveTable.find( 'tbody' ).append( row );
@@ -1184,7 +1116,7 @@ describe( 'integrations edge branch coverage', () => {
 
 	test( 'plugin image without a status class still sends an empty status value', () => {
 		document.body.innerHTML = getDom();
-		document.querySelectorAll( '.form-table' )[ 1 ].querySelector( 'tbody' ).insertAdjacentHTML(
+		document.querySelectorAll( '.form-table' )[ 0 ].querySelector( 'tbody' ).insertAdjacentHTML(
 			'beforeend',
 			'<tr class="plain-plugin-row"><th><div class="hcaptcha-integrations-logo" data-installed="true"><img alt="Plain Plugin Logo" data-entity="plugin" data-label="Plain Plugin"></div></th><td><fieldset><label>Plain</label></fieldset></td></tr>',
 		);
@@ -1332,6 +1264,7 @@ describe( 'integration plan failures and changing dependencies', () => {
 
 		image.trigger( 'click' );
 		requests[ 0 ].deferred.resolve( { success: false, data: { message: 'Cannot activate' } } );
+
 		expect( $( '#hcaptcha-message' ).text() ).toContain( 'Cannot activate' );
 
 		image.trigger( 'click' );
@@ -1399,6 +1332,7 @@ describe( 'integration plan failures and changing dependencies', () => {
 
 	test( 'dependency selection updates master state and refreshes when theme changes', () => {
 		window.kaggDialog.confirm.mockImplementation( ( settings ) => {
+			// language=HTML
 			$( `<div class="kagg-dialog">${ settings.content }</div>` ).appendTo( document.body );
 		} );
 		const image = $( '.hcaptcha-integrations-twentytwentyone-theme img' );
@@ -1440,7 +1374,7 @@ describe( 'integration plan failures and changing dependencies', () => {
 
 	test( 'toggle response handles missing success and moves another active row', () => {
 		const image = $( '.hcaptcha-integrations-acfe-status img' );
-		$( '.form-table' ).eq( 2 ).find( 'tbody' ).append( $( '.hcaptcha-integrations-other-plugin' ) );
+		$( '.form-table' ).eq( 1 ).find( 'tbody' ).append( $( '.hcaptcha-integrations-other-plugin' ) );
 
 		image.trigger( $.Event( 'click', { ctrlKey: true } ) );
 		requests[ 0 ].deferred.resolve( { data: {} } );
@@ -1452,13 +1386,14 @@ describe( 'integration plan failures and changing dependencies', () => {
 			data: { message: 'Activated', stati: { other_plugin: true } },
 		} );
 		expect( $( '.hcaptcha-integrations-other-plugin' ).closest( '.form-table' )[ 0 ] )
-			.toBe( $( '.form-table' )[ 1 ] );
+			.toBe( $( '.form-table' )[ 0 ] );
 	} );
 
 	test( 'dependency plan tolerates missing items and item names', () => {
 		$( '.hcaptcha-integrations-acfe-status fieldset' ).removeAttr( 'disabled' );
 		window.HCaptchaIntegrationsObject.dependenciesMsg = null;
 		window.kaggDialog.confirm.mockImplementation( ( settings ) => {
+			// language=HTML
 			$( `<div class="kagg-dialog">${ settings.content }</div>` ).appendTo( document.body );
 		} );
 

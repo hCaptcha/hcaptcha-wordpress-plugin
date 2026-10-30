@@ -7,6 +7,8 @@
 
 namespace HCaptcha\AntiSpam;
 
+use HCaptcha\Helpers\EntryData;
+
 /**
  * Class DisposableEmail.
  */
@@ -81,21 +83,21 @@ class DisposableEmail {
 	 * @return string|null
 	 */
 	public function verify( array $entry ): ?string {
-		$email = $entry['data']['email'] ?? '';
+		foreach ( EntryData::get_emails( $entry ) as $email ) {
+			/**
+			 * Filters the disposable email status.
+			 *
+			 * @param bool $is_disposable Whether the email is disposable.
+			 * @param string $email   Email address.
+			 */
+			$disposable = (bool) apply_filters( 'hcap_is_disposable_email', $this->is_disposable_email( $email ), $email );
 
-		if ( ! is_email( $email ) ) {
-			return true;
+			if ( $disposable ) {
+				return false;
+			}
 		}
 
-		/**
-		 * Filters the disposable email status.
-		 *
-		 * @param bool $is_disposable Whether the email is disposable.
-		 * @param string $email   Email address.
-		 */
-		$disposable = (bool) apply_filters( 'hcap_is_disposable_email', $this->is_disposable_email( $email ), $email );
-
-		return ! $disposable;
+		return true;
 	}
 
 	/**
@@ -162,18 +164,15 @@ class DisposableEmail {
 	 * @return bool
 	 */
 	public function is_disposable_email( string $email ): bool {
-		if ( false === strpos( $email, '@' ) ) {
-			return false;
-		}
+		$email     = trim( $email );
+		$separator = strrpos( $email, '@' );
 
-		$parts = explode( '@', trim( $email ) );
-
-		if ( count( $parts ) < 2 || '' === $parts[1] ) {
+		if ( false === $separator || strlen( $email ) - 1 === $separator ) {
 			return false;
 		}
 
 		$to_lower     = function_exists( 'mb_strtolower' ) ? 'mb_strtolower' : 'strtolower';
-		$domain       = $to_lower( $parts[1] );
+		$domain       = $to_lower( substr( $email, $separator + 1 ) );
 		$domain_parts = explode( '.', $domain );
 		$blocklist    = $this->get_blocklist();
 		$count        = count( $domain_parts );
@@ -262,6 +261,7 @@ class DisposableEmail {
 	 * Schedule the recurring blocklist update via Action Scheduler.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	protected function schedule_update(): void {
 		if ( ! function_exists( 'as_schedule_recurring_action' ) ) {
@@ -282,6 +282,7 @@ class DisposableEmail {
 	 * Unschedule the recurring blocklist update.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	protected function unschedule_update(): void {
 		if ( ! function_exists( 'as_unschedule_all_actions' ) ) {

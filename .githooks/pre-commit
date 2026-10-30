@@ -1,0 +1,18 @@
+#!/bin/sh
+
+set -eu
+
+cd "$(git rev-parse --show-toplevel)"
+
+if git diff --cached --quiet -- readme.txt changelog.txt; then
+  exit 0
+fi
+
+if ! git diff --quiet -- changelog.txt; then
+  echo "Stage or restore changes in changelog.txt before committing." >&2
+  exit 1
+fi
+
+php_binary=$(git config --get hcaptcha.phpPath || echo php)
+"$php_binary" .github/scripts/update-changelog.php --staged
+git add -- changelog.txt

@@ -15,6 +15,7 @@ use HCaptcha\NF\Field;
 use HCaptcha\NF\NF;
 use HCaptcha\Settings\General;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use NF_Fields_Hcaptcha;
 use Ninja_Forms;
 use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
@@ -52,6 +53,7 @@ class NFTest extends HCaptchaPluginWPTestCase {
 		unset( $_GET['form_id'] );
 
 		wp_dequeue_script( 'hcaptcha-nf' );
+		wp_dequeue_script( 'nf-hcaptcha' );
 
 		parent::tearDown();
 	}
@@ -97,6 +99,14 @@ class NFTest extends HCaptchaPluginWPTestCase {
 			10,
 			has_filter( 'ninja_forms_localize_field_hcaptcha-for-ninja-forms_preview', [ $subject, 'localize_field' ] )
 		);
+		self::assertSame(
+			10,
+			has_filter( 'ninja_forms_localize_field_hcaptcha', [ $subject, 'mark_native_field' ] )
+		);
+		self::assertSame(
+			10,
+			has_filter( 'ninja_forms_localize_field_hcaptcha_preview', [ $subject, 'mark_native_field' ] )
+		);
 		self::assertSame( 9, has_action( 'wp_print_footer_scripts', [ $subject, 'nf_captcha_script' ] ) );
 	}
 
@@ -117,16 +127,12 @@ class NFTest extends HCaptchaPluginWPTestCase {
 		$templates_dir   = $this->get_protected_property( $subject, 'templates_dir' );
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		$template = file_get_contents( $templates_dir . 'fields-hcaptcha.html' );
-		$expected = str_replace(
-			'tmpl-nf-field-' . Base::TYPE,
-			'tmpl-nf-field-' . Base::NAME,
-			$template
-		);
+		$template = file_get_contents( $templates_dir . 'fields-' . Base::NAME . '.html' );
 
 		ob_start();
 		$subject->admin_template();
-		self::assertSame( $expected, ob_get_clean() );
+		self::assertSame( $template, ob_get_clean() );
+		self::assertStringContainsString( 'id="tmpl-nf-field-' . Base::NAME . '"', $template );
 	}
 
 	/**
@@ -267,7 +273,10 @@ JSON;
 
 		$fields = $nf_instance->fields;
 
+		self::assertInstanceOf( NF_Fields_Hcaptcha::class, $fields['hcaptcha'] );
 		self::assertInstanceOf( Field::class, $fields['hcaptcha-for-ninja-forms'] );
+		self::assertContains( Base::TYPE, $fields['hcaptcha']->get_templates() );
+		self::assertContains( Base::NAME, $fields['hcaptcha-for-ninja-forms']->get_templates() );
 
 		$hcap_index  = array_search( Base::NAME, array_keys( $fields ), true );
 		$recap_index = array_search( 'recaptcha', array_keys( $fields ), true );
@@ -381,10 +390,31 @@ JSON;
 		$subject = new NF();
 
 		$this->set_protected_property( $subject, 'form_shown', true );
+		wp_enqueue_script( 'nf-hcaptcha', 'https://js.hcaptcha.com/1/api.js?render=explicit', [], '1.0', true );
 
 		$subject->nf_captcha_script();
 
 		self::assertTrue( wp_script_is( 'hcaptcha-nf' ) );
+		self::assertFalse( wp_script_is( 'nf-hcaptcha' ) );
+	}
+
+	/**
+	 * Test native and bridge fields keep both frontend scripts.
+	 */
+	public function test_nf_captcha_script_with_native_field(): void {
+		$subject = new NF();
+		$this->set_protected_property( $subject, 'form_shown', true );
+		$field = [
+			'id'       => 12,
+			'settings' => [ 'type' => 'hcaptcha' ],
+		];
+
+		self::assertSame( $field, $subject->mark_native_field( $field ) );
+		wp_enqueue_script( 'nf-hcaptcha', 'https://js.hcaptcha.com/1/api.js?render=explicit', [], '1.0', true );
+		$subject->nf_captcha_script();
+
+		self::assertTrue( wp_script_is( 'hcaptcha-nf' ) );
+		self::assertTrue( wp_script_is( 'nf-hcaptcha' ) );
 	}
 
 	/**

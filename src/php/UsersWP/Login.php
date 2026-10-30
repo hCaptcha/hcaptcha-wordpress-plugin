@@ -9,6 +9,7 @@ namespace HCaptcha\UsersWP;
 
 use HCaptcha\Abstracts\LoginBase;
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use WP_Error;
 use WP_User;
 
@@ -94,7 +95,6 @@ class Login extends LoginBase {
 	 * @param array|mixed          $data POST data.
 	 *
 	 * @return WP_User|WP_Error
-	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $result, string $action, $data ) {
 		if ( self::USERS_WP_ACTION !== $action ) {
@@ -105,7 +105,8 @@ class Login extends LoginBase {
 			return $result;
 		}
 
-		$error_message = API::verify_post_html( self::NONCE, self::ACTION );
+		$entry         = EntryData::with_emails( [ 'data' => EntryData::from_array( is_array( $data ) ? $data : [], [] ) ], [] );
+		$error_message = API::verify_post_html( self::NONCE, self::ACTION, $this->get_expected_id(), $entry );
 
 		if ( null === $error_message ) {
 			return $result;

@@ -8,7 +8,9 @@
 namespace HCaptcha\Wordfence;
 
 use HCaptcha\Helpers\HCaptcha;
+use HCaptcha\Helpers\Request;
 use HCaptcha\WP\Login;
+use HCaptcha\WP\Register;
 
 /**
  * Class General
@@ -69,14 +71,20 @@ class General {
 	}
 
 	/**
-	 * Remove Wordfence login CAPTCHA scripts.
+	 * Remove Wordfence CAPTCHA scripts from protected native registration.
 	 *
 	 * @return void
 	 */
 	public function remove_wordfence_recaptcha_script(): void {
+		// The Wordfence login AJAX preflight still requires its native CAPTCHA token.
+		if ( ! $this->is_native_registration_protected() ) {
+			return;
+		}
+
 		$handles = [
 			'wordfence-ls-recaptcha',
 			'wordfence-ls-hcaptcha',
+			'wordfence-ls-login',
 		];
 
 		foreach ( $handles as $handle ) {
@@ -86,13 +94,52 @@ class General {
 	}
 
 	/**
-	 * Do not require Wordfence captcha.
+	 * Require Wordfence CAPTCHA unless the current operation has an hCaptcha verifier.
 	 *
-	 * @return false
+	 * @param bool $required Whether Wordfence requires CAPTCHA.
+	 *
+	 * @return bool
 	 */
-	public function block_wordfence_recaptcha(): bool {
+	public function block_wordfence_recaptcha( bool $required ): bool {
+		if ( ! $required || ! hcaptcha()->settings()->is( 'wordfence_status', 'login' ) ) {
+			return $required;
+		}
 
-		return false;
+		return ! ( doing_action( 'register_post' ) && $this->is_native_registration_protected() );
+	}
+
+	/**
+	 * Whether the native WordPress registration request has its hCaptcha verifier.
+	 *
+	 * @return bool
+	 */
+	private function is_native_registration_protected(): bool {
+		$register = hcaptcha()->get( Register::class );
+		// The registration verifier checks the action and its nonce before accepting the form.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$input_type = isset( $_POST['action'] ) ? INPUT_POST : INPUT_GET;
+
+		if (
+			! $register instanceof Register ||
+			false === has_filter( 'registration_errors', [ $register, 'verify' ] ) ||
+			! did_action( 'login_init' ) ||
+			! did_action( 'login_form_register' ) ||
+			! HCaptcha::did_filter( 'login_link_separator' ) ||
+			'register' !== Request::filter_input( $input_type, 'action' ) ||
+			! hcaptcha()->settings()->is( 'wp_status', 'register' )
+		) {
+			return false;
+		}
+
+		$id_info = HCaptcha::decode_id_info();
+
+		if ( ! $id_info['valid'] ) {
+			return true;
+		}
+
+		$owner = (string) apply_filters( 'hcap_registration_request_owner', '', $id_info['id'] );
+
+		return ! $owner || Register::class === $owner;
 	}
 
 	/**
@@ -126,14 +173,12 @@ class General {
 			true
 		);
 
-		$notice = HCaptcha::get_hcaptcha_plugin_notice();
-
 		wp_localize_script(
 			self::ADMIN_HANDLE,
 			self::OBJECT,
 			[
-				'noticeLabel'       => $notice['label'],
-				'noticeDescription' => $notice['description'],
+				'noticeLabel'       => __( 'hCaptcha integration is active', 'hcaptcha-for-forms-and-more' ),
+				'noticeDescription' => __( 'Wordfence CAPTCHA settings still apply to forms without hCaptcha protection.', 'hcaptcha-for-forms-and-more' ),
 			]
 		);
 	}

@@ -8,6 +8,7 @@
 namespace HCaptcha\WPDiscuz;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use WP_User;
 
@@ -15,6 +16,10 @@ use WP_User;
  * Class Form.
  */
 class Comment extends Base {
+	/**
+	 * Native comment reCAPTCHA flags.
+	 */
+	protected const RECAPTCHA_OPTIONS = [ 'showForGuests', 'showForUsers' ];
 
 	/**
 	 * Add hooks.
@@ -43,10 +48,7 @@ class Comment extends Base {
 		global $post;
 
 		$args = [
-			'id' => [
-				'source'  => HCaptcha::get_class_source( static::class ),
-				'form_id' => $post->ID ?? 0,
-			],
+			'id' => $this->get_id( $post->ID ?? 0 ),
 		];
 
 		ob_start();
@@ -79,11 +81,9 @@ class Comment extends Base {
 	public function verify( $comment_data ) {
 		// Nonce is checked by wpDiscuz.
 
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$action = isset( $_POST['action'] )
-			? sanitize_text_field( wp_unslash( $_POST['action'] ) )
-			: '';
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
+		// Match the action selected by WordPress admin-ajax, including query actions.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$action = isset( $_REQUEST['action'] ) && is_string( $_REQUEST['action'] ) ? wp_unslash( $_REQUEST['action'] ) : '';
 
 		if ( ! ( 'wpdAddComment' === $action && wp_doing_ajax() ) ) {
 			return $comment_data;
@@ -98,7 +98,18 @@ class Comment extends Base {
 			filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
 			'';
 
-		$result = API::verify_request( $hcaptcha_response );
+		$post_id     = isset( $comment_data['comment_post_ID'] ) && is_scalar( $comment_data['comment_post_ID'] ) ? (int) $comment_data['comment_post_ID'] : 0;
+		$expected_id = $this->get_id( $post_id );
+		$result      = API::verify(
+			EntryData::with_emails(
+				[
+					'expected_id'        => $expected_id,
+					'h-captcha-response' => $hcaptcha_response,
+					'data'               => EntryData::from_array( $comment_data, [] ),
+				],
+				[ $comment_data['comment_author_email'] ?? '' ]
+			)
+		);
 
 		if ( null === $result ) {
 			return $comment_data;
@@ -108,6 +119,20 @@ class Comment extends Base {
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 		wp_die( esc_html( $result ) );
+	}
+
+	/**
+	 * Get the widget identity for a post.
+	 *
+	 * @param int $post_id Post ID.
+	 *
+	 * @return array
+	 */
+	private function get_id( int $post_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( static::class ),
+			'form_id' => $post_id,
+		];
 	}
 
 	/**

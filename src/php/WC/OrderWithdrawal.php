@@ -154,17 +154,27 @@ class OrderWithdrawal {
 	 * @return array
 	 */
 	private function get_entry(): array {
+		$data = EntryData::from_post(
+			[
+				'email'      => 'order_withdrawal_email',
+				'first_name' => 'order_withdrawal_first_name',
+				'last_name'  => 'order_withdrawal_last_name',
+				'message'    => 'order_withdrawal_additional_details',
+			]
+		);
+
+		// Match WooCommerce's text-then-email normalization for the recipient.
+		// The native nonce is checked before this method is called.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized after the native scalar guard.
+		$email = $_POST['order_withdrawal_email'] ?? null;
+		if ( is_scalar( $email ) ) {
+			$data['email'] = sanitize_email( sanitize_text_field( wp_unslash( (string) $email ) ) );
+		}
+
 		return [
 			'nonce_name'   => self::NONCE,
 			'nonce_action' => self::ACTION,
-			'data'         => EntryData::from_post(
-				[
-					'email'      => 'order_withdrawal_email',
-					'first_name' => 'order_withdrawal_first_name',
-					'last_name'  => 'order_withdrawal_last_name',
-					'message'    => 'order_withdrawal_additional_details',
-				]
-			),
+			'data'         => $data,
 			'expected_id'  => $this->get_expected_id(),
 		];
 	}

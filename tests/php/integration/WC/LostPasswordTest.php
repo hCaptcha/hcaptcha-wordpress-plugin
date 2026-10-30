@@ -5,10 +5,14 @@
  * @package HCaptcha\Tests
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+
 namespace HCaptcha\Tests\Integration\WC;
 
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\WC\LostPassword;
+use WC_Shortcode_My_Account;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
 
@@ -77,6 +81,76 @@ class LostPasswordTest extends WooCommerceTestCase {
 		$subject->verify( $validation_error );
 
 		self::assertEquals( $expected, $validation_error );
+	}
+
+	/**
+	 * Native WooCommerce recovery passes its resolved account to policy.
+	 *
+	 * @param bool $blocked Whether the native stored address is disposable.
+	 *
+	 * @return void
+	 * @dataProvider dp_email_policy
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	public function test_native_recovery_email_policy( bool $blocked ): void {
+		$email = $blocked ? 'recipient@blocked.test' : 'recipient@allowed.test';
+		$user  = get_userdata( $this->factory()->user->create( [ 'user_email' => $email ] ) );
+		$this->prepare_verify_post( 'hcaptcha_wc_lost_password_nonce', 'hcaptcha_wc_lost_password' );
+		$this->prepare_widget_id();
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		$_POST['wc_reset_password'] = 'true';
+		$_POST['user_login']        = $user->user_login;
+		$_POST['email']             = 'forged@allowed.test';
+		$checked                    = [];
+		add_filter(
+			'hcap_is_disposable_email',
+			static function ( $disposable, string $address ) use ( &$checked ): bool {
+				$checked[] = $address;
+
+				return 'recipient@blocked.test' === $address;
+			},
+			10,
+			2
+		);
+		add_filter( 'pre_wp_mail', '__return_true' );
+		$native_recipient = null;
+		$disable_email    = static function ( $enabled, $email_object, $notification ) use ( &$native_recipient ): bool {
+			$native_recipient = $notification->get_recipient();
+
+			// Keep native reset-key generation and recipient selection, without rendering email in the unconfigured test database.
+			return false;
+		};
+		add_filter( 'woocommerce_email_enabled_customer_reset_password', $disable_email, 10, 3 );
+		wc_clear_notices();
+		new LostPassword();
+
+		try {
+			self::assertSame( ! $blocked, WC_Shortcode_My_Account::retrieve_password() );
+			self::assertSame( [ $email ], $checked );
+			self::assertSame( $blocked ? null : $email, $native_recipient );
+
+			if ( $blocked ) {
+				self::assertSame( 'Please use a permanent email address.', wc_get_notices( 'error' )[0]['notice'] );
+				self::assertSame( '', get_userdata( $user->ID )->user_activation_key );
+			} else {
+				self::assertNotSame( '', get_userdata( $user->ID )->user_activation_key );
+			}
+		} finally {
+			remove_filter( 'woocommerce_email_enabled_customer_reset_password', $disable_email );
+			wc_clear_notices();
+		}
+	}
+
+	/**
+	 * Native recipient policy outcomes.
+	 *
+	 * @return array
+	 */
+	public function dp_email_policy(): array {
+		return [
+			'blocked recipient' => [ true ],
+			'allowed recipient' => [ false ],
+		];
 	}
 
 	/**

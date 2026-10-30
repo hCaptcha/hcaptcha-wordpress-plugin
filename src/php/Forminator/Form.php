@@ -373,24 +373,25 @@ class Form {
 			'expected_id'        => $this->get_expected_id( $form_id ),
 		];
 
-		$name = [];
+		$name   = [];
+		$emails = [];
 
 		foreach ( $fields as $field ) {
 			$id    = $field->raw['element_id'];
 			$type  = $field->raw['type'];
 			$label = $field->raw['field_label'];
+			$value = Request::filter_input( INPUT_POST, $id ) ?? '';
+
+			if ( 'email' === $type ) {
+				$emails[] = $value;
+			}
+
 			if ( ! EntryData::is_content_field_type( (string) $type ) || EntryData::has_sensitive_field( (string) $label, (string) $id ) ) {
 				continue;
 			}
 
-			$value = Request::filter_input( INPUT_POST, $id ) ?? '';
-
 			if ( 'name' === $type ) {
 				$name[] = $value;
-			}
-
-			if ( 'email' === $type ) {
-				$entry['data']['email'] = $value;
 			}
 
 			EntryData::add_field( $entry['data'], (string) $label, $value, (string) $id );
@@ -398,6 +399,6 @@ class Form {
 
 		EntryData::add_name( $entry['data'], $name );
 
-		return $entry;
+		return EntryData::with_emails( $entry, $emails );
 	}
 }

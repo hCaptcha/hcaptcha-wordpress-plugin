@@ -9,6 +9,7 @@ namespace HCaptcha\Tests\Integration\Kadence;
 
 use HCaptcha\Kadence\BlockParser;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use ReflectionException;
 
 /**
  * Test Kadence BlockParser.
@@ -43,6 +44,7 @@ class BlockParserTest extends HCaptchaPluginWPTestCase {
 	public function setUp(): void {
 		parent::setUp();
 
+		hcaptcha()->settings()->set( 'kadence_status', [ 'form', 'advanced_form' ] );
 		BlockParser::$form_id = 0;
 	}
 
@@ -89,5 +91,29 @@ class BlockParserTest extends HCaptchaPluginWPTestCase {
 		self::assertEquals( 'kadence/advanced-form', $advanced_form['blockName'] );
 		self::assertEquals( 789, BlockParser::$form_id );
 		self::assertEmpty( $advanced_form['innerBlocks'] );
+	}
+
+	/**
+	 * Ignore malformed nested block data after parsing a block.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_process_block_without_inner_blocks(): void {
+		$subject = new BlockParser();
+		$block   = [
+			'blockName'   => 'some/some',
+			'innerBlocks' => null,
+		];
+		$method  = $this->set_method_accessibility( $subject, 'process_block' );
+
+		$method->invokeArgs( $subject, [ &$block ] );
+
+		self::assertSame(
+			[
+				'blockName'   => 'some/some',
+				'innerBlocks' => null,
+			],
+			$block
+		);
 	}
 }

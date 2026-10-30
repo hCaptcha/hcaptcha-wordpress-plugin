@@ -1,6 +1,7 @@
 #toplevel_page_hcaptcha img {
 	width: 20px;
 	filter: grayscale(1);
+	opacity: 1 !important;
 }
 
 #toplevel_page_hcaptcha.wp-menu-open img {

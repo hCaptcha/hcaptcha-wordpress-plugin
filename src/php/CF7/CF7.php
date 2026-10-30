@@ -15,6 +15,7 @@ use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Main;
+use WPCF7_ContactForm;
 use WPCF7_FormTag;
 use WPCF7_Submission;
 use WPCF7_Validation;
@@ -51,12 +52,20 @@ class CF7 extends Base {
 	private bool $form_shown = false;
 
 	/**
+	 * Whether Really Simple CAPTCHA tags should be replaced.
+	 *
+	 * @var bool
+	 */
+	private bool $mode_replace = false;
+
+	/**
 	 * Init hooks.
 	 *
 	 * @return void
 	 */
 	public function init_hooks(): void {
 		parent::init_hooks();
+		$this->mode_replace = hcaptcha()->settings()->is( 'cf7_status', 'replace_rsc' );
 
 		add_filter( 'do_shortcode_tag', [ $this, 'wpcf7_shortcode' ], 20, 4 );
 		add_shortcode( self::SHORTCODE, [ $this, 'cf7_hcaptcha_shortcode' ] );
@@ -80,7 +89,7 @@ class CF7 extends Base {
 	public function wpcf7_shortcode( $output, string $tag, $attr, array $m ): string {
 		$output = (string) $output;
 
-		if ( 'contact-form-7' !== $tag ) {
+		if ( ! in_array( $tag, [ 'contact-form-7', 'contact-form' ], true ) ) {
 			return $output;
 		}
 
@@ -94,9 +103,10 @@ class CF7 extends Base {
 
 		$form_id            = $this->get_form_id( $output, (array) $attr );
 		$cf7_hcap_shortcode = $this->get_cf7_hcap_shortcode( $output );
+		$replace_rsc        = $this->mode_replace && $this->form_has_rsc_tag( $form_id, 'captchac' ) && $this->form_has_rsc_tag( $form_id, 'captchar' );
 
 		if ( $cf7_hcap_shortcode ) {
-			if ( $this->mode_embed ) {
+			if ( $this->mode_embed || $replace_rsc ) {
 				remove_filter( 'do_shortcode_tag', [ $this, 'wpcf7_shortcode' ], 20 );
 
 				$output = do_shortcode( $this->add_form_id_to_cf7_hcap_shortcode( $output, $form_id ) );
@@ -230,7 +240,8 @@ class CF7 extends Base {
 
 		if (
 			! $this->mode_auto &&
-			! ( $this->mode_embed && $this->has_field( $submission, self::FIELD_TYPE ) )
+			! ( $this->mode_embed && $this->has_field( $submission, self::FIELD_TYPE ) ) &&
+			! ( $this->mode_replace && $this->has_rsc_tag( $submission->get_contact_form(), 'captchar' ) )
 		) {
 			return $result;
 		}
@@ -276,6 +287,59 @@ class CF7 extends Base {
 		 * @param bool $has_field Form has field.
 		 */
 		return apply_filters( 'hcap_cf7_has_field', $has_field, $submission, $type );
+	}
+
+	/**
+	 * Whether the saved form contains a Really Simple CAPTCHA tag.
+	 *
+	 * @param WPCF7_ContactForm $contact_form Contact form.
+	 * @param string            $tag          Tag type.
+	 *
+	 * @return bool
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	private function has_rsc_tag( WPCF7_ContactForm $contact_form, string $tag ): bool {
+		$whitespaces = function_exists( 'wpcf7_get_unicode_whitespaces' )
+			? wpcf7_get_unicode_whitespaces()
+			: '\\s';
+		$matches     = [];
+
+		preg_match_all(
+			'/(\[?)\[' . preg_quote( $tag, '/' ) . '\*?(?=[' . $whitespaces . ']|])[^]]*](]?)/u',
+			(string) $contact_form->prop( 'form' ),
+			$matches,
+			PREG_SET_ORDER
+		);
+
+		foreach ( $matches as $match ) {
+			if ( '[' !== $match[1] || ']' !== $match[2] ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Whether the rendered form belongs to a saved RSC form.
+	 *
+	 * @param int    $form_id Contact form ID.
+	 * @param string $tag     Tag type.
+	 *
+	 * @return bool
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	private function form_has_rsc_tag( int $form_id, string $tag ): bool {
+		if ( 0 === $form_id ) {
+			return false;
+		}
+
+		$contact_form = WPCF7_ContactForm::get_current();
+		if ( ! $contact_form || $form_id !== (int) $contact_form->id() ) {
+			$contact_form = wpcf7_contact_form( $form_id );
+		}
+
+		return $contact_form instanceof WPCF7_ContactForm && $this->has_rsc_tag( $contact_form, $tag );
 	}
 
 	/**
@@ -442,11 +506,13 @@ class CF7 extends Base {
 	 * @param WPCF7_Submission $submission CF& submission instance.
 	 *
 	 * @return array
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	private function get_entry( WPCF7_Submission $submission ): array {
-		$entry = [
+		$entry  = [
 			'data' => [],
 		];
+		$emails = [];
 
 		$data                   = $submission->get_posted_data();
 		$contact_form           = $submission->get_contact_form();
@@ -457,20 +523,26 @@ class CF7 extends Base {
 		$form_tags              = $contact_form->scan_form_tags();
 
 		foreach ( $form_tags as $form_tag ) {
-			$type = $form_tag->basetype;
-			$name = $form_tag->name;
+			$type  = $form_tag->basetype;
+			$name  = $form_tag->name;
+			$value = $data[ $name ] ?? '';
+
+			if ( 'email' === $type ) {
+				// Native CF7 validation checks every value under a configured email tag.
+				$emails = array_merge( $emails, wpcf7_array_flatten( $value ) );
+			}
 
 			if ( EntryData::has_sensitive_field( (string) $type, (string) $name ) ) {
 				continue;
 			}
 
-			$value = $data[ $name ] ?? '';
-
-			if ( 'email' === $type ) {
-				$entry['email'] = $value;
-			}
-
 			$entry['data'][ $name ] = $value;
+		}
+
+		$entry = EntryData::with_emails( $entry, $emails );
+
+		if ( isset( $entry['data']['email'] ) ) {
+			$entry['email'] = $entry['data']['email'];
 		}
 
 		return $entry;

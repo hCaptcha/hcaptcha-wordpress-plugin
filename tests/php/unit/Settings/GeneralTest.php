@@ -18,10 +18,11 @@ use HCaptcha\Admin\OnboardingWizard;
 use HCaptcha\Main;
 use HCaptcha\MigrationWizard\DetectionResult;
 use HCaptcha\MigrationWizard\MigrationWizard;
-use HCaptcha\Settings\PluginSettingsBase;
-use KAGG\Settings\Abstracts\SettingsBase;
+use HCaptcha\Settings\Advanced;
 use HCaptcha\Settings\General;
+use HCaptcha\Settings\PluginSettingsBase;
 use HCaptcha\Settings\Settings;
+use KAGG\Settings\Abstracts\SettingsBase;
 use HCaptcha\Tests\Unit\HCaptchaTestCase;
 use Mockery;
 use ReflectionException;
@@ -222,7 +223,7 @@ class GeneralTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'update_option' )->once()->with( 'set_min_submit_time', [ 'on' ] );
 		$subject->shouldReceive( 'update_option' )->once()->with( 'antispam', [ 'on' ] );
 		$subject->shouldReceive( 'auto_migration' )->once();
-		$subject->shouldReceive( 'update_option' )->once()->with( OnboardingWizard::OPTION_NAME, 'step 8' );
+		$subject->shouldReceive( 'update_option' )->once()->with( OnboardingWizard::OPTION_NAME, 'step 9' );
 		$subject->shouldReceive( 'tab_url' )->once()->with( $subject )->andReturn( 'https://test.test/wp-admin/admin.php?page=hcaptcha' );
 		$subject->shouldReceive( 'redirect_after_onboarding_auto_setup' )
 			->once()
@@ -274,7 +275,7 @@ class GeneralTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'update_option' )->once()->with( 'set_min_submit_time', [ 'on' ] );
 		$subject->shouldReceive( 'update_option' )->never()->with( 'antispam', [ 'on' ] );
 		$subject->shouldReceive( 'auto_migration' )->once();
-		$subject->shouldReceive( 'update_option' )->once()->with( OnboardingWizard::OPTION_NAME, 'step 8' );
+		$subject->shouldReceive( 'update_option' )->once()->with( OnboardingWizard::OPTION_NAME, 'step 9' );
 		$subject->shouldReceive( 'tab_url' )->once()->with( $subject )->andReturn( 'https://test.test/wp-admin/admin.php?page=hcaptcha' );
 		$subject->shouldReceive( 'redirect_after_onboarding_auto_setup' )
 			->once()
@@ -520,10 +521,24 @@ class GeneralTest extends HCaptchaTestCase {
 
 		WP_Mock::userFunction( 'is_multisite' )->andReturn( false );
 		WP_Mock::userFunction( 'number_format_i18n' )->with( 10000 )->andReturn( '10,000' );
-		$expected = $this->get_test_general_form_fields();
-
 		$subject->init_form_fields();
-		self::assertSame( $expected, $this->get_protected_property( $subject, 'form_fields' ) );
+		$fields = $this->get_protected_property( $subject, 'form_fields' );
+
+		self::assertSame( General::SECTION_KEYS, $fields['mode']['section'] );
+		self::assertSame( General::SECTION_KEYS, $fields['site_key']['section'] );
+		self::assertSame( General::SECTION_KEYS, $fields['reset_notifications']['section'] );
+		self::assertSame( '', $fields['check_config']['label'] ?? '' );
+		self::assertSame( 'Check Site Config', $fields['check_config']['text'] );
+		self::assertSame( '', $fields['reset_notifications']['label'] );
+		self::assertSame( 'Reset Notifications', $fields['reset_notifications']['text'] );
+		self::assertSame(
+			[ 'site_key', 'secret_key', 'sample_hcaptcha', 'mode', 'check_config', 'reset_notifications' ],
+			array_slice( array_keys( $fields ), 0, 6 )
+		);
+		self::assertArrayHasKey( 'custom_themes', $fields );
+		self::assertArrayNotHasKey( 'api_host', $fields );
+		self::assertArrayNotHasKey( 'protect_content', $fields );
+		self::assertArrayNotHasKey( 'statistics', $fields );
 	}
 
 	/**
@@ -538,6 +553,7 @@ class GeneralTest extends HCaptchaTestCase {
 	public function test_setup_fields( string $mode ): void {
 		$settings = Mockery::mock( Settings::class )->makePartial();
 		$settings->shouldReceive( 'get_mode' )->andReturn( $mode );
+		$settings->shouldReceive( 'get_license' )->andReturn( 'free' );
 
 		$main = Mockery::mock( Main::class )->makePartial();
 		$main->shouldReceive( 'settings' )->andReturn( $settings );
@@ -545,10 +561,16 @@ class GeneralTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( General::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'is_options_screen' )->andReturn( true );
+		$subject->shouldReceive( 'get' )->with( 'site_key' )->andReturn( '' );
+		$subject->shouldReceive( 'get' )->with( 'secret_key' )->andReturn( '' );
 		$this->set_protected_property( $subject, 'form_fields', $this->get_test_form_fields() );
+		$notifications = Mockery::mock( Notifications::class )->makePartial();
+		$notifications->shouldReceive( 'has_dismissed_notifications' )->never();
+		$this->set_protected_property( $subject, 'notifications', $notifications );
 
 		WP_Mock::passthruFunction( 'register_setting' );
 		WP_Mock::passthruFunction( 'add_settings_field' );
+		WP_Mock::userFunction( 'wp_get_current_user' )->andReturn( (object) [ 'ID' => 1 ] );
 
 		WP_Mock::userFunction( 'hcaptcha' )->with()->once()->andReturn( $main );
 
@@ -559,6 +581,11 @@ class GeneralTest extends HCaptchaTestCase {
 		foreach ( $form_fields as $form_field ) {
 			self::assertArrayHasKey( 'class', $form_field );
 		}
+
+		self::assertFalse( $form_fields['theme']['disabled'] );
+		self::assertFalse( $form_fields['size']['disabled'] );
+		self::assertFalse( $form_fields['language']['disabled'] );
+		self::assertSame( 'hcaptcha-general-reset-notifications hidden', $form_fields['reset_notifications']['class'] );
 
 		if ( General::MODE_LIVE === $mode ) {
 			$form_fields['site_key']['disabled']   = true;
@@ -585,16 +612,16 @@ class GeneralTest extends HCaptchaTestCase {
 	 * Test setup_fields() permissions by license.
 	 *
 	 * @param string $license             License level.
-	 * @param bool   $enterprise_disabled Whether Enterprise fields are disabled.
 	 * @param bool   $custom_disabled     Whether Custom Themes is disabled.
+	 * @param bool   $has_dismissed       Whether an active notification was dismissed.
 	 *
 	 * @dataProvider dp_test_setup_fields_by_license
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_setup_fields_by_license(
 		string $license,
-		bool $enterprise_disabled,
-		bool $custom_disabled
+		bool $custom_disabled,
+		bool $has_dismissed
 	): void {
 		$settings = Mockery::mock( Settings::class )->makePartial();
 		$settings->shouldReceive( 'get_mode' )->andReturn( General::MODE_LIVE );
@@ -606,23 +633,25 @@ class GeneralTest extends HCaptchaTestCase {
 		$subject = Mockery::mock( General::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'is_options_screen' )->andReturn( true );
+		$subject->shouldReceive( 'get' )->with( 'site_key' )->andReturn( 'site-key' );
+		$subject->shouldReceive( 'get' )->with( 'secret_key' )->andReturn( 'secret-key' );
 		$this->set_protected_property( $subject, 'form_fields', $this->get_test_form_fields() );
+		$notifications = Mockery::mock( Notifications::class )->makePartial();
+		$notifications->shouldReceive( 'has_dismissed_notifications' )->once()->andReturn( $has_dismissed );
+		$this->set_protected_property( $subject, 'notifications', $notifications );
 
 		WP_Mock::passthruFunction( 'register_setting' );
 		WP_Mock::passthruFunction( 'add_settings_field' );
+		WP_Mock::userFunction( 'wp_get_current_user' )->andReturn( (object) [ 'ID' => 1 ] );
 		WP_Mock::userFunction( 'hcaptcha' )->with()->once()->andReturn( $main );
 
 		$subject->setup_fields();
 
 		$form_fields = $this->get_protected_property( $subject, 'form_fields' );
 
-		foreach ( $form_fields as $form_field ) {
-			if ( General::SECTION_ENTERPRISE === ( $form_field['section'] ?? '' ) ) {
-				self::assertSame( $enterprise_disabled, $form_field['disabled'] );
-			}
-		}
-
 		self::assertSame( $custom_disabled, $form_fields['custom_themes']['disabled'] );
+		self::assertFalse( $form_fields['theme']['disabled'] );
+		self::assertSame( 'hcaptcha-general-reset-notifications' . ( $has_dismissed ? '' : ' hidden' ), $form_fields['reset_notifications']['class'] );
 	}
 
 	/**
@@ -632,9 +661,10 @@ class GeneralTest extends HCaptchaTestCase {
 	 */
 	public function dp_test_setup_fields_by_license(): array {
 		return [
-			'Free'       => [ 'free', true, true ],
-			'Pro'        => [ 'pro', true, false ],
-			'Enterprise' => [ 'enterprise', false, false ],
+			'Free'                => [ 'free', true, true ],
+			'Pro'                 => [ 'pro', false, true ],
+			'Enterprise'          => [ 'enterprise', false, true ],
+			'No active dismissal' => [ 'free', true, false ],
 		];
 	}
 
@@ -673,13 +703,30 @@ class GeneralTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'hcaptcha' )->with()->andReturn( $main );
 
 		$notifications = Mockery::mock( Notifications::class )->makePartial();
-		$subject       = Mockery::mock( General::class )->makePartial();
+		$is_advanced   = in_array(
+			$section_id,
+			[ General::SECTION_ENTERPRISE, General::SECTION_CONTENT, General::SECTION_OTHER, General::SECTION_STATISTICS ],
+			true
+		);
+		$subject       = Mockery::mock( $is_advanced ? Advanced::class : General::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 
-		$this->set_protected_property( $subject, 'notifications', $notifications );
+		if ( ! $is_advanced ) {
+			$this->set_protected_property( $subject, 'notifications', $notifications );
+		}
 
 		if ( General::SECTION_KEYS === $section_id ) {
-			$notifications->shouldReceive( 'show' )->once();
+			$notifications->shouldReceive( 'show' )->with( true )->once();
+		} else {
+			$notifications->shouldReceive( 'show' )->never();
+		}
+
+		if ( General::SECTION_KEYS === $section_id ) {
+			$subject->shouldReceive( 'tab_url' )->andReturn( 'https://example.org/wp-admin/options-general.php?page=hcaptcha' );
+			$subject->shouldReceive( 'get' )->andReturn( '' );
+			WP_Mock::userFunction( 'wp_create_nonce' )->andReturn( 'nonce' );
+			WP_Mock::userFunction( 'add_query_arg' )->andReturn( 'https://example.org/wp-admin/options-general.php?page=hcaptcha&onboarding=1' );
+			WP_Mock::passthruFunction( 'esc_url' );
 		}
 
 		WP_Mock::userFunction( 'wp_get_current_user' )->andReturn( $user );
@@ -688,7 +735,81 @@ class GeneralTest extends HCaptchaTestCase {
 
 		ob_start();
 		$subject->section_callback( [ 'id' => $section_id ] );
-		self::assertSame( $expected, ob_get_clean() );
+		$output = ob_get_clean();
+
+		if ( General::SECTION_KEYS === $section_id ) {
+			self::assertStringContainsString( 'hcaptcha-section-keys', $output );
+			return;
+		}
+
+		if ( General::SECTION_APPEARANCE === $section_id ) {
+			self::assertStringContainsString( 'hcaptcha-section-appearance"', $output );
+			self::assertStringNotContainsString( 'hcaptcha-keys-save', $output );
+			return;
+		}
+
+		if ( $is_advanced ) {
+			self::assertStringContainsString( 'hcaptcha-section-' . $section_id, $output );
+			return;
+		}
+
+		self::assertSame( $expected, $output );
+	}
+
+	/**
+	 * Setup notification is shown until both live keys have been saved.
+	 *
+	 * @param string $site_key      Saved site key.
+	 * @param string $secret_key    Saved secret key.
+	 * @param bool   $show_guidance Whether to show the setup notification.
+	 *
+	 * @dataProvider dp_test_keys_section_guidance
+	 */
+	public function test_keys_section_guidance( string $site_key, string $secret_key, bool $show_guidance ): void {
+		$settings = Mockery::mock( Settings::class )->makePartial();
+		$settings->shouldReceive( 'get_license' )->andReturn( 'free' );
+
+		$main = Mockery::mock( Main::class )->makePartial();
+		$main->shouldReceive( 'settings' )->andReturn( $settings );
+		WP_Mock::userFunction( 'hcaptcha' )->andReturn( $main );
+
+		$notifications = Mockery::mock( Notifications::class )->makePartial();
+		$notifications->shouldReceive( 'show' )
+			->withArgs(
+				static function ( bool $setup_only = false ) use ( $show_guidance ): bool {
+					return $setup_only === $show_guidance;
+				}
+			)
+			->once();
+
+		$subject = Mockery::mock( General::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'get' )->andReturnUsing(
+			static function ( string $key ) use ( $site_key, $secret_key ): string {
+				return 'site_key' === $key ? $site_key : $secret_key;
+			}
+		);
+		$this->set_protected_property( $subject, 'notifications', $notifications );
+
+		ob_start();
+		$subject->section_callback( [ 'id' => General::SECTION_KEYS ] );
+		$output = ob_get_clean();
+
+		self::assertStringContainsString( 'hcaptcha-section-keys', $output );
+	}
+
+	/**
+	 * Key combinations for setup guidance visibility.
+	 *
+	 * @return array
+	 */
+	public function dp_test_keys_section_guidance(): array {
+		return [
+			'no keys'     => [ '', '', true ],
+			'site only'   => [ 'site-key', '', true ],
+			'secret only' => [ '', 'secret-key', true ],
+			'both keys'   => [ 'site-key', 'secret-key', false ],
+		];
 	}
 
 	/**
@@ -803,7 +924,7 @@ class GeneralTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'wp_get_current_user' )->andReturn( $user );
 		WP_Mock::userFunction( 'get_user_meta' )->andReturn( [] );
 
-		$subject = Mockery::mock( General::class )->makePartial();
+		$subject = Mockery::mock( Advanced::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 
 		ob_start();
@@ -1039,18 +1160,18 @@ class GeneralTest extends HCaptchaTestCase {
 	 */
 	public function test_checkbox_helper_styles(): void {
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		$styles = file_get_contents( dirname( __DIR__, 4 ) . '/assets/css/general.css' );
+		$styles = file_get_contents( dirname( __DIR__, 4 ) . '/assets/css/advanced.css' );
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 		$base_styles = file_get_contents( dirname( __DIR__, 4 ) . '/assets/css/settings-base.css' );
 
 		self::assertIsString( $styles );
 		self::assertIsString( $base_styles );
 		self::assertStringContainsString(
-			".hcaptcha-section-statistics + table tbody tr.hcaptcha-general-statistics td {\n\twidth: max-content;\n\tmin-width: 0;\n}",
+			".hcaptcha-section-statistics + table tbody tr.hcaptcha-advanced-statistics td {\n\twidth: max-content;\n\tmin-width: 0;\n}",
 			$styles
 		);
 		self::assertStringContainsString(
-			".hcaptcha-section-statistics + table tbody tr.hcaptcha-general-statistics .helper-content {\n\tmax-width: calc(100vw - 40px);\n\twhite-space: normal;\n\toverflow-wrap: anywhere;",
+			".hcaptcha-section-statistics + table tbody tr.hcaptcha-advanced-statistics .helper-content {\n\tmax-width: calc(100vw - 40px);\n\twhite-space: normal;\n\toverflow-wrap: anywhere;",
 			$styles
 		);
 		self::assertStringContainsString(

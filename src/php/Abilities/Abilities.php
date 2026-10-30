@@ -61,6 +61,11 @@ class Abilities {
 	private const ABILITY_IMPORT_SETTINGS = 'hcaptcha/import-settings';
 
 	/**
+	 * Maximum number of bytes read from an imported settings file.
+	 */
+	private const MAX_IMPORT_FILE_BYTES = 1024 * 1024;
+
+	/**
 	 * Maximum number of top offenders to return in a threat snapshot.
 	 */
 	private const MAX_TOP_OFFENDERS = 100;
@@ -636,25 +641,11 @@ class Abilities {
 		unset( $payload['allow_keys'], $payload['dry_run'], $payload['input_file'] );
 
 		if ( '' !== $input_file ) {
-			if ( ! file_exists( $input_file ) || ! is_readable( $input_file ) ) {
-				return new WP_Error(
-					'hcaptcha_invalid_payload',
-					__( 'Input file not found or unreadable.', 'hcaptcha-for-forms-and-more' )
-				);
+			$payload = $this->read_import_file( $input_file );
+
+			if ( is_wp_error( $payload ) ) {
+				return $payload;
 			}
-
-			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-			$json = file_get_contents( $input_file );
-			$data = Utils::json_decode_arr( $json );
-
-			if ( ! $data || JSON_ERROR_NONE !== json_last_error() ) {
-				return new WP_Error(
-					'hcaptcha_invalid_payload',
-					__( 'Invalid JSON in input file.', 'hcaptcha-for-forms-and-more' )
-				);
-			}
-
-			$payload = $data;
 		}
 
 		if ( ! is_array( $payload ) || empty( $payload ) ) {
@@ -703,6 +694,52 @@ class Abilities {
 			],
 			'messages' => $messages,
 		];
+	}
+
+	/**
+	 * Read a regular settings file within the import size limit.
+	 *
+	 * @param string|false $input_file Canonical file path or failed resolution.
+	 *
+	 * @return array|WP_Error
+	 */
+	private function read_import_file( $input_file ) {
+		if ( ! is_string( $input_file ) || ! is_file( $input_file ) || ! is_readable( $input_file ) ) {
+			return new WP_Error(
+				'hcaptcha_invalid_payload',
+				__( 'Input file not found or unreadable.', 'hcaptcha-for-forms-and-more' )
+			);
+		}
+
+		$file_size = filesize( $input_file );
+
+		if ( false === $file_size || self::MAX_IMPORT_FILE_BYTES < $file_size ) {
+			return new WP_Error(
+				'hcaptcha_invalid_payload',
+				__( 'Input file is too large.', 'hcaptcha-for-forms-and-more' )
+			);
+		}
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$json = file_get_contents( $input_file, false, null, 0, self::MAX_IMPORT_FILE_BYTES + 1 );
+
+		if ( false === $json || self::MAX_IMPORT_FILE_BYTES < strlen( $json ) ) {
+			return new WP_Error(
+				'hcaptcha_invalid_payload',
+				__( 'Input file is too large or cannot be read.', 'hcaptcha-for-forms-and-more' )
+			);
+		}
+
+		$data = Utils::json_decode_arr( $json );
+
+		if ( ! $data || JSON_ERROR_NONE !== json_last_error() ) {
+			return new WP_Error(
+				'hcaptcha_invalid_payload',
+				__( 'Invalid JSON in input file.', 'hcaptcha-for-forms-and-more' )
+			);
+		}
+
+		return $data;
 	}
 
 	/**
@@ -1299,13 +1336,8 @@ class Abilities {
 		$raw = get_option( self::OPTION_OFFENDER_BLOCKS, [] );
 		$raw = is_array( $raw ) ? $raw : [];
 
-		$blocks = $this->prune_offender_blocks( $raw, time() );
-
-		if ( $blocks !== $raw ) {
-			$this->set_offender_blocks( $blocks );
-		}
-
-		return $blocks;
+		// Public lookups must not overwrite bans added after this snapshot was read.
+		return $this->prune_offender_blocks( $raw, time() );
 	}
 
 	/**

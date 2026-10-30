@@ -226,19 +226,6 @@ class AAAMainTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test declaring compatibility with WooCommerce features.
-	 */
-	public function test_declare_wc_compatibility(): void {
-		$features = Mockery::mock( 'alias:Automattic\\WooCommerce\\Utilities\\FeaturesUtil' );
-		$features->shouldReceive( 'declare_compatibility' )
-			->once()
-			->with( 'custom_order_tables', HCAPTCHA_FILE )
-			->andReturn( true );
-
-		( new Main() )->declare_wc_compatibility();
-	}
-
-	/**
 	 * Test that Tutor LMS Pro is the preferred module source.
 	 *
 	 * @throws ReflectionException Reflection exception.
@@ -627,6 +614,153 @@ class AAAMainTest extends HCaptchaWPTestCase {
 			'Pro'        => [ 'pro', false ],
 			'Enterprise' => [ 'enterprise', true ],
 		];
+	}
+
+	/**
+	 * Test CSP parsing retains the restrictions a browser actually enforces.
+	 *
+	 * @dataProvider dp_test_parse_csp
+	 *
+	 * @param string $policy   Serialized policy.
+	 * @param array  $expected Effective directives.
+	 */
+	public function test_parse_csp( string $policy, array $expected ): void {
+		$subject = new Main();
+		$parse   = $this->set_method_accessibility( $subject, 'parse_csp' );
+
+		self::assertSame( $expected, $parse->invoke( $subject, $policy ) );
+	}
+
+	/**
+	 * CSP parsing cases.
+	 *
+	 * @return array
+	 */
+	public function dp_test_parse_csp(): array {
+		return [
+			'valueless restrictions'      => [
+				'sandbox; upgrade-insecure-requests; img-src; object-src; future-directive',
+				[
+					'sandbox'                   => [],
+					'upgrade-insecure-requests' => [],
+					'img-src'                   => [],
+					'object-src'                => [],
+					'future-directive'          => [],
+				],
+			],
+			'first duplicate wins'        => [
+				"script-src 'none'; script-src *",
+				[ 'script-src' => [ "'none'" ] ],
+			],
+			'case insensitive duplicate'  => [
+				"ScRiPt-SrC 'self'; SCRIPT-SRC *",
+				[ 'script-src' => [ "'self'" ] ],
+			],
+			'empty first duplicate'       => [
+				'img-src; IMG-SRC *',
+				[ 'img-src' => [] ],
+			],
+			'ASCII whitespace'            => [
+				" \tFRAME-SRC\t'self'  https://good.example\f;\r\n sandbox\t ",
+				[
+					'frame-src' => [ "'self'", 'https://good.example' ],
+					'sandbox'   => [],
+				],
+			],
+			'reporting and trusted types' => [
+				"report-uri /csp; require-trusted-types-for 'script'; trusted-types app",
+				[
+					'report-uri'                => [ '/csp' ],
+					'require-trusted-types-for' => [ "'script'" ],
+					'trusted-types'             => [ 'app' ],
+				],
+			],
+			'empty separators'            => [ '; ;', [] ],
+		];
+	}
+
+	/**
+	 * Test CSP augmentation keeps separate policies and unrelated headers.
+	 */
+	public function test_csp_headers_preserve_policy_intersection(): void {
+		add_filter( 'hcap_add_csp_headers', '__return_true' );
+		$subject = new Main();
+		$headers = [
+			'X-Test'                  => 'unchanged',
+			'content-security-policy' => "script-src 'self'; sandbox",
+			'Content-Security-Policy' => "script-src 'none'; SCRIPT-SRC *; img-src",
+		];
+		$result  = $subject->csp_headers( $headers );
+		$parse   = $this->set_method_accessibility( $subject, 'parse_csp' );
+		$parts   = explode( ', ', $result['Content-Security-Policy'] );
+
+		self::assertSame( 'unchanged', $result['X-Test'] );
+		self::assertArrayNotHasKey( 'content-security-policy', $result );
+		self::assertCount( 2, $parts );
+		$first  = $parse->invoke( $subject, $parts[0] );
+		$second = $parse->invoke( $subject, $parts[1] );
+
+		self::assertSame( [], $first['sandbox'] );
+		self::assertSame( [], $second['img-src'] );
+		self::assertContains( "'self'", $first['script-src'] );
+		self::assertNotContains( "'self'", $second['script-src'] );
+		self::assertNotContains( '*', $second['script-src'] );
+		self::assertContains( 'https://hcaptcha.com', $second['script-src'] );
+	}
+
+	/**
+	 * Test CSP augmentation does not union a serialized policy list.
+	 */
+	public function test_csp_headers_preserve_serialized_policy_list(): void {
+		add_filter( 'hcap_add_csp_headers', '__return_true' );
+		$subject = new Main();
+		$result  = $subject->csp_headers( [ 'Content-Security-Policy' => "script-src 'self', script-src 'none'" ] );
+		$parts   = explode( ', ', $result['Content-Security-Policy'] );
+
+		self::assertCount( 2, $parts );
+		self::assertStringContainsString( "'self'", $parts[0] );
+		self::assertStringNotContainsString( "'self'", $parts[1] );
+		self::assertStringContainsString( "'none'", $parts[1] );
+	}
+
+	/**
+	 * Empty policy members must not impose new restrictions on allowed sources.
+	 */
+	public function test_csp_headers_ignore_empty_policy_members(): void {
+		add_filter( 'hcap_add_csp_headers', '__return_true' );
+		$subject = new Main();
+		$policy  = "script-src https://cdn.example, ,\t";
+		$plain   = $subject->csp_headers( [ 'Content-Security-Policy' => 'script-src https://cdn.example' ] );
+		$result  = $subject->csp_headers( [ 'Content-Security-Policy' => ', ,' . $policy ] );
+
+		self::assertSame( $plain, $result );
+		self::assertSame(
+			[ 'Content-Security-Policy' => '' ],
+			$subject->csp_headers( [ 'Content-Security-Policy' => ", ,\t,\r\n" ] )
+		);
+	}
+
+	/**
+	 * The directive filter receives each independent policy as an array.
+	 */
+	public function test_csp_headers_filter_each_policy(): void {
+		add_filter( 'hcap_add_csp_headers', '__return_true' );
+		$seen = [];
+		add_filter(
+			'hcap_csp_headers',
+			static function ( array $directives ) use ( &$seen ): array {
+				$seen[]       = $directives;
+				$directives[] = "object-src 'none'";
+
+				return $directives;
+			}
+		);
+		$result = ( new Main() )->csp_headers( [ 'Content-Security-Policy' => "script-src 'self', script-src 'none'" ] );
+
+		self::assertCount( 2, $seen );
+		self::assertStringContainsString( "'self'", $seen[0][0] );
+		self::assertStringNotContainsString( "'self'", $seen[1][0] );
+		self::assertSame( 2, substr_count( $result['Content-Security-Policy'], "object-src 'none'" ) );
 	}
 
 	/**
@@ -1629,6 +1763,9 @@ CSS;
 	 */
 	public function dp_test_denylist_ip(): array {
 		return [
+			'IPv6 outside IPv4 range'     => [ '38.0.0.0-38.255.255.255', '2600::1', false ],
+			'numeric packed outsider'     => [ '49.101.49.48-49.101.49.48', '49.48.69.57', false ],
+			'numeric packed endpoint'     => [ '49.101.49.48-49.101.49.48', '49.101.49.48', true ],
 			'no settings, local ip'       => [ '', false, false ],
 			'some ips, local ip'          => [ " 4444444.777.2 \r\n 220.45.45.1 \r\n", false, false ],
 			'some ips, not matching ip'   => [ " 4444444.777.2 \r\n 220.45.45.1 \r\n", '220.45.45.2', false ],
@@ -1665,6 +1802,9 @@ CSS;
 	 */
 	public function dp_test_allowlist_ip(): array {
 		return [
+			'IPv6 outside IPv4 range'     => [ '38.0.0.0-38.255.255.255', '2600::1', false ],
+			'numeric packed outsider'     => [ '49.101.49.48-49.101.49.48', '49.48.69.57', false ],
+			'numeric packed endpoint'     => [ '49.101.49.48-49.101.49.48', '49.101.49.48', true ],
 			'no settings, local ip'       => [ '', false, false ],
 			'some ips, local ip'          => [ " 4444444.777.2 \r\n 220.45.45.1 \r\n", false, false ],
 			'some ips, not matching ip'   => [ " 4444444.777.2 \r\n 220.45.45.1 \r\n", '220.45.45.2', false ],
@@ -2236,17 +2376,21 @@ CSS;
 			'Colorlib Customizer Login'         => [
 				[ 'colorlib_customizer_status', 'login' ],
 				'colorlib-login-customizer/colorlib-login-customizer.php',
-				\HCaptcha\ColorlibCustomizer\Login::class,
+				[
+					\HCaptcha\ColorlibCustomizer\Login::class,
+					Login::class,
+					LoginOut::class,
+				],
 			],
 			'Colorlib Customizer Lost Password' => [
 				[ 'colorlib_customizer_status', 'lost_pass' ],
 				'colorlib-login-customizer/colorlib-login-customizer.php',
-				\HCaptcha\ColorlibCustomizer\LostPassword::class,
+				[ \HCaptcha\ColorlibCustomizer\LostPassword::class, LostPassword::class ],
 			],
 			'Colorlib Customizer Register'      => [
 				[ 'colorlib_customizer_status', 'register' ],
 				'colorlib-login-customizer/colorlib-login-customizer.php',
-				\HCaptcha\ColorlibCustomizer\Register::class,
+				[ \HCaptcha\ColorlibCustomizer\Register::class, Register::class ],
 			],
 			'Contact Form 7'                    => [
 				[ 'cf7_status', 'form' ],

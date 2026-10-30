@@ -329,10 +329,6 @@ Migrations:
   4.0.0:                              Started
   5.0.0:                              Failed
 
---- Integrations header info ---
-
-  Show Anti-Spam Indicators:          Off
-
 --- Active plugins and themes ---
 
 Contact Form 7:                       
@@ -633,9 +629,13 @@ Use Only Cookies:                     On
 
 ";
 
-		$integration_fields   = $this->get_test_integrations_form_fields();
-		$integration_settings = $this->get_test_settings();
-		$integrations_enabled = [ 'wp_status', 'cf7_status' ];
+		$integration_fields                   = $this->get_test_integrations_form_fields();
+		$integration_settings                 = $this->get_test_settings();
+		$integration_fields['section_header'] = [
+			'label'   => 'Section Header',
+			'section' => Integrations::SECTION_HEADER,
+		];
+		$integrations_enabled                 = [ 'wp_status', 'cf7_status' ];
 
 		foreach ( $integration_fields as $key => & $field ) {
 			if ( 'header' === ( $field['section'] ?? '' ) ) {

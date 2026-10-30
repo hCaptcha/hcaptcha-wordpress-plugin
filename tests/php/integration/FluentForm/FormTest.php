@@ -22,7 +22,6 @@ use Mockery;
 use ReflectionClass;
 use ReflectionException;
 use stdClass;
-use WP_User;
 
 /**
  * Test FluentForm.
@@ -50,6 +49,8 @@ class FormTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test rendering through the live Fluent Forms model and shortcode.
+	 *
+	 * @noinspection PhpUndefinedFieldInspection
 	 */
 	public function test_live_form_render(): void {
 		update_option( 'hcaptcha_settings', [ 'fluent_status' => [ 'form' ] ] );
@@ -92,6 +93,10 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		self::assertSame(
 			10,
 			has_action( 'fluentform/validation_errors', [ $subject, 'verify' ] )
+		);
+		self::assertSame(
+			10,
+			has_action( 'fluentform/submission_inserted', [ $subject, 'submission_inserted' ] )
 		);
 		self::assertSame(
 			10,
@@ -163,6 +168,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
+	 * @noinspection PhpUndefinedFieldInspection
 	 */
 	public function test_render_field_hcaptcha(): void {
 		$live_form = $this->create_fluent_form();
@@ -200,6 +206,8 @@ class FormTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test add_hcaptcha().
+	 *
+	 * @noinspection PhpUndefinedFieldInspection
 	 */
 	public function test_add_hcaptcha(): void {
 		hcaptcha()->init_hooks();
@@ -247,6 +255,9 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @return void
 	 * @noinspection JsonEncodingApiUsageInspection
+	 * @noinspection PhpArrayIndexImmediatelyRewrittenInspection
+	 * @noinspection PhpArrayWriteIsNotUsedInspection
+	 * @noinspection PhpUndefinedFieldInspection
 	 */
 	public function test_verify(): void {
 		$errors     = [
@@ -363,6 +374,10 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @return void
 	 * @noinspection JsonEncodingApiUsageInspection
+	 * @noinspection PhpArrayIndexImmediatelyRewrittenInspection
+	 * @noinspection PhpArrayWriteIsNotUsedInspection
+	 * @noinspection PhpUnusedLocalVariableInspection
+	 * @noinspection PhpUndefinedFieldInspection
 	 */
 	public function test_verify_not_verified(): void {
 		$errors     = [
@@ -421,6 +436,9 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 *
 	 * @return void
 	 * @noinspection JsonEncodingApiUsageInspection
+	 * @noinspection PhpArrayWriteIsNotUsedInspection
+	 * @noinspection PhpUnusedLocalVariableInspection
+	 * @noinspection PhpUndefinedFieldInspection
 	 */
 	public function test_verify_missing_widget_id(): void {
 		$errors     = [
@@ -474,6 +492,10 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 * @return void
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection JsonEncodingApiUsageInspection
+	 * @noinspection PhpArrayIndexImmediatelyRewrittenInspection
+	 * @noinspection PhpArrayWriteIsNotUsedInspection
+	 * @noinspection PhpUnusedLocalVariableInspection
+	 * @noinspection PhpUndefinedFieldInspection
 	 */
 	public function test_verify_multi_step_not_verified(): void {
 		$errors    = [
@@ -566,6 +588,9 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 * @dataProvider dp_test_verify_login_form
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection JsonEncodingApiUsageInspection
+	 * @noinspection PhpUnusedLocalVariableInspection
+	 * @noinspection PhpArrayWriteIsNotUsedInspection
+	 * @noinspection PhpUndefinedFieldInspection
 	 */
 	public function test_verify_login_form( bool $password_ok, bool $is_login_limit_exceeded ): void {
 		$errors     = [
@@ -621,7 +646,8 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		$mock->shouldReceive( 'is_login_limit_exceeded' )->with()->andReturn( $is_login_limit_exceeded );
 
 		if ( $password_ok ) {
-			$mock->shouldReceive( 'login' )->with( $email, Mockery::type( WP_User::class ) )->once();
+			// Successful credentials cannot reset failures while native validation still has errors.
+			$mock->shouldReceive( 'login' )->never();
 		} else {
 			$mock->shouldReceive( 'login_failed' )->with( $email )->once();
 		}
@@ -717,6 +743,9 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 * @noinspection ES6ConvertVarToLetConst
 	 * @noinspection JsonEncodingApiUsageInspection
+	 * @noinspection PhpUnusedLocalVariableInspection
+	 * @noinspection PhpArrayWriteIsNotUsedInspection
+	 * @noinspection PhpUndefinedFieldInspection
 	 */
 	public function test_print_footer_scripts(): void {
 		global $wp_scripts;
@@ -804,6 +833,27 @@ HTML;
 
 		self::assertFalse( wp_script_is( $fluent_forms_conversational_script ) );
 		self::assertFalse( wp_script_is( $fluent_forms_conversational_script, 'registered' ) );
+	}
+
+	/**
+	 * Print footer scripts only for a shown form, without conversational extras.
+	 */
+	public function test_print_footer_scripts_without_conversational_form(): void {
+		$handle  = 'hcaptcha-fluentform';
+		$subject = new Form();
+
+		wp_dequeue_script( $handle );
+		wp_deregister_script( $handle );
+
+		$subject->print_footer_scripts();
+		self::assertFalse( wp_script_is( $handle, 'registered' ) );
+
+		$this->set_protected_property( $subject, 'form_shown', true );
+
+		ob_start();
+		$subject->print_footer_scripts();
+		self::assertSame( '', ob_get_clean() );
+		self::assertTrue( wp_script_is( $handle, 'registered' ) );
 	}
 
 	/**
@@ -1031,6 +1081,7 @@ HTML;
 	 *
 	 * @return void
 	 * @throws ReflectionException ReflectionException.
+	 * @noinspection PhpUndefinedFieldInspection
 	 */
 	public function test_get_hcaptcha(): void {
 		$form     = $this->create_fluent_form();
@@ -1077,6 +1128,8 @@ HTML;
 	 * @param bool  $multi_step Whether to make the form multi-step.
 	 *
 	 * @return FluentForm
+	 * @noinspection PhpUndefinedMethodInspection
+	 * @noinspection PhpIncompatibleReturnTypeInspection
 	 */
 	private function create_fluent_form( array $fields = [], bool $multi_step = false ): FluentForm {
 		$fields      = $fields ?: [
@@ -1186,6 +1239,7 @@ HTML;
 	 * @param array $id      Widget id.
 	 *
 	 * @return string
+	 * @noinspection PhpSameParameterValueInspection
 	 */
 	private function get_widget_id( int $form_id, array $id = [] ): string {
 		$id = $id ?: [
@@ -1213,5 +1267,164 @@ HTML;
 		];
 
 		return HCaptcha::form( $args );
+	}
+	/**
+	 * Apply email policy to trusted custom email inputs before native submission.
+	 *
+	 * @param bool $blocked Whether the trusted email is disposable.
+	 *
+	 * @dataProvider dp_sec063_email_policy
+	 * @noinspection PhpUndefinedFieldInspection
+	 */
+	public function test_sec063_typed_email_policy( bool $blocked ): void {
+		$this->prepare_verify_request( 'sec063-challenge' );
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		set_transient( 'hcaptcha_disposable_email_blocklist', [ 'sec063-disposable.test' => true ] );
+		$form                                  = $this->create_fluent_form(
+			[
+				[
+					'element'    => 'input_email',
+					'attributes' => [
+						'name' => 'billing_address',
+						'type' => 'email',
+					],
+				],
+				[
+					'element'    => 'input_email',
+					'attributes' => [
+						'name' => 'contact_address',
+						'type' => 'email',
+					],
+				],
+				[
+					'element'    => 'input_text',
+					'attributes' => [
+						'name' => 'email',
+						'type' => 'text',
+					],
+				],
+			]
+		);
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = $this->get_widget_id( (int) $form->id );
+		$data                                  = [
+			'billing_address' => $blocked ? 'person@sec063-disposable.test' : 'person@example.com',
+			'contact_address' => 'reader@example.com',
+			'email'           => 'spoof@sec063-disposable.test',
+		];
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$_POST['data'] = http_build_query( array_merge( $_POST, $data ) );
+		$subject       = new Form();
+
+		self::assertSame(
+			$blocked ? [ 'h-captcha-response' => [ 'Please use a permanent email address.' ] ] : [],
+			$subject->verify( [], $data, $form, [] )
+		);
+	}
+	/**
+	 * Exercise both policy rejection and permanent address acceptance.
+	 *
+	 * @return array
+	 */
+	public function dp_sec063_email_policy(): array {
+		return [
+			'disposable' => [ true ],
+			'permanent'  => [ false ],
+		];
+	}
+
+	/**
+	 * Apply email policy through native container and composite field accessors.
+	 *
+	 * @param string $shape   Native schema shape.
+	 * @param bool   $blocked Whether the accepted address is disposable.
+	 *
+	 * @dataProvider dp_sec063_native_shapes
+	 * @noinspection PhpUndefinedFieldInspection
+	 */
+	public function test_sec063_native_email_shapes( string $shape, bool $blocked ): void {
+		$this->prepare_verify_request( 'sec063-challenge' );
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		set_transient( 'hcaptcha_disposable_email_blocklist', [ 'sec063-disposable.test' => true ] );
+		$email_field = [
+			'element'    => 'input_email',
+			'attributes' => [
+				'name' => 'contact_address',
+				'type' => 'email',
+			],
+		];
+		$address     = $blocked ? 'person@sec063-disposable.test' : 'reader@example.com';
+		$data        = [
+			'contact_address' => $address,
+			'email'           => 'spoof@sec063-disposable.test',
+		];
+
+		if ( 'container' === $shape ) {
+			$fields = [
+				[
+					'element' => 'container',
+					'columns' => [ [ 'fields' => [ $email_field ] ] ],
+				],
+			];
+		} elseif ( 'composite' === $shape ) {
+			$email_field['attributes']['name']  = 'address';
+			$email_field['settings']['visible'] = true;
+			$fields                             = [
+				[
+					'element'    => 'input_name',
+					'attributes' => [ 'name' => 'contact' ],
+					'fields'     => [ $email_field ],
+				],
+			];
+			$data                               = [
+				'contact' => [ 'address' => $address ],
+				'email'   => 'spoof@sec063-disposable.test',
+			];
+		} else {
+			$fields = [
+				[
+					'element'    => 'input_repeat',
+					'attributes' => [ 'name' => 'recipients' ],
+					'fields'     => [ $email_field ],
+				],
+			];
+			$data   = [
+				'recipients' => [ [ 'primary@example.com', $address ] ],
+				'email'      => 'spoof@sec063-disposable.test',
+			];
+		}
+
+		$fields[]                              = [
+			'element'    => 'input_text',
+			'attributes' => [
+				'name' => 'email',
+				'type' => 'text',
+			],
+		];
+		$form                                  = $this->create_fluent_form( $fields );
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = $this->get_widget_id( (int) $form->id );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$_POST['data'] = http_build_query( array_merge( $_POST, $data ) );
+		$subject       = new Form();
+
+		self::assertSame(
+			$blocked ? [ 'h-captcha-response' => [ 'Please use a permanent email address.' ] ] : [],
+			$subject->verify( [], $data, $form, [] )
+		);
+	}
+
+	/**
+	 * Native field shapes and block/allow controls.
+	 *
+	 * @return array
+	 */
+	public function dp_sec063_native_shapes(): array {
+		return [
+			'container blocked' => [ 'container', true ],
+			'container allowed' => [ 'container', false ],
+			'composite blocked' => [ 'composite', true ],
+			'composite allowed' => [ 'composite', false ],
+			'repeat blocked'    => [ 'repeat', true ],
+			'repeat allowed'    => [ 'repeat', false ],
+		];
 	}
 }

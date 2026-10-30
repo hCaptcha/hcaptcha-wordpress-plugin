@@ -374,6 +374,68 @@ HTML;
 	}
 
 	/**
+	 * The editor renders a live preview for an unsaved CF7 form.
+	 */
+	public function test_insert_live_form_without_shortcode(): void {
+		FunctionMocker::replace( '\HCaptcha\CF7\current_user_can', true );
+		$subject = new Admin();
+		$method  = $this->set_method_accessibility( $subject, 'insert_live_form' );
+		$editor  = '<form method="post" id="editor"><div id="poststuff"><div id="post-body" class="columns-2">'
+			. '<textarea id="wpcf7-form" name="wpcf7-form">[text* your-name]</textarea>'
+			. '</div><!-- #post-body --><br class="clear" /></div></form>';
+
+		$output = $method->invoke( $subject, $editor );
+
+		self::assertStringContainsString( 'id="form-live"', $output );
+		self::assertStringContainsString( 'your-name', $output );
+	}
+
+	/**
+	 * Users without CF7 editing permission receive the original editor markup.
+	 */
+	public function test_insert_live_form_without_permission(): void {
+		FunctionMocker::replace( '\HCaptcha\CF7\current_user_can', false );
+		$subject = new Admin();
+		$method  = $this->set_method_accessibility( $subject, 'insert_live_form' );
+
+		self::assertSame( 'editor markup', $method->invoke( $subject, 'editor markup' ) );
+	}
+
+	/**
+	 * AJAX preview renders an unsaved form without a CF7 shortcode.
+	 *
+	 * @noinspection JsonEncodingApiUsageInspection
+	 */
+	public function test_update_form_without_shortcode(): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$original_request = $_REQUEST;
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Snapshot before the simulated request.
+		$original_post = $_POST;
+		FunctionMocker::replace( '\HCaptcha\CF7\current_user_can', true );
+		$_REQUEST['nonce']  = wp_create_nonce( Admin::UPDATE_FORM_ACTION );
+		$_POST['shortcode'] = '';
+		$_POST['form']      = '[text* your-name]';
+		$die_handler        = static function () {
+			return static function () {};
+		};
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter( 'wp_die_ajax_handler', $die_handler );
+
+		try {
+			ob_start();
+			( new Admin() )->update_form();
+			$response = json_decode( ob_get_clean(), true );
+			self::assertTrue( $response['success'] );
+			self::assertStringContainsString( 'your-name', $response['data'] );
+		} finally {
+			remove_filter( 'wp_doing_ajax', '__return_true' );
+			remove_filter( 'wp_die_ajax_handler', $die_handler );
+			$_REQUEST = $original_request;
+			$_POST    = $original_post;
+		}
+	}
+
+	/**
 	 * Test add_tag_generator_hcaptcha().
 	 *
 	 * @return void
@@ -475,6 +537,7 @@ HTML;
 	 *
 	 * @noinspection PhpConditionAlreadyCheckedInspection
 	 * @noinspection PhpUndefinedConstantInspection
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_enqueue_admin_scripts(): void {
 		global $wp_scripts;
@@ -541,7 +604,7 @@ HTML;
 	 *
 	 * @return void
 	 * @noinspection HtmlUnknownAnchorTarget
-	 * @noinspection PhpVariableIsUsedOnlyInClosureInspection
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_update_form(): void {
 		$user_id = 1;

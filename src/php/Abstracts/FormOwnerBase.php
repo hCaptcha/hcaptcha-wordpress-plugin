@@ -51,7 +51,7 @@ abstract class FormOwnerBase {
 			return $owner;
 		}
 
-		return $this->get_expected_id() === $id ? static::class : $owner;
+		return $this->get_expected_id() === $id && $this->can_handle_request() ? static::class : $owner;
 	}
 
 	/**
@@ -103,6 +103,15 @@ abstract class FormOwnerBase {
 		}
 
 		return static::class === $owner;
+	}
+
+	/**
+	 * Whether this verifier can handle the submitted form.
+	 *
+	 * @return bool
+	 */
+	protected function can_handle_request(): bool {
+		return true;
 	}
 
 	/**

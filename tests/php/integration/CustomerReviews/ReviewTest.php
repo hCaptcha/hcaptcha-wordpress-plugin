@@ -62,6 +62,16 @@ class ReviewTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Ignore templates other than the Customer Reviews form.
+	 */
+	public function test_add_captcha_ignores_other_templates(): void {
+		ob_start();
+		( new Review() )->add_captcha( 'other-template.php', '', '', [] );
+
+		self::assertSame( '', ob_get_clean() );
+	}
+
+	/**
 	 * Test filled honeypot blocks review processing.
 	 *
 	 * @return void

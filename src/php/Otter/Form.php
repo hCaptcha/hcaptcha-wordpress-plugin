@@ -49,6 +49,11 @@ class Form {
 	private const NONCE = 'hcaptcha_otter_nonce';
 
 	/**
+	 * Signed binding between the rendered form and its Otter options.
+	 */
+	private const FORM_NONCE = 'hcaptcha_otter_form_nonce';
+
+	/**
 	 * Error code.
 	 *
 	 * @var string|null
@@ -114,10 +119,19 @@ class Form {
 			return $block_content;
 		}
 
-		$form_id = 0;
+		$form_id     = 0;
+		$opening_tag = '';
 
-		if ( preg_match( '/<div id="' . self::FORM_ID_PREFIX . '(.+?)"/', $block_content, $m ) ) {
-			$form_id = $m[1];
+		if ( preg_match( '/<div\b[^>]*\sid="' . self::FORM_ID_PREFIX . '([^"]+)"[^>]*>/', $block_content, $m ) ) {
+			$form_id     = sanitize_text_field( wp_specialchars_decode( $m[1], ENT_QUOTES ) );
+			$opening_tag = $m[0];
+		}
+
+		$form_option = $this->get_form_option( $block, $opening_tag );
+		$form_nonce  = '';
+
+		if ( 0 !== $form_id && '' !== $form_id && '' !== $form_option ) {
+			$form_nonce = wp_create_nonce( $this->get_form_nonce_action( (string) $form_id, $form_option ) );
 		}
 
 		$args    = [
@@ -135,10 +149,40 @@ class Form {
 		];
 		$replace = [
 			'class="$1$2"',
-			HCaptcha::form( $args ) . "\n" . $button,
+			HCaptcha::form( $args ) . "\n" . '<input type="hidden" name="' . esc_attr( self::FORM_NONCE ) . '" value="' . esc_attr( $form_nonce ) . '">' . "\n" . $button,
 		];
 
 		return preg_replace( $search, $replace, $block_content );
+	}
+
+	/**
+	 * Get the option name used by the rendered Otter form.
+	 *
+	 * @param array  $block       Block data.
+	 * @param string $opening_tag Rendered outer form tag.
+	 *
+	 * @return string
+	 */
+	private function get_form_option( array $block, string $opening_tag ): string {
+		if ( preg_match( '/\sdata-option-name="([^"]+)"/', $opening_tag, $option_matches ) ) {
+			return sanitize_text_field( wp_specialchars_decode( $option_matches[1], ENT_QUOTES ) );
+		}
+
+		$option = $block['attrs']['optionName'] ?? '';
+
+		return is_string( $option ) ? sanitize_text_field( $option ) : '';
+	}
+
+	/**
+	 * Get the nonce action for a form and its native Otter options.
+	 *
+	 * @param string $form_id     Form id without the Otter prefix.
+	 * @param string $form_option Native Otter option name.
+	 *
+	 * @return string
+	 */
+	private function get_form_nonce_action( string $form_id, string $form_option ): string {
+		return self::ACTION . '|' . wp_json_encode( [ $form_id, $form_option ] );
 	}
 
 	/**
@@ -159,7 +203,9 @@ class Form {
 
 		$post_data = $form_data->dump_data()['form_data'];
 
-		$this->error_message = API::verify( $this->get_entry( $post_data ) );
+		$this->error_message = $this->has_valid_form_nonce( $post_data )
+			? API::verify( $this->get_entry( $post_data ) )
+			: hcap_get_error_messages()['bad-signature'];
 
 		if ( null !== $this->error_message ) {
 			$this->error_code = array_search( $this->error_message, hcap_get_error_messages(), true ) ?: 'fail';
@@ -174,6 +220,35 @@ class Form {
 	}
 
 	/**
+	 * Check that the submitted form id and native options were rendered together.
+	 *
+	 * @param array $post_data Submitted form data.
+	 *
+	 * @return bool
+	 */
+	private function has_valid_form_nonce( array $post_data ): bool {
+		$payload = $post_data['payload'] ?? [];
+
+		if ( ! is_array( $payload ) ) {
+			return false;
+		}
+
+		$form_id     = $payload['formId'] ?? null;
+		$form_option = $payload['formOption'] ?? null;
+		$form_nonce  = $post_data[ self::FORM_NONCE ] ?? null;
+
+		if ( ! is_string( $form_id ) || '' === $form_id ||
+			! is_string( $form_option ) || '' === $form_option ||
+			! is_string( $form_nonce ) || '' === $form_nonce ) {
+			return false;
+		}
+
+		$canonical_id = $this->get_expected_id( $form_id )['form_id'];
+
+		return (bool) wp_verify_nonce( $form_nonce, $this->get_form_nonce_action( $canonical_id, $form_option ) );
+	}
+
+	/**
 	 * Get entry.
 	 *
 	 * @param array $post_data Post data.
@@ -185,16 +260,19 @@ class Form {
 		$form_inputs = $payload['formInputsData'] ?? [];
 		$post_id     = $payload['postId'] ?? 0;
 		$form        = get_post( $post_id );
+		$emails      = [];
 
-		return [
+		$entry = [
 			'nonce_name'         => self::NONCE,
 			'nonce_action'       => self::ACTION,
 			'h-captcha-response' => $post_data['h-captcha-response'] ?? '',
 			'form_date_gmt'      => $form->post_modified_gmt ?? null,
 			'post_data'          => $post_data,
-			'data'               => $this->get_data( $form_inputs ),
+			'data'               => $this->get_data( $form_inputs, $emails ),
 			'expected_id'        => $this->get_expected_id( (string) ( $payload['formId'] ?? '' ) ),
 		];
+
+		return EntryData::with_emails( $entry, $emails );
 	}
 
 	/**
@@ -219,10 +297,11 @@ class Form {
 	 * Get data.
 	 *
 	 * @param array $form_inputs Form inputs data.
+	 * @param array $emails      Native email values.
 	 *
 	 * @return array
 	 */
-	private function get_data( array $form_inputs ): array {
+	private function get_data( array $form_inputs, array &$emails ): array {
 		$data = [];
 		$name = [];
 
@@ -241,13 +320,7 @@ class Form {
 			$type  = $input['type'];
 			$id    = $input['id'];
 
-			if ( EntryData::has_sensitive_field( (string) $type, (string) $id, (string) $label ) ) {
-				continue;
-			}
-
-			$key = $label ?: $id;
-
-			if ( '' === $key || '' === $value ) {
+			if ( '' === $value ) {
 				continue;
 			}
 
@@ -257,12 +330,18 @@ class Form {
 				continue;
 			}
 
+			if ( 'email' === $type && is_string( $value ) ) {
+				$emails[] = $value;
+			}
+
+			$key = $label ?: $id;
+
+			if ( '' === $key || EntryData::has_sensitive_field( (string) $type, (string) $id, (string) $label ) ) {
+				continue;
+			}
+
 			$mapped_name = $input['metadata']['mappedName'] ?? '';
 			$label_name  = strtolower( $label );
-
-			if ( 'email' === $type && is_scalar( $value ) ) {
-				$data['email'] = $value;
-			}
 
 			if ( ( 'name' === $mapped_name || 'name' === $label_name ) && is_scalar( $value ) ) {
 				$name[] = $value;

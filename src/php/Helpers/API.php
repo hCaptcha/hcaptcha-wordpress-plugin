@@ -16,9 +16,19 @@ use WP_Error;
  */
 class API {
 	/**
+	 * Common field names used by integrations without a form-specific entry map.
+	 */
+	private const ENTRY_FIELD_MAP = [
+		'username'   => [ 'username', 'user_login', 'log', 'edd_user_login', 'user_name' ],
+		'first_name' => [ 'first_name', 'billing_first_name' ],
+		'last_name'  => [ 'last_name', 'billing_last_name' ],
+	];
+
+	/**
 	 * Result of the hCaptcha widget verification.
 	 *
 	 * @var string|null
+	 * @noinspection PhpPropertyOnlyWrittenInspection
 	 */
 	private static ?string $result = null;
 
@@ -26,6 +36,7 @@ class API {
 	 * Error codes of the hCaptcha widget verification.
 	 *
 	 * @var array
+	 * @noinspection PhpPropertyOnlyWrittenInspection
 	 */
 	private static array $error_codes = [];
 
@@ -37,6 +48,61 @@ class API {
 	private static array $siteverify_response = [];
 
 	/**
+	 * Context of the last completed verification in this request.
+	 *
+	 * @var array
+	 */
+	private static array $request_context = [];
+
+	/**
+	 * Guard and remote proof outcomes, independent of per-entry policy and result filters.
+	 *
+	 * @var array
+	 */
+	private static array $request_result = [];
+
+	/**
+	 * Server-owned proof from a previously verified, single-use integration request.
+	 *
+	 * @var array
+	 */
+	private static array $preverified_context = [];
+
+	/**
+	 * Recheck local policy after a trusted integration atomically redeems remote proof.
+	 *
+	 * @param array $entry               Verification entry.
+	 * @param array $siteverify_response Normalized, successful siteverify response.
+	 *
+	 * @return null|string Null on success, error message on failure.
+	 */
+	public static function verify_preverified( array $entry, array $siteverify_response ): ?string {
+		if ( true !== ( $siteverify_response['success'] ?? false ) ) {
+			return hcap_get_error_messages()['fail'];
+		}
+
+		$proof = [
+			'expected_id' => (array) ( $entry['expected_id'] ?? [] ),
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			'widget_id'   => wp_unslash( $_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] ?? '' ),
+			'response'    => self::get_hcaptcha_response_sanitized( $entry['h-captcha-response'] ?? null ),
+			'siteverify'  => self::normalize_siteverify_response( $siteverify_response ),
+		];
+
+		if ( '' === $proof['response'] || ! is_string( $proof['widget_id'] ) || '' === $proof['widget_id'] ) {
+			return hcap_get_error_messages()['fail'];
+		}
+
+		self::$preverified_context = $proof;
+
+		try {
+			return self::verify( $entry );
+		} finally {
+			self::$preverified_context = [];
+		}
+	}
+
+	/**
 	 * Verify hCaptcha and AntiSpam response.
 	 *
 	 * @param array $entry Entry.
@@ -44,6 +110,8 @@ class API {
 	 * @return null|string Null on success, error message on failure.
 	 */
 	public static function verify( array $entry = [] ): ?string {
+		$entry = self::add_submission_data( $entry );
+
 		$entry = wp_parse_args(
 			$entry,
 			[
@@ -58,6 +126,10 @@ class API {
 		);
 
 		$entry['data'] = EntryData::without_sensitive_fields( (array) $entry['data'] );
+
+		if ( array_key_exists( 'email_addresses', $entry ) ) {
+			$entry = EntryData::with_emails( $entry, EntryData::get_emails( $entry ) );
+		}
 
 		self::set_global_post_data( $entry );
 
@@ -79,16 +151,56 @@ class API {
 
 		return $result;
 	}
+
+	/**
+	 * Add safe submitted fields while preserving data selected by the integration.
+	 *
+	 * @param array $entry Verification entry.
+	 *
+	 * @return array
+	 */
+	private static function add_submission_data( array $entry ): array {
+		$has_data       = array_key_exists( 'data', $entry );
+		$data           = $has_data ? (array) $entry['data'] : [];
+		$content_fields = array_diff( array_keys( EntryData::without_sensitive_fields( $data ) ), [ 'email' ] );
+
+		if ( $content_fields ) {
+			return $entry;
+		}
+
+		$submitted_data = array_key_exists( 'post_data', $entry )
+			? EntryData::from_array( (array) $entry['post_data'], self::ENTRY_FIELD_MAP )
+			: EntryData::from_post( self::ENTRY_FIELD_MAP );
+
+		// Keep an unselected email as form content, not as the address for email policy checks.
+		if ( isset( $submitted_data['email'] ) ) {
+			$email = $submitted_data['email'];
+			unset( $submitted_data['email'] );
+
+			if ( ! EntryData::get_emails( $entry ) ) {
+				EntryData::add_field( $submitted_data, 'submitted_email', $email, 'email' );
+			}
+		}
+		$entry['data'] = array_replace( $submitted_data, $data );
+
+		if ( ! $has_data && ! array_key_exists( 'email_addresses', $entry ) ) {
+			$entry = EntryData::with_emails( $entry, [] );
+		}
+
+		return $entry;
+	}
 	/**
 	 * Verify POST and return an error message as HTML.
 	 *
-	 * @param string $name   Nonce field name.
-	 * @param string $action Nonce action name.
+	 * @param string $name        Nonce field name.
+	 * @param string $action      Nonce action name.
+	 * @param array  $expected_id Server-selected form identity.
+	 * @param array  $entry       Verification entry with native form data.
 	 *
 	 * @return null|string Null on success, error message on failure.
 	 */
-	public static function verify_post_html( string $name = HCAPTCHA_NONCE, string $action = HCAPTCHA_ACTION ): ?string {
-		$message = self::verify_post( $name, $action );
+	public static function verify_post_html( string $name = HCAPTCHA_NONCE, string $action = HCAPTCHA_ACTION, array $expected_id = [], array $entry = [] ): ?string {
+		$message = self::verify_post( $name, $action, $expected_id, $entry );
 
 		if ( null === $message ) {
 			return null;
@@ -111,39 +223,39 @@ class API {
 	/**
 	 * Verify POST data.
 	 *
-	 * @param string $name      Nonce field name.
-	 * @param string $action    Nonce action name.
-	 * @param array  $post_data Post data.
+	 * @param string $name        Nonce field name.
+	 * @param string $action      Nonce action name.
+	 * @param array  $post_data   Post data.
+	 * @param array  $expected_id Server-selected form identity.
+	 * @param array  $entry       Verification entry with native form data.
 	 *
 	 * @return null|string Null on success, error message on failure.
 	 */
-	public static function verify_post_data( string $name = HCAPTCHA_NONCE, string $action = HCAPTCHA_ACTION, array $post_data = [] ): ?string {
-		$entry = [
-			'nonce_name' => $name,
-			'post_data'  => $post_data,
-		];
+	public static function verify_post_data( string $name = HCAPTCHA_NONCE, string $action = HCAPTCHA_ACTION, array $post_data = [], array $expected_id = [], array $entry = [] ): ?string {
+		$entry['nonce_name']   = $name;
+		$entry['nonce_action'] = $action;
+		$entry['post_data']    = $post_data;
+		$entry['expected_id']  = $expected_id;
 
-		self::set_global_post_data( $entry );
-
-		$result = self::verify_post( $name, $action );
-
-		self::unset_global_post_data( $entry );
-
-		return $result;
+		return self::verify( $entry );
 	}
 
 	/**
 	 * Verify POST.
 	 *
-	 * @param string $name   Nonce field name.
-	 * @param string $action Nonce action name.
+	 * @param string $name        Nonce field name.
+	 * @param string $action      Nonce action name.
+	 * @param array  $expected_id Server-selected form identity.
+	 * @param array  $entry       Verification entry with native form data.
 	 *
 	 * @return null|string Null on success, error message on failure.
 	 */
-	public static function verify_post( string $name = HCAPTCHA_NONCE, string $action = HCAPTCHA_ACTION ): ?string {
-		$result = self::verify_nonce( $name, $action );
+	public static function verify_post( string $name = HCAPTCHA_NONCE, string $action = HCAPTCHA_ACTION, array $expected_id = [], array $entry = [] ): ?string {
+		$entry['nonce_name']   = $name;
+		$entry['nonce_action'] = $action;
+		$entry['expected_id']  = $expected_id;
 
-		return $result ?? self::verify_request();
+		return self::verify( $entry );
 	}
 
 	/**
@@ -249,6 +361,7 @@ class API {
 		return null;
 	}
 
+	// phpcs:disable Generic.Metrics.CyclomaticComplexity.TooHigh
 	/**
 	 * Verify hCaptcha request.
 	 *
@@ -260,13 +373,112 @@ class API {
 	 */
 	public static function verify_request( $hcaptcha_response = null, array $entry = [] ): ?string {
 		$expected_id = (array) ( $entry['expected_id'] ?? [] );
-		// Do not make a remote request more than once.
-		if ( hcaptcha()->has_result ) {
-			return self::filtered_result( self::$result, self::$error_codes, $expected_id, self::$siteverify_response );
+		$result      = self::verify_widget_id( $expected_id );
+
+		if ( null !== $result ) {
+			return $result;
 		}
 
-		hcaptcha()->has_result = true;
-		$fst_check             = self::check_fst_token();
+		$hcaptcha_response = self::get_hcaptcha_response_sanitized( $hcaptcha_response );
+		$context           = [
+			'expected_id' => $expected_id,
+			// This value is compared only, never interpreted as a trusted identity.
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			'widget_id'   => wp_unslash( $_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] ?? '' ),
+			'response'    => $hcaptcha_response,
+		];
+		$preverified       = self::$preverified_context;
+
+		if ( $preverified && array_intersect_key( $preverified, $context ) !== $context ) {
+			return self::filtered_result( hcap_get_error_messages()['fail'], [ 'fail' ], $expected_id );
+		}
+
+		if ( $preverified || ! hcaptcha()->has_result || ! self::can_reuse_request_result( $context ) ) {
+			hcaptcha()->has_result = true;
+			self::$request_context = $context;
+			self::$request_result  = self::verify_request_once( $hcaptcha_response, $entry, (bool) $preverified );
+		}
+
+		// Email policy belongs to this entry, while timing and remote proof are single-use.
+		$verify_email = self::$request_result['verify_email'];
+
+		if ( $expected_id !== self::$request_context['expected_id'] ) {
+			$verify_email = HCaptcha::is_protection_enabled( $expected_id );
+		}
+
+		if ( $verify_email && ! self::check_disposable_email( $entry ) ) {
+			return self::filtered_result(
+				hcap_get_error_messages()['disposable-email'],
+				[ 'disposable-email' ],
+				$expected_id,
+				self::$request_result['siteverify']
+			);
+		}
+
+		if ( self::$request_result['remote_pending'] ) {
+			self::$request_result = array_merge(
+				self::$request_result,
+				$preverified
+					? self::verification_outcome( null, [], $preverified['siteverify'] )
+					: self::process_request( self::get_params( $hcaptcha_response ) ),
+				[
+					'verify_email'   => true,
+					'remote_pending' => false,
+				]
+			);
+		}
+
+		return self::filtered_result(
+			self::$request_result['result'],
+			self::$request_result['error_codes'],
+			self::$request_result['expected_id'] ?? $expected_id,
+			self::$request_result['siteverify']
+		);
+	}
+	// phpcs:enable Generic.Metrics.CyclomaticComplexity.TooHigh
+
+	/**
+	 * Reuse a result only for its form, or the same remotely verified challenge.
+	 *
+	 * @param array $context Current verification context.
+	 *
+	 * @return bool
+	 */
+	private static function can_reuse_request_result( array $context ): bool {
+		if ( ! self::$request_result ) {
+			return false;
+		}
+
+		if ( $context === self::$request_context ) {
+			return true;
+		}
+
+		// An exemption has no remote proof and must stay bound to its expected form.
+		if ( true !== ( self::$request_result['siteverify']['success'] ?? false ) ) {
+			return false;
+		}
+
+		$previous = self::$request_context;
+		unset( $context['expected_id'], $previous['expected_id'] );
+
+		return $context === $previous;
+	}
+
+	/**
+	 * Verify one form's local guards after validating its identity.
+	 *
+	 * @param string $hcaptcha_response Sanitized hCaptcha response.
+	 * @param array  $entry             Entry data.
+	 * @param bool   $preverified       Whether a trusted integration redeemed remote proof.
+	 *
+	 * @return array
+	 */
+	private static function verify_request_once( string $hcaptcha_response, array $entry, bool $preverified = false ): array {
+		$expected_id = (array) ( $entry['expected_id'] ?? [] );
+
+		// Apply the form's protection settings before checking its timing token.
+		$protection_enabled = HCaptcha::is_protection_enabled( $expected_id );
+		$fst_check          = self::check_fst_token( $preverified );
 
 		/**
 		 * Filters the user IP to check whether it is denylisted.
@@ -282,12 +494,12 @@ class API {
 			$result      = hcap_get_error_messages()['fail'];
 			$error_codes = [ 'fail' ];
 
-			return self::filtered_result( $result, $error_codes, $expected_id );
+			return self::verification_outcome( $result, $error_codes );
 		}
 
 		// Protection is not enabled.
-		if ( ! HCaptcha::is_protection_enabled() ) {
-			return self::filtered_result( null, [], $expected_id );
+		if ( ! $protection_enabled ) {
+			return self::verification_outcome( null, [] );
 		}
 
 		$settings = hcaptcha()->settings();
@@ -296,7 +508,7 @@ class API {
 		if ( '' === $settings->get_site_key() || '' === $settings->get_secret_key() ) {
 			$error_codes = [ 'missing-keys' ];
 
-			return self::filtered_result( hcap_get_error_messages()['missing-keys'], $error_codes );
+			return self::verification_outcome( hcap_get_error_messages()['missing-keys'], $error_codes ) + [ 'expected_id' => [] ];
 		}
 
 		// Check the honeypot field.
@@ -304,17 +516,14 @@ class API {
 			$result      = hcap_get_error_messages()['spam'];
 			$error_codes = [ 'spam' ];
 
-			return self::filtered_result( $result, $error_codes, $expected_id );
+			return self::verification_outcome( $result, $error_codes );
 		}
-
-		$hcaptcha_response_sanitized = self::get_hcaptcha_response_sanitized( $hcaptcha_response );
-
 		// The hCaptcha response field is empty.
-		if ( '' === $hcaptcha_response_sanitized ) {
+		if ( '' === $hcaptcha_response ) {
 			$result      = hcap_get_error_messages()['empty'];
 			$error_codes = [ 'empty' ];
 
-			return self::filtered_result( $result, $error_codes, $expected_id );
+			return self::verification_outcome( $result, $error_codes );
 		}
 
 		// Check the form submit time token.
@@ -322,19 +531,33 @@ class API {
 			$result      = $fst_check->get_error_message();
 			$error_codes = $fst_check->get_error_codes();
 
-			return self::filtered_result( $result, $error_codes, $expected_id );
+			return self::verification_outcome( $result, $error_codes );
 		}
 
-		if ( ! self::check_disposable_email( $entry ) ) {
-			$result      = hcap_get_error_messages()['disposable-email'];
-			$error_codes = [ 'disposable-email' ];
+		$outcome                   = self::verification_outcome( null, [] );
+		$outcome['verify_email']   = true;
+		$outcome['remote_pending'] = true;
 
-			return self::filtered_result( $result, $error_codes, $expected_id );
-		}
+		return $outcome;
+	}
 
-		$params = self::get_params( $hcaptcha_response_sanitized );
-
-		return self::process_request( $params, $expected_id );
+	/**
+	 * Create an unfiltered local or remote verification outcome.
+	 *
+	 * @param string|null $result              Result.
+	 * @param array       $error_codes         Error codes.
+	 * @param array       $siteverify_response Normalized remote response.
+	 *
+	 * @return array
+	 */
+	private static function verification_outcome( ?string $result, array $error_codes, array $siteverify_response = [] ): array {
+		return [
+			'result'         => $result,
+			'error_codes'    => $error_codes,
+			'siteverify'     => $siteverify_response,
+			'verify_email'   => false,
+			'remote_pending' => false,
+		];
 	}
 
 	/**
@@ -367,11 +590,9 @@ class API {
 	 * Process request.
 	 *
 	 * @param array $params      Request parameters.
-	 * @param array $expected_id Expected hCaptcha widget id.
-	 *
-	 * @return string|null
+	 * @return array
 	 */
-	private static function process_request( array $params, array $expected_id ): ?string {
+	private static function process_request( array $params ): array {
 		// Process API request.
 		$raw_response = wp_remote_post(
 			hcaptcha()->get_verify_url(),
@@ -382,7 +603,7 @@ class API {
 			$result      = implode( "\n", $raw_response->get_error_messages() );
 			$error_codes = $raw_response->get_error_codes();
 
-			return self::filtered_result( $result, $error_codes, $expected_id );
+			return self::verification_outcome( $result, $error_codes );
 		}
 
 		$raw_body = wp_remote_retrieve_body( $raw_response );
@@ -394,7 +615,7 @@ class API {
 			$result      = $fail_message;
 			$error_codes = [ 'fail' ];
 
-			return self::filtered_result( $result, $error_codes, $expected_id );
+			return self::verification_outcome( $result, $error_codes );
 		}
 
 		$body                = Utils::json_decode_arr( $raw_body );
@@ -407,11 +628,11 @@ class API {
 			$result             = $hcap_error_message ?: $fail_message;
 			$error_codes        = $hcap_error_message ? $error_codes : [ 'fail' ];
 
-			return self::filtered_result( $result, $error_codes, $expected_id, $siteverify_response );
+			return self::verification_outcome( $result, $error_codes, $siteverify_response );
 		}
 
 		// Success.
-		return self::filtered_result( null, [], $expected_id, $siteverify_response );
+		return self::verification_outcome( null, [], $siteverify_response );
 	}
 
 	/**
@@ -471,7 +692,7 @@ class API {
 		// Verify nonce for logged-in users only.
 		if (
 			is_user_logged_in() &&
-			HCaptcha::is_protection_enabled() &&
+			HCaptcha::is_protection_enabled( $expected_id ) &&
 			! wp_verify_nonce( $nonce, $action )
 		) {
 			$errors      = hcap_get_error_messages();
@@ -569,9 +790,11 @@ class API {
 	 * The token is consumed before any later verification branch can return, so
 	 * every form submission remains single-use, including early failures.
 	 *
+	 * @param bool $preverified Whether this is an atomically redeemed second check.
+	 *
 	 * @return true|WP_Error
 	 */
-	private static function check_fst_token() {
+	private static function check_fst_token( bool $preverified = false ) {
 		if ( ! hcaptcha()->settings()->is_on( 'set_min_submit_time' ) ) {
 			return true;
 		}
@@ -588,6 +811,10 @@ class API {
 		}
 
 		$min_submit_time = hcaptcha()->settings()->get( 'min_submit_time' );
+
+		if ( $preverified ) {
+			return apply_filters( 'hcap_verify_fst_token', true );
+		}
 
 		/**
 		 * Filters the result of the Form Submit Time token verification.

@@ -39,8 +39,6 @@ const integrations = function( $ ) {
 	const $wpWrap = $( '#wpwrap' );
 	const $adminmenuwrap = $( '#adminmenuwrap' );
 	const $search = $( '#hcaptcha-integrations-search' );
-	const $showAntispamCoverage = $( '#show_antispam_coverage_1' );
-	const $antispamLegend = $( '#hcaptcha-antispam-legend' );
 
 	function clearMessage() {
 		$message.remove();
@@ -94,7 +92,7 @@ const integrations = function( $ ) {
 	}
 
 	function isActiveTable( $table ) {
-		return $table.is( jQuery( '.form-table' ).eq( 1 ) );
+		return $table.is( jQuery( '.form-table' ).eq( 0 ) );
 	}
 
 	function swapThemes( activate, entity, newTheme ) {
@@ -103,7 +101,7 @@ const integrations = function( $ ) {
 		}
 
 		const $tables = $( '.form-table' );
-		const $fromTable = $tables.eq( activate ? 1 : 2 );
+		const $fromTable = $tables.eq( activate ? 0 : 1 );
 		const dataLabel = activate ? '' : '[data-label="' + newTheme + '"]';
 
 		const $img = $fromTable.find( '.hcaptcha-integrations-logo img[data-entity="theme"]' + dataLabel );
@@ -112,7 +110,7 @@ const integrations = function( $ ) {
 			return;
 		}
 
-		const $toTable = $tables.eq( activate ? 2 : 1 );
+		const $toTable = $tables.eq( activate ? 1 : 0 );
 		const $tr = $img.closest( 'tr' );
 
 		insertIntoTable( $toTable, $img.attr( 'data-label' ), $tr );
@@ -150,79 +148,6 @@ const integrations = function( $ ) {
 		}
 	}
 
-	// Set up antispam helper
-	function setupHelper( $label ) {
-		let $helper = $label.next( '.helper' );
-
-		// If a helper doesn't exist immediately after, insert it
-		if ( ! $helper.length ) {
-			$helper = $( document.createElement( 'span' ) ).addClass( 'helper' );
-			$label.after( $helper );
-		}
-
-		// Rebuild helper icons based on helper data-* attributes.
-		// The helper may have several data-antispam-* attributes (e.g., data-antispam-honeypot, data-antispam-fst).
-		// We insert corresponding <img> nodes like <img class="antispam-honeypot">, <img class="antispam-fst"> inside the helper.
-		( function populateHelperIcons() {
-			// Remove previously added antispam icons to avoid duplicates.
-			$helper.find( 'i[class^="antispam"]' ).remove();
-
-			const attrs = $label.get( 0 )?.attributes ?? [];
-			const classes = [];
-
-			for ( let i = 0; i < attrs.length; i++ ) {
-				const name = attrs[ i ].name;
-
-				// Ignore 'data-antispam' as it is a general marker for the helper.
-				if ( name.indexOf( 'data-antispam-' ) === 0 ) {
-					// Convert attribute name to class name by stripping the 'data-' prefix.
-					const className = name.replace( /^data-/, '' );
-
-					if ( classes.indexOf( className ) === -1 ) {
-						classes.push( className );
-					}
-				}
-			}
-
-			// Append images for each discovered class.
-			classes.forEach( function( cls ) {
-				const $icon = $( document.createElement( 'i' ) ).addClass( cls );
-
-				$helper.prepend( $icon );
-			} );
-		}() );
-
-		return $helper;
-	}
-
-	function setupHelpers() {
-		const disabled = $showAntispamCoverage.prop( 'disabled' );
-
-		if ( disabled ) {
-			return;
-		}
-
-		const checked = $showAntispamCoverage.prop( 'checked' );
-
-		// Find all labels that declare the antispam marker
-		$( 'label[data-antispam]' ).each( function() {
-			const $helper = setupHelper( $( this ) );
-
-			if ( checked ) {
-				$helper.css( 'display', 'inline-flex' );
-			} else {
-				$helper.hide();
-			}
-		} );
-
-		// Toggle legend visibility.
-		if ( checked ) {
-			$antispamLegend.show();
-		} else {
-			$antispamLegend.hide();
-		}
-	}
-
 	/**
 	 * Suggest an entity for activation.
 	 */
@@ -250,11 +175,6 @@ const integrations = function( $ ) {
 			swapThemes,
 		};
 	}
-
-	// Handle Show Antispam Indicators checkbox change: insert/clear helper spans after labels
-	$showAntispamCoverage.on( 'change', function() {
-		setupHelpers();
-	} );
 
 	const latestPlanRequests = new WeakMap();
 
@@ -544,7 +464,7 @@ const integrations = function( $ ) {
 				}
 
 				if ( currStatus !== status ) {
-					const $toTable = $tables.eq( status ? 1 : 2 );
+					const $toTable = $tables.eq( status ? 0 : 1 );
 					const alt = $logo.find( 'img' ).attr( 'alt' );
 
 					insertIntoTable( $toTable, alt, $tr );
@@ -607,7 +527,7 @@ const integrations = function( $ ) {
 						return;
 					}
 
-					const $table = $( '.form-table' ).eq( activate ? 1 : 2 );
+					const $table = $( '.form-table' ).eq( activate ? 0 : 1 );
 
 					swapThemes( activate, entity, newTheme );
 					insertIntoTable( $table, alt, $tr );
@@ -817,7 +737,7 @@ const integrations = function( $ ) {
 		100,
 	) );
 
-	$( '#hcaptcha-options' ).keydown(
+	$( '#hcaptcha-options' ).on( 'keydown',
 		function( e ) {
 			if ( $( e.target ).is( $search ) && e.which === 13 ) {
 				e.preventDefault();
@@ -825,7 +745,6 @@ const integrations = function( $ ) {
 		},
 	);
 
-	setupHelpers();
 	suggestActivate();
 };
 

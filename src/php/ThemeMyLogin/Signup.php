@@ -11,6 +11,7 @@
 namespace HCaptcha\ThemeMyLogin;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use Theme_My_Login_Form_Field;
@@ -36,6 +37,13 @@ class Signup {
 	 * @var string|null
 	 */
 	private ?string $error_message = null;
+
+	/**
+	 * Validated user details carried into combined site signup.
+	 *
+	 * @var array
+	 */
+	private array $user_data = [];
 
 	/**
 	 * Constructor.
@@ -86,10 +94,7 @@ class Signup {
 			$args = [
 				'action' => self::ACTION,
 				'name'   => self::NONCE,
-				'id'     => [
-					'source'  => HCaptcha::get_class_source( __CLASS__ ),
-					'form_id' => 'register',
-				],
+				'id'     => $this->get_expected_id(),
 			];
 
 			$form = HCaptcha::form( $args );
@@ -114,13 +119,25 @@ class Signup {
 
 		$stage = Request::filter_input( INPUT_POST, 'stage' );
 
-		if ( strpos( current_filter(), str_replace( '-', '_', $stage ) ) === false ) {
+		if ( 'wpmu_validate_user_signup' === current_filter() ) {
+			$this->user_data = $result;
+		}
+
+		if ( ! is_string( $stage ) || strpos( current_filter(), str_replace( '-', '_', $stage ) ) === false ) {
 			return $result;
 		}
 
 		$result['errors'] = is_wp_error( $result['errors'] ) ? $result['errors'] : new WP_Error();
 
-		$this->error_message = API::verify_post( self::NONCE, self::ACTION );
+		$data = EntryData::from_post( [] );
+		$user = $this->user_data;
+
+		if ( isset( $user['user_name'] ) && is_string( $user['user_name'] ) ) {
+			$data['username'] = $user['user_name'];
+		}
+
+		$entry               = EntryData::with_emails( [ 'data' => $data ], [ $user['user_email'] ?? '' ] );
+		$this->error_message = API::verify_post( self::NONCE, self::ACTION, $this->get_expected_id(), $entry );
 
 		if ( null === $this->error_message ) {
 			return $result;
@@ -142,5 +159,17 @@ class Signup {
 		}
 
 		return '<span class="tml-error" id="wp-signup-hcaptcha-error">' . $this->error_message . '</span>';
+	}
+
+	/**
+	 * Get the expected form identity.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => 'register',
+		];
 	}
 }

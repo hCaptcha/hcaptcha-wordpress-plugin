@@ -121,6 +121,7 @@ class FormSubmitTime {
 		);
 
 		DelayedScript::enqueue( self::HANDLE );
+
 		$post_id = (string) absint( get_queried_object_id() );
 
 		wp_print_inline_script_tag(
@@ -131,6 +132,11 @@ class FormSubmitTime {
 					'issueTokenNonce'   => wp_create_nonce( self::ISSUE_TOKEN_ACTION ),
 					'issueTokenContext' => $this->context_from_post_id( $post_id ),
 					'postId'            => $post_id,
+					'messages'          => [
+						'loading'     => __( 'Preparing the form. Please wait.', 'hcaptcha-for-forms-and-more' ),
+						'error'       => __( 'Unable to prepare the form. Please check your connection and try submitting again.', 'hcaptcha-for-forms-and-more' ),
+						'rateLimited' => hcap_get_error_messages()['fst-rate-limited'],
+					],
 				]
 			) . ';'
 		);
@@ -150,7 +156,21 @@ class FormSubmitTime {
 	 */
 	public function issue_token(): void {
 		if ( ! check_ajax_referer( self::ISSUE_TOKEN_ACTION, 'nonce', false ) ) {
-			wp_send_json_error();
+			$post_id = $this->validate_issue_context();
+
+			if ( is_wp_error( $post_id ) ) {
+				$this->send_issue_error( $post_id->get_error_code(), 400 );
+
+				return;
+			}
+
+			wp_send_json_error(
+				[
+					'code'  => 'fst-invalid-nonce',
+					'nonce' => wp_create_nonce( self::ISSUE_TOKEN_ACTION ),
+				],
+				403
+			);
 
 			return; // For testing purposes.
 		}
@@ -236,7 +256,12 @@ class FormSubmitTime {
 		 */
 		$token = (string) apply_filters( 'hcap_fst_token', $token );
 
-		wp_send_json_success( [ 'token' => $token ] );
+		wp_send_json_success(
+			[
+				'token' => $token,
+				'ttl'   => $ttl,
+			]
+		);
 	}
 
 	/**
@@ -254,6 +279,13 @@ class FormSubmitTime {
 	 */
 	public function verify_token( int $min_submit_time, bool $delete_nonce = true ) {
 		$token = Request::filter_input( INPUT_POST, 'hcap_fst_token' );
+
+		if ( '' === $token ) {
+			return new WP_Error(
+				'fst-missing-token',
+				__( 'Unable to prepare the form. Please check your connection and try submitting again.', 'hcaptcha-for-forms-and-more' )
+			);
+		}
 
 		if ( self::RATE_LIMITED_TOKEN === $token ) {
 			return hcap_get_wp_error( 'fst-rate-limited' );

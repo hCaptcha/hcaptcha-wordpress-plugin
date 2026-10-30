@@ -13,6 +13,10 @@
 	align-self: start;
 }
 
+#hcaptcha-options table tbody tr.hidden {
+	display: none;
+}
+
 #hcaptcha-options table tbody tr th {
 	color: #5c6f8a;
 }
@@ -83,7 +87,8 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	grid-template-columns: repeat(4, 1fr);
 	grid-template-areas:
 		"site-key site-key secret-key secret-key"
-		"sample-hcaptcha sample-hcaptcha check-config reset-notifications";
+		"sample-hcaptcha sample-hcaptcha mode mode"
+		"check-config check-config reset-notifications reset-notifications";
 	gap: 10px 20px;
 	padding: 15px 20px;
 }
@@ -94,6 +99,15 @@ h3.closed .hcaptcha-section-header-toggle:after {
 
 .hcaptcha-section-keys + table tbody tr.hcaptcha-general-site-key {
 	grid-area: site-key;
+}
+
+.hcaptcha-section-keys + table tbody tr.hcaptcha-general-mode {
+	grid-area: mode;
+}
+
+.hcaptcha-section-keys + table tbody tr.hcaptcha-general-mode td select {
+	width: 100%;
+	max-width: none;
 }
 
 .hcaptcha-section-keys + table tbody tr.hcaptcha-general-secret-key {
@@ -108,8 +122,18 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	grid-area: check-config;
 }
 
-.hcaptcha-section-keys + table tbody tr.hcaptcha-reset-notifications {
+.hcaptcha-section-keys + table tbody tr.hcaptcha-general-reset-notifications {
 	grid-area: reset-notifications;
+}
+
+.hcaptcha-section-keys + table tbody tr.hcaptcha-general-check-config th,
+.hcaptcha-section-keys + table tbody tr.hcaptcha-general-reset-notifications th {
+	display: none;
+}
+
+.hcaptcha-section-keys + table tbody tr.hcaptcha-general-check-config td,
+.hcaptcha-section-keys + table tbody tr.hcaptcha-general-reset-notifications td {
+	padding: 0;
 }
 
 .hcaptcha-section-keys + table tbody tr.hcaptcha-general-site-key .helper,
@@ -135,10 +159,10 @@ h3.closed .hcaptcha-section-header-toggle:after {
 /* Section Appearance */
 .hcaptcha-section-appearance + table tbody {
 	display: grid;
-	grid-template-columns: repeat(4, 1fr);
+	grid-template-columns: repeat(3, minmax(0, 1fr));
 	grid-template-areas:
-		"theme size language mode"
-		"force force position position";
+		"theme size language"
+		"force position .";
 	gap: 10px 20px;
 	padding: 15px 20px;
 }
@@ -153,10 +177,6 @@ h3.closed .hcaptcha-section-header-toggle:after {
 
 .hcaptcha-section-appearance + table tbody tr.hcaptcha-general-language {
 	grid-area: language;
-}
-
-.hcaptcha-section-appearance + table tbody tr.hcaptcha-general-mode {
-	grid-area: mode;
 }
 
 .hcaptcha-section-appearance + table tbody tr.hcaptcha-general-force {
@@ -1031,177 +1051,6 @@ h3.closed .hcaptcha-section-header-toggle:after {
 	background: var(--hcap-verify-fill);
 }
 
-/* Section Enterprise */
-.hcaptcha-section-enterprise + table tbody {
-	display: grid;
-	grid-template-columns: repeat(2, 1fr);
-	gap: 10px 20px;
-	padding: 15px 20px;
-}
-
-.hcaptcha-section-enterprise + table tbody th {
-	width: auto;
-}
-
-.hcaptcha-section-enterprise + table tbody tr th {
-	padding: 0 0 10px 0;
-}
-
-.hcaptcha-section-enterprise + table tbody tr td input {
-	width: 100%;
-}
-
-/* Section Protect Content */
-.hcaptcha-section-content + table tbody {
-	display: grid;
-	grid-template-columns: repeat(2, 1fr);
-	grid-template-areas:
-		"content protected-urls";
-	gap: 0 20px;
-	padding: 15px 20px;
-}
-
-.hcaptcha-section-content + table tbody tr.hcaptcha-general-content {
-	grid-area: content;
-}
-
-.hcaptcha-section-content + table tbody tr.hcaptcha-general-protected-urls {
-	grid-area: protected-urls;
-}
-
-.hcaptcha-section-content + table tbody tr th {
-	padding: 0 0 10px 0;
-	width: auto;
-}
-
-.hcaptcha-section-content + table tbody tr td {
-	width: max-content;
-}
-
-.hcaptcha-section-content + table tbody tr.hcaptcha-general-protected-urls td {
-	width: auto;
-}
-
-.hcaptcha-section-content + table tbody tr td textarea,
-.hcaptcha-section-content + table tbody tr td input {
-	width: 100%;
-}
-
-
-/* Section Other */
-.hcaptcha-section-other + table tbody {
-	display: grid;
-	grid-template-columns: repeat(2, 1fr);
-	grid-template-areas:
-		"logged delay"
-		"recaptcha delay"
-		"cleanup-on-uninstall ajax"
-		". network";
-	gap: 0 20px;
-	padding: 15px 20px;
-}
-
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-delay {
-	grid-area: delay;
-}
-
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-off-when-logged-in {
-	grid-area: logged;
-}
-
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-ajax-forms {
-	grid-area: ajax;
-}
-
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-recaptcha-compat-off {
-	grid-area: recaptcha;
-}
-
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-cleanup-on-uninstall {
-	grid-area: cleanup-on-uninstall;
-}
-
-.hcaptcha-section-other + table tbody tr.hcaptcha-general--network-wide {
-	grid-area: network;
-}
-
-.hcaptcha-section-other + table tbody tr th {
-	padding: 0 0 10px 0;
-	width: auto;
-}
-
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-ajax-forms th,
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-recaptcha-compat-off th,
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-cleanup-on-uninstall th,
-.hcaptcha-section-other + table tbody tr.hcaptcha-general--network-wide th {
-	padding: 0;
-}
-
-.hcaptcha-section-other + table tbody tr td {
-	width: max-content;
-}
-
-.hcaptcha-section-other + table tbody tr.hcaptcha-general-delay td {
-	width: auto;
-}
-
-.hcaptcha-section-other + table tbody tr td input {
-	width: 100%;
-}
-
-/* Section Statistics */
-.hcaptcha-section-statistics + table tbody {
-	display: grid;
-	grid-template-columns: repeat(2, 1fr);
-	grid-template-areas:
-		"statistics collect-ip"
-		"anonymous collect-ua";
-	gap: 0 20px;
-	padding: 15px 20px;
-}
-
-.hcaptcha-section-statistics + table tbody tr.hcaptcha-general-statistics {
-	grid-area: statistics;
-}
-
-.hcaptcha-section-statistics + table tbody tr.hcaptcha-general-anonymous {
-	grid-area: anonymous;
-}
-
-.hcaptcha-section-statistics + table tbody tr.hcaptcha-general-collect-ip {
-	grid-area: collect-ip;
-}
-
-.hcaptcha-section-statistics + table tbody tr.hcaptcha-general-collect-ua {
-	grid-area: collect-ua;
-}
-
-.hcaptcha-section-statistics + table tbody tr th {
-	padding: 0 0 10px 0;
-	width: auto;
-}
-
-.hcaptcha-section-statistics + table tbody tr.hcaptcha-general-anonymous th,
-.hcaptcha-section-statistics + table tbody tr.hcaptcha-general-collect-ua th {
-	padding: 0;
-}
-
-.hcaptcha-section-statistics + table tbody tr td {
-	width: max-content;
-}
-
-.hcaptcha-section-statistics + table tbody tr.hcaptcha-general-statistics td {
-	width: max-content;
-	min-width: 0;
-}
-
-.hcaptcha-section-statistics + table tbody tr.hcaptcha-general-statistics .helper-content {
-	max-width: calc(100vw - 40px);
-	white-space: normal;
-	overflow-wrap: anywhere;
-	line-height: 1.5;
-}
-
 @media (max-width: 900px) {
 	.hcaptcha-theme-editor {
 		top: 52px;
@@ -1245,6 +1094,7 @@ h3.closed .hcaptcha-section-header-toggle:after {
 		"site-key site-key"
 		"secret-key secret-key"
 		"sample-hcaptcha sample-hcaptcha"
+		"mode mode"
 		"check-config reset-notifications";
 	}
 
@@ -1252,7 +1102,7 @@ h3.closed .hcaptcha-section-header-toggle:after {
 		grid-template-columns: repeat(2, 1fr) !important;
 		grid-template-areas:
 		"theme size"
-		"language mode"
+		"language ."
 		"force force"
 		"position position";
 	}
@@ -1338,54 +1188,4 @@ h3.closed .hcaptcha-section-header-toggle:after {
 		justify-content: flex-start;
 	}
 
-	.hcaptcha-section-enterprise + table tbody {
-		grid-template-columns: repeat(1, 1fr) !important;
-	}
-
-	.hcaptcha-section-enterprise + table tbody tr td {
-		width: unset !important;
-	}
-
-	.hcaptcha-section-content + table tbody {
-		grid-template-columns: repeat(1, 1fr);
-		grid-template-areas:
-		"content"
-		"protected-urls";
-	}
-
-	.hcaptcha-section-content + table tbody tr td {
-		width: unset !important;
-	}
-
-	.hcaptcha-section-other + table tbody {
-		grid-template-columns: repeat(1, 1fr) !important;
-		grid-template-areas:
-		"delay"
-		"logged"
-		"recaptcha"
-		"cleanup-on-uninstall"
-		"ajax"
-		"network";
-	}
-
-	.hcaptcha-section-other + table tbody tr td {
-		width: unset !important;
-	}
-
-	.hcaptcha-section-statistics + table tbody {
-		grid-template-columns: repeat(1, 1fr);
-		grid-template-areas:
-		"statistics"
-		"anonymous"
-		"collect-ip"
-		"collect-ua";
-	}
-
-	.hcaptcha-section-statistics + table tbody tr td {
-		width: unset !important;
-	}
-
-	.hcaptcha-section-statistics + table tbody tr.hcaptcha-general-statistics td {
-		width: max-content !important;
-	}
 }

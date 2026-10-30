@@ -14,6 +14,7 @@ namespace HCaptcha\Tests\Integration\ACFE;
 
 use acfe_field_recaptcha;
 use HCaptcha\ACFE\Form;
+use HCaptcha\Helpers\FormSubmitTime;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use ReflectionClass;
@@ -61,6 +62,18 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	protected static array $plugin_expected_deprecated = [
 		'acfe/form/render/before_fields',
 	];
+
+	/**
+	 * Setup test.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function setUp(): void {
+		parent::setUp();
+
+		// Rebuild the supported forms cache using this test's protection settings.
+		$this->set_protected_property( hcaptcha(), 'supported_forms', null );
+	}
 
 	/**
 	 * Test a live ACF Extended form with its reCAPTCHA field replaced by hCaptcha.
@@ -144,6 +157,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		$subject = new Form();
 
 		self::assertSame( 10, has_action( 'acfe/form/render/before_fields', [ $subject, 'before_fields' ] ) );
+		self::assertSame( 10, has_action( 'acfe/form/validate_form', [ $subject, 'validate_form' ] ) );
 		self::assertSame( 8, has_action( Form::RENDER_HOOK, [ $subject, 'remove_recaptcha_render' ] ) );
 		self::assertSame( 11, has_action( Form::RENDER_HOOK, [ $subject, 'add_hcaptcha' ] ) );
 		self::assertSame( 9, has_filter( Form::VALIDATION_HOOK, [ $subject, 'remove_recaptcha_verify' ] ) );
@@ -224,6 +238,24 @@ class FormTest extends HCaptchaPluginWPTestCase {
 
 		hcaptcha()->init_hooks();
 
+		if ( $expected ) {
+			// Render the expected form after setUp() has installed the test settings.
+			$expected = sprintf(
+				$expected,
+				$this->get_hcap_form(
+					[
+						'id' => [
+							'source'  => [
+								'acf-extended-pro/acf-extended.php',
+								'acf-extended/acf-extended.php',
+							],
+							'form_id' => 0,
+						],
+					]
+				)
+			);
+		}
+
 		ob_start();
 		$subject->add_hcaptcha( $field );
 
@@ -243,18 +275,8 @@ class FormTest extends HCaptchaPluginWPTestCase {
 					'key'  => 'some-key',
 					'name' => 'some-name',
 				],
-				'<div class="acf-input-wrap acfe-field-recaptcha"> <div>' .
-				$this->get_hcap_form(
-					[
-						'id' => [
-							'source'  => [
-								'acf-extended-pro/acf-extended.php',
-								'acf-extended/acf-extended.php',
-							],
-							'form_id' => 0,
-						],
-					]
-				) . '</div><input type="hidden" id="acf-some-key" name="some-name"></div>',
+				'<div class="acf-input-wrap acfe-field-recaptcha"> <div>%s</div>' .
+				'<input type="hidden" id="acf-some-key" name="some-name"></div>',
 			],
 			'some field'      => [
 				[ 'type' => 'some' ],
@@ -296,6 +318,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 * @return void
 	 * @dataProvider dp_test_verify
 	 * @throws ReflectionException ReflectionException.
+	 * @noinspection PhpConditionAlreadyCheckedInspection
 	 */
 	public function test_verify( bool $result, $expected ): void {
 		$valid   = ! $expected;
@@ -313,6 +336,8 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		$this->prepare_verify_request( $value, $result );
 
 		$subject = new Form();
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Test request fixture.
+		$post_data = $_POST;
 
 		add_filter( 'wp_doing_ajax', '__return_true' );
 
@@ -320,6 +345,8 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		self::assertSame( $form_id, $this->get_protected_property( $subject, 'form_id' ) );
 
 		remove_filter( 'wp_doing_ajax', '__return_true' );
+		$_POST                 = $post_data;
+		hcaptcha()->has_result = false;
 
 		self::assertSame( $expected, $subject->verify( $valid, $value, $field, $input ) );
 		self::assertSame( $form_id, $this->get_protected_property( $subject, 'form_id' ) );
@@ -338,6 +365,111 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
+	 * Test frontend AJAX validation consumes FST once and hands its result to the final POST.
+	 *
+	 * @param bool        $result   Request result.
+	 * @param bool|string $expected Expected result.
+	 *
+	 * @dataProvider dp_test_verify
+	 * @throws ReflectionException Reflection exception.
+	 * @noinspection PhpConditionAlreadyCheckedInspection
+	 */
+	public function test_verify_frontend_ajax_in_admin_context( bool $result, $expected ): void {
+		$form_id = 5;
+		$value   = 'some hcaptcha response';
+		$field   = [ 'required' => true ];
+		$payload = [
+			'post_id'   => '123',
+			'issued_at' => time() - 10,
+			'ttl'       => FormSubmitTime::DEFAULT_TOKEN_TTL,
+			'token_id'  => wp_generate_password( 32, false ),
+		];
+		$fst     = new FormSubmitTime();
+		$method  = $this->set_method_accessibility( $fst, 'token_from_payload' );
+		$token   = $method->invoke( $fst, $payload );
+		$nonce   = 'hcap_fst_nonce_' . explode( '-', $token, 2 )[1];
+
+		$_POST['_acf_form'] = 'acf-form';
+		$this->register_acf_form( $form_id );
+		$this->prepare_widget_id( $form_id );
+		$this->prepare_verify_request( $value, $result );
+		$_POST['hcap_fst_token'] = $token;
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Test request fixture.
+		$post_data = $_POST;
+		$subject   = new Form();
+
+		set_transient( $nonce, $payload, FormSubmitTime::DEFAULT_TOKEN_TTL );
+		remove_filter( 'hcap_verify_fst_token', '__return_true' );
+		set_current_screen( 'dashboard' );
+		add_filter( 'wp_doing_ajax', '__return_true' );
+
+		try {
+			self::assertSame( $expected, $subject->verify( true, $value, $field, 'captcha' ) );
+			self::assertFalse( get_transient( $nonce ) );
+		} finally {
+			remove_filter( 'wp_doing_ajax', '__return_true' );
+			set_current_screen( 'front' );
+		}
+
+		$_POST                 = $post_data;
+		hcaptcha()->has_result = false;
+		self::assertSame( $expected, $subject->verify( true, $value, $field, 'captcha' ) );
+
+		$_POST                 = $post_data;
+		hcaptcha()->has_result = false;
+		// Restore the FST setting that a new HTTP request would load again.
+		hcaptcha()->settings()->set( 'set_min_submit_time', [ 'on' ] );
+		self::assertSame( 'Token replayed or expired.', $subject->verify( true, $value, $field, 'captcha' ) );
+	}
+
+	/**
+	 * Test cached AJAX validation cannot be reused by a different submission.
+	 *
+	 * @noinspection PhpConditionAlreadyCheckedInspection
+	 */
+	public function test_verify_does_not_reuse_another_submission(): void {
+		$form_id = 5;
+		$field   = [ 'required' => true ];
+		$value   = 'some hcaptcha response';
+
+		$_POST['_acf_form'] = 'acf-form';
+		$this->register_acf_form( $form_id );
+		$this->prepare_widget_id( $form_id );
+		$this->prepare_verify_request( $value );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Test request fixture.
+		$post_data = $_POST;
+		$subject   = new Form();
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		self::assertTrue( $subject->verify( true, $value, $field, 'captcha' ) );
+		remove_filter( 'wp_doing_ajax', '__return_true' );
+
+		$_POST                       = $post_data;
+		$_POST['h-captcha-response'] = 'other response';
+		hcaptcha()->has_result       = false;
+		$this->prepare_verify_request( 'other response', false );
+
+		self::assertSame( 'The hCaptcha is invalid.', $subject->verify( true, 'other response', $field, 'captcha' ) );
+	}
+
+	/**
+	 * Test admin AJAX field editing without a frontend form still skips hCaptcha.
+	 */
+	public function test_verify_admin_ajax_without_frontend_form(): void {
+		$subject = new Form();
+
+		set_current_screen( 'dashboard' );
+		add_filter( 'wp_doing_ajax', '__return_true' );
+
+		try {
+			self::assertTrue( $subject->verify( false, '', [ 'required' => true ], 'captcha' ) );
+		} finally {
+			remove_filter( 'wp_doing_ajax', '__return_true' );
+			set_current_screen( 'front' );
+		}
+	}
+
+	/**
 	 * Test verify when field NOT required.
 	 *
 	 * @return void
@@ -351,6 +483,131 @@ class FormTest extends HCaptchaPluginWPTestCase {
 
 		self::assertTrue( $subject->verify( true, $value, $field, $input ) );
 		self::assertFalse( $subject->verify( false, $value, $field, $input ) );
+	}
+
+	/**
+	 * An optional submitted field must not stand in for the form's required CAPTCHA.
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	public function test_validate_form_rejects_optional_field_substitution(): void {
+		$form = $this->register_sec052_form( true );
+
+		$_POST['acf'] = [ 'field_sec052_optional' => '' ];
+
+		$subject = new Form();
+		acf_reset_validation_errors();
+
+		try {
+			self::assertTrue( $subject->verify( true, '', [ 'required' => false ], 'acf[field_sec052_optional]' ) );
+			$subject->validate_form( $form );
+			self::assertSame( 'Bad hCaptcha signature!', acf_get_validation_errors()[0]['message'] );
+		} finally {
+			acf_reset_validation_errors();
+		}
+	}
+
+	/**
+	 * A verified form shares one CAPTCHA result with its required field validator.
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	public function test_validate_form_reuses_verified_result(): void {
+		$form = $this->register_sec052_form( true );
+
+		$_POST['acf'] = [ 'field_sec052_required' => 'valid response' ];
+		$this->prepare_widget_id( 52 );
+		$this->prepare_verify_request( 'valid response' );
+
+		$subject = new Form();
+		acf_reset_validation_errors();
+		$has_result = hcaptcha()->has_result;
+
+		try {
+			$subject->validate_form( $form );
+			self::assertFalse( acf_get_validation_errors() );
+
+			hcaptcha()->has_result = false;
+			self::assertTrue( $subject->verify( false, 'valid response', [ 'required' => true ], 'acf[field_sec052_required]' ) );
+		} finally {
+			hcaptcha()->has_result = $has_result;
+			acf_reset_validation_errors();
+		}
+	}
+
+	/**
+	 * Optional-only forms retain their existing no-CAPTCHA submission behavior.
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	public function test_validate_form_ignores_optional_only_fields(): void {
+		$form = $this->register_sec052_form( false );
+
+		$_POST['acf'] = [ 'field_sec052_optional' => '' ];
+
+		$subject = new Form();
+		acf_reset_validation_errors();
+
+		try {
+			$subject->validate_form( $form );
+			self::assertFalse( acf_get_validation_errors() );
+		} finally {
+			acf_reset_validation_errors();
+		}
+	}
+
+	/**
+	 * Register a target form and its reCAPTCHA field metadata.
+	 *
+	 * @param bool $required Whether the target CAPTCHA is required.
+	 *
+	 * @return array
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	private function register_sec052_form( bool $required ): array {
+		$group_key = $required ? 'group_hcaptcha_sec052_required' : 'group_hcaptcha_sec052_optional_only';
+		$fields    = [
+			[
+				'key'      => 'field_sec052_optional',
+				'name'     => 'optional_captcha',
+				'label'    => 'Optional CAPTCHA',
+				'type'     => 'acfe_recaptcha',
+				'required' => 0,
+			],
+		];
+
+		if ( $required ) {
+			array_unshift(
+				$fields,
+				[
+					'key'      => 'field_sec052_required',
+					'name'     => 'required_captcha',
+					'label'    => 'Required CAPTCHA',
+					'type'     => 'acfe_recaptcha',
+					'required' => 1,
+				]
+			);
+		}
+
+		$form = [
+			'ID'           => 52,
+			'name'         => 'hcaptcha-sec052',
+			'field_groups' => [ $group_key ],
+		];
+
+		acf_add_local_field_group(
+			[
+				'key'      => $group_key,
+				'title'    => 'SEC052 form fields',
+				'fields'   => $fields,
+				'location' => [],
+			]
+		);
+
+		$_POST['_acf_form'] = 'acf-form';
+		$this->register_acf_form( $form );
+
+		return $form;
 	}
 
 	/**

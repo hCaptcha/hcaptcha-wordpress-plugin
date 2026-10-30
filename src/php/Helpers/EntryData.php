@@ -12,6 +12,71 @@ namespace HCaptcha\Helpers;
  */
 class EntryData {
 	/**
+	 * Attach email addresses selected and normalized by the native form handler.
+	 *
+	 * The top-level list is separate from submitted field names and labels.
+	 * An explicit empty list identifies an email-free form, even if a text field is named "email".
+	 *
+	 * @param array $entry  Verification entry.
+	 * @param array $emails Native email addresses, already unslashed and normalized.
+	 *
+	 * @return array
+	 */
+	public static function with_emails( array $entry, array $emails ): array {
+		$entry['email_addresses'] = self::valid_emails( $emails );
+		$entry['data']            = (array) ( $entry['data'] ?? [] );
+		unset( $entry['data']['email'] );
+
+		if ( $entry['email_addresses'] ) {
+			$entry['data']['email'] = $entry['email_addresses'][0];
+		}
+
+		return $entry;
+	}
+
+	/**
+	 * Get authoritative addresses, with the previous scalar contract as fallback.
+	 *
+	 * @param array $entry Verification entry.
+	 *
+	 * @return string[]
+	 */
+	public static function get_emails( array $entry ): array {
+		if ( array_key_exists( 'email_addresses', $entry ) ) {
+			return is_array( $entry['email_addresses'] ) ? self::valid_emails( $entry['email_addresses'] ) : [];
+		}
+
+		$email = $entry['data']['email'] ?? '';
+
+		return is_string( $email ) && is_email( $email ) ? [ $email ] : [];
+	}
+
+	/**
+	 * Retain valid scalar addresses without guessing aliases or altering native values.
+	 *
+	 * @param array $emails Native email addresses.
+	 *
+	 * @return string[]
+	 */
+	private static function valid_emails( array $emails ): array {
+		$valid = [];
+
+		foreach ( $emails as $email ) {
+			if ( ! is_string( $email ) ) {
+				continue;
+			}
+
+			$separator = strrpos( $email, '@' );
+
+			if ( false !== $separator && $separator > 0 && $separator < strlen( $email ) - 1 && ! in_array( $email, $valid, true ) ) {
+				$valid[] = $email;
+			}
+		}
+
+		return $valid;
+	}
+
+	/**
 	 * Remove fields identified as credentials, verification tokens, or payment data.
 	 *
 	 * @param array $data Form data.
@@ -42,7 +107,7 @@ class EntryData {
 	 * @return array
 	 */
 	public static function for_antispam( array $entry ): array {
-		unset( $entry['post_data'] );
+		unset( $entry['post_data'], $entry['email_addresses'] );
 
 		return self::without_sensitive_fields( $entry );
 	}
@@ -53,6 +118,7 @@ class EntryData {
 	 * @param string $key Field name.
 	 *
 	 * @return bool
+	 * @noinspection UnnecessaryCastingInspection
 	 */
 	public static function is_sensitive_field( string $key ): bool {
 		if ( preg_match( '/password|passwd|passcode|pwd|token|nonce|secret|captcha|csrf|cvv|cvc|csc|iban|swift|routing|stripe|paypal|authorization|authentication/i', $key ) ) {

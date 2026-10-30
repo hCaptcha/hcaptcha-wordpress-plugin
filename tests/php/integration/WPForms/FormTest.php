@@ -5,8 +5,10 @@
  * @package HCaptcha\Tests
  */
 
-// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
 /** @noinspection PhpUndefinedFunctionInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
 
 namespace HCaptcha\Tests\Integration\WPForms;
 
@@ -17,6 +19,7 @@ use HCaptcha\WPForms\Form;
 use Mockery;
 use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
+use WPForms_Field_Email;
 
 /**
  * Test Forms class.
@@ -31,6 +34,21 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 * @var string
 	 */
 	protected static $plugin = 'wpforms-lite/wpforms.php';
+
+	/**
+	 * Load the native field formatter omitted by the late plugin lifecycle fixture.
+	 *
+	 * @return void
+	 */
+	private function load_native_email_field(): void {
+		$path = WP_PLUGIN_DIR . '/' . dirname( static::$plugin ) . '/includes/fields/';
+		if ( ! class_exists( 'WPForms_Field' ) ) {
+			require_once $path . 'class-base.php';
+		}
+		if ( ! class_exists( 'WPForms_Field_Email' ) ) {
+			require_once $path . 'class-email.php';
+		}
+	}
 
 	/**
 	 * Test init_hooks().
@@ -90,7 +108,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 			self::assertFalse( has_action( 'wpforms_wp_footer', [ $subject, 'block_assets_recaptcha' ] ) );
 
 			self::assertFalse( has_action( 'wpforms_frontend_output', [ $subject, 'wpforms_frontend_output' ] ) );
-			self::assertFalse( has_filter( 'wpforms_process_bypass_captcha', '__return_true' ) );
+			self::assertFalse( has_filter( 'wpforms_process_captcha_providers', [ $subject, 'wpforms_process_captcha_providers' ] ) );
 			self::assertFalse( has_action( 'wpforms_process', [ $subject, 'verify' ] ) );
 
 			return;
@@ -118,7 +136,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		self::assertSame( 0, has_action( 'wpforms_wp_footer', [ $subject, 'block_assets_recaptcha' ] ) );
 
 		self::assertSame( 19, has_action( 'wpforms_frontend_output', [ $subject, 'wpforms_frontend_output' ] ) );
-		self::assertSame( 10, has_filter( 'wpforms_process_bypass_captcha', '__return_true' ) );
+		self::assertSame( 10, has_filter( 'wpforms_process_captcha_providers', [ $subject, 'wpforms_process_captcha_providers' ] ) );
 		self::assertSame( 10, has_action( 'wpforms_process', [ $subject, 'verify' ] ) );
 	}
 
@@ -134,6 +152,43 @@ class FormTest extends HCaptchaPluginWPTestCase {
 			[ true, false ],
 			[ true, true ],
 		];
+	}
+
+	/**
+	 * Keep native spam checks while replacing CAPTCHA only on protected forms.
+	 *
+	 * @return void
+	 */
+	public function test_sec058_native_spam_checks_remain_active(): void {
+		add_filter(
+			'wpforms_setting',
+			static function ( $value, $key ) {
+				return 'captcha-provider' === $key ? 'hcaptcha' : $value;
+			},
+			10,
+			2
+		);
+
+		hcaptcha()->settings()->set( 'wpforms_status', [ 'embed' ] );
+		wpforms()->objects();
+		$subject   = new Form();
+		$process   = wpforms()->obj( 'process' );
+		$providers = [
+			'hcaptcha'  => [ 'provider' => 'hCaptcha' ],
+			'recaptcha' => [ 'provider' => 'reCAPTCHA' ],
+		];
+
+		$process->form_data = [ 'settings' => [ 'recaptcha' => '0' ] ];
+		self::assertSame( $providers, $subject->wpforms_process_captcha_providers( $providers ) );
+
+		$process->form_data = [ 'settings' => [ 'recaptcha' => '1' ] ];
+		self::assertSame(
+			[ 'recaptcha' => [ 'provider' => 'reCAPTCHA' ] ],
+			$subject->wpforms_process_captcha_providers( $providers )
+		);
+
+		$is_bypass_spam_check = $this->set_method_accessibility( $process, 'is_bypass_spam_check' );
+		self::assertFalse( $is_bypass_spam_check->invoke( $process, [] ) );
 	}
 
 	/**
@@ -231,6 +286,10 @@ class FormTest extends HCaptchaPluginWPTestCase {
 					4 => [
 						'type'  => 'checkbox',
 						'label' => 'Preferences',
+					],
+					5 => [
+						'type'  => 'text',
+						'label' => 'Absent field',
 					],
 				],
 			]
@@ -343,8 +402,9 @@ class FormTest extends HCaptchaPluginWPTestCase {
 			'nonce'  => 'some nonce',
 		];
 		$form_data             = [
-			'id'     => $id,
-			'fields' => [
+			'id'       => $id,
+			'settings' => [ 'recaptcha' => '1' ],
+			'fields'   => [
 				[
 					'id'     => '0',
 					'type'   => 'name',
@@ -1051,5 +1111,120 @@ CSS;
 		];
 
 		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
+	}
+	/**
+	 * Reject a disposable address in a custom email field before native processing.
+	 *
+	 * @param bool $blocked Whether the trusted email is disposable.
+	 * @dataProvider dp_sec063_email_policy
+	 */
+	public function test_sec063_custom_email_policy( bool $blocked ): void {
+		$this->prepare_verify_post( 'hcaptcha_wpforms_nonce', 'hcaptcha_wpforms' );
+		$this->prepare_widget_id( 5 );
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		set_transient( 'hcaptcha_disposable_email_blocklist', [ 'sec063-disposable.test' => true ] );
+		hcaptcha()->settings()->set( 'wpforms_status', [ 'form' ] );
+		wpforms()->objects();
+		wpforms()->obj( 'process' )->errors = [];
+		$form_data                          = [
+			'id'     => 5,
+			'fields' => [
+				7 => [
+					'type'         => 'email',
+					'label'        => 'Payment contact',
+					'confirmation' => '1',
+				],
+				8 => [
+					'type'  => 'email',
+					'label' => 'Другой адрес',
+				],
+				9 => [
+					'type'  => 'text',
+					'label' => 'email',
+				],
+			],
+		];
+		$entry                              = [
+			'id'     => 5,
+			'fields' => [
+				7 => [
+					'primary'   => $blocked ? 'person@sec063-disposable.test' : 'person@example.com',
+					'secondary' => 'confirmation@sec063-disposable.test',
+				],
+				8 => 'reader@example.com',
+				9 => 'spoof@sec063-disposable.test',
+			],
+		];
+
+		$this->load_native_email_field();
+		$field = new WPForms_Field_Email();
+		$field->format( 7, $entry['fields'][7], $form_data );
+		$field->format( 8, $entry['fields'][8], $form_data );
+		( new Form() )->verify( wpforms()->obj( 'process' )->fields, $entry, $form_data );
+
+		self::assertSame(
+			$blocked ? 'Please use a permanent email address.' : null,
+			wpforms()->obj( 'process' )->errors[5]['footer'] ?? null
+		);
+	}
+
+	/**
+	 * Check an accepted native international domain against its ASCII blocklist form.
+	 *
+	 * @param bool $blocked Whether the native domain is listed.
+	 * @dataProvider dp_sec063_email_policy
+	 */
+	public function test_sec063_international_email_policy( bool $blocked ): void {
+		$this->prepare_verify_post( 'hcaptcha_wpforms_nonce', 'hcaptcha_wpforms' );
+		$this->prepare_widget_id( 5 );
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		hcaptcha()->settings()->set( 'wpforms_status', [ 'form' ] );
+		set_transient( 'hcaptcha_disposable_email_blocklist', $blocked ? [ 'xn--bcher-kva.test' => true ] : [] );
+		wpforms()->objects();
+		wpforms()->obj( 'process' )->errors = [];
+		$form_data                          = [
+			'id'     => 5,
+			'fields' => [
+				7 => [
+					'type'  => 'email',
+					'label' => 'Адрес',
+				],
+			],
+		];
+		$entry                              = [
+			'id'     => 5,
+			'fields' => [ 7 => 'person@xn--bcher-kva.test' ],
+		];
+		$this->load_native_email_field();
+		$field = new WPForms_Field_Email();
+		$field->format( 7, $entry['fields'][7], $form_data );
+		self::assertSame( 'person@bücher.test', wpforms()->obj( 'process' )->fields[7]['value'] );
+		( new Form() )->verify( wpforms()->obj( 'process' )->fields, $entry, $form_data );
+		self::assertSame(
+			$blocked ? 'Please use a permanent email address.' : null,
+			wpforms()->obj( 'process' )->errors[5]['footer'] ?? null
+		);
+	}
+
+	/**
+	 * Missing and malformed domains are handled before email policy checks.
+	 */
+	public function test_normalize_email_handles_missing_and_invalid_domains(): void {
+		$subject = new Form();
+		$method  = $this->set_method_accessibility( $subject, 'normalize_email' );
+
+		self::assertSame( 'missing-at', $method->invoke( $subject, 'missing-at' ) );
+		self::assertSame( '', $method->invoke( $subject, 'person@' ) );
+	}
+	/**
+	 * Exercise both policy rejection and permanent address acceptance.
+	 *
+	 * @return array
+	 */
+	public function dp_sec063_email_policy(): array {
+		return [
+			'disposable' => [ true ],
+			'permanent'  => [ false ],
+		];
 	}
 }

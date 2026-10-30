@@ -14,6 +14,7 @@ use ES_Form_Widget;
 use ES_Forms_Table;
 use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Main;
 
@@ -176,7 +177,18 @@ class Form {
 			return $result;
 		}
 
-		$error_message = API::verify_request();
+		$form_id       = isset( $form['esfpx_form_id'] ) && is_scalar( $form['esfpx_form_id'] ) ? (int) $form['esfpx_form_id'] : 0;
+		$expected_id   = $this->get_args( $form_id )['id'];
+		$email         = isset( $form['esfpx_email'] ) && is_scalar( $form['esfpx_email'] ) ? strtolower( sanitize_email( (string) $form['esfpx_email'] ) ) : '';
+		$error_message = API::verify(
+			EntryData::with_emails(
+				[
+					'expected_id' => $expected_id,
+					'data'        => EntryData::from_array( $form, [] ),
+				],
+				[ $email ]
+			)
+		);
 
 		if ( null !== $error_message ) {
 			$error_code = 'hcaptcha_error';
@@ -298,9 +310,10 @@ class Form {
 	 */
 	private function get_args( int $form_id = 0 ): array {
 		return [
-			'action' => self::ACTION,
-			'name'   => self::NONCE,
-			'id'     => [
+			'mandatory' => $form_id <= 0,
+			'action'    => self::ACTION,
+			'name'      => self::NONCE,
+			'id'        => [
 				'source'  => HCaptcha::get_class_source( static::class ),
 				'form_id' => $form_id,
 			],

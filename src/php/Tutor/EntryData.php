@@ -5,9 +5,15 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedNamespaceInspection */
+/** @noinspection PhpUndefinedClassInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
+
 namespace HCaptcha\Tutor;
 
 use HCaptcha\Helpers\EntryData as FormEntryData;
+use Tutor\Models\BillingModel;
 
 /**
  * Read non-secret Tutor LMS form fields for anti-spam checks.
@@ -50,8 +56,21 @@ class EntryData {
 	 */
 	public static function checkout(): array {
 		$data = self::post_fields( [ 'billing_first_name', 'billing_last_name', 'billing_email' ] );
+		unset( $data['email'] );
 
-		if ( isset( $data['billing_email'] ) ) {
+		// Tutor updates only supplied fields and retains the current customer's other billing values.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$email_supplied = array_key_exists( 'billing_email', $_POST );
+
+		if ( class_exists( BillingModel::class ) && ! $email_supplied && get_current_user_id() ) {
+			$billing = ( new BillingModel() )->get_info( get_current_user_id() );
+
+			if ( $billing && isset( $billing->billing_email ) && is_string( $billing->billing_email ) ) {
+				$data['billing_email'] = $billing->billing_email;
+			}
+		}
+
+		if ( isset( $data['billing_email'] ) && is_string( $data['billing_email'] ) ) {
 			$data['email'] = $data['billing_email'];
 		}
 

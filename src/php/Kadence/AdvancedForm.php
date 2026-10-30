@@ -55,15 +55,6 @@ class AdvancedForm extends Base {
 		add_filter( 'render_block', [ $this, 'render_block' ], 10, 3 );
 		add_filter( 'render_block_data', [ $this, 'render_block_data' ] );
 
-		if ( Request::is_frontend() || Request::is_post() ) {
-			add_filter(
-				'block_parser_class',
-				static function () {
-					return BlockParser::class;
-				}
-			);
-		}
-
 		if ( Request::is_frontend() ) {
 			add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
 			add_filter( 'script_loader_tag', [ $this, 'add_type_module' ], 10, 3 );
@@ -106,6 +97,7 @@ class AdvancedForm extends Base {
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection HtmlUnknownAttribute
+	 * @noinspection UnnecessaryCastingInspection
 	 */
 	public function render_block( $block_content, array $block, WP_Block $instance ): string {
 		$block_content = (string) $block_content;
@@ -288,23 +280,26 @@ class AdvancedForm extends Base {
 
 		$blocks = parse_blocks( $post->post_content ?? '' );
 		$fields = $this->get_fields( $blocks );
+		$emails = [];
 
 		foreach ( $fields as $field ) {
-			$this->add_form_field( $entry['data'], $field );
+			$this->add_form_field( $entry['data'], $field, $emails, $form_data );
 		}
 
-		return $entry;
+		return EntryData::with_emails( $entry, $emails );
 	}
 
 	/**
 	 * Add one submitted advanced form field to the entry.
 	 *
-	 * @param array $data  Entry data.
-	 * @param array $field Form block.
+	 * @param array $data      Entry data.
+	 * @param array $field     Form block.
+	 * @param array $emails    Native email addresses.
+	 * @param array $form_data Raw native submission data.
 	 *
 	 * @return void
 	 */
-	private function add_form_field( array &$data, array $field ): void {
+	private function add_form_field( array &$data, array $field, array &$emails, array $form_data ): void {
 		if ( ! preg_match( '#kadence/advanced-form-(.+)#', $field['blockName'] ?? '', $matches ) ) {
 			return;
 		}
@@ -315,24 +310,27 @@ class AdvancedForm extends Base {
 			return;
 		}
 
-		$attrs     = wp_parse_args(
+		$attrs      = wp_parse_args(
 			$field['attrs'] ?? [],
 			[
-				'label'    => '',
-				'uniqueID' => '',
+				'label'     => '',
+				'uniqueID'  => '',
+				'inputName' => '',
 			]
 		);
-		$label     = (string) $attrs['label'];
-		$unique_id = (string) $attrs['uniqueID'];
+		$label      = (string) $attrs['label'];
+		$unique_id  = (string) $attrs['uniqueID'];
+		$input_name = (string) $attrs['inputName'];
+		$value      = Request::filter_input( INPUT_POST, $input_name ?: "field$unique_id" );
+
+		// Match Kadence sanitize_field(): email is normalized directly from raw POST, without text cleanup or unslashing.
+		$email = $form_data[ $input_name ?: "field$unique_id" ] ?? '';
+		if ( 'email' === $type && is_string( $email ) ) {
+			$emails[] = sanitize_email( trim( $email ) );
+		}
 
 		if ( EntryData::has_sensitive_field( $label, $unique_id ) ) {
 			return;
-		}
-
-		$value = Request::filter_input( INPUT_POST, "field$unique_id" );
-
-		if ( 'email' === $type ) {
-			$data['email'] = $value;
 		}
 
 		EntryData::add_field( $data, $label, $value, $unique_id );
@@ -360,36 +358,13 @@ class AdvancedForm extends Base {
 	 * @return array
 	 */
 	private function get_fields( array $blocks ): array {
-		$form_id = Request::filter_input( INPUT_POST, '_kb_adv_form_post_id' );
-		$form    = $this->get_form( $blocks, $form_id );
+		$form = $blocks[0] ?? [];
 
-		return $this->get_form_fields( $form['innerBlocks'] ?? [] );
-	}
-
-	/**
-	 * Get Kadence form.
-	 *
-	 * @param array  $blocks   Blocks.
-	 * @param string $block_id Block ID.
-	 *
-	 * @return array
-	 */
-	private function get_form( array $blocks, string $block_id ): array {
-		foreach ( $blocks as $block ) {
-			$current_block_id = $block['attrs']['uniqueID'] ?? '';
-
-			if ( 'kadence/advanced-form' === $block['blockName'] && 0 === strpos( $current_block_id, $block_id ) ) {
-				return $block;
-			}
-
-			$form = $this->get_form( $block['innerBlocks'] ?? [], $block_id );
-
-			if ( $form ) {
-				return $form;
-			}
+		if ( 'kadence/advanced-form' !== ( $form['blockName'] ?? '' ) ) {
+			return [];
 		}
 
-		return [];
+		return $this->get_form_fields( $form['innerBlocks'] ?? [] );
 	}
 
 	/**
@@ -400,23 +375,21 @@ class AdvancedForm extends Base {
 	 * @return array
 	 */
 	private function get_form_fields( array $blocks ): array {
-		$form_fields  = [];
-		$inner_fields = [];
+		$form_fields = [];
 
 		foreach ( $blocks as $block ) {
-			if ( 0 === strpos( $block['blockName'], 'kadence/advanced-form' ) ) {
-				$form_fields[] = $block;
-
-				continue;
-			}
-
 			$inner_blocks = $block['innerBlocks'] ?? [];
 
 			if ( $inner_blocks ) {
-				$inner_fields[] = $this->get_form_fields( $inner_blocks );
+				$form_fields = array_merge( $form_fields, $this->get_form_fields( $inner_blocks ) );
+				continue;
+			}
+
+			if ( 0 === strpos( (string) ( $block['blockName'] ?? '' ), 'kadence/advanced-form-' ) ) {
+				$form_fields[] = $block;
 			}
 		}
 
-		return array_merge( $form_fields, ...$inner_fields );
+		return $form_fields;
 	}
 }

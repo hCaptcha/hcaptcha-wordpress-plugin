@@ -90,6 +90,13 @@ class CreateListTest extends HCaptchaPluginWPTestCase {
 
 		$this->prepare_verify_post( 'hcaptcha_wc_create_wishlists_nonce', 'hcaptcha_wc_create_wishlists_action' );
 
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'woocommerce-wishlists/woocommerce-wishlists.php' ],
+				'form_id' => 'form',
+			]
+		);
+
 		$subject = new CreateList();
 
 		WC()->init();
@@ -116,6 +123,13 @@ class CreateListTest extends HCaptchaPluginWPTestCase {
 		];
 
 		$this->prepare_verify_post( 'hcaptcha_wc_create_wishlists_nonce', 'hcaptcha_wc_create_wishlists_action', false );
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'woocommerce-wishlists/woocommerce-wishlists.php' ],
+				'form_id' => 'form',
+			]
+		);
 
 		$subject = new CreateList();
 

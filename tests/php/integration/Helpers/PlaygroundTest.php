@@ -86,9 +86,17 @@ class PlaygroundTest extends HCaptchaWPTestCase {
 			}
 		);
 
+		$previous_admin_bar = $GLOBALS['wp_admin_bar'] ?? null;
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Force the login-footer initialization path.
+		$GLOBALS['wp_admin_bar'] = null;
 		ob_start();
-		$this->call_hook_closure( 'login_footer' );
-		$admin_bar = ob_get_clean();
+		try {
+			$this->call_hook_closure( 'login_footer' );
+			$admin_bar = ob_get_clean();
+		} finally {
+			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Restore the WordPress admin bar.
+			$GLOBALS['wp_admin_bar'] = $previous_admin_bar;
+		}
 
 		self::assertStringContainsString( 'wpadminbar', $admin_bar );
 
@@ -501,6 +509,7 @@ class PlaygroundTest extends HCaptchaWPTestCase {
 	 *
 	 * @return WP_Theme
 	 * @noinspection PhpMethodParametersCountMismatchInspection
+	 * @noinspection UnnecessaryCastingInspection
 	 */
 	private function make_theme( string $version, string $stylesheet = '', string $name = 'Divi' ): WP_Theme {
 		global $wp_filesystem;

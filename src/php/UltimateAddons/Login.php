@@ -33,6 +33,7 @@ class Login extends Base {
 	 */
 	protected function init_hooks(): void {
 		parent::init_hooks();
+		$this->init_login_attempt_hooks();
 
 		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
 	}

@@ -11,6 +11,7 @@
 namespace HCaptcha\LoginSignupPopup;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 
@@ -87,10 +88,7 @@ class Register {
 		$hcaptcha_args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => self::FORM_ID,
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		$hcaptcha = HCaptcha::form( $hcaptcha_args );
@@ -120,7 +118,12 @@ class Register {
 			$error = new WP_Error();
 		}
 
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify_post(
+			self::NONCE,
+			self::ACTION,
+			$this->get_expected_id(),
+			EntryData::with_emails( [], [ $email ] )
+		);
 
 		if ( null === $error_message ) {
 			return $error;
@@ -163,5 +166,17 @@ class Register {
 			HCAPTCHA_VERSION,
 			true
 		);
+	}
+
+	/**
+	 * Get the expected form identity.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => self::FORM_ID,
+		];
 	}
 }

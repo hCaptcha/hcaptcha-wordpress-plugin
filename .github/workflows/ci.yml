@@ -5,20 +5,32 @@ on:
     paths:
       - '**/*.php'
       - 'composer.*'
+      - '.php-scoper/**'
       - 'package.json'
       - 'yarn.lock'
       - 'src/**'
       - 'tests/**'
       - '.github/workflows/**'
+      - '.github/scripts/**'
+      - '.githooks/**'
+      - '.gitattributes'
+      - 'readme.txt'
+      - 'changelog.txt'
   pull_request:
     paths:
       - '**/*.php'
       - 'composer.*'
+      - '.php-scoper/**'
       - 'package.json'
       - 'yarn.lock'
       - 'src/**'
       - 'tests/**'
       - '.github/workflows/**'
+      - '.github/scripts/**'
+      - '.githooks/**'
+      - '.gitattributes'
+      - 'readme.txt'
+      - 'changelog.txt'
 
 # 1. SECURITY: Default to read-only permissions for the workflow
 permissions:
@@ -32,7 +44,7 @@ concurrency:
 jobs:
   phpcs:
     name: PHPCS
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     env:
       wp-plugin-directory: wordpress/wp-content/plugins/hcaptcha-wordpress-plugin
@@ -49,8 +61,6 @@ jobs:
           path: ${{ env.wp-plugin-directory }}
           persist-credentials: false
 
-      # MOVED: The "Update changelog" step has been moved to the specific job below
-      # to prevent giving 'contents: write' permissions to this testing job.
       - name: Setup PHP 8.5
         uses: hCaptcha/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2.37.0
         with:
@@ -69,7 +79,7 @@ jobs:
 
   js:
     name: JS lint and tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     if: |
       github.event_name == 'workflow_dispatch' ||
@@ -105,7 +115,7 @@ jobs:
 
   php_versions:
     name: Resolve PHP versions
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     if: |
       github.event_name == 'workflow_dispatch' ||
@@ -116,14 +126,8 @@ jobs:
       matrix: ${{ steps.resolve.outputs.matrix }}
 
     env:
-      FULL_PHP_MATRIX: >-
-        ${{
-          github.event_name == 'push' &&
-          (
-            github.ref == 'refs/heads/master' ||
-            contains(github.event.head_commit.message || '', '[all]')
-          )
-        }}
+      # Temporarily test every supported PHP version on all branch pushes.
+      FULL_PHP_MATRIX: ${{ github.event_name == 'push' }}
 
     steps:
       - name: Resolve PHP versions
@@ -137,7 +141,7 @@ jobs:
 
   unit:
     name: Unit tests on PHP ${{ matrix.php-version }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: php_versions
 
     strategy:
@@ -172,7 +176,7 @@ jobs:
 
   integration:
     name: WP integration tests on PHP ${{ matrix.php-version }} (${{ matrix.shard }}/2)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: php_versions
 
     strategy:
@@ -220,8 +224,8 @@ jobs:
           extensions: json, mysqli, mbstring, zip
           ini-values: register_argc_argv=On
 
-      - name: Detect Really Simple CAPTCHA support
-        id: really_simple_captcha
+      - name: Detect Contact Form 7 support
+        id: cf7
         run: |
           if php -r 'exit(version_compare(PHP_VERSION, "8.3", ">=") ? 0 : 1);'; then
             echo "supported=true" >> "$GITHUB_OUTPUT"
@@ -304,8 +308,10 @@ jobs:
         working-directory: ${{ env.wp-directory }}
         env:
           SHARD_DEPENDENCIES: ${{ steps.shard_dependencies.outputs.json }}
+          CF7_SUPPORTED: ${{ steps.cf7.outputs.supported }}
+          PHP_VERSION: ${{ matrix.php-version }}
         run: |
-          mapfile -t plugins < <(jq -r '.public_plugins[]' <<< "$SHARD_DEPENDENCIES")
+          mapfile -t plugins < <(jq -r --arg supported "$CF7_SUPPORTED" --arg php "$PHP_VERSION" '.public_plugins[] | select(. != "contact-form-7" or $supported == "true") | select(. != "easy-digital-downloads" or $php != "7.4")' <<< "$SHARD_DEPENDENCIES")
           mapfile -t themes < <(jq -r '.public_themes[]' <<< "$SHARD_DEPENDENCIES")
 
           if (( ${#plugins[@]} )); then
@@ -315,13 +321,19 @@ jobs:
             done
           fi
 
+          # EDD 3.7+ requires PHP 8.0; keep the PHP 7.4 job on its last compatible release.
+          if [[ "$PHP_VERSION" == "7.4" ]] && jq -e '.public_plugins | index("easy-digital-downloads") != null' <<< "$SHARD_DEPENDENCIES" > /dev/null; then
+            wp plugin install easy-digital-downloads --version=3.6.9.1
+            wp plugin is-installed easy-digital-downloads
+          fi
+
           for theme in "${themes[@]}"; do
             wp theme install "$theme"
             wp theme is-installed "$theme"
           done
 
       - name: Install Really Simple CAPTCHA
-        if: steps.really_simple_captcha.outputs.supported == 'true' && steps.shard_dependencies.outputs.needs_really_simple_captcha == 'true'
+        if: steps.cf7.outputs.supported == 'true' && steps.shard_dependencies.outputs.needs_really_simple_captcha == 'true'
         working-directory: ${{ env.wp-directory }}
         run: |
           wp plugin install really-simple-captcha
@@ -374,9 +386,9 @@ jobs:
           wp plugin is-installed bb-plugin
           echo "available=true" >> "$GITHUB_OUTPUT"
 
-      - name: Generate changelog for tests
+      - name: Check changelog for tests
         working-directory: ${{ env.wp-plugin-directory }}
-        run: .github/scripts/update-changelog.sh --generate-only
+        run: composer changelog:check
 
       - name: Run WP tests with private test plugins
         if: steps.test_plugins.outputs.available == 'true'
@@ -384,12 +396,17 @@ jobs:
         run: |
           integration_args=()
 
-          if [[ "${{ steps.really_simple_captcha.outputs.supported }}" != "true" ]]; then
-            integration_args+=(--skip-group cf7-really-simple-captcha)
+          if [[ "${{ steps.cf7.outputs.supported }}" != "true" ]]; then
+            integration_args+=(--skip-group cf7)
           fi
 
           if [[ "${{ steps.beaver_builder.outputs.available }}" != "true" ]]; then
             integration_args+=(--skip-group beaver-builder)
+          fi
+
+          # Codeception 4 cannot bootstrap WordPress in PHPUnit's isolated PHP 7.4 process.
+          if [[ "${{ matrix.php-version }}" == "7.4" ]]; then
+            integration_args+=(--skip-group process-isolation-php74)
           fi
 
           composer integration:parallel -- --shard=${{ matrix.shard }}/2 --env github-actions "${integration_args[@]}"
@@ -400,8 +417,13 @@ jobs:
         run: |
           integration_args=(--skip-group acfe --skip-group avada --skip-group beaver-builder --skip-group divi --skip-group elementor-pro --skip-group gravityforms --skip-group ultimate-addons)
 
-          if [[ "${{ steps.really_simple_captcha.outputs.supported }}" != "true" ]]; then
-            integration_args+=(--skip-group cf7-really-simple-captcha)
+          if [[ "${{ steps.cf7.outputs.supported }}" != "true" ]]; then
+            integration_args+=(--skip-group cf7)
+          fi
+
+          # Codeception 4 cannot bootstrap WordPress in PHPUnit's isolated PHP 7.4 process.
+          if [[ "${{ matrix.php-version }}" == "7.4" ]]; then
+            integration_args+=(--skip-group process-isolation-php74)
           fi
 
           composer integration:parallel -- --shard=${{ matrix.shard }}/2 --env github-actions "${integration_args[@]}"
@@ -410,30 +432,3 @@ jobs:
         if: matrix.shard == 1
         working-directory: ${{ env.wp-plugin-directory }}
         run: composer integration:multisite -- --env github-actions
-
-  update_changelog:
-    name: Update Changelog
-    runs-on: ubuntu-latest
-
-    # 2. SECURITY: Only run on PUSH, never on Pull Requests
-    if: github.event_name == 'push'
-    needs: [ phpcs, js, unit, integration ]
-
-    # 3. SECURITY: Grant write permission ONLY to this job
-    permissions:
-      contents: write
-
-    env:
-      wp-plugin-directory: wordpress/wp-content/plugins/hcaptcha-wordpress-plugin
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          path: ${{ env.wp-plugin-directory }}
-          # Check out the branch ref to ensure we can push back to it
-          ref: ${{ github.ref }}
-
-      - name: Update changelog
-        working-directory: ${{ env.wp-plugin-directory }}
-        run: .github/scripts/update-changelog.sh

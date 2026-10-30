@@ -7,13 +7,17 @@
 
 namespace HCaptcha\Tests\Integration\Helpers;
 
+use HCaptcha\AutoVerify\AutoVerify;
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\FormSubmitTime;
 use HCaptcha\Helpers\FormSubmitTimeStore;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Settings\General;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use ReflectionException;
+use ReflectionMethod;
+use ReflectionProperty;
 use WP_Error;
 
 /**
@@ -23,6 +27,57 @@ use WP_Error;
  * @group helpers-api
  */
 class APITest extends HCaptchaWPTestCase {
+	/**
+	 * Rejected or incomplete remote proof cannot enter local verification.
+	 */
+	public function test_verify_preverified_rejects_invalid_proof(): void {
+		$error = hcap_get_error_messages()['fail'];
+
+		self::assertSame( $error, API::verify_preverified( [], [ 'success' => false ] ) );
+		self::assertSame( $error, API::verify_preverified( [ 'h-captcha-response' => '' ], [ 'success' => true ] ) );
+	}
+
+	/**
+	 * Native POST data cannot replace the proof's widget ID after redemption.
+	 */
+	public function test_verify_preverified_rejects_changed_widget_id(): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Preserve the test request before replacing it.
+		$previous_post                         = $_POST;
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = 'original-widget-id';
+
+		try {
+			self::assertSame(
+				hcap_get_error_messages()['fail'],
+				API::verify_preverified(
+					[
+						'h-captcha-response' => 'verified-token',
+						'post_data'          => [ HCaptcha::HCAPTCHA_WIDGET_ID => 'changed-widget-id' ],
+					],
+					[ 'success' => true ]
+				)
+			);
+		} finally {
+			$_POST = $previous_post;
+		}
+	}
+
+	/**
+	 * No request result can be reused before a verification has completed.
+	 */
+	public function test_can_reuse_request_result_without_prior_verification(): void {
+		$property = new ReflectionProperty( API::class, 'request_result' );
+		$property->setAccessible( true );
+		$previous = $property->getValue();
+		$property->setValue( null, [] );
+		$method = new ReflectionMethod( API::class, 'can_reuse_request_result' );
+		$method->setAccessible( true );
+
+		try {
+			self::assertFalse( $method->invoke( null, [] ) );
+		} finally {
+			$property->setValue( null, $previous );
+		}
+	}
 	/**
 	 * Test verify_post_html().
 	 */
@@ -228,6 +283,125 @@ class APITest extends HCaptchaWPTestCase {
 		$this->prepare_verify_post( $nonce_field_name, $nonce_action_name );
 
 		self::assertNull( API::verify_post( $nonce_field_name, $nonce_action_name ) );
+	}
+
+	/**
+	 * Test that the short POST verifier does not treat an unselected field as a native email.
+	 */
+	public function test_verify_post_does_not_infer_native_email(): void {
+		$settings                     = (array) get_option( 'hcaptcha_settings', [] );
+		$settings['disposable_email'] = [ 'on' ];
+		update_option( 'hcaptcha_settings', $settings );
+
+		$this->prepare_verify_post( HCAPTCHA_NONCE, HCAPTCHA_ACTION );
+		$_POST['user_email'] = 'person@example.com';
+		$_POST['email']      = 'unselected@example.com';
+		$_POST['user_pass']  = 'private-password';
+
+		add_filter( 'hcap_is_disposable_email', '__return_true' );
+
+		self::assertNull( API::verify_post() );
+	}
+
+	/**
+	 * A dynamic form's email field remains entry content without becoming a policy address.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 * @noinspection PhpArrayWriteIsNotUsedInspection
+	 */
+	public function test_submission_data_keeps_unselected_email_as_content(): void {
+		$method = new ReflectionMethod( API::class, 'add_submission_data' );
+		$method->setAccessible( true );
+		$_POST = [ 'email' => 'person@example.com' ];
+
+		$entry = $method->invoke( null, [] );
+
+		self::assertSame( [ 'submitted_email' => 'person@example.com' ], $entry['data'] );
+		self::assertSame( [], EntryData::get_emails( $entry ) );
+	}
+
+	/**
+	 * Email-only integrations receive the remaining safe form fields.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 * @noinspection PhpArrayWriteIsNotUsedInspection
+	 */
+	public function test_submission_data_extends_native_email_entry(): void {
+		$method = new ReflectionMethod( API::class, 'add_submission_data' );
+		$method->setAccessible( true );
+		$_POST = [
+			'first_name'         => 'Jane',
+			'last_name'          => 'Doe',
+			'comment'            => 'Useful feedback',
+			'email'              => 'spoof@example.org',
+			'user_pass'          => 'private-password',
+			'h-captcha-response' => 'proof',
+		];
+
+		$entry  = EntryData::with_emails( [], [ 'native@example.com' ] );
+		$result = $method->invoke( null, $entry );
+
+		self::assertSame(
+			[
+				'first_name' => 'Jane',
+				'last_name'  => 'Doe',
+				'name'       => 'Jane Doe',
+				'comment'    => 'Useful feedback',
+				'email'      => 'native@example.com',
+			],
+			$result['data']
+		);
+		self::assertSame( [ 'native@example.com' ], EntryData::get_emails( $result ) );
+	}
+
+	/**
+	 * A supplied form payload stays independent of the ambient POST request.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 * @noinspection PhpArrayWriteIsNotUsedInspection
+	 */
+	public function test_submission_data_uses_supplied_payload_and_preserves_native_fields(): void {
+		$method = new ReflectionMethod( API::class, 'add_submission_data' );
+		$method->setAccessible( true );
+		$_POST = [ 'ambient_field' => 'unrelated' ];
+		$entry = EntryData::with_emails(
+			[
+				'post_data' => [
+					'username'     => 'submitted',
+					'message'      => '<b>Hello</b>',
+					'payment_card' => 'private',
+				],
+				'data'      => [ 'email' => 'native@example.com' ],
+			],
+			[ 'native@example.com' ]
+		);
+
+		$result = $method->invoke( null, $entry );
+
+		self::assertSame(
+			[
+				'username' => 'submitted',
+				'message'  => 'Hello',
+				'email'    => 'native@example.com',
+			],
+			$result['data']
+		);
+		self::assertArrayNotHasKey( 'ambient_field', $result['data'] );
+	}
+
+	/**
+	 * Explicit form content is not replaced by generic POST fields.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 * @noinspection PhpArrayWriteIsNotUsedInspection
+	 */
+	public function test_submission_data_preserves_form_specific_entry(): void {
+		$method = new ReflectionMethod( API::class, 'add_submission_data' );
+		$method->setAccessible( true );
+		$_POST = [ 'hidden_field' => 'unrelated' ];
+		$entry = [ 'data' => [ 'message' => 'Native content' ] ];
+
+		self::assertSame( $entry, $method->invoke( null, $entry ) );
 	}
 
 	/**
@@ -562,10 +736,16 @@ class APITest extends HCaptchaWPTestCase {
 	 */
 	public function test_verify_request_when_protection_not_enabled(): void {
 		$hcaptcha_response = 'some response';
+		$expected_id       = [
+			'source'  => [ 'test-public-form' ],
+			'form_id' => 123,
+		];
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $expected_id );
 
 		add_filter( 'hcap_protect_form', '__return_false' );
 
-		self::assertNull( API::verify_request( $hcaptcha_response ) );
+		self::assertNull( API::verify_request( $hcaptcha_response, [ 'expected_id' => $expected_id ] ) );
 	}
 
 	/**
@@ -646,6 +826,36 @@ class APITest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test that supplied POST data and a native email entry are verified together.
+	 */
+	public function test_verify_post_data_collects_entry_data(): void {
+		$settings                     = (array) get_option( 'hcaptcha_settings', [] );
+		$settings['disposable_email'] = [ 'on' ];
+		update_option( 'hcaptcha_settings', $settings );
+
+		$this->prepare_verify_request( 'some response' );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$post_data                  = $_POST;
+		$post_data['billing_email'] = 'person@example.com';
+		$_POST                      = [];
+
+		add_filter( 'hcap_is_disposable_email', '__return_true' );
+
+		self::assertSame(
+			'Please use a permanent email address.',
+			API::verify_post_data(
+				HCAPTCHA_NONCE,
+				HCAPTCHA_ACTION,
+				$post_data,
+				[],
+				[ 'email_addresses' => [ 'person@example.com' ] ]
+			)
+		);
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		self::assertArrayNotHasKey( 'billing_email', $_POST );
+	}
+
+	/**
 	 * Test verify() without nonce and expected widget id.
 	 */
 	public function test_verify_without_nonce_and_expected_widget_id(): void {
@@ -661,6 +871,25 @@ class APITest extends HCaptchaWPTestCase {
 					'h-captcha-response' => $hcaptcha_response,
 				]
 			)
+		);
+	}
+
+	/**
+	 * Test that direct form verification preserves the native email entry.
+	 */
+	public function test_verify_preserves_native_email_with_default_data(): void {
+		$settings                     = (array) get_option( 'hcaptcha_settings', [] );
+		$settings['disposable_email'] = [ 'on' ];
+		update_option( 'hcaptcha_settings', $settings );
+
+		$this->prepare_verify_request( 'some response' );
+		$_POST['user_email'] = 'person@example.com';
+
+		add_filter( 'hcap_is_disposable_email', '__return_true' );
+
+		self::assertSame(
+			'Please use a permanent email address.',
+			API::verify( [ 'email_addresses' => [ 'person@example.com' ] ] )
 		);
 	}
 
@@ -777,6 +1006,54 @@ class APITest extends HCaptchaWPTestCase {
 		$_POST['hcap_hp_test']                 = 'bot value';
 
 		self::assertSame( 'Anti-spam check failed.', API::verify_request( $hcaptcha_response ) );
+	}
+
+	/**
+	 * An unsigned form source must not disable timing protection.
+	 *
+	 * @param string|null $token          Timing token, or null for a missing field.
+	 * @param string      $expected_error Expected verification error.
+	 *
+	 * @dataProvider dp_test_verify_request_ignores_unsigned_fst_source
+	 */
+	public function test_verify_request_ignores_unsigned_fst_source( ?string $token, string $expected_error ): void {
+		$settings                        = (array) get_option( 'hcaptcha_settings', [] );
+		$settings['set_min_submit_time'] = [ 'on' ];
+		$settings['honeypot']            = [ '' ];
+		update_option( 'hcaptcha_settings', $settings );
+		$this->prepare_verify_request( 'some response' );
+		remove_filter( 'hcap_verify_fst_token', '__return_true' );
+
+		if ( null === $token ) {
+			unset( $_POST['hcap_fst_token'] );
+		} else {
+			$_POST['hcap_fst_token'] = $token;
+		}
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ AutoVerify::class ],
+				'form_id' => 0,
+			]
+		) . 'tampered';
+
+		self::assertSame( $expected_error, API::verify_request( 'some response' ) );
+		self::assertTrue( hcaptcha()->settings()->is_on( 'set_min_submit_time' ) );
+	}
+
+	/**
+	 * Data provider for test_verify_request_ignores_unsigned_fst_source().
+	 *
+	 * @return array
+	 */
+	public function dp_test_verify_request_ignores_unsigned_fst_source(): array {
+		$preparation_error = 'Unable to prepare the form. Please check your connection and try submitting again.';
+
+		return [
+			'missing token'     => [ null, $preparation_error ],
+			'empty token'       => [ '', $preparation_error ],
+			'invalid signature' => [ 'invalid-token', 'Signature mismatch.' ],
+		];
 	}
 
 	/**

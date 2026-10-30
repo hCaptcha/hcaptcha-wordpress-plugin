@@ -9,6 +9,7 @@ namespace HCaptcha\CustomerReviews;
 
 use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Main;
 
@@ -86,7 +87,16 @@ abstract class Base {
 	 * @return void
 	 */
 	public function verify(): void {
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		// Match the native endpoint's sanitation of its slashed email field.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$email = isset( $_POST['email'] ) && is_scalar( $_POST['email'] ) ? sanitize_email( trim( (string) $_POST['email'] ) ) : '';
+
+		$error_message = API::verify_post(
+			self::NONCE,
+			self::ACTION,
+			$this->get_expected_id(),
+			EntryData::with_emails( [], [ $email ] )
+		);
 
 		if ( null !== $error_message ) {
 			$return = [
@@ -97,6 +107,18 @@ abstract class Base {
 
 			wp_send_json( $return );
 		}
+	}
+
+	/**
+	 * Get the integration's form identity.
+	 *
+	 * @return array
+	 */
+	protected function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( static::class ),
+			'form_id' => static::FORM_ID,
+		];
 	}
 
 	/**

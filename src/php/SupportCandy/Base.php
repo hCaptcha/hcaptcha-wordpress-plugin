@@ -5,10 +5,15 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+
 namespace HCaptcha\SupportCandy;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
+use WPSC_DF_Customer_Email;
 
 /**
  * Class Base.
@@ -53,10 +58,7 @@ abstract class Base {
 		$args = [
 			'action' => static::ACTION,
 			'name'   => static::NAME,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( static::class ),
-				'form_id' => 'form',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		HCaptcha::form_display( $args );
@@ -68,7 +70,13 @@ abstract class Base {
 	 * @return void
 	 */
 	public function verify(): void {
-		$error_message = API::verify_post( static::NAME, static::ACTION );
+		$email         = WPSC_DF_Customer_Email::get_tff_value( 'email' );
+		$error_message = API::verify_post(
+			static::NAME,
+			static::ACTION,
+			$this->get_expected_id(),
+			EntryData::with_emails( [], [ $email ] )
+		);
 
 		if ( null !== $error_message ) {
 			wp_send_json_error( $error_message, 400 );
@@ -145,5 +153,17 @@ abstract class Base {
 ';
 
 		HCaptcha::css_display( $css );
+	}
+
+	/**
+	 * Get the expected form identity.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( static::class ),
+			'form_id' => 'form',
+		];
 	}
 }

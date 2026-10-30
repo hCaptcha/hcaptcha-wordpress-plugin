@@ -15,6 +15,11 @@ use HCaptcha\Helpers\HCaptcha;
 class Review extends Base {
 
 	/**
+	 * Review form identity.
+	 */
+	protected const FORM_ID = 'review';
+
+	/**
 	 * Template name.
 	 */
 	protected const WC_TEMPLATE_NAME = 'cr-review-form.php';
@@ -41,10 +46,7 @@ class Review extends Base {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'review',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		// Find the $search string and insert hCaptcha before it.

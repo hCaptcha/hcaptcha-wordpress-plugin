@@ -409,10 +409,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 		$form_fields = $this->get_protected_property( $subject, 'form_fields' );
 
-		reset( $form_fields );
-		$first_key = key( $form_fields );
-
-		self::assertSame( 'show_antispam_coverage', $first_key );
+		self::assertArrayNotHasKey( 'show_antispam_coverage', $form_fields );
 
 		foreach ( $form_fields as $form_field ) {
 			if ( Integrations::SECTION_HEADER === ( $form_field['section'] ?? '' ) ) {
@@ -440,6 +437,52 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$subject->shouldReceive( 'is_options_screen' )->andReturn( false );
 
 		$subject->setup_fields();
+		$subject->setup_sections();
+	}
+
+	/**
+	 * Test the header is registered before the integration sections without a header field.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_setup_sections(): void {
+		$page     = 'hcaptcha-integrations';
+		$sections = [];
+		$subject  = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'is_options_screen' )->andReturn( true );
+		$subject->shouldReceive( 'get_active_tab' )->andReturn( $subject );
+		$subject->shouldReceive( 'option_page' )->andReturn( $page );
+		$this->set_protected_property(
+			$subject,
+			'form_fields',
+			[
+				'wp_status'   => [
+					'section' => Integrations::SECTION_ENABLED,
+					'title'   => '',
+				],
+				'acfe_status' => [
+					'section' => Integrations::SECTION_DISABLED,
+					'title'   => '',
+				],
+			]
+		);
+
+		WP_Mock::userFunction( 'add_settings_section' )
+			->with( Mockery::type( 'string' ), '', [ $subject, 'section_callback' ], $page )
+			->times( 3 )
+			->andReturnUsing(
+				static function ( string $id ) use ( &$sections ): void {
+					$sections[] = $id;
+				}
+			);
+
+		$subject->setup_sections();
+
+		self::assertSame(
+			[ Integrations::SECTION_HEADER, Integrations::SECTION_ENABLED, Integrations::SECTION_DISABLED ],
+			$sections
+		);
 	}
 
 	/**
@@ -493,9 +536,9 @@ class IntegrationsTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test settings_page() when no antispam method is enabled.
+	 * Test settings_page() does not add an antispam indicator notice.
 	 */
-	public function test_settings_page_adds_antispam_notice(): void {
+	public function test_settings_page_without_antispam_notice(): void {
 		global $wp_settings_sections;
 
 		$page = 'hcaptcha-integrations';
@@ -542,8 +585,8 @@ class IntegrationsTest extends HCaptchaTestCase {
 		ob_get_clean();
 
 		self::assertSame(
-			'<p>Enable Honeypot or Time check in the Anti-Spam tab to use indicators.</p>',
-			$wp_settings_sections[ $page ][ Integrations::SECTION_HEADER ]['after_section']
+			[],
+			$wp_settings_sections[ $page ][ Integrations::SECTION_HEADER ]
 		);
 	}
 
@@ -576,9 +619,9 @@ class IntegrationsTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test section_callback() when antispam coverage is visible.
+	 * Test section_callback() ignores the saved antispam coverage setting.
 	 */
-	public function test_section_callback_enabled_with_antispam_legend_visible(): void {
+	public function test_section_callback_enabled_without_antispam_legend(): void {
 		WP_Mock::passthruFunction( 'esc_attr' );
 		WP_Mock::passthruFunction( 'wp_kses_post' );
 
@@ -597,7 +640,8 @@ class IntegrationsTest extends HCaptchaTestCase {
 		$subject->section_callback( [ 'id' => Integrations::SECTION_ENABLED ] );
 		$output = ob_get_clean();
 
-		self::assertStringContainsString( 'style="display: block;"', $output );
+		self::assertStringNotContainsString( 'hcaptcha-antispam-legend', $output );
+		self::assertStringNotContainsString( 'antispam-honeypot', $output );
 	}
 
 	/**
@@ -629,9 +673,7 @@ class IntegrationsTest extends HCaptchaTestCase {
 			],
 			'enabled'  => [
 				Integrations::SECTION_ENABLED,
-				'				<div id="hcaptcha-antispam-legend" class="hcaptcha-antispam-legend" style="display: none;">
-					Antispam indicators: <i class="antispam-honeypot"></i> Honeypot &middot; <i class="antispam-fst"></i> Time check				</div>
-				<hr class="hcaptcha-enabled-section">
+				'				<hr class="hcaptcha-enabled-section">
 				<h3>Active plugins and themes</h3>
 				',
 			],
@@ -651,15 +693,15 @@ class IntegrationsTest extends HCaptchaTestCase {
 	/**
 	 * Test admin_enqueue_scripts().
 	 *
-	 * @param bool $activated Plugin activated status.
+	 * @param bool   $activated  Plugin activated status.
+	 * @param string $min_suffix Asset suffix.
 	 *
 	 * @throws ReflectionException ReflectionException.
 	 * @dataProvider dp_test_admin_enqueue_scripts
 	 */
-	public function test_admin_enqueue_scripts( bool $activated ): void {
+	public function test_admin_enqueue_scripts( bool $activated, string $min_suffix ): void {
 		$plugin_url     = 'http://test.test/wp-content/plugins/hcaptcha-wordpress-plugin';
 		$plugin_version = '1.0.0';
-		$min_suffix     = '.min';
 		$ajax_url       = 'https://test.test/wp-admin/admin-ajax.php';
 		$nonce          = 'some_nonce';
 		$cf7_status     = 'cf7_status';
@@ -714,6 +756,10 @@ class IntegrationsTest extends HCaptchaTestCase {
 
 				if ( 'HCAPTCHA_VERSION' === $name ) {
 					return $plugin_version;
+				}
+
+				if ( 'HCAPTCHA_PATH' === $name ) {
+					return HCAPTCHA_TEST_PATH;
 				}
 
 				return '';
@@ -811,12 +857,14 @@ class IntegrationsTest extends HCaptchaTestCase {
 			)
 			->once();
 
+		$style_version = $plugin_version . ( '' === $min_suffix ? '-' . filemtime( HCAPTCHA_TEST_PATH . '/assets/css/integrations.css' ) : '' );
+
 		WP_Mock::userFunction( 'wp_enqueue_style' )
 			->with(
 				Integrations::HANDLE,
 				$plugin_url . "/assets/css/integrations$min_suffix.css",
 				[ PluginSettingsBase::PREFIX . '-' . SettingsBase::HANDLE, Integrations::DIALOG_HANDLE ],
-				$plugin_version
+				$style_version
 			)
 			->once();
 
@@ -830,23 +878,33 @@ class IntegrationsTest extends HCaptchaTestCase {
 	 */
 	public function dp_test_admin_enqueue_scripts(): array {
 		return [
-			[ true ],
-			[ false ],
+			[ true, '.min' ],
+			[ false, '.min' ],
+			[ false, '' ],
 		];
 	}
 
 	/**
-	 * Test antispam helper styles keep the icon beside its label.
+	 * Test saving integrations preserves the retired option value.
 	 */
-	public function test_antispam_helper_styles(): void {
-		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		$styles = file_get_contents( dirname( __DIR__, 4 ) . '/assets/css/integrations.css' );
+	public function test_save_preserves_antispam_coverage(): void {
+		$form_fields = $this->get_test_form_fields();
+		self::assertArrayNotHasKey( 'show_antispam_coverage', $form_fields );
 
-		self::assertIsString( $styles );
-		self::assertStringContainsString(
-			"#hcaptcha-options .hcaptcha-integrations-show-antispam-coverage td {\n\twidth: max-content;\n}",
-			$styles
-		);
+		$subject = Mockery::mock( Integrations::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'form_fields' )->andReturn( $form_fields );
+		$subject->shouldReceive( 'get_network_wide' )->andReturn( [] );
+		$subject->shouldReceive( 'is_network_wide' )->andReturn( false );
+
+		WP_Mock::userFunction( 'current_user_can' )->with( 'manage_network_options' )->andReturn( true );
+
+		$old_value = [ 'show_antispam_coverage' => [ 'on' ] ];
+		$value     = [ 'wp_status' => [ 'comment' ] ];
+		$result    = $subject->pre_update_option_filter( $value, $old_value );
+
+		self::assertSame( [ 'on' ], $result['show_antispam_coverage'] );
+		self::assertSame( [ 'comment' ], $result['wp_status'] );
 	}
 
 	/**
@@ -3495,6 +3553,47 @@ class IntegrationsTest extends HCaptchaTestCase {
 			'#woocommerce_status_2',
 			$form_fields['paypal_payments_status']['supplemental']
 		);
+	}
+
+	/**
+	 * Keep section headers ahead of their integration fields.
+	 */
+	public function test_sort_fields_places_section_header_first(): void {
+		$fields = [
+			'plugin' => [
+				'label'   => 'Plugin',
+				'section' => Integrations::SECTION_ENABLED,
+			],
+			'header' => [
+				'label'   => 'Header',
+				'section' => Integrations::SECTION_HEADER,
+			],
+		];
+
+		$subject = IntegrationsTestSubject::make();
+		self::assertSame( [ 'header', 'plugin' ], array_keys( $subject->sort_fields( $fields ) ) );
+	}
+
+	/**
+	 * Return the one-based option index for a registered checkbox.
+	 */
+	public function test_get_checkbox_option_id_for_existing_option(): void {
+		$subject = IntegrationsTestSubject::make();
+		$this->set_protected_property(
+			$subject,
+			'form_fields',
+			[
+				'woocommerce_status' => [
+					'options' => [
+						'login'    => 'Login',
+						'checkout' => 'Checkout',
+					],
+				],
+			]
+		);
+
+		$method = $this->set_method_accessibility( $subject, 'get_checkbox_option_id' );
+		self::assertSame( 'woocommerce_status_2', $method->invoke( $subject, 'woocommerce_status', 'checkout' ) );
 	}
 
 	/**

@@ -23,6 +23,7 @@ use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Utils;
 use HCaptcha\Main;
 use stdClass;
+use WP_User;
 
 /**
  * Class Form
@@ -76,6 +77,13 @@ class Form extends LoginBase {
 	private bool $form_shown = false;
 
 	/**
+	 * Verified credentials awaiting a successful native submission.
+	 *
+	 * @var array<int, WP_User>
+	 */
+	private array $pending_login_users = [];
+
+	/**
 	 * Init hooks.
 	 *
 	 * @return void
@@ -85,6 +93,7 @@ class Form extends LoginBase {
 		add_filter( 'fluentform/rendering_field_html_hcaptcha', [ $this, 'render_field_hcaptcha' ], 10, 3 );
 		add_action( 'fluentform/render_item_submit_button', [ $this, 'add_hcaptcha' ], 9, 2 );
 		add_action( 'fluentform/validation_errors', [ $this, 'verify' ], 10, 4 );
+		add_action( 'fluentform/submission_inserted', [ $this, 'submission_inserted' ], 10, 3 );
 		add_filter( 'fluentform/rendering_form', [ $this, 'fluentform_rendering_form_filter' ] );
 		add_filter( 'fluentform/has_hcaptcha', [ $this, 'fluentform_has_hcaptcha' ] );
 		add_filter( 'hcap_print_hcaptcha_scripts', [ $this, 'print_hcaptcha_scripts' ], 0 );
@@ -182,29 +191,44 @@ class Form extends LoginBase {
 	 * @return array
 	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection PhpUndefinedMethodInspection
+	 * @noinspection PhpUndefinedFieldInspection
 	 */
 	public function verify( array $errors, array $data, FluentForm $form, array $fields ): array {
+		$form_id               = (int) $form->id;
+		$login_user            = null;
+		$requires_verification = true;
+
+		unset( $this->pending_login_users[ $form_id ] );
+
 		if ( $this->is_login_form( $form ) ) {
-			$email    = (string) ArrayHelper::get( $data, 'email' );
-			$password = (string) ArrayHelper::get( $data, 'password' );
-			$user     = get_user_by( 'email', $email );
+			// A password comparison cannot remove this submission's existing challenge requirement.
+			$requires_verification = $this->is_login_limit_exceeded();
+			$email                 = (string) ArrayHelper::get( $data, 'email' );
+			$password              = (string) ArrayHelper::get( $data, 'password' );
+			$user                  = get_user_by( 'email', $email );
 
 			if ( $user && wp_check_password( $password, $user->user_pass, $user->ID ) ) {
-				$this->login( $email, $user );
+				$login_user = $user;
 			} else {
 				$this->login_failed( $email );
 			}
 
-			if ( ! $this->is_login_limit_exceeded() ) {
-				return $errors;
-			}
+			$requires_verification = $requires_verification || $this->is_login_limit_exceeded();
 		}
 
-		remove_filter( 'pre_http_request', [ $this, 'pre_http_request' ] );
+		$error_message = null;
 
-		$error_message = API::verify( $this->get_entry( $form ) );
+		if ( $requires_verification ) {
+			remove_filter( 'pre_http_request', [ $this, 'pre_http_request' ] );
+
+			$error_message = API::verify( $this->get_entry( $form, $data ) );
+		}
 
 		if ( null === $error_message ) {
+			if ( ! $errors && $login_user ) {
+				$this->pending_login_users[ $form_id ] = $login_user;
+			}
+
 			return $errors;
 		}
 
@@ -219,6 +243,30 @@ class Form extends LoginBase {
 		}
 
 		return $errors;
+	}
+
+	/**
+	 * Reset captured failures after the verified form has a native submission.
+	 *
+	 * @param int        $submission_id Native submission id.
+	 * @param array      $data          Native submission data.
+	 * @param FluentForm $form          Saved native form.
+	 *
+	 * @return void
+	 * @noinspection PhpUndefinedFieldInspection
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function submission_inserted( int $submission_id, array $data, FluentForm $form ): void {
+		$form_id = (int) $form->id;
+
+		if ( $submission_id <= 0 || ! isset( $this->pending_login_users[ $form_id ] ) ) {
+			return;
+		}
+
+		$user = $this->pending_login_users[ $form_id ];
+		unset( $this->pending_login_users[ $form_id ] );
+
+		$this->login( $user->user_email, $user );
 	}
 
 	/**
@@ -507,11 +555,14 @@ class Form extends LoginBase {
 	 * @return bool
 	 */
 	protected function is_login_form( $form ): bool {
+		$form_id = (int) ( $form->id ?? 0 );
 
+		// Login behavior must be explicitly enabled for this saved form.
 		return (
-			has_action( 'fluentform/before_insert_submission' ) &&
+			$form_id > 0 &&
 			$this->has_element( $form, 'input_email' ) &&
-			$this->has_element( $form, 'input_password' )
+			$this->has_element( $form, 'input_password' ) &&
+			apply_filters( 'hcap_fluentform_is_login_form', false, $form_id, $form )
 		);
 	}
 
@@ -583,13 +634,14 @@ class Form extends LoginBase {
 	 * Get entry.
 	 *
 	 * @param FluentForm $form Form data and settings.
+	 * @param array|null $native_data Native sanitized submission fields.
 	 *
 	 * @return array
 	 * @noinspection PhpCastIsUnnecessaryInspection
 	 * @noinspection UnnecessaryCastingInspection
 	 * @noinspection PhpUndefinedMethodInspection
 	 */
-	private function get_entry( FluentForm $form ): array {
+	private function get_entry( FluentForm $form, ?array $native_data = null ): array {
 		// Fluent Forms sends serialized form data; sanitizing the whole query string breaks encoded field values.
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		$post_data_str = isset( $_POST['data'] ) ? wp_unslash( $_POST['data'] ) : '';
@@ -608,16 +660,65 @@ class Form extends LoginBase {
 		$fields_map = $this->collect_frontend_fields_map( $fields );
 
 		// Keep only real form inputs (drop tokens, nonce, etc.).
-		$data = $this->filter_post_data_by_fields_map( $post_data, $fields_map );
+		$data   = $this->filter_post_data_by_fields_map( $post_data, $fields_map );
+		$emails = $this->get_emails( $form, $native_data ?? $post_data, null === $native_data );
 
-		return [
-			'nonce_name'    => self::NONCE,
-			'nonce_action'  => self::ACTION,
-			'form_date_gmt' => $form->updated_at ?? null,
-			'data'          => $data,
-			'post_data'     => $post_data,
-			'expected_id'   => $this->get_form_expected_id( $form_id ),
-		];
+		return EntryData::with_emails(
+			[
+				'nonce_name'    => self::NONCE,
+				'nonce_action'  => self::ACTION,
+				'form_date_gmt' => $form->updated_at ?? null,
+				'data'          => $data,
+				'post_data'     => $post_data,
+				'expected_id'   => $this->get_form_expected_id( $form_id ),
+			],
+			$emails
+		);
+	}
+
+	/**
+	 * Collect accepted typed email values from the saved native schema.
+	 *
+	 * @param FluentForm $form      Saved native form.
+	 * @param array      $data      Native submission fields.
+	 * @param bool       $normalize Whether raw values need native normalization.
+	 *
+	 * @return array
+	 * @noinspection PhpUndefinedMethodInspection
+	 */
+	private function get_emails( FluentForm $form, array $data, bool $normalize ): array {
+		$emails = [];
+		$fields = FormFieldsParser::getInputsByElementTypes( $form, [ 'input_email' ], [ 'element' ] );
+
+		foreach ( array_keys( $fields ) as $key ) {
+			foreach ( $this->get_email_values( $data, (string) $key ) as $value ) {
+				if ( is_string( $value ) ) {
+					$emails[] = $normalize ? strtolower( sanitize_text_field( $value ) ) : $value;
+				}
+			}
+		}
+
+		return $emails;
+	}
+
+	/**
+	 * Use native validation accessors for ordinary and repeated email fields.
+	 *
+	 * @param array  $data Submission fields.
+	 * @param string $key  Native schema accessor.
+	 *
+	 * @return array
+	 */
+	private function get_email_values( array $data, string $key ): array {
+		// Native Parser/Validations converts bracket names into dot paths and drops the terminal repeater wildcard.
+		$path  = rtrim( str_replace( [ '[', ']', '*' ], [ '.' ], $key ), '.' );
+		$value = ArrayHelper::get( $data, $path );
+
+		if ( is_array( $value ) && '.*' === substr( $key, -2 ) ) {
+			return array_values( $value );
+		}
+
+		return [ $value ];
 	}
 
 	/**

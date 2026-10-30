@@ -8,6 +8,7 @@
 namespace HCaptcha\BuddyPress;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -126,11 +127,16 @@ class Register {
 	 * @return array
 	 */
 	private function get_entry(): array {
-		return [
-			'nonce_name'   => self::NAME,
-			'nonce_action' => self::ACTION,
-			'expected_id'  => $this->get_expected_id(),
-		];
+		global $bp;
+
+		return EntryData::with_emails(
+			[
+				'nonce_name'   => self::NAME,
+				'nonce_action' => self::ACTION,
+				'expected_id'  => $this->get_expected_id(),
+			],
+			[ $bp->signup->email ?? '' ]
+		);
 	}
 
 	/**

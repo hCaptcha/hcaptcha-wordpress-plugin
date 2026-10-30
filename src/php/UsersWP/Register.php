@@ -8,6 +8,7 @@
 namespace HCaptcha\UsersWP;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 use WP_User;
@@ -83,10 +84,7 @@ class Register {
 		$args     = [
 			'action' => static::ACTION,
 			'name'   => static::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( static::class ),
-				'form_id' => 'register',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 		$hcaptcha = HCaptcha::form( $args );
 		$search   = '/(<(?:input|button) type="submit")/';
@@ -110,12 +108,30 @@ class Register {
 			return $result;
 		}
 
-		$error_message = API::verify_post_html( self::NONCE, self::ACTION );
+		$email         = is_array( $result ) && isset( $result['email'] ) && is_scalar( $result['email'] ) ? sanitize_email( (string) $result['email'] ) : '';
+		$error_message = API::verify_post_html(
+			self::NONCE,
+			self::ACTION,
+			$this->get_expected_id(),
+			EntryData::with_emails( [ 'data' => EntryData::from_array( is_array( $result ) ? $result : [], [] ) ], [ $email ] )
+		);
 
 		if ( null === $error_message ) {
 			return $result;
 		}
 
 		return new WP_Error( 'invalid_hcaptcha', $error_message, 400 );
+	}
+
+	/**
+	 * Get the expected form identity.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( static::class ),
+			'form_id' => self::USERS_WP_ACTION,
+		];
 	}
 }

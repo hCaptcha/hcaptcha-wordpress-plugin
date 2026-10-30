@@ -8,6 +8,7 @@
 namespace HCaptcha\Subscriber;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -53,10 +54,7 @@ class Form {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NAME,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( static::class ),
-				'form_id' => 'form',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		return $content . HCaptcha::form( $args );
@@ -71,12 +69,33 @@ class Form {
 	 * @noinspection NullCoalescingOperatorCanBeUsedInspection
 	 */
 	public function verify( $check_result ) {
-		$error_message = API::verify_post( self::NAME, self::ACTION );
+		// The native form submits this address with text-field normalization.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$email = isset( $_POST['sbscrbr_email'] ) && is_scalar( $_POST['sbscrbr_email'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['sbscrbr_email'] ) ) : '';
+
+		$error_message = API::verify_post(
+			self::NAME,
+			self::ACTION,
+			$this->get_expected_id(),
+			EntryData::with_emails( [], [ $email ] )
+		);
 
 		if ( null !== $error_message ) {
 			return $error_message;
 		}
 
 		return $check_result;
+	}
+
+	/**
+	 * Get the expected form identity.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( static::class ),
+			'form_id' => 'form',
+		];
 	}
 }

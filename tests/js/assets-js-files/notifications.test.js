@@ -1,6 +1,5 @@
 // noinspection JSUnresolvedFunction,JSUnresolvedVariable
 
-/* eslint-disable brace-style,space-in-parens,no-unused-vars */
 import $ from 'jquery';
 
 global.jQuery = $;
@@ -53,7 +52,7 @@ function getDom( { withTwo = true } = {} ) {
 		<span> <span id="hcaptcha-navigation-page"></span>/<span id="hcaptcha-navigation-pages"></span> </span>
 		<button type="button" class="next">Next</button>
 	</div>
-	<button type="button" id="reset_notifications">Reset</button>
+	<table><tbody><tr class="hcaptcha-general-reset-notifications hidden"><td><button type="button" id="reset_notifications">Reset Notifications</button></td></tr></tbody></table>
 	<h3 class="hcaptcha-section-keys">Keys Section</h3>
 </form>
 </body>
@@ -79,7 +78,9 @@ describe( 'notifications.js', () => {
 		jest.clearAllMocks();
 		postSpy = jest.spyOn( $, 'post' ).mockImplementation( () => ( {
 			// jQuery 1.x style alias used by notifications.js in reset path
-			success( cb ) { return this; },
+			done() {
+				return this;
+			},
 		} ) );
 	} );
 
@@ -88,15 +89,16 @@ describe( 'notifications.js', () => {
 	} );
 
 	test( 'dismiss removes current, shows next, updates nav and clones buttons; posts payload', () => {
-		bootNotifications( );
+		bootNotifications();
 
 		// Click dismiss on the first visible notification
 		const firstDismiss = document.querySelector( '.hcaptcha-notification[data-id="n1"] .notice-dismiss' );
-		firstDismiss.click( );
+		firstDismiss.click();
+		expect( document.querySelector( '.hcaptcha-general-reset-notifications' ).classList.contains( 'hidden' ) ).toBe( false );
 
 		// After removal: only the second notification remains and is visible
 		const rem1 = document.querySelector( '.hcaptcha-notification[data-id="n1"]' );
-		expect( rem1 ).toBeNull( );
+		expect( rem1 ).toBeNull();
 		const second = document.querySelector( '.hcaptcha-notification[data-id="n2"]' );
 		expect( getComputedStyle( second ).display ).toBe( 'block' );
 
@@ -107,16 +109,23 @@ describe( 'notifications.js', () => {
 		// Footer received cloned buttons from the visible notification (without hidden class)
 		const footer = document.getElementById( 'hcaptcha-notifications-footer' );
 		const cloned = footer.querySelector( '.hcaptcha-notification-buttons' );
-		expect( cloned ).toBeTruthy( );
+		expect( cloned ).toBeTruthy();
 		expect( cloned.classList.contains( 'hidden' ) ).toBe( false );
-		expect( footer.querySelector( 'button.btn-two' ) ).toBeTruthy( );
+		expect( footer.querySelector( 'button.btn-two' ) ).toBeTruthy();
 
 		// One $.post call happened with the correct URL and data (cannot read arguments from default spy, so override)
-		postSpy.mockRestore( );
+		postSpy.mockRestore();
 		const calls = [];
-		jest.spyOn( $, 'post' ).mockImplementation( ( opts ) => { calls.push( opts ); return { success( ) { return this; } }; } );
+		jest.spyOn( $, 'post' ).mockImplementation( ( opts ) => {
+			calls.push( opts );
+			return {
+				done() {
+					return this;
+				},
+			};
+		} );
 		// Trigger dismisses of the second now
-		document.querySelector( '.hcaptcha-notification[data-id="n2"] .notice-dismiss' ).click( );
+		document.querySelector( '.hcaptcha-notification[data-id="n2"] .notice-dismiss' ).click();
 		expect( calls.length ).toBe( 1 );
 		expect( calls[ 0 ].url ).toBe( defaultNotifications.ajaxUrl );
 		expect( calls[ 0 ].data.action ).toBe( defaultNotifications.dismissNotificationAction );
@@ -127,8 +136,8 @@ describe( 'notifications.js', () => {
 	test( 'dismissing last notification removes notifications container', () => {
 		bootNotifications( { withTwo: false } );
 		const dismissBtn = document.querySelector( '.hcaptcha-notification .notice-dismiss' );
-		dismissBtn.click( );
-		expect( document.getElementById( 'hcaptcha-notifications' ) ).toBeNull( );
+		dismissBtn.click();
+		expect( document.getElementById( 'hcaptcha-notifications' ) ).toBeNull();
 	} );
 
 	test( 'navigation next/prev toggles visibility and disabled classes; nav counters update', async () => {
@@ -167,12 +176,13 @@ describe( 'notifications.js', () => {
 	} );
 
 	test( 'reset button posts reset action and replaces notifications HTML; triggers helper flows', async () => {
-		bootNotifications( );
+		bootNotifications();
 
-		// Prepare post to call .success with a successful response containing new markup
-		postSpy.mockImplementation( ( opts ) => ( {
-			success( cb ) {
-				cb( { success: true, data: `
+		// Prepare post to call .done with a successful response containing new markup
+		postSpy.mockImplementation( () => ( {
+			done( cb ) {
+				cb( {
+					success: true, data: `
 					<div id="hcaptcha-notifications">
 						<div class="hcaptcha-notification" data-id="nX" style="display:block">
 							<p>New notification</p>
@@ -180,20 +190,24 @@ describe( 'notifications.js', () => {
 							<div class="hcaptcha-notification-buttons hidden"><button class="btn-new">New</button></div>
 						</div>
 					</div>
-				` } );
+				`,
+				} );
 				return this;
 			},
 		} ) );
 
 		// Spy on jQuery(document).trigger for wp-updates-notice-added
-		const triggerSpy = jest.spyOn( $.fn, 'trigger' ).mockImplementation( function() { return this; } );
+		const triggerSpy = jest.spyOn( $.fn, 'trigger' ).mockImplementation( function() {
+			return this;
+		} );
 
-		document.getElementById( 'reset_notifications' ).click( );
+		document.getElementById( 'reset_notifications' ).click();
+		expect( document.querySelector( '.hcaptcha-general-reset-notifications' ).classList.contains( 'hidden' ) ).toBe( true );
 		// Allow any microtasks and macrotasks in success handlers to run
 		await Promise.resolve();
 		await Promise.resolve();
-		await new Promise( (r) => setTimeout( r, 0 ) );
-		await new Promise( (r) => setTimeout( r, 0 ) );
+		await new Promise( ( r ) => setTimeout( r, 0 ) );
+		await new Promise( ( r ) => setTimeout( r, 0 ) );
 
 		// Old container removed and a new one inserted before the section header
 		const keysHeader = document.querySelector( 'h3.hcaptcha-section-keys' );
@@ -205,24 +219,45 @@ describe( 'notifications.js', () => {
 		expect( newContainer.querySelectorAll( '.hcaptcha-notification' ).length ).toBeGreaterThan( 0 );
 
 		// Ensure post payload contained reset action
-		expect( postSpy ).toHaveBeenCalled( );
+		expect( postSpy ).toHaveBeenCalled();
 		const args = postSpy.mock.calls[ 0 ][ 0 ];
 		expect( args.url ).toBe( defaultNotifications.ajaxUrl );
 		expect( args.data.action ).toBe( defaultNotifications.resetNotificationAction );
 		expect( args.data.nonce ).toBe( defaultNotifications.resetNotificationNonce );
 
 		// Trigger called with wp-updates-notice-added at least once
-		expect( triggerSpy ).toHaveBeenCalled( );
-		triggerSpy.mockRestore( );
+		expect( triggerSpy ).toHaveBeenCalled();
+		triggerSpy.mockRestore();
 	} );
 
 	test( 'reset button: success false does nothing (no replacement)', () => {
-		bootNotifications( );
+		bootNotifications();
 		const original = document.getElementById( 'hcaptcha-notifications' );
-		postSpy.mockImplementation( () => ( { success( cb ) { cb( { success: false, data: '' } ); return this; } } ) );
-		document.getElementById( 'reset_notifications' ).click( );
+		postSpy.mockImplementation( () => ( {
+			done( cb ) {
+				cb( { success: false, data: '' } );
+				return this;
+			},
+		} ) );
+		document.getElementById( 'reset_notifications' ).click();
 		const current = document.getElementById( 'hcaptcha-notifications' );
 		expect( current ).toBe( original );
+	} );
+
+	test( 'reset does not show notifications before live keys are saved', () => {
+		bootNotifications();
+		$( '#hcaptcha-notifications' ).addClass( 'hcaptcha-setup-notice' );
+		postSpy.mockImplementation( () => ( {
+			done( callback ) {
+				callback( { success: true, data: '<div id="hcaptcha-notifications">Notifications</div>' } );
+				return this;
+			},
+		} ) );
+
+		document.getElementById( 'reset_notifications' ).click();
+
+		expect( document.getElementById( 'hcaptcha-notifications' ).classList.contains( 'hcaptcha-setup-notice' ) ).toBe( true );
+		expect( document.querySelector( '.hcaptcha-general-reset-notifications' ).classList.contains( 'hidden' ) ).toBe( true );
 	} );
 
 	test( 'normalizeNotificationHeight updates maxHeight when outerHeight returns positive value', () => {
@@ -234,7 +269,7 @@ describe( 'notifications.js', () => {
 		// Re-run the initializer; normalizeNotificationHeight is called at the bottom.
 		window.hCaptchaNotifications( $ );
 
-		// The spy was invoked (once per notification inside the each loop).
+		// The spy was invoked (once per notification inside each loop).
 		expect( outerHeightSpy ).toHaveBeenCalled();
 		outerHeightSpy.mockRestore();
 	} );

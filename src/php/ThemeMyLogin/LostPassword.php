@@ -8,6 +8,7 @@
 namespace HCaptcha\ThemeMyLogin;
 
 use HCaptcha\Abstracts\LostPasswordBase;
+use HCaptcha\Helpers\Request;
 
 /**
  * Class LostPassword
@@ -40,16 +41,6 @@ class LostPassword extends LostPasswordBase {
 	protected const ADD_CAPTCHA_ACTION = 'lostpassword_form';
 
 	/**
-	 * $_POST key to check.
-	 */
-	protected const POST_KEY = 'submit';
-
-	/**
-	 * $_POST value to check.
-	 */
-	protected const POST_VALUE = null;
-
-	/**
 	 * Add captcha.
 	 *
 	 * @return void
@@ -60,5 +51,15 @@ class LostPassword extends LostPasswordBase {
 		}
 
 		parent::add_captcha();
+	}
+
+	/**
+	 * Match the native Theme My Login recovery handler, including AJAX.
+	 *
+	 * @return bool
+	 */
+	protected function can_handle_request(): bool {
+		return Request::is_post() &&
+			( doing_action( 'tml_action_lostpassword' ) || doing_action( 'tml_action_ajax_lostpassword' ) );
 	}
 }

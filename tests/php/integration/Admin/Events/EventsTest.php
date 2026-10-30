@@ -20,7 +20,11 @@ use HCaptcha\Migrations\Migrations;
 use HCaptcha\Settings\General;
 use HCaptcha\Settings\PluginSettingsBase;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
+use ReflectionException;
+use RuntimeException;
 use tad\FunctionMocker\FunctionMocker;
+use WP_Error;
+use wpdb;
 
 /**
  * Test EventsTest class.
@@ -641,6 +645,208 @@ class EventsTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * User agents fit the column without losing verification events.
+	 *
+	 * @dataProvider dp_test_save_event_bounds_user_agent
+	 *
+	 * @param string $user_agent Raw user agent.
+	 * @param string $expected   Stored user agent.
+	 * @param bool   $anonymous  Whether to hash before normalization.
+	 * @param bool   $collect    Whether to collect user agents.
+	 */
+	public function test_save_event_bounds_user_agent( string $user_agent, string $expected, bool $anonymous, bool $collect ): void {
+		global $wpdb;
+
+		update_option(
+			'hcaptcha_settings',
+			[
+				'statistics' => [ 'on' ],
+				'collect_ua' => $collect ? [ 'on' ] : [],
+				'anonymous'  => $anonymous ? [ 'on' ] : [],
+			]
+		);
+		hcaptcha()->init_hooks();
+		$this->drop_table();
+		Events::create_table();
+		$_SERVER['HTTP_USER_AGENT'] = $user_agent;
+		$subject                    = new Events();
+		self::assertNull( $subject->save_event( null, [], (object) [] ) );
+		self::assertSame( 'second-result', $subject->save_event( 'second-result', [], (object) [] ) );
+		$table_name = $wpdb->prefix . Events::TABLE_NAME;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$events = $wpdb->get_results( "SELECT user_agent FROM $table_name" );
+
+		self::assertCount( 1, $events );
+		self::assertSame( $anonymous ? wp_hash( $user_agent ) : $expected, $events[0]->user_agent );
+	}
+
+	/**
+	 * Character and encoding boundaries of the real user_agent column.
+	 *
+	 * @return array
+	 */
+	public function dp_test_save_event_bounds_user_agent(): array {
+		$cases = [];
+
+		foreach ( [ 255, 256, 257, 4096 ] as $length ) {
+			$cases[ 'ASCII ' . $length ] = [ str_repeat( 'A', $length ), str_repeat( 'A', min( 256, $length ) ), false, true ];
+		}
+
+		foreach ( [ 'é', '界', '🙂' ] as $character ) {
+			foreach ( [ 256, 257 ] as $length ) {
+				$cases[ $character . ' ' . $length ] = [ str_repeat( $character, $length ), str_repeat( $character, 256 ), false, true ];
+			}
+		}
+
+		$cases['invalid UTF-8']  = [ "A\xFFB", 'AB', false, true ];
+		$cases['anonymous full'] = [ str_repeat( 'A', 4096 ), '', true, true ];
+		$cases['collection off'] = [ str_repeat( 'A', 4096 ), '', false, false ];
+		$cases['empty metadata'] = [ '', '', false, true ];
+
+		return $cases;
+	}
+
+	/**
+	 * A failed insert preserves verification, releases its lock, and is not retried.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_save_event_preserves_result_when_insert_fails(): void {
+		global $wpdb;
+
+		$this->drop_table();
+		Events::create_table();
+		$table_name = $wpdb->prefix . Events::TABLE_NAME;
+		$attempts   = 0;
+		$fail_query = static function ( string $query ) use ( $table_name, &$attempts ): string {
+			if ( 0 === strpos( $query, 'INSERT INTO `' . $table_name . '`' ) ) {
+				++$attempts;
+
+				return 'INVALID SEC064 INSERT';
+			}
+
+			return $query;
+		};
+		$subject    = new Events();
+		$suppressed = $wpdb->suppress_errors();
+		add_filter( 'query', $fail_query );
+
+		try {
+			self::assertNull( $subject->save_event( null, [], (object) [] ) );
+			self::assertSame( 'failure', $subject->save_event( 'failure', [], (object) [] ) );
+			self::assertSame( 1, $attempts );
+		} finally {
+			remove_filter( 'query', $fail_query );
+			$wpdb->suppress_errors( $suppressed );
+		}
+
+		$method    = $this->set_method_accessibility( $subject, 'get_write_lock_name' );
+		$lock_name = $method->invoke( $subject );
+		$method->setAccessible( false );
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		self::assertSame( 0, (int) $wpdb->get_var( "SELECT COUNT(*) FROM $table_name" ) );
+		self::assertSame( '1', (string) $wpdb->get_var( $wpdb->prepare( 'SELECT IS_FREE_LOCK(%s)', $lock_name ) ) );
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+	}
+
+	/**
+	 * Optional metadata conversion errors preserve the verification result and attempt guard.
+	 *
+	 * @dataProvider dp_test_save_event_handles_user_agent_conversion_failure
+	 *
+	 * @param bool $throws_error Whether column discovery throws instead of returning WP_Error.
+	 */
+	public function test_save_event_handles_user_agent_conversion_failure( bool $throws_error ): void {
+		global $wpdb;
+
+		update_option(
+			'hcaptcha_settings',
+			[
+				'statistics' => [ 'on' ],
+				'collect_ua' => [ 'on' ],
+			]
+		);
+		hcaptcha()->init_hooks();
+		$this->drop_table();
+		Events::create_table();
+		$_SERVER['HTTP_USER_AGENT'] = 'fixture-agent';
+		$table_name                 = $wpdb->prefix . Events::TABLE_NAME;
+		$failure                    = null;
+		$failure                    = static function ( $pre, $table, $column ) use ( $throws_error, $table_name, &$failure ) {
+			if ( $table_name !== $table || 'user_agent' !== $column ) {
+				return $pre;
+			}
+
+			remove_filter( 'pre_get_col_charset', $failure );
+
+			if ( $throws_error ) {
+				throw new RuntimeException( 'Simulated column discovery failure.' );
+			}
+
+			return new WP_Error( 'fixture-conversion', 'Simulated metadata conversion error.' );
+		};
+		add_filter( 'pre_get_col_charset', $failure, 10, 3 );
+		$subject = new Events();
+
+		try {
+			self::assertSame( 'empty', $subject->save_event( 'empty', [], (object) [ 'codes' => [ 'empty' ] ] ) );
+			self::assertSame( 'second-result', $subject->save_event( 'second-result', [], (object) [] ) );
+		} finally {
+			remove_filter( 'pre_get_col_charset', $failure );
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$rows = $wpdb->get_results( "SELECT user_agent FROM $table_name", ARRAY_A );
+
+		self::assertSame( $throws_error ? [] : [ [ 'user_agent' => '' ] ], $rows );
+	}
+
+	/**
+	 * Metadata normalization can return a WordPress error or throw during discovery.
+	 *
+	 * @return array
+	 */
+	public function dp_test_save_event_handles_user_agent_conversion_failure(): array {
+		return [
+			'WP_Error fallback' => [ false ],
+			'exception'         => [ true ],
+		];
+	}
+
+	/**
+	 * Sampling compares the bounded representation that is actually stored.
+	 */
+	public function test_save_event_samples_normalized_user_agent(): void {
+		global $wpdb;
+
+		wp_set_current_user( 0 );
+		update_option(
+			'hcaptcha_settings',
+			[
+				'statistics' => [ 'on' ],
+				'collect_ua' => [ 'on' ],
+				'anonymous'  => [],
+			]
+		);
+		hcaptcha()->init_hooks();
+		$this->drop_table();
+		Events::create_table();
+
+		foreach ( [ 257, 258 ] as $length ) {
+			$_SERVER['HTTP_USER_AGENT'] = str_repeat( 'A', $length );
+			self::assertSame( 'empty', ( new Events() )->save_event( 'empty', [], (object) [ 'codes' => [ 'empty' ] ] ) );
+		}
+
+		$table_name = $wpdb->prefix . Events::TABLE_NAME;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		self::assertSame( 1, (int) $wpdb->get_var( "SELECT COUNT(*) FROM $table_name" ) );
+	}
+
+	/**
 	 * Test save_event() anonymizes collected IP and user agent.
 	 *
 	 * @return void
@@ -712,6 +918,8 @@ class EventsTest extends HCaptchaWPTestCase {
 					],
 				];
 
+				$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $entry['expected_id'] );
+
 				self::assertSame( hcap_get_error_messages()['empty'], API::verify_request( '', $entry ) );
 				self::assertSame( $expected_count, Events::get_events()['total'] );
 			}
@@ -737,6 +945,7 @@ class EventsTest extends HCaptchaWPTestCase {
 	 * Test identical anonymous failures are sampled without changing verification.
 	 *
 	 * @return void
+	 * @noinspection SqlWithoutWhere
 	 */
 	public function test_save_event_samples_identical_anonymous_failures(): void {
 		global $wpdb;
@@ -861,7 +1070,7 @@ class EventsTest extends HCaptchaWPTestCase {
 
 		$query_filter = static function ( string $query ): string {
 			if ( false !== strpos( $query, 'FORCE INDEX (status_date_gmt)' ) ) {
-				throw new \RuntimeException( 'Simulated event cleanup failure.' );
+				throw new RuntimeException( 'Simulated event cleanup failure.' );
 			}
 
 			return $query;
@@ -891,7 +1100,7 @@ class EventsTest extends HCaptchaWPTestCase {
 	 * Test a busy allocation lock skips logging without changing verification.
 	 *
 	 * @return void
-	 * @throws \ReflectionException Reflection exception.
+	 * @throws ReflectionException Reflection exception.
 	 */
 	public function test_save_event_skips_allocation_when_write_lock_is_busy(): void {
 		global $wpdb;
@@ -902,7 +1111,7 @@ class EventsTest extends HCaptchaWPTestCase {
 		$subject   = new Events();
 		$method    = $this->set_method_accessibility( $subject, 'get_write_lock_name' );
 		$lock_name = $method->invoke( $subject );
-		$lock_db   = new \wpdb( DB_USER, DB_PASSWORD, DB_NAME, DB_HOST );
+		$lock_db   = new wpdb( DB_USER, DB_PASSWORD, DB_NAME, DB_HOST );
 
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$acquired = $lock_db->get_var( $lock_db->prepare( 'SELECT GET_LOCK(%s, 0)', $lock_name ) );
@@ -1089,6 +1298,7 @@ class EventsTest extends HCaptchaWPTestCase {
 		hcaptcha()->init_hooks();
 		$this->set_trash_schema_ready( true );
 		$this->drop_table();
+		self::assertFalse( Events::is_retention_schema_ready() );
 
 		$wpdb->last_query = '';
 

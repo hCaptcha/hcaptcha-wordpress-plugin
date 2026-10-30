@@ -8,6 +8,7 @@
 namespace HCaptcha\WCGermanized;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -50,10 +51,7 @@ class ReturnRequest {
 		$output = ob_get_clean();
 
 		$args = [
-			'id' => [
-				'source'  => HCaptcha::get_class_source( self::class ),
-				'form_id' => 'return_request',
-			],
+			'id' => $this->get_expected_id(),
 		];
 
 		// Find the last $search string and insert hcaptcha before it.
@@ -87,7 +85,19 @@ class ReturnRequest {
 			return;
 		}
 
-		$error_message = API::verify_request();
+		// Match the address selected by the native return-request handler.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$email = isset( $_POST['email'] ) && is_scalar( $_POST['email'] ) ? sanitize_email( wp_unslash( (string) $_POST['email'] ) ) : '';
+
+		$error_message = API::verify(
+			EntryData::with_emails(
+				[
+					'expected_id' => $this->get_expected_id(),
+					'data'        => EntryData::from_post( [] ),
+				],
+				[ $email ]
+			)
+		);
 
 		if ( null !== $error_message ) {
 			wc_add_notice( $error_message, 'error' );
@@ -95,5 +105,17 @@ class ReturnRequest {
 			// Stop form processing.
 			unset( $_POST['return_request'] );
 		}
+	}
+
+	/**
+	 * Get the expected form identity.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( self::class ),
+			'form_id' => 'return_request',
+		];
 	}
 }

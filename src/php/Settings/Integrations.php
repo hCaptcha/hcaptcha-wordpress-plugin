@@ -279,14 +279,6 @@ class Integrations extends PluginSettingsBase {
 	 */
 	public function init_form_fields(): void {
 		$this->form_fields = [
-			'show_antispam_coverage'         => [
-				'type'    => 'checkbox',
-				'section' => self::SECTION_HEADER,
-				'options' => [
-					'on' => __( 'Show Anti-Spam Indicators', 'hcaptcha-for-forms-and-more' ),
-				],
-				'helper'  => __( 'Shows icons for built-in antispam methods (Honeypot, Time check) for supported integrations, including inactive ones.', 'hcaptcha-for-forms-and-more' ),
-			],
 			'wp_status'                      => [
 				'entity'  => 'core',
 				'label'   => 'WP Core',
@@ -875,9 +867,7 @@ class Integrations extends PluginSettingsBase {
 	 * @return array
 	 */
 	public function command_palette_form_fields(): array {
-		$form_fields = $this->form_fields();
-
-		return [ 'show_antispam_coverage' => $form_fields['show_antispam_coverage'] ];
+		return [];
 	}
 
 	/**
@@ -940,23 +930,21 @@ class Integrations extends PluginSettingsBase {
 	}
 
 	/**
-	 * Show the settings page.
-	 *
-	 * @return void
+	 * Setup settings sections.
 	 */
-	public function settings_page(): void {
-		global $wp_settings_sections;
-
-		if ( ! $this->is_any_antispam_enabled() ) {
-			$page   = $this->get_active_tab()->option_page();
-			$output = '<p>' . __( 'Enable Honeypot or Time check in the Anti-Spam tab to use indicators.', 'hcaptcha-for-forms-and-more' ) . '</p>';
-
-			// Add output after the section.
-			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
-			$wp_settings_sections[ $page ][ self::SECTION_HEADER ]['after_section'] = $output;
+	public function setup_sections(): void {
+		if ( ! $this->is_options_screen() ) {
+			return;
 		}
 
-		parent::settings_page();
+		add_settings_section(
+			self::SECTION_HEADER,
+			'',
+			[ $this->get_active_tab(), 'section_callback' ],
+			$this->option_page()
+		);
+
+		parent::setup_sections();
 	}
 
 	/**
@@ -1095,23 +1083,7 @@ class Integrations extends PluginSettingsBase {
 
 				break;
 			case self::SECTION_ENABLED:
-				$style = $this->is_any_antispam_enabled() && hcaptcha()->settings()->is_on( 'show_antispam_coverage' )
-					? 'display: block;'
-					: 'display: none;';
-
 				?>
-				<div id="hcaptcha-antispam-legend" class="hcaptcha-antispam-legend" style="<?php echo esc_attr( $style ); ?>">
-					<?php
-					echo wp_kses_post(
-						sprintf(
-							/* translators: 1: Honeypot icon, 2: Time check icon. */
-							__( 'Antispam indicators: %1$s Honeypot &middot; %2$s Time check', 'hcaptcha-for-forms-and-more' ),
-							'<i class="antispam-honeypot"></i>',
-							'<i class="antispam-fst"></i>'
-						)
-					);
-					?>
-				</div>
 				<hr class="hcaptcha-enabled-section">
 				<h3><?php esc_html_e( 'Active plugins and themes', 'hcaptcha-for-forms-and-more' ); ?></h3>
 				<?php
@@ -1208,23 +1180,19 @@ class Integrations extends PluginSettingsBase {
 			]
 		);
 
+		$style_version = constant( 'HCAPTCHA_VERSION' );
+
+		if ( '' === $this->min_suffix ) {
+			$style_mtime    = filemtime( constant( 'HCAPTCHA_PATH' ) . '/assets/css/integrations.css' );
+			$style_version .= false === $style_mtime ? '' : '-' . $style_mtime;
+		}
+
 		wp_enqueue_style(
 			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/css/integrations$this->min_suffix.css",
 			[ static::PREFIX . '-' . SettingsBase::HANDLE, self::DIALOG_HANDLE ],
-			constant( 'HCAPTCHA_VERSION' )
+			$style_version
 		);
-	}
-
-	/**
-	 * Check if any antispam method (Honeypot or Time check) is enabled.
-	 *
-	 * @return bool
-	 */
-	private function is_any_antispam_enabled(): bool {
-		$settings = hcaptcha()->settings();
-
-		return $settings->is_on( 'honeypot' ) || $settings->is_on( 'set_min_submit_time' );
 	}
 
 	/**
@@ -2659,10 +2627,6 @@ class Integrations extends PluginSettingsBase {
 	 * @return void
 	 */
 	private function setup_antispam_data( array $installed ): void {
-		if ( ! $this->is_any_antispam_enabled() ) {
-			$this->form_fields['show_antispam_coverage']['disabled'] = true;
-		}
-
 		foreach ( $this->form_fields as $status => &$form_field ) {
 			if ( self::SECTION_HEADER === ( $form_field['section'] ?? '' ) ) {
 				continue;

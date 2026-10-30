@@ -8,6 +8,7 @@
 namespace HCaptcha\ThemeMyLogin;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 
@@ -58,10 +59,7 @@ class Register {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'register',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		HCaptcha::form_display( $args );
@@ -79,11 +77,16 @@ class Register {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $errors, string $sanitized_user_login, string $user_email ) {
-		if ( ! doing_action( 'tml_action_register' ) ) {
+		if ( ! doing_action( 'tml_action_register' ) && ! doing_action( 'tml_action_ajax_register' ) ) {
 			return $errors;
 		}
 
-		$error_message = API::verify_post_html( self::NONCE, self::ACTION );
+		$error_message = API::verify_post_html(
+			self::NONCE,
+			self::ACTION,
+			$this->get_expected_id(),
+			EntryData::with_emails( [], [ $user_email ] )
+		);
 
 		if ( null === $error_message ) {
 			return $errors;
@@ -96,5 +99,17 @@ class Register {
 		$errors->add( 'invalid_captcha', $error_message );
 
 		return $errors;
+	}
+
+	/**
+	 * Get the expected form identity.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => 'register',
+		];
 	}
 }

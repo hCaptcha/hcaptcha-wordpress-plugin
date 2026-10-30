@@ -106,6 +106,8 @@ class FormSubmitTimeTest extends HCaptchaWPTestCase {
 		self::assertStringContainsString( 'hcaptcha-fst-issue-token', $output );
 		self::assertStringContainsString( 'issueTokenContext', $output );
 		self::assertStringContainsString( 'postId', $output );
+		self::assertStringContainsString( 'Preparing the form. Please wait.', $output );
+		self::assertStringContainsString( 'Please check your connection and try submitting again.', $output );
 
 		wp_dequeue_script( 'hcaptcha-fst' );
 	}
@@ -222,6 +224,38 @@ class FormSubmitTimeTest extends HCaptchaWPTestCase {
 		$result = $this->subject->verify_token( 0 );
 		self::assertInstanceOf( WP_Error::class, $result );
 		self::assertEquals( 'fst_bad_sig', $result->get_error_code() );
+	}
+
+	/**
+	 * Test a missing timing token returns a retryable preparation error.
+	 */
+	public function test_verify_token_missing(): void {
+		unset( $_POST['hcap_fst_token'] );
+
+		$result = $this->subject->verify_token( 0 );
+
+		self::assertInstanceOf( WP_Error::class, $result );
+		self::assertSame( 'fst-missing-token', $result->get_error_code() );
+		self::assertSame(
+			'Unable to prepare the form. Please check your connection and try submitting again.',
+			$result->get_error_message()
+		);
+	}
+
+	/**
+	 * Test an empty timing token is not reported as a signature mismatch.
+	 */
+	public function test_verify_token_empty(): void {
+		$_POST['hcap_fst_token'] = '';
+
+		$result = $this->subject->verify_token( 0 );
+
+		self::assertInstanceOf( WP_Error::class, $result );
+		self::assertSame( 'fst-missing-token', $result->get_error_code() );
+		self::assertSame(
+			'Unable to prepare the form. Please check your connection and try submitting again.',
+			$result->get_error_message()
+		);
 	}
 
 	/**
@@ -409,6 +443,7 @@ class FormSubmitTimeTest extends HCaptchaWPTestCase {
 
 			self::assertTrue( $response['success'], wp_json_encode( $response ) );
 			self::assertArrayHasKey( 'token', $response['data'] );
+			self::assertSame( FormSubmitTime::DEFAULT_TOKEN_TTL, $response['data']['ttl'] );
 
 			$token = $response['data']['token'];
 
@@ -769,6 +804,7 @@ class FormSubmitTimeTest extends HCaptchaWPTestCase {
 
 			self::assertTrue( $response['success'], wp_json_encode( $response ) );
 			self::assertSame( $expected_ttl, $this->payload_from_token( $response['data']['token'] )['ttl'] );
+			self::assertSame( $expected_ttl, $response['data']['ttl'] );
 		}
 	}
 
@@ -897,12 +933,82 @@ class FormSubmitTimeTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * A registry read failure during verification remains a storage error.
+	 *
+	 * @noinspection SqlResolve
+	 */
+	public function test_verify_token_reports_registry_read_failure(): void {
+		global $wpdb;
+
+		$this->enable_fst();
+		$response                = $this->issue_token( '1', '198.51.100.81' );
+		$_POST['hcap_fst_token'] = $response['data']['token'];
+		$query_filter            = static function ( string $query ): string {
+			if ( false !== strpos( $query, "'" . FormSubmitTimeStore::REGISTRY_OPTION . "'" ) && false !== stripos( $query, 'SELECT option_value' ) ) {
+				return 'SELECT option_value FROM hcaptcha_missing_fst_table';
+			}
+
+			return $query;
+		};
+		$suppress_errors         = $wpdb->suppress_errors();
+		add_filter( 'query', $query_filter, PHP_INT_MAX );
+
+		try {
+			$result = $this->subject->verify_token( 0 );
+		} finally {
+			remove_filter( 'query', $query_filter, PHP_INT_MAX );
+			$wpdb->suppress_errors( $suppress_errors );
+		}
+
+		self::assertInstanceOf( WP_Error::class, $result );
+		self::assertSame( 'fst-storage-unavailable', $result->get_error_code() );
+		self::assertCount( 1, $this->get_registry() );
+	}
+
+	/**
+	 * A failed registry write during consumption preserves the outstanding token.
+	 *
+	 * @noinspection SqlResolve
+	 */
+	public function test_verify_token_reports_consumption_failure(): void {
+		global $wpdb;
+
+		$this->enable_fst();
+		$response = $this->issue_token( '1', '198.51.100.82' );
+		$second   = $this->issue_token( '2', '198.51.100.83' );
+		self::assertTrue( $second['success'] );
+		$_POST['hcap_fst_token'] = $response['data']['token'];
+		$query_filter            = static function ( string $query ): string {
+			if ( false !== strpos( $query, "'" . FormSubmitTimeStore::REGISTRY_OPTION . "'" ) && false !== stripos( $query, 'INSERT INTO' ) ) {
+				return 'SELECT * FROM hcaptcha_missing_fst_table';
+			}
+
+			return $query;
+		};
+		$suppress_errors         = $wpdb->suppress_errors();
+		add_filter( 'query', $query_filter, PHP_INT_MAX );
+
+		try {
+			$result = $this->subject->verify_token( 0 );
+		} finally {
+			remove_filter( 'query', $query_filter, PHP_INT_MAX );
+			$wpdb->suppress_errors( $suppress_errors );
+		}
+
+		self::assertInstanceOf( WP_Error::class, $result );
+		self::assertSame( 'fst-storage-unavailable', $result->get_error_code() );
+		self::assertCount( 2, $this->get_registry() );
+	}
+
+	/**
 	 * Test issue_token() invalid nonce.
 	 *
 	 * @noinspection ThrowRawExceptionInspection
 	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_issue_token_invalid_nonce(): void {
+		$this->enable_fst();
+		$this->prepare_issue_request( '1', '198.51.100.90' );
 		$_POST['nonce']    = 'invalid-nonce';
 		$_REQUEST['nonce'] = 'invalid-nonce';
 
@@ -930,7 +1036,61 @@ class FormSubmitTimeTest extends HCaptchaWPTestCase {
 
 		self::assertIsArray( $response, "Output was: '$json'" );
 		self::assertFalse( $response['success'], "Output was: '$json'" );
+		self::assertSame( 'fst-invalid-nonce', $response['data']['code'] );
+		self::assertNotFalse( wp_verify_nonce( $response['data']['nonce'], 'hcaptcha-fst-issue-token' ) );
 		self::assertSame( [], $this->get_registry() );
+
+		$_POST['nonce']    = $response['data']['nonce'];
+		$_REQUEST['nonce'] = $response['data']['nonce'];
+		self::assertTrue( $this->capture_issue_response()['success'] );
+	}
+
+	/**
+	 * A nonnumeric page ID cannot create a signed timing context.
+	 */
+	public function test_issue_context_rejects_nonnumeric_post_id(): void {
+		$_POST['postId']  = 'not-a-post';
+		$_POST['context'] = 'untrusted';
+		$method           = $this->set_method_accessibility( $this->subject, 'validate_issue_context' );
+
+		$result = $method->invoke( $this->subject );
+
+		self::assertInstanceOf( WP_Error::class, $result );
+		self::assertSame( 'fst-invalid-context', $result->get_error_code() );
+	}
+
+	/**
+	 * A signed replacement field with an invalid token is ignored.
+	 */
+	public function test_replacement_from_request_rejects_invalid_token(): void {
+		$_POST['replaceToken'] = 'invalid-token';
+		$method                = $this->set_method_accessibility( $this->subject, 'replacement_from_request' );
+
+		self::assertSame(
+			[
+				'signature' => '',
+				'payload'   => [],
+			],
+			$method->invoke( $this->subject )
+		);
+	}
+
+	/**
+	 * Tokens issued in the future fail timing validation.
+	 */
+	public function test_token_timing_rejects_future_issue(): void {
+		$method = $this->set_method_accessibility( $this->subject, 'check_token_timing' );
+		$result = $method->invoke(
+			$this->subject,
+			[
+				'issued_at' => time() + 60,
+				'ttl'       => 600,
+			],
+			5
+		);
+
+		self::assertInstanceOf( WP_Error::class, $result );
+		self::assertSame( 'fst_bad_payload', $result->get_error_code() );
 	}
 
 	/**

@@ -18,6 +18,19 @@ use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
  * @group affiliates-register
  */
 class RegisterTest extends HCaptchaWPTestCase {
+	/**
+	 * Ignore unrelated dashboard sections and requests without a registration submit.
+	 */
+	public function test_ignores_other_sections_and_requests(): void {
+		$subject = new Register();
+		$level   = ob_get_level();
+
+		$subject->before_section( 'other' );
+		$subject->after_section( 'other' );
+
+		self::assertSame( $level, ob_get_level() );
+		self::assertTrue( $subject->verify( true ) );
+	}
 
 	/**
 	 * Set up the test.
@@ -83,5 +96,64 @@ class RegisterTest extends HCaptchaWPTestCase {
 		$output = (string) ob_get_clean();
 
 		self::assertStringContainsString( 'Anti-spam check failed.', $output );
+	}
+
+	/**
+	 * The native registration email is used for email policy checks.
+	 */
+	public function test_native_registration_email_is_checked(): void {
+		$settings                     = (array) get_option( 'hcaptcha_settings', [] );
+		$settings['disposable_email'] = [ 'on' ];
+		update_option( 'hcaptcha_settings', $settings );
+
+		$this->prepare_verify_post( 'hcaptcha_registration_nonce', 'hcaptcha_registration' );
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ]   = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'affiliates/affiliates.php' ],
+				'form_id' => 'register',
+			]
+		);
+		$_POST['affiliates-registration-submit'] = 'Register';
+		$_POST['user_email']                     = 'person@example.com';
+		add_filter( 'hcap_is_disposable_email', '__return_true' );
+
+		self::assertTrue( ( new Register() )->verify( false ) );
+	}
+
+	/**
+	 * A logged-in affiliate is checked using the account address.
+	 */
+	public function test_logged_in_affiliate_uses_account_email(): void {
+		$user_id = $this->factory()->user->create( [ 'user_email' => 'account@example.com' ] );
+		wp_set_current_user( $user_id );
+
+		$settings                     = (array) get_option( 'hcaptcha_settings', [] );
+		$settings['disposable_email'] = [ 'on' ];
+		update_option( 'hcaptcha_settings', $settings );
+
+		$this->prepare_verify_post( 'hcaptcha_registration_nonce', 'hcaptcha_registration' );
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ]   = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'affiliates/affiliates.php' ],
+				'form_id' => 'register',
+			]
+		);
+		$_POST['affiliates-registration-submit'] = 'Register';
+		$_POST['user_email']                     = 'forged@example.com';
+
+		$checked = [];
+		add_filter(
+			'hcap_is_disposable_email',
+			static function ( bool $disposable, string $email ) use ( &$checked ): bool {
+				$checked[] = $email;
+
+				return true;
+			},
+			10,
+			2
+		);
+
+		self::assertTrue( ( new Register() )->verify( false ) );
+		self::assertSame( [ 'account@example.com' ], $checked );
 	}
 }

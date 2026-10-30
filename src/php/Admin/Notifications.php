@@ -85,25 +85,23 @@ class Notifications extends NotificationsBase {
 
 		$notifications = [
 			'register'            => [
-				'title'   => __( 'Get your hCaptcha site keys', 'hcaptcha-for-forms-and-more' ),
-				'message' => sprintf(
-				/* translators: 1: hCaptcha link, 2: register link. */
-					__( 'To use %1$s, please register %2$s to get your site and secret keys.', 'hcaptcha-for-forms-and-more' ),
+				'title'       => __( 'Set up hCaptcha', 'hcaptcha-for-forms-and-more' ),
+				'message'     => sprintf(
+					/* translators: %s: Link to create an hCaptcha account. */
+					__( 'To use the plugin, %s and get your keys. Then select Live mode below and enter your keys.', 'hcaptcha-for-forms-and-more' ),
 					sprintf(
-						'<a href="%1$s" target="_blank">%2$s</a>',
-						$urls['hcaptcha'],
-						__( 'hCaptcha', 'hcaptcha-for-forms-and-more' )
-					),
-					sprintf(
-						'<a href="%1$s" target="_blank">%2$s</a>',
-						$urls['register'],
-						__( 'here', 'hcaptcha-for-forms-and-more' )
+						'<a href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
+						esc_url( $urls['register'] ),
+						esc_html__( 'create an hCaptcha account', 'hcaptcha-for-forms-and-more' )
 					)
 				),
-				'button'  => [
-					'url'  => $urls['register'],
-					'text' => __( 'Get site keys', 'hcaptcha-for-forms-and-more' ),
+				'button'      => [
+					'url'    => $urls['onboarding'],
+					'text'   => __( 'Show Setup Wizard', 'hcaptcha-for-forms-and-more' ),
+					'target' => '_self',
 				],
+				'notice_type' => 'warning',
+				'dismissible' => false,
 			],
 			'pro-free-trial'      => [
 				'title'   => __( 'Try Pro for free', 'hcaptcha-for-forms-and-more' ),
@@ -373,6 +371,15 @@ class Notifications extends NotificationsBase {
 					'text' => __( 'Review headers', 'hcaptcha-for-forms-and-more' ),
 				],
 			],
+			// Added in 5.5.0.
+			'rest-api-protection' => [
+				'title'   => __( 'Unique REST API Protection', 'hcaptcha-for-forms-and-more' ),
+				'message' => __( 'hCaptcha now protects selected content in WordPress REST responses and search, verifies native REST comments, and blocks REST post-password attempts when the corresponding protections are enabled. No other plugin in our October 2026 review of the 10 most-installed WordPress.org plugins tagged captcha offered all three.', 'hcaptcha-for-forms-and-more' ),
+				'button'  => [
+					'url'  => $urls['protect_content'],
+					'text' => __( 'Configure Content Protection', 'hcaptcha-for-forms-and-more' ),
+				],
+			],
 		];
 
 		$notifications = $this->select_active_notifications( $notifications );
@@ -422,24 +429,19 @@ class Notifications extends NotificationsBase {
 	/**
 	 * Show notifications.
 	 *
+	 * @param bool $setup_only Whether to show only the setup notification.
+	 *
 	 * @return void
 	 */
-	public function show(): void {
-		$notifications = $this->get_notifications();
-
-		$user    = wp_get_current_user();
-		$user_id = $user->ID ?? 0;
-
-		// phpcs:ignore Generic.Commenting.DocComment.MissingShort
-		$dismissed     = get_user_meta( $user_id, self::HCAPTCHA_DISMISSED_META_KEY, true ) ?: [];
-		$notifications = array_diff_key( $notifications, array_flip( $dismissed ) );
+	public function show( bool $setup_only = false ): void {
+		$notifications = $this->get_visible_notifications( $setup_only );
 
 		if ( ! $notifications ) {
 			return;
 		}
 
 		?>
-		<div id="hcaptcha-notifications">
+		<div id="hcaptcha-notifications" class="<?php echo esc_attr( $setup_only ? 'hcaptcha-setup-notice' : '' ); ?>">
 			<div id="hcaptcha-notifications-header">
 				<?php esc_html_e( 'Notifications', 'hcaptcha-for-forms-and-more' ); ?>
 			</div>
@@ -466,6 +468,9 @@ class Notifications extends NotificationsBase {
 				$button_url      = $notification['button']['url'];
 				$button_text     = $notification['button']['text'];
 				$button_lightbox = $notification['button']['lightbox'];
+				$button_target   = $notification['button']['target'];
+				$notice_type     = $notification['notice_type'];
+				$dismissible     = $notification['dismissible'];
 
 				$lightbox_class = $button_lightbox ? ' hcaptcha-lightbox' : '';
 				ob_start();
@@ -479,7 +484,7 @@ class Notifications extends NotificationsBase {
 						<a
 								href="<?php echo esc_url( $button_url ); ?>"
 								class="button button-primary <?php echo esc_attr( $lightbox_class ); ?>"
-								target="_blank">
+								target="<?php echo esc_attr( $button_target ); ?>">
 							<?php echo esc_html( $button_text ); ?>
 						</a>
 						<?php
@@ -494,7 +499,7 @@ class Notifications extends NotificationsBase {
 				// We need the 'inline' class below to prevent moving the 'notice' div after h2 by common.js script in WP Core.
 				?>
 				<div
-						class="hcaptcha-notification notice notice-info is-dismissible inline"
+						class="hcaptcha-notification notice notice-<?php echo esc_attr( $notice_type ); ?><?php echo esc_attr( $dismissible ? ' is-dismissible' : '' ); ?> inline"
 						data-id="<?php echo esc_attr( $id ); ?>">
 					<div class="hcaptcha-notification-title">
 						<?php echo esc_html( $title ); ?>
@@ -521,6 +526,53 @@ class Notifications extends NotificationsBase {
 			</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Get the notifications to display on the current screen.
+	 *
+	 * @param bool $setup_only Whether to show only the setup notification.
+	 *
+	 * @return array
+	 */
+	private function get_visible_notifications( bool $setup_only ): array {
+		$notifications = $this->get_notifications();
+
+		if ( $setup_only ) {
+			return array_intersect_key( $notifications, [ 'register' => true ] );
+		}
+
+		$user    = wp_get_current_user();
+		$user_id = $user->ID ?? 0;
+
+		// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+		$dismissed = get_user_meta( $user_id, self::HCAPTCHA_DISMISSED_META_KEY, true ) ?: [];
+
+		return array_diff_key( $notifications, array_flip( $dismissed ) );
+	}
+
+	/**
+	 * Whether the current user has dismissed an active notification.
+	 *
+	 * @return bool
+	 */
+	public function has_dismissed_notifications(): bool {
+		$user      = wp_get_current_user();
+		$dismissed = get_user_meta( $user->ID ?? 0, self::HCAPTCHA_DISMISSED_META_KEY, true );
+
+		if ( ! is_array( $dismissed ) || ! $dismissed ) {
+			return false;
+		}
+
+		$notifications = $this->get_notifications();
+
+		foreach ( $dismissed as $id ) {
+			if ( is_string( $id ) && isset( $notifications[ $id ] ) && ( $notifications[ $id ]['dismissible'] ?? true ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -702,6 +754,9 @@ class Notifications extends NotificationsBase {
 		$notification['button']['url']      = $notification['button']['url'] ?? '';
 		$notification['button']['text']     = $notification['button']['text'] ?? '';
 		$notification['button']['lightbox'] = $notification['button']['lightbox'] ?? '';
+		$notification['button']['target']   = $notification['button']['target'] ?? '_blank';
+		$notification['notice_type']        = $notification['notice_type'] ?? 'info';
+		$notification['dismissible']        = $notification['dismissible'] ?? true;
 
 		return $notification;
 	}
@@ -732,7 +787,7 @@ class Notifications extends NotificationsBase {
 			}
 		}
 
-		if ( ! empty( $settings->get_site_key() ) && ! empty( $settings->get_secret_key() ) ) {
+		if ( ! empty( $settings->get( 'site_key' ) ) && ! empty( $settings->get( 'secret_key' ) ) ) {
 			unset( $notifications['register'] );
 		}
 

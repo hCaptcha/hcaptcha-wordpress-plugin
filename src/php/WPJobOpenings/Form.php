@@ -8,6 +8,7 @@
 namespace HCaptcha\WPJobOpenings;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -74,10 +75,7 @@ class Form {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => $form_attrs['job_id'] ?? 0,
-			],
+			'id'     => $this->get_id( (int) ( $form_attrs['job_id'] ?? 0 ) ),
 		];
 
 		$html = preg_replace(
@@ -113,11 +111,37 @@ class Form {
 	public function verify(): void {
 		global $awsm_response;
 
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		// The application endpoint checks its nonce before this hook.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$job_id      = isset( $_POST['awsm_job_id'] ) && is_scalar( $_POST['awsm_job_id'] ) ? (int) $_POST['awsm_job_id'] : 0;
+		$expected_id = $this->get_id( $job_id );
+		// The application handler uses this native email field.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$email         = isset( $_POST['awsm_applicant_email'] ) && is_scalar( $_POST['awsm_applicant_email'] ) ? sanitize_email( wp_unslash( (string) $_POST['awsm_applicant_email'] ) ) : '';
+		$error_message = API::verify_post(
+			self::NONCE,
+			self::ACTION,
+			$expected_id,
+			EntryData::with_emails( [], [ $email ] )
+		);
 
 		if ( null !== $error_message ) {
 			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 			$awsm_response['error'][] = esc_html( $error_message );
 		}
+	}
+
+	/**
+	 * Get the widget identity for a job.
+	 *
+	 * @param int $job_id Job ID.
+	 *
+	 * @return array
+	 */
+	private function get_id( int $job_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => $job_id,
+		];
 	}
 }

@@ -1,12 +1,3 @@
-.form-table:first-of-type tr {
-	background: none;
-	padding: 10px 0;
-}
-
-.form-table:first-of-type tr th {
-	display: none;
-}
-
 #hcaptcha-options p {
 	margin: 0.5em 0;
 }
@@ -250,19 +241,6 @@
 
 #hcaptcha-options .hcaptcha-disabled-section + h3 + table.form-table .hcaptcha-integrations-paypal-payments-status p.description {
 	display: none;
-}
-
-/* Antispam indicators toggle */
-#hcaptcha-options .hcaptcha-integrations-show-antispam-coverage td {
-	width: max-content;
-}
-
-#hcaptcha-options .hcaptcha-integrations-show-antispam-coverage fieldset:disabled {
-	color: #a9a9a9;
-}
-
-#hcaptcha-options .hcaptcha-integrations-show-antispam-coverage fieldset:disabled+.helper::before {
-	opacity: 0.7;
 }
 
 /* Antispam indicators help icon */

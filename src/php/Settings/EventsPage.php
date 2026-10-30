@@ -157,12 +157,13 @@ class EventsPage extends ListPageBase {
 		$this->print_header();
 
 		if ( ! $this->allowed ) {
-			$statistics_url = admin_url( 'options-general.php?page=hcaptcha&tab=general#statistics_1' );
+			$settings       = hcaptcha()->settings();
+			$statistics_url = $settings->tab_url( Advanced::class ) . '#statistics_1';
 			$pro_url        = 'https://www.hcaptcha.com/pro?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=not';
 
 			$message = sprintf(
 			/* translators: 1: Statistics link, 2: Pro account link. */
-				__( 'Want to see events statistics? Please turn on the %1$s on the General settings page and upgrade to %2$s.', 'hcaptcha-for-forms-and-more' ),
+				__( 'Want to see events statistics? Please turn on the %1$s on the Advanced settings page and upgrade to %2$s.', 'hcaptcha-for-forms-and-more' ),
 				sprintf(
 				/* translators: 1: Statistics switch link, 2: Statistics switch text. */
 					'<a href="%1$s" target="_blank">%2$s</a>',

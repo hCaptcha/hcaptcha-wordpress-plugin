@@ -65,10 +65,7 @@ class CreateList {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( static::class ),
-				'form_id' => 'form',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		// Find the last $search string and insert hcaptcha before it.
@@ -98,7 +95,7 @@ class CreateList {
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify( $valid_captcha ) {
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify_post( self::NONCE, self::ACTION, $this->get_expected_id() );
 
 		if ( null !== $error_message ) {
 			wc_add_notice( $error_message, 'error' );
@@ -107,5 +104,17 @@ class CreateList {
 		}
 
 		return $valid_captcha;
+	}
+
+	/**
+	 * Get the expected form identity.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( static::class ),
+			'form_id' => 'form',
+		];
 	}
 }

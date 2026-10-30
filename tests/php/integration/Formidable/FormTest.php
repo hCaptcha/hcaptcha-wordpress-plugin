@@ -12,7 +12,13 @@
 
 namespace HCaptcha\Tests\Integration\Formidable;
 
+use FrmAppController;
+use FrmAppHelper;
+use FrmField;
+use FrmFieldsHelper;
+use FrmForm;
 use FrmSettings;
+use HCaptcha\AntiSpam\DisposableEmail;
 use HCaptcha\FormidableForms\Form;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
@@ -59,7 +65,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	public function test_live_form_render(): void {
 		global $frm_settings, $wpdb;
 
-		$settings                 = \FrmAppHelper::get_settings();
+		$settings                 = FrmAppHelper::get_settings();
 		$settings->active_captcha = 'hcaptcha';
 		$settings->store();
 
@@ -68,17 +74,17 @@ class FormTest extends HCaptchaPluginWPTestCase {
 
 		$form_id = $this->create_formidable_form();
 
-		$name_field         = \FrmFieldsHelper::setup_new_vars( 'text', $form_id );
+		$name_field         = FrmFieldsHelper::setup_new_vars( 'text', $form_id );
 		$name_field['name'] = 'Name';
 
-		self::assertIsInt( \FrmField::create( $name_field ), $wpdb->last_error );
+		self::assertIsInt( FrmField::create( $name_field ), $wpdb->last_error );
 
-		$captcha_field         = \FrmFieldsHelper::setup_new_vars( 'captcha', $form_id );
+		$captcha_field         = FrmFieldsHelper::setup_new_vars( 'captcha', $form_id );
 		$captcha_field['name'] = 'Captcha';
 
-		self::assertIsInt( \FrmField::create( $captcha_field ), $wpdb->last_error );
+		self::assertIsInt( FrmField::create( $captcha_field ), $wpdb->last_error );
 
-		$model_file = wp_normalize_path( ( new ReflectionClass( \FrmForm::class ) )->getFileName() );
+		$model_file = wp_normalize_path( ( new ReflectionClass( FrmForm::class ) )->getFileName() );
 		$html       = do_shortcode( '[formidable id="' . $form_id . '"]' );
 
 		self::assertTrue( is_plugin_active( static::$plugin ) );
@@ -192,7 +198,7 @@ HTML;
 		$html                         = str_replace( $hcaptcha_div, '', $html_with_hcaptcha );
 		$field                        = [ 'type' => 'some' ];
 		$atts                         = [ 'form' => (object) [ 'id' => $form_id ] ];
-		$frm_settings                 = \FrmAppHelper::get_settings();
+		$frm_settings                 = FrmAppHelper::get_settings();
 		$frm_settings->active_captcha = 'recaptcha';
 		$expected                     = str_replace( $hcaptcha_div, $hcap_form, $html_with_hcaptcha );
 
@@ -213,6 +219,13 @@ HTML;
 
 		// Success path.
 		self::assertSame( $expected, $subject->add_hcaptcha( $html_with_hcaptcha, $field, $atts ) );
+
+		// A label set to "None" leaves the field container and widget on the same line.
+		$container_start = '<div id="frm_field_88_container" class="frm_form_field form-field">';
+		$inline_html     = $container_start . $hcaptcha_div . '</div>';
+		$inline_expected = $container_start . $hcap_form . '</div>';
+
+		self::assertSame( $inline_expected, $subject->add_hcaptcha( $inline_html, $field, $atts ) );
 	}
 
 	/**
@@ -228,7 +241,7 @@ HTML;
 			'type' => 'some',
 		];
 		$post                         = [ 'some past data' ];
-		$frm_settings                 = \FrmAppHelper::get_settings();
+		$frm_settings                 = FrmAppHelper::get_settings();
 		$frm_settings->active_captcha = 'recaptcha';
 
 		$subject = Mockery::mock( Form::class )->makePartial();
@@ -251,6 +264,7 @@ HTML;
 	 * Test verify() with a bad response.
 	 *
 	 * @return void
+	 * @noinspection PhpArrayWriteIsNotUsedInspection
 	 */
 	public function test_verify_no_success(): void {
 		$form_id       = $this->create_formidable_form();
@@ -329,6 +343,11 @@ HTML;
 		$empty_field->type = 'text';
 		$empty_field->name = 'Phone';
 
+		$sensitive_field       = new stdClass();
+		$sensitive_field->id   = 14;
+		$sensitive_field->type = 'password';
+		$sensitive_field->name = 'Password';
+
 		$values = [
 			'h-captcha-response' => 'some-token',
 			'form_id'            => $form_id,
@@ -337,11 +356,12 @@ HTML;
 				11 => 'john@doe.com',
 				12 => 'Hello World',
 				13 => '',
+				14 => 'secret',
 			],
 		];
 
 		$validate_args = [
-			'posted_fields' => [ $name_field, $email_field, $text_field, $empty_field ],
+			'posted_fields' => [ $name_field, $email_field, $text_field, $empty_field, $sensitive_field ],
 		];
 
 		$this->prepare_verify(
@@ -352,6 +372,55 @@ HTML;
 		$subject = new Form();
 
 		self::assertSame( $errors, $subject->verify( $errors, $values, $validate_args ) );
+	}
+
+	/**
+	 * The canonical email matches the value accepted by native field validation.
+	 *
+	 * @dataProvider dp_test_email_normalization_policy
+	 *
+	 * @param mixed  $submitted Submitted email value.
+	 * @param string $expected  Native normalized address.
+	 * @param bool   $blocked   Whether the domain is disposable.
+	 */
+	public function test_email_normalization_policy( $submitted, string $expected, bool $blocked ): void {
+		$field   = (object) [
+			'id'   => 11,
+			'type' => 'email',
+			'name' => 'Email',
+		];
+		$subject = new Form();
+		$data    = $this->set_method_accessibility( $subject, 'get_data' )->invoke(
+			$subject,
+			[ $field ],
+			[ 'item_meta' => [ 11 => $submitted ] ]
+		);
+
+		add_filter(
+			'hcap_disposable_email_domains',
+			static function (): array {
+				return [ 'disposable.example' => true ];
+			}
+		);
+		add_filter( 'pre_transient_hcaptcha_disposable_email_blocklist', '__return_empty_array' );
+
+		self::assertSame( $expected, $data['email'] );
+		self::assertSame( $expected, $data['Email'] );
+		self::assertSame( $blocked, ( new DisposableEmail() )->is_disposable_email( $data['email'] ) );
+	}
+
+	/**
+	 * Email inputs accepted by the native Formidable field validator.
+	 *
+	 * @return array
+	 */
+	public function dp_test_email_normalization_policy(): array {
+		return [
+			'plain blocked'               => [ 'user@disposable.example', 'user@disposable.example', true ],
+			'outer spaces'                => [ ' user@disposable.example ', 'user@disposable.example', true ],
+			'singleton array with spaces' => [ [ ' user@disposable.example ' ], 'user@disposable.example', true ],
+			'allowed address'             => [ ' safe@example.com ', 'safe@example.com', false ],
+		];
 	}
 
 	/**
@@ -497,11 +566,12 @@ HTML;
 	 * Create a form through the live Formidable Forms model.
 	 *
 	 * @return int
+	 * @noinspection PhpRedundantOptionalArgumentInspection
 	 */
 	private function create_formidable_form(): int {
-		\FrmAppController::install();
+		FrmAppController::install();
 
-		$form_id = \FrmForm::create(
+		$form_id = FrmForm::create(
 			[
 				'form_key'    => uniqid( 'hcaptcha-form-', false ),
 				'name'        => 'hCaptcha integration form',

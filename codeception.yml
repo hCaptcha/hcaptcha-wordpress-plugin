@@ -20,6 +20,3 @@ coverage:
   low_limit: 35
   high_limit: 90
   show_only_summary: true
-  include:
-    - ./src/php/*
-    - ./hcaptcha.php

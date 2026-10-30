@@ -89,11 +89,15 @@ trait Base {
 
 		setcookie( 'eael_login_error_' . $widget_id, $error_message );
 
-		if ( isset( $_SERVER['HTTP_REFERER'] ) ) {
-			wp_safe_redirect( wp_unslash( $_SERVER['HTTP_REFERER'] ) );
+		$redirect_url = isset( $_SERVER['HTTP_REFERER'] ) ? esc_url_raw( wp_unslash( $_SERVER['HTTP_REFERER'] ) ) : '';
 
-			$this->exit();
+		if ( ! $redirect_url && ! empty( $submitted_data['page_id'] ) && is_scalar( $submitted_data['page_id'] ) ) {
+			$redirect_url = get_permalink( absint( $submitted_data['page_id'] ) );
 		}
+
+		wp_safe_redirect( $redirect_url ?: home_url( '/' ) );
+
+		$this->exit();
 	}
 
 	/**

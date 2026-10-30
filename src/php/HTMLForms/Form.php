@@ -13,6 +13,7 @@
 namespace HCaptcha\HTMLForms;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -109,10 +110,7 @@ class Form {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => $form_id,
-			],
+			'id'     => $this->get_expected_id( $form_id ),
 		];
 
 		return preg_replace(
@@ -146,17 +144,47 @@ class Form {
 	 *
 	 * @return string
 	 * @noinspection PhpUnusedParameterInspection
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify( $error_code, \HTML_Forms\Form $form, array $data ): string {
 		$error_code = (string) $error_code;
 
-		$this->error_message = API::verify_post( self::NONCE, self::ACTION );
+		$emails = [];
+
+		foreach ( $form->get_email_fields() as $field_name ) {
+			$value = hf_array_get( $data, $field_name );
+
+			if ( is_string( $value ) ) {
+				$emails[] = html_entity_decode( trim( wp_unslash( $value ) ), ENT_NOQUOTES );
+			}
+		}
+
+		$this->error_message = API::verify_post(
+			self::NONCE,
+			self::ACTION,
+			$this->get_expected_id( (int) ( $form->ID ?? 0 ) ),
+			EntryData::with_emails( [ 'data' => EntryData::without_sensitive_fields( wp_unslash( $data ) ) ], $emails )
+		);
 
 		if ( null !== $this->error_message ) {
 			return self::HCAPTCHA_ERROR;
 		}
 
 		return $error_code;
+	}
+
+	/**
+	 * Get the native HTML Forms form identity.
+	 *
+	 * @param int $form_id Form id.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id( int $form_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => $form_id,
+		];
 	}
 
 	/**

@@ -53,9 +53,13 @@ $config = [
 			}
 
 			if ( false !== strpos( $file_path, 'matthiasmullie/minify/src/JS.php' ) ) {
+				// Match the entire unscoped literal to avoid prefixing an already scoped callback.
 				return str_replace(
-					'\\\MatthiasMullie\\\Minify\\\Minify',
-					'\\' . $prefix . '\MatthiasMullie\Minify\Minify',
+					[
+						"'\\\\MatthiasMullie\\\\Minify\\\\Minify'",
+						"'\\MatthiasMullie\\Minify\\Minify'",
+					],
+					"'" . $prefix . "\\MatthiasMullie\\Minify\\Minify'",
 					$content
 				);
 			}

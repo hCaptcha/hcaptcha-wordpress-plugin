@@ -1,3 +1,5 @@
-#!/bin/bash
+#!/bin/sh
 
-git config core.hooksPath .githooks
+set -eu
+
+php "$(dirname "$0")/setup.php"

@@ -603,11 +603,14 @@ class HCaptchaHandler {
 		];
 
 		$fields = $record->get( 'fields' );
+		$emails = [];
 
 		foreach ( $fields as $field ) {
 			$type  = (string) ( $field['type'] ?? '' );
 			$id    = (string) ( $field['id'] ?? '' );
 			$label = (string) ( $field['field_label'] ?? '' );
+
+			$this->add_email( $emails, $field, $sent_data );
 
 			if ( array_key_exists( $id, $sent_data ) && EntryData::is_content_field_type( $type ) &&
 				! EntryData::has_sensitive_field( $id, $label ) ) {
@@ -615,7 +618,28 @@ class HCaptchaHandler {
 			}
 		}
 
-		return $entry;
+		return EntryData::with_emails( $entry, $emails );
+	}
+
+	/**
+	 * Collect email values normalized by the native form record.
+	 *
+	 * @param array $emails    Email addresses.
+	 * @param array $field     Native record field.
+	 * @param array $sent_data Native submission data.
+	 *
+	 * @return void
+	 */
+	private function add_email( array &$emails, array $field, array $sent_data ): void {
+		if ( 'email' !== ( $field['type'] ?? '' ) ) {
+			return;
+		}
+
+		$value = $field['value'] ?? ( $sent_data[ $field['id'] ?? '' ] ?? '' );
+
+		if ( is_string( $value ) ) {
+			$emails[] = isset( $field['value'] ) ? $value : sanitize_email( $value );
+		}
 	}
 
 	/**

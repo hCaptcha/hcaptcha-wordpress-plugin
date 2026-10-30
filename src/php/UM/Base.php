@@ -12,6 +12,7 @@ use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
+use WP_User;
 
 /**
  * Class Base
@@ -255,12 +256,52 @@ abstract class Base extends LoginBase {
 			$field_map['username'][] = "user_email-$form_id";
 		}
 
-		return [
+		$entry = [
 			'nonce_name'   => $this->hcaptcha_nonce,
 			'nonce_action' => $this->hcaptcha_action,
 			'data'         => EntryData::from_array( $submitted_data, $field_map ),
 			'expected_id'  => $this->get_expected_id( $form_id ),
 		];
+
+		if ( 'register' === $this->um_mode ) {
+			// Ultimate Member uses an email-valued username before user_email for the account address.
+			$username = $submitted_data['username'] ?? '';
+			$email    = is_string( $username ) && is_email( $username )
+				? $username
+				: ( $submitted_data['user_email'] ?? '' );
+
+			return EntryData::with_emails( $entry, [ $email ] );
+		}
+
+		if ( 'password' !== $this->um_mode ) {
+			return $entry;
+		}
+
+		return $this->get_recovery_entry( $entry, $submitted_data );
+	}
+
+	/**
+	 * Attach the account email selected by Ultimate Member recovery.
+	 *
+	 * @param array $entry          Verification entry.
+	 * @param array $submitted_data Submitted form fields.
+	 *
+	 * @return array
+	 */
+	private function get_recovery_entry( array $entry, array $submitted_data ): array {
+		$login = '';
+
+		foreach ( $submitted_data as $key => $value ) {
+			if ( is_string( $value ) && false !== strpos( (string) $key, 'username_b' ) ) {
+				$login = trim( sanitize_text_field( $value ) );
+			}
+		}
+
+		$user_by_login = '' !== $login ? get_user_by( 'login', $login ) : false;
+		$user_by_email = '' !== $login ? get_user_by( 'email', $login ) : false;
+		$user          = $user_by_login ?: $user_by_email;
+
+		return EntryData::with_emails( $entry, $user instanceof WP_User ? [ $user->user_email ] : [] );
 	}
 
 	/**

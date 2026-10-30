@@ -8,6 +8,7 @@
 namespace HCaptcha\Affiliates;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -88,10 +89,7 @@ class Register {
 		$args    = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'register',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 		$search  = '<input type="submit"';
 		$replace = HCaptcha::form( $args ) . $search;
@@ -115,7 +113,23 @@ class Register {
 			return $error;
 		}
 
-		$this->error_message = API::verify_post( self::NONCE, self::ACTION );
+		// A logged-in affiliate registers with the stored address, not the readonly POST field.
+		$email = '';
+
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- The API verifies the nonce below.
+		if ( is_user_logged_in() ) {
+			$email = wp_get_current_user()->user_email;
+		} elseif ( isset( $_POST['user_email'] ) && is_scalar( $_POST['user_email'] ) ) {
+			$email = sanitize_email( wp_unslash( (string) $_POST['user_email'] ) );
+		}
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		$this->error_message = API::verify_post(
+			self::NONCE,
+			self::ACTION,
+			$this->get_expected_id(),
+			EntryData::with_emails( [], [ $email ] )
+		);
 
 		return null !== $this->error_message;
 	}
@@ -138,5 +152,17 @@ class Register {
 			<?php echo esc_html( $this->error_message ); ?>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Get the expected form identity.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => 'register',
+		];
 	}
 }

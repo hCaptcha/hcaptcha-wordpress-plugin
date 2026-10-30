@@ -5,9 +5,15 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+/** @noinspection PhpUndefinedNamespaceInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
+
 namespace HCaptcha\Divi;
 
 use ET\Builder\FrontEnd\BlockParser\BlockParserStore;
+use ET\Builder\Packages\ModuleLibrary\ContactField\ContactFieldModule;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
@@ -49,6 +55,20 @@ class Contact {
 	 * @var string
 	 */
 	protected string $captcha = 'off';
+
+	/**
+	 * Trusted Divi 4 shortcode fields for the current module.
+	 *
+	 * @var string|null
+	 */
+	private ?string $shortcode_content = null;
+
+	/**
+	 * Trusted Divi 5 parser store context for the current module.
+	 *
+	 * @var array|null
+	 */
+	private ?array $block_context = null;
 
 	/**
 	 * Constructor.
@@ -176,6 +196,8 @@ class Contact {
 			return $value;
 		}
 
+		$this->shortcode_content = (string) ( $m[5] ?? '' );
+		$this->block_context     = null;
 		$this->verify();
 
 		return $value;
@@ -212,6 +234,13 @@ class Contact {
 			return $module_attrs;
 		}
 
+		$this->shortcode_content = null;
+		$this->block_context     = [
+			'id'             => $module_id,
+			'store_instance' => $store_instance,
+		];
+		// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- Native parser property.
+		$this->render_count = (int) ( $module->orderIndex ?? 0 );
 		$this->verify();
 
 		if ( 'on' === $this->captcha ) {
@@ -403,7 +432,243 @@ class Contact {
 			}
 		}
 
+		return $this->with_native_emails( $entry );
+	}
+
+	/**
+	 * Project authoritative email fields after generic submitted field metadata.
+	 *
+	 * @param array $entry Entry data.
+	 *
+	 * @return array
+	 */
+	private function with_native_emails( array $entry ): array {
+		if ( null === $this->shortcode_content && null === $this->block_context ) {
+			return $entry;
+		}
+
+		$emails = null === $this->block_context ? $this->get_shortcode_emails() : $this->get_block_emails();
+		$entry  = EntryData::with_emails( $entry, $emails );
+		unset( $entry['email'] );
+
+		if ( isset( $entry['data']['email'] ) ) {
+			$entry['email'] = $entry['data']['email'];
+		}
+
 		return $entry;
+	}
+
+	/**
+	 * Get native email values from server-rendered Divi 4 email field shortcodes.
+	 *
+	 * @return string[]
+	 */
+	private function get_shortcode_emails(): array {
+		$emails  = [];
+		$hidden  = $this->get_hidden_shortcode_fields();
+		$pattern = get_shortcode_regex( [ 'et_pb_contact_field' ] );
+		preg_match_all( "/$pattern/", (string) $this->shortcode_content, $matches, PREG_SET_ORDER );
+
+		foreach ( $matches as $match ) {
+			$attrs = shortcode_parse_atts( $match[3] );
+
+			if ( 'email' !== ( $attrs['field_type'] ?? 'input' ) ) {
+				continue;
+			}
+
+			$field_id = strtolower( (string) ( $attrs['field_id'] ?? '' ) );
+			// Native get_form_map() compares decoded exclusions without strict typing.
+			// phpcs:ignore WordPress.PHP.StrictInArray.MissingTrueStrict
+			if ( 'on' === ( $attrs['conditional_logic'] ?? 'off' ) && in_array( $field_id, $hidden, true ) ) {
+				continue;
+			}
+
+			$name = 'et_pb_contact_' . $field_id . '_' . $this->render_count;
+			// Native Divi verifies its nonce; API::verify() also verifies the hCaptcha nonce.
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			$value = wp_unslash( $_POST[ $name ] ?? '' );
+
+			if ( is_string( $value ) ) {
+				$emails[] = sanitize_email( $value );
+			}
+		}
+
+		return $emails;
+	}
+
+	/**
+	 * Read native Divi 4 conditional field exclusions for the submitted form.
+	 *
+	 * @return array
+	 */
+	private function get_hidden_shortcode_fields(): array {
+		$name = 'et_pb_contact_email_hidden_fields_' . $this->render_count;
+		// Native Divi permits these exclusions only for stored conditional fields.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		$value = $_POST[ $name ] ?? '';
+
+		return is_string( $value ) ? Utils::json_decode_arr( str_replace( '\\', '', $value ) ) : [];
+	}
+
+	/**
+	 * Collect emails using the native Divi 5 child fields and unique input names.
+	 *
+	 * @return string[]
+	 * @noinspection PhpUndefinedMethodInspection
+	 */
+	private function get_block_emails(): array {
+		$store_instance = $this->block_context['store_instance'];
+		$fields         = [];
+		$emails         = [];
+
+		foreach ( BlockParserStore::get_children( $this->block_context['id'], $store_instance ) as $field ) {
+			$field_id = strtolower( $field->attrs['fieldItem']['advanced']['id']['desktop']['value'] ?? '' );
+			$type     = $field->attrs['fieldItem']['advanced']['type']['desktop']['value'] ?? 'input';
+			$name     = ContactFieldModule::get_field_unique_id( $field->id, $store_instance );
+			// The native handler overwrites earlier definitions with the same lowercase field ID.
+			$fields[ $field_id ] = [
+				'type'        => $type,
+				'value'       => $this->get_block_field_value( $name, $type ),
+				'conditional' => $field->attrs['conditionalLogic'] ?? [],
+			];
+		}
+
+		foreach ( $fields as $field ) {
+			if ( 'email' !== $field['type'] || ! $this->is_block_field_visible( $field, $fields ) ) {
+				continue;
+			}
+
+			// ContactFormHandler::validate_fields() accepts only native-valid email values.
+			if ( is_email( $field['value'] ) ) {
+				$emails[] = $field['value'];
+			}
+		}
+
+		return $emails;
+	}
+
+	/**
+	 * Normalize a Divi 5 value exactly as ContactFormHandler::process().
+	 *
+	 * @param string $name Native unique input name.
+	 * @param string $type Stored field type.
+	 *
+	 * @return string|string[]
+	 */
+	private function get_block_field_value( string $name, string $type ) {
+		// Native Divi verifies its nonce; API::verify() also verifies the hCaptcha nonce.
+		// Its handler sanitizes non-checkbox values without an additional unslash.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		$value = $_POST[ $name ] ?? '';
+
+		if ( 'text' === $type ) {
+			return sanitize_textarea_field( $value );
+		}
+
+		if ( 'checkbox' !== $type ) {
+			return sanitize_text_field( $value );
+		}
+
+		$value = wp_unslash( $value );
+		if ( '' === $value ) {
+			return [];
+		}
+
+		$parts = array_map( 'urldecode', explode( ',', $value ) );
+		$parts = array_map( 'sanitize_text_field', $parts );
+
+		return array_map( 'trim', $parts );
+	}
+
+	/**
+	 * Mirror native private conditional visibility before its mail-processing constructor.
+	 *
+	 * @param array $field  Stored field and native-normalized value.
+	 * @param array $fields Native lowercase-ID last-wins field map.
+	 *
+	 * @return bool
+	 */
+	private function is_block_field_visible( array $field, array $fields ): bool {
+		$conditional = $field['conditional'];
+		if ( 'on' !== ( $conditional['advanced']['enable']['desktop']['value'] ?? 'off' ) ) {
+			return true;
+		}
+
+		$rules   = $conditional['innerContent']['desktop']['value'] ?? [];
+		$matches = [];
+		foreach ( $rules as $rule ) {
+			$value     = $this->get_block_rule_value( $rule, $fields );
+			$matches[] = (int) $this->matches_block_rule( $value, $rule['condition'], $rule['value'] );
+		}
+
+		return 'on' === ( $conditional['advanced']['relation']['desktop']['value'] ?? 'off' )
+			? count( $rules ) === array_sum( $matches )
+			: 0 !== array_sum( $matches );
+	}
+
+	/**
+	 * Read a native normalized conditional source, including checkbox joining.
+	 *
+	 * @param array $rule   Stored native rule.
+	 * @param array $fields Native lowercase-ID last-wins field map.
+	 *
+	 * @return string
+	 */
+	private function get_block_rule_value( array $rule, array $fields ): string {
+		$source = $fields[ strtolower( $rule['field'] ) ] ?? [];
+		$value  = $source['value'] ?? '';
+
+		return is_array( $value ) && 'checkbox' === ( $source['type'] ?? '' ) ? implode( ', ', $value ) : $value;
+	}
+
+	/**
+	 * Match native Divi 5 equality and numeric conditional rules.
+	 *
+	 * @param string $value      Native-normalized source value.
+	 * @param mixed  $condition  Native rule selector.
+	 * @param mixed  $rule_value Stored rule value.
+	 *
+	 * @return bool
+	 */
+	private function matches_block_rule( string $value, $condition, $rule_value ): bool {
+		switch ( $condition ) {
+			case 'is':
+				return $rule_value === $value;
+			case 'is not':
+				return $rule_value !== $value;
+			case 'is greater':
+				return (int) $value > (int) $rule_value;
+			case 'is less':
+				return (int) $value < (int) $rule_value;
+			default:
+				return $this->matches_block_text_rule( $value, $condition, $rule_value );
+		}
+	}
+
+	/**
+	 * Match native Divi 5 text, existence and unknown conditional rules.
+	 *
+	 * @param string $value      Native-normalized source value.
+	 * @param mixed  $condition  Native rule selector.
+	 * @param mixed  $rule_value Stored rule value.
+	 *
+	 * @return bool
+	 */
+	private function matches_block_text_rule( string $value, $condition, $rule_value ): bool {
+		switch ( $condition ) {
+			case 'is empty':
+				return '' === $value;
+			case 'is not empty':
+				return '' !== $value;
+			case 'contains':
+			case 'does not contain':
+				$pattern = preg_replace( '/[\\\\^$*+?.()|[\]{}]/', '\\\\$0', $rule_value );
+				$matches = (bool) preg_match( "/$pattern/", $value );
+
+				return 'contains' === $condition ? $matches : ! $matches;
+			default:
+				return true;
+		}
 	}
 
 	/**
@@ -424,15 +689,18 @@ class Contact {
 	 * @return void
 	 */
 	private function verify(): void {
-		$this->detect_render_count();
-
 		$submit_field = 'et_pb_contactform_submit_' . $this->render_count;
 		$number_field = 'et_pb_contact_et_number_' . $this->render_count;
+		$nonce_field  = '_wpnonce-et-pb-contact-form-submitted-' . $this->render_count;
 
-		// Check that the form was submitted and the et_pb_contact_et_number field is empty to protect from spam.
-		// Divi checks its nonce.
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		if ( isset( $_POST[ $submit_field ] ) && empty( $_POST[ $number_field ] ) ) {
+		// Divi 4 checks the current submit marker and honeypot. Divi 5 uses the current module nonce.
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		$submitted = null === $this->block_context
+			? isset( $_POST[ $submit_field ] ) && empty( $_POST[ $number_field ] )
+			: isset( $_POST[ $nonce_field ] );
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		if ( $submitted ) {
 			// Remove hCaptcha fields from current form fields, because Divi compares current and submitted fields.
 			$current_form_field  = 'et_pb_contact_email_fields_' . $this->render_count;
 			$current_form_fields = filter_input( INPUT_POST, $current_form_field, FILTER_SANITIZE_FULL_SPECIAL_CHARS );
@@ -453,22 +721,6 @@ class Contact {
 			if ( null !== $error_message ) {
 				// Simulate captcha error.
 				$this->captcha = 'on';
-			}
-		}
-	}
-
-	/**
-	 * Detect the render count from the submitted form.
-	 *
-	 * @return void
-	 */
-	private function detect_render_count(): void {
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		foreach ( $_POST as $key => $value ) {
-			if ( preg_match( '/^et_pb_contactform_submit_(\d+)$/', $key, $m ) ) {
-				$this->render_count = (int) $m[1];
-
-				return;
 			}
 		}
 	}

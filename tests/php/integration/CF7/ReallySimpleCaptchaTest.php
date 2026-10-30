@@ -15,12 +15,13 @@ namespace HCaptcha\Tests\Integration\CF7;
 
 use HCaptcha\CF7\CF7;
 use HCaptcha\CF7\ReallySimpleCaptcha;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
 use ReflectionClass;
+use ReflectionProperty;
 use WPCF7_ContactForm;
 use WPCF7_Submission;
-use function PHPUnit\Framework\assertSame;
 
 /**
  * Test ReallySimpleCaptcha class.
@@ -56,7 +57,7 @@ class ReallySimpleCaptchaTest extends HCaptchaPluginWPTestCase {
 	 * @return void
 	 */
 	protected function before_load_test_plugins(): void {
-		update_option( 'hcaptcha_settings', [ 'cf7_status' => [ 'replace_rsc', 'embed' ] ] );
+		update_option( 'hcaptcha_settings', [ 'cf7_status' => [ 'replace_rsc' ] ] );
 		hcaptcha()->init_hooks();
 		new ReallySimpleCaptcha();
 		new CF7();
@@ -65,9 +66,13 @@ class ReallySimpleCaptchaTest extends HCaptchaPluginWPTestCase {
 	/**
 	 * Test a live Contact Form 7 form containing Really Simple CAPTCHA tags.
 	 *
+	 * @param string $form_template RSC form template.
+	 * @param string $shortcode CF7 shortcode alias.
+	 * @dataProvider dp_live_rsc_forms
+	 *
 	 * @return void
 	 */
-	public function test_live_really_simple_captcha_form(): void {
+	public function test_live_really_simple_captcha_form( string $form_template, string $shortcode ): void {
 		$contact_form         = WPCF7_ContactForm::get_template(
 			[
 				'locale' => 'en_US',
@@ -75,7 +80,7 @@ class ReallySimpleCaptchaTest extends HCaptchaPluginWPTestCase {
 			]
 		);
 		$properties           = $contact_form->get_properties();
-		$properties['form']   = '[text* your-name] [captchac captcha-1] [captchar* captcha-1] [submit "Send"]';
+		$properties['form']   = $form_template;
 		$properties['mail']   = [];
 		$properties['mail_2'] = [];
 
@@ -84,7 +89,12 @@ class ReallySimpleCaptchaTest extends HCaptchaPluginWPTestCase {
 
 		add_shortcode( 'contact-form-7', 'wpcf7_contact_form_tag_func' );
 
-		$output      = do_shortcode( '[contact-form-7 id="' . $form_id . '"]' );
+		if ( 'contact-form' === $shortcode ) {
+			add_shortcode( 'contact-form', 'wpcf7_contact_form_tag_func' );
+			add_post_meta( $form_id, '_old_cf7_unit_id', $form_id );
+		}
+
+		$output      = do_shortcode( 'contact-form' === $shortcode ? '[contact-form ' . $form_id . ']' : '[contact-form-7 id="' . $form_id . '"]' );
 		$plugin_file = wp_normalize_path( ( new ReflectionClass( \ReallySimpleCaptcha::class ) )->getFileName() );
 
 		self::assertTrue( is_plugin_active( 'contact-form-7/wp-contact-form-7.php' ) );
@@ -95,6 +105,117 @@ class ReallySimpleCaptchaTest extends HCaptchaPluginWPTestCase {
 		self::assertStringContainsString( 'h-captcha', $output );
 		self::assertStringNotContainsString( '[captchac', $output );
 		self::assertStringNotContainsString( '[captchar', $output );
+	}
+
+	/**
+	 * RSC forms can use both native CF7 aliases and Unicode tag separators.
+	 *
+	 * @return array
+	 */
+	public function dp_live_rsc_forms(): array {
+		$normal_form = '[text* your-name] [captchac captcha-1] [captchar captcha-1] [submit "Send"]';
+		$nbsp        = "\u{00A0}";
+		$nbsp_form   = '[text* your-name] [captchac' . $nbsp . 'captcha-1] [captchar' . $nbsp . 'captcha-1] [submit "Send"]';
+
+		return [
+			'default'         => [ $normal_form, 'contact-form-7' ],
+			'nbsp'            => [ $nbsp_form, 'contact-form-7' ],
+			'legacy-alias'    => [ $normal_form, 'contact-form' ],
+			'alias-nbsp'      => [ $nbsp_form, 'contact-form' ],
+			'one-sided-close' => [ '[text* your-name] [captchac captcha-1] [captchar captcha-1]] [submit "Send"]', 'contact-form-7' ],
+			'one-sided-open'  => [ '[text* your-name] [[captchac captcha-1] [captchar captcha-1] [submit "Send"]', 'contact-form-7' ],
+		];
+	}
+
+	/**
+	 * Replacement alone must validate RSC forms without affecting other forms.
+	 *
+	 * @param string $form_template Form template.
+	 * @param bool   $should_reject Whether the missing proof must be rejected.
+	 * @param bool   $valid_proof   Whether to use a valid hCaptcha proof.
+	 * @dataProvider dp_replace_only_submission
+	 *
+	 * @return void
+	 */
+	public function test_replace_only_submission( string $form_template, bool $should_reject, bool $valid_proof ): void {
+		$contact_form         = WPCF7_ContactForm::get_template(
+			[
+				'locale' => 'en_US',
+				'title'  => 'SEC041 form',
+			]
+		);
+		$properties           = $contact_form->get_properties();
+		$properties['form']   = $form_template;
+		$properties['mail']   = [];
+		$properties['mail_2'] = [];
+		$contact_form->set_properties( $properties );
+		$form_id = $contact_form->save();
+		self::assertGreaterThan( 0, $form_id );
+
+		$before_mail = false;
+		add_filter( 'wpcf7_skip_spam_check', '__return_true' );
+		add_action(
+			'wpcf7_before_send_mail',
+			static function ( $form, &$abort ) use ( &$before_mail ): void {
+				$before_mail = true;
+				$abort       = true;
+			},
+			10,
+			2
+		);
+
+		$_POST = [
+			'_wpcf7'                => (string) $form_id,
+			'_wpcf7_unit_tag'       => 'wpcf7-f' . $form_id . '-o1',
+			'_wpcf7_locale'         => 'en_US',
+			'_wpcf7_container_post' => '0',
+			'your-name'             => 'SEC041 sender',
+		];
+		if ( $valid_proof ) {
+			$this->prepare_verify_request( 'sec041-local-proof' );
+			$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+				[
+					'source'  => [ 'contact-form-7/wp-contact-form-7.php' ],
+					'form_id' => $form_id,
+				]
+			);
+		}
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Synthetic native CF7 request.
+		$_REQUEST                  = $_POST;
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+
+		try {
+			$result = $contact_form->submit( [ 'skip_mail' => true ] );
+			self::assertSame( $should_reject ? 'validation_failed' : 'aborted', $result['status'] );
+			self::assertSame( ! $should_reject, $before_mail );
+		} finally {
+			$submission_instance = new ReflectionProperty( WPCF7_Submission::class, 'instance' );
+			$submission_instance->setAccessible( true );
+			$submission_instance->setValue( null, null );
+			unset( $_POST, $_REQUEST, $_SERVER['REQUEST_METHOD'] );
+		}
+	}
+
+	/**
+	 * Cases for replacement-only CF7 submissions.
+	 *
+	 * @return array
+	 */
+	public function dp_replace_only_submission(): array {
+		$nbsp = "\u{00A0}";
+
+		return [
+			'rsc-pair-missing' => [ '[text* your-name] [captchac captcha-1] [captchar captcha-1] [submit "Send"]', true, false ],
+			'rsc-pair-valid'   => [ '[text* your-name] [captchac captcha-1] [captchar captcha-1] [submit "Send"]', false, true ],
+			'rsc-nbsp-missing' => [ '[text* your-name] [captchac' . $nbsp . 'captcha-1] [captchar' . $nbsp . 'captcha-1] [submit "Send"]', true, false ],
+			'rsc-nbsp-valid'   => [ '[text* your-name] [captchac' . $nbsp . 'captcha-1] [captchar' . $nbsp . 'captcha-1] [submit "Send"]', false, true ],
+			'one-sided-close'  => [ '[text* your-name] [captchac captcha-1] [captchar captcha-1]] [submit "Send"]', true, false ],
+			'one-sided-open'   => [ '[text* your-name] [[captchac captcha-1] [captchar captcha-1] [submit "Send"]', true, false ],
+			'rsc-response'     => [ '[text* your-name] [captchar* captcha-1] [submit "Send"]', true, false ],
+			'ordinary'         => [ '[text* your-name] [submit "Send"]', false, false ],
+			'explicit-embed'   => [ '[text* your-name] [cf7-hcaptcha] [submit "Send"]', false, false ],
+			'escaped-rsc'      => [ '[text* your-name] [[captchac captcha-1]] [[captchar captcha-1]] [submit "Send"]', false, false ],
+		];
 	}
 
 	/**
@@ -149,6 +270,7 @@ class ReallySimpleCaptchaTest extends HCaptchaPluginWPTestCase {
 
 		// CF7 tag.
 		self::assertSame( $expected, $subject->wpcf7_shortcode( $output, $tag, [], [] ) );
+		self::assertSame( $expected, $subject->wpcf7_shortcode( $output, 'contact-form', [], [] ) );
 	}
 
 	/**

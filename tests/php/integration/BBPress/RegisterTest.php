@@ -221,6 +221,20 @@ HTML;
 	}
 
 	/**
+	 * Reject a registration with an invalid widget signature.
+	 */
+	public function test_verify_rejects_invalid_widget_signature(): void {
+		$errors = new WP_Error();
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = 'invalid';
+
+		$result = ( new Register() )->verify( $errors, '', '' );
+
+		self::assertSame( $errors, $result );
+		self::assertSame( [ 'bad-signature' ], $result->get_error_codes() );
+	}
+
+	/**
 	 * Test verify() skips a request owned by the native WordPress verifier.
 	 *
 	 * @return void
@@ -231,6 +245,7 @@ HTML;
 
 		new WPRegister();
 
+		$_POST['action']                       = 'register';
 		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
 			[
 				'source'  => [ 'WordPress' ],
@@ -239,6 +254,7 @@ HTML;
 		);
 
 		self::assertSame( $errors, $subject->verify( $errors, '', '' ) );
+		self::assertSame( [ 'some code' ], $errors->get_error_codes() );
 	}
 
 	/**

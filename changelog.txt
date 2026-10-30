@@ -1,3 +1,39 @@
+= 5.5.0 =
+* Added compatibility with Contact Form 7 6.2.0.
+* Added support for Icegram Express Max.
+* Added safe entry data processing across supported integrations, including native form payloads and email addresses.
+* Protected configured content in WordPress REST post, page, collection, and search responses.
+* Required hCaptcha for native WordPress REST comment creation.
+* Blocked REST password attempts that bypassed the protected post and page password form.
+* Extended signed hCaptcha widget ID verification to integrations and form paths that previously skipped it.
+* Preserved WPForms spam checks and submission-time validation when hCaptcha replaces its native CAPTCHA.
+* Preserved the visible hCaptcha widget in Essential Addons registration after its form markup is sanitized.
+* Kept wpDiscuz comment reCAPTCHA active when hCaptcha protects subscriptions only.
+* Avoided duplicate CAPTCHA challenges on Wordfence-protected WordPress registration forms.
+* Simplified the settings screen with keys and setup guidance first, an optional setup wizard, and an Advanced tab for less common options.
+* Recovered form submissions on long-open pages by refreshing expired timing tokens and retrying token requests with a fresh nonce.
+* Removed the Show Anti-Spam Indicators setting and indicators from the Integrations page, because all integrations now use the Anti-Spam protection.
+* Fixed error responses for rejected hCaptcha checks in WooCommerce Store API checkout.
+* Fixed Easy Digital Downloads checkout to show hCaptcha errors in its standard notices.
+* Fixed content protection on sites using plain permalinks.
+* Fixed adaptive hCaptcha after failed login attempts in Fluent Forms, Simple Membership, Ultimate Member, Beaver Builder, and Ultimate Addons.
+* Fixed rendering and validation of existing Ninja Forms hCaptcha fields alongside the plugin's own field.
+* Fixed hCaptcha rendering in Brevo signup widgets.
+* Fixed hCaptcha rendering in Formidable Forms when the CAPTCHA field label is set to "None".
+* Fixed Kadence form CAPTCHA settings changing when saving content.
+* Fixed adaptive hCaptcha on Theme My Login AJAX login forms.
+* Fixed multisite settings being saved to the wrong scope during background updates.
+* Fixed missing Events entries for requests with long User-Agent values.
+* Fixed content protection URL patterns and preserved regular expressions in settings.
+* Fixed Automatic Verification on forms with nonstandard action URLs.
+* Fixed hCaptcha disappearing from ACF Extended forms after page load.
+* Fixed "Token replayed or expired" errors during ACF Extended form submissions.
+* Fixed "Signature mismatch" errors when guests submit custom Auto-Verification forms with Form Submit Time enabled.
+* Fixed a fatal error when rendering the "Theme My Login" login form.
+* Fixed form submission while a Form Submit Time token is loading and added retryable connection error messages.
+* Fixed automatic verification rejecting forms with nested or array input names.
+* Fixed Simple Download Monitor downloads with WordPress script debugging (`SCRIPT_DEBUG`) enabled by loading its source script as a module.
+
 = 5.4.1 =
 * Fixed WordPress login authentication when login integrations have different protection settings.
 * Improved Auto-Verification compatibility with forms on query-based page URLs and Brevo forms, while simplifying form registration storage.

@@ -8,6 +8,7 @@
 namespace HCaptcha\EasyDigitalDownloads;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Block;
 
@@ -27,6 +28,13 @@ class Register {
 	private const NONCE = 'hcaptcha_easy_digital_downloads_register_nonce';
 
 	/**
+	 * Requests owned by active native registration handlers.
+	 *
+	 * @var array[]
+	 */
+	private array $registration_data = [];
+
+	/**
 	 * Form constructor.
 	 */
 	public function __construct() {
@@ -40,7 +48,33 @@ class Register {
 	 */
 	private function init_hooks(): void {
 		add_filter( 'render_block', [ $this, 'add_captcha' ], 10, 3 );
+		add_action( 'edd_user_register', [ $this, 'begin_registration' ], 9 );
+		add_action( 'edd_user_register', [ $this, 'end_registration' ], 11 );
 		add_filter( 'edd_errors', [ $this, 'verify' ] );
+	}
+
+	/**
+	 * Capture the request selected by the native dispatcher.
+	 *
+	 * @param array $data Native registration data.
+	 *
+	 * @return void
+	 */
+	public function begin_registration( array $data ): void {
+		$this->registration_data[] = [
+			'data'          => $data,
+			'verified'      => false,
+			'error_message' => null,
+		];
+	}
+
+	/**
+	 * Release the request after the native registration handler returns.
+	 *
+	 * @return void
+	 */
+	public function end_registration(): void {
+		array_pop( $this->registration_data );
 	}
 
 	/**
@@ -61,10 +95,7 @@ class Register {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'register',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		$search = '<div class="edd-blocks-form__group edd-blocks-form__group-submit reset-pass-submit">';
@@ -82,19 +113,22 @@ class Register {
 	 * @param array|mixed $errors Errors.
 	 *
 	 * @return array|mixed
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify( $errors ) {
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$post_value = isset( $_POST['edd_action'] ) ?
-			sanitize_text_field( wp_unslash( $_POST['edd_action'] ) ) :
-			'';
-
-		if ( 'user_register' !== $post_value ) {
+		if ( ! $this->registration_data || ! doing_action( 'edd_user_register' ) ) {
 			return $errors;
 		}
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		$registration = &$this->registration_data[ count( $this->registration_data ) - 1 ];
+
+		// Repeated native error reads must not consume this immutable request's proof again.
+		if ( ! $registration['verified'] ) {
+			$registration['error_message'] = $this->verify_registration( $registration['data'] );
+			$registration['verified']      = true;
+		}
+
+		$error_message = $registration['error_message'];
 
 		if ( null === $error_message ) {
 			return $errors;
@@ -104,7 +138,48 @@ class Register {
 
 		$errors          = $errors ? (array) $errors : [];
 		$errors[ $code ] = $error_message;
+		edd_set_error( $code, $error_message );
 
 		return $errors;
+	}
+
+	/**
+	 * Verify proof and email from one native registration request.
+	 *
+	 * @param array $data Native registration data.
+	 *
+	 * @return string|null
+	 */
+	private function verify_registration( array $data ): ?string {
+		// Match the native endpoint's sanitation of its slashed email field.
+		$email = isset( $data['edd_user_email'] ) && is_scalar( $data['edd_user_email'] ) ? sanitize_email( (string) $data['edd_user_email'] ) : '';
+
+		// Missing proof in one transport must not inherit another transport's fields.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- The API validates the selected request below.
+		$previous_post = $_POST;
+		$_POST         = $data;
+
+		try {
+			return API::verify_post(
+				self::NONCE,
+				self::ACTION,
+				$this->get_expected_id(),
+				EntryData::with_emails( [], [ $email ] )
+			);
+		} finally {
+			$_POST = $previous_post;
+		}
+	}
+
+	/**
+	 * Get the expected form identity.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => 'register',
+		];
 	}
 }

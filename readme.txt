@@ -4,7 +4,7 @@ Tags: captcha, hcaptcha, recaptcha, antispam, spam
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 5.4.1
+Stable tag: 5.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -14,6 +14,8 @@ Works with 60+ integrations: Contact Form 7, Elementor, WooCommerce, Divi, etc.
 == Description ==
 
 The strongest CAPTCHA. Switch from reCAPTCHA and Turnstile for free.
+
+**Unique REST API protection:** In our October 2026 review of the 10 most-installed WordPress.org plugins tagged `captcha`, none offered this combination: hCaptcha protects selected content in WordPress REST post, page, collection, and search responses; requires hCaptcha for native REST comments; and blocks REST post-password attempts. Each safeguard applies when its corresponding protection is enabled.
 
 A built-in Migration Wizard helps you move from Google reCAPTCHA or Cloudflare Turnstile to hCaptcha in just a few clicks.
 
@@ -41,6 +43,7 @@ hCaptcha for WP [makes security easy](https://www.hcaptcha.com/integration-hcapt
 * **Pro and Enterprise:** Supports Pro and Enterprise versions of hCaptcha.
 * **No Challenge Modes:** 99.9% passive and passive modes in Pro and Enterprise versions reduce user friction.
 * **Protect Site Content:** Protects selected site URLs from bots with hCaptcha. Works best with Pro 99.9% passive mode.
+* **REST API Protection:** Keeps protected posts and pages out of WordPress REST responses and search, verifies native REST comments, and blocks REST post-password attempts when the corresponding protections are enabled.
 * **Logged-in Users:** Optionally turn off hCaptcha for logged-in users.
 * **Delayed API Loading:** Load the hCaptcha API instantly or on user interaction for zero page loading impact.
 * **IP Access Control:** Allowlist trusted IPs to skip hCaptcha and denylist abusive IPs to block form submissions.
@@ -351,6 +354,12 @@ if ( null !== $result ) {
 }
 `
 
+= How to honor per-form protection exemptions in custom handlers =
+
+Custom verification helpers always require a valid CAPTCHA response unless the server supplies the expected form identity. To honor a per-form `hcap_protect_form` exemption, pass the same server-selected `source` and `form_id` used to render the widget: `API::verify_post( $nonce_name, $nonce_action, $expected_id )`, `API::verify_post_html( $nonce_name, $nonce_action, $expected_id )`, or `API::verify_post_data( $nonce_name, $nonce_action, $post_data, $expected_id )`. For `API::verify_request()` and `API::verify()`, use the entry's `expected_id` key. Derive that identity from the native form being processed, independently of the submitted `hcaptcha-widget-id`.
+
+When a handler cannot identify the submitted form independently, set `mandatory` to `true` in the arguments passed to `HCaptcha::form()` or `HCaptcha::form_display()`. This keeps the required challenge and nonce visible even when a per-form exemption is configured. Asgaros, Passster, and PayPal order creation use this mode; PayPal also requires the checkout widget it shares. Icegram's generic form without a native form ID requires the challenge too. Other forms with a matching server-selected identity retain their per-form exemptions.
+
 = How to automatically verify an arbitrary form =
 
 Arbitrary user forms can be verified easily. Just add `auto="true"` or `auto="1"` to the shortcode:
@@ -515,8 +524,8 @@ Events Manager
 `$source: 'events-manager/events-manager.php'`
 `$form_id: event_id`
 
-Icegram Express
-`$source: 'email-subscribers/email-subscribers.php'`
+Icegram Express (including Max)
+`$source: [ 'email-subscribers-premium/email-subscribers-premium.php', 'email-subscribers/email-subscribers.php' ]`
 `$form_id: form_id`
 
 Customer Reviews for WooCommerce
@@ -940,6 +949,8 @@ With the default configuration, this plugin does not:
 * send any data to external servers;
 * use cookies.
 
+If you enable CAPTCHA protection for native WordPress password-protected posts, the plugin sets a first-party `hcaptcha_postpass_` cookie after successful verification. It contains signed proof of the password scope without the password itself and follows the native post-password cookie lifetime, including session cookies. Existing post-password cookies without this proof require another password-form submission with CAPTCHA. REST password attempts are rejected while this protection is enabled; editor authorization remains available.
+
 Once you activate this plugin, the hCaptcha-answering user's IP address and browser data may be sent to the hCaptcha service on pages where you have activated hCaptcha protection. However, hCaptcha is designed to minimize data used, process it very close to the user, and rapidly discard it after analysis.
 For more details, please see the hCaptcha privacy policy at:
 
@@ -1052,6 +1063,42 @@ Instructions for popular native integrations are below:
 * [WPForms native integration: instructions to enable hCaptcha](https://wpforms.com/docs/how-to-set-up-and-use-hcaptcha-in-wpforms)
 
 == Changelog ==
+
+= 5.5.0 =
+* Added compatibility with Contact Form 7 6.2.0.
+* Added support for Icegram Express Max.
+* Added safe entry data processing across supported integrations, including native form payloads and email addresses.
+* Protected configured content in WordPress REST post, page, collection, and search responses.
+* Required hCaptcha for native WordPress REST comment creation.
+* Blocked REST password attempts that bypassed the protected post and page password form.
+* Extended signed hCaptcha widget ID verification to integrations and form paths that previously skipped it.
+* Preserved WPForms spam checks and submission-time validation when hCaptcha replaces its native CAPTCHA.
+* Preserved the visible hCaptcha widget in Essential Addons registration after its form markup is sanitized.
+* Kept wpDiscuz comment reCAPTCHA active when hCaptcha protects subscriptions only.
+* Avoided duplicate CAPTCHA challenges on Wordfence-protected WordPress registration forms.
+* Simplified the settings screen with keys and setup guidance first, an optional setup wizard, and an Advanced tab for less common options.
+* Recovered form submissions on long-open pages by refreshing expired timing tokens and retrying token requests with a fresh nonce.
+* Removed the Show Anti-Spam Indicators setting and indicators from the Integrations page, because all integrations now use the Anti-Spam protection.
+* Fixed error responses for rejected hCaptcha checks in WooCommerce Store API checkout.
+* Fixed Easy Digital Downloads checkout to show hCaptcha errors in its standard notices.
+* Fixed content protection on sites using plain permalinks.
+* Fixed adaptive hCaptcha after failed login attempts in Fluent Forms, Simple Membership, Ultimate Member, Beaver Builder, and Ultimate Addons.
+* Fixed rendering and validation of existing Ninja Forms hCaptcha fields alongside the plugin's own field.
+* Fixed hCaptcha rendering in Brevo signup widgets.
+* Fixed hCaptcha rendering in Formidable Forms when the CAPTCHA field label is set to "None".
+* Fixed Kadence form CAPTCHA settings changing when saving content.
+* Fixed adaptive hCaptcha on Theme My Login AJAX login forms.
+* Fixed multisite settings being saved to the wrong scope during background updates.
+* Fixed missing Events entries for requests with long User-Agent values.
+* Fixed content protection URL patterns and preserved regular expressions in settings.
+* Fixed Automatic Verification on forms with nonstandard action URLs.
+* Fixed hCaptcha disappearing from ACF Extended forms after page load.
+* Fixed "Token replayed or expired" errors during ACF Extended form submissions.
+* Fixed "Signature mismatch" errors when guests submit custom Auto-Verification forms with Form Submit Time enabled.
+* Fixed a fatal error when rendering the "Theme My Login" login form.
+* Fixed form submission while a Form Submit Time token is loading and added retryable connection error messages.
+* Fixed automatic verification rejecting forms with nested or array input names.
+* Fixed Simple Download Monitor downloads with WordPress script debugging (`SCRIPT_DEBUG`) enabled by loading its source script as a module.
 
 = 5.4.1 =
 * Fixed WordPress login authentication when login integrations have different protection settings.

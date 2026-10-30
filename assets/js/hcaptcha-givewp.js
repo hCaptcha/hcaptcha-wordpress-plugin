@@ -42,15 +42,19 @@ const hCaptchaGiveWP = window.hCaptchaGiveWP || ( function( window ) {
 
 			const url = typeof resource === 'string' ? resource : ( resource?.url || '' );
 			let route = '';
+			let paypalOrder = false;
 
 			try {
 				const u = new URL( url, window.location.href );
 				route = u.searchParams.get( 'givewp-route' ) || '';
+				paypalOrder = u.origin === window.location.origin &&
+					u.pathname.endsWith( '/wp-admin/admin-ajax.php' ) &&
+					( u.searchParams.get( 'action' ) || body.get( 'action' ) ) === 'give_paypal_commerce_create_order';
 			} catch {
 				// ignore
 			}
 
-			if ( route !== 'donate' ) {
+			if ( route !== 'donate' && ! paypalOrder ) {
 				return;
 			}
 
@@ -73,12 +77,15 @@ const hCaptchaGiveWP = window.hCaptchaGiveWP || ( function( window ) {
 			const sigInput = giveWPForm.querySelector( `[name="${ sigName }"]` );
 			const hcapHp = giveWPForm.querySelector( `[id^="hcap_hp_"]` );
 
-			body.set( responseName, response?.value );
-			body.set( widgetName, widgetId?.value );
-			body.set( nonceName, nonce?.value );
-			body.set( tokenName, tokenInput?.value );
-			body.set( sigName, sigInput?.value );
-			body.set( hcapHp.id, hcapHp.value ?? '' );
+			body.set( responseName, response?.value ?? '' );
+			body.set( widgetName, widgetId?.value ?? '' );
+			body.set( nonceName, nonce?.value ?? '' );
+			body.set( tokenName, tokenInput?.value ?? '' );
+			body.set( sigName, sigInput?.value ?? '' );
+
+			if ( hcapHp ) {
+				body.set( hcapHp.id, hcapHp.value ?? '' );
+			}
 
 			config.body = body;
 			args[ 1 ] = config;

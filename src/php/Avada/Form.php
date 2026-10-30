@@ -135,7 +135,13 @@ class Form {
 			: [];
 		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
-		$result = API::verify( $this->get_entry( $form_data ) );
+		// Avada selects the submitted form from this field, not from formData keys.
+		$form_id = Request::filter_input( INPUT_POST, 'form_id' );
+		$form_id = is_string( $form_id ) ? absint( $form_id ) : 0;
+
+		$result = $form_id
+			? API::verify( $this->get_entry( $form_data, $form_id ) )
+			: hcap_get_error_messages()['bad-signature'];
 
 		if ( null === $result ) {
 			return $demo_mode;
@@ -176,20 +182,11 @@ class Form {
 	 * Get entry.
 	 *
 	 * @param array $form_data Form data.
+	 * @param int   $form_id   Form ID selected by Avada's submission handler.
 	 *
 	 * @return array
 	 */
-	private function get_entry( array $form_data ): array {
-		$form_id = 0;
-
-		foreach ( $form_data as $key => $value ) {
-			if ( 0 === strpos( $key, 'fusion-form-nonce-' ) ) {
-				$form_id = (int) str_replace( 'fusion-form-nonce-', '', $key );
-
-				break;
-			}
-		}
-
+	private function get_entry( array $form_data, int $form_id ): array {
 		$form = get_post( $form_id );
 
 		$entry = [
@@ -197,11 +194,8 @@ class Form {
 			'form_date_gmt'      => $form->post_modified_gmt ?? null,
 			'post_data'          => $form_data,
 			'data'               => [],
+			'expected_id'        => $this->get_expected_id( $form_id ),
 		];
-
-		if ( $form_id ) {
-			$entry['expected_id'] = $this->get_expected_id( $form_id );
-		}
 
 		$field_types = Utils::json_decode_arr( Request::filter_input( INPUT_POST, 'field_types' ) );
 

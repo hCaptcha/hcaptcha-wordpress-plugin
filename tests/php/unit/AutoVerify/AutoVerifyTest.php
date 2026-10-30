@@ -33,7 +33,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	 * Tear down the test.
 	 */
 	public function tearDown(): void {
-		unset( $GLOBALS['wpdb'], $_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI'] );
+		unset( $GLOBALS['wpdb'], $_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI'], $_GET['pagename'] );
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		foreach ( array_keys( $_POST ) as $key ) {
@@ -443,6 +443,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	 */
 	public function test_verify_when_form_is_not_registered(): void {
 		$url = 'https://test.test/auto-verify?test=1';
+		FunctionMocker::replace( '\HCaptcha\Helpers\Request::filter_input', '' );
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
 		$path = parse_url( $url, PHP_URL_PATH );
@@ -803,7 +804,7 @@ class AutoVerifyTest extends HCaptchaTestCase {
 			}
 		);
 		WP_Mock::userFunction( 'wp_parse_url' )->andReturnUsing(
-			static function ( $url, $component ) {
+			static function ( $url, $component = -1 ) {
 				// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
 				return parse_url( $url, $component );
 			}
@@ -1049,6 +1050,87 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Match PHP array input names in both persistent and legacy registrations.
+	 *
+	 * @param array  $inputs     Registered input names.
+	 * @param string $query      Encoded submission.
+	 * @param bool   $matches    Whether the submission matches.
+	 * @param bool   $persistent Whether to use persistent storage.
+	 *
+	 * @dataProvider dp_test_get_registered_form_with_array_inputs
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_get_registered_form_with_array_inputs( array $inputs, string $query, bool $matches, bool $persistent ): void {
+		parse_str( $query, $post );
+		$_POST = $post + [ HCaptcha::HCAPTCHA_WIDGET_ID => 'array-widget-id' ];
+		$form  = [
+			'inputs'    => $inputs,
+			'widget_id' => 'array-widget-id',
+			'args'      => [ 'auto' => true ],
+		];
+
+		WP_Mock::userFunction( 'get_option' )
+			->with( 'hcaptcha_auto_verify_form_' . hash( 'sha256', '/array-form' ), false )
+			->once()
+			->andReturn( $persistent ? [ $form ] : false );
+		WP_Mock::userFunction( 'get_transient' )
+			->with( AutoVerify::TRANSIENT )
+			->times( $persistent ? 0 : 1 )
+			->andReturn( [ '/array-form' => [ $form ] ] );
+		FunctionMocker::replace(
+			'\\HCaptcha\\Helpers\\Request::filter_input',
+			static function ( int $type, string $var_name ) use ( $post ) {
+				return $post[ $var_name ] ?? ( HCaptcha::HCAPTCHA_WIDGET_ID === $var_name ? 'array-widget-id' : '' );
+			}
+		);
+
+		self::assertSame(
+			$matches ? $form : [],
+			$this->call_private( new AutoVerify(), 'get_registered_form', [ '/array-form' ] )
+		);
+	}
+
+	/**
+	 * Array field structures as parsed by PHP from an HTTP submission.
+	 *
+	 * @return array
+	 */
+	public function dp_test_get_registered_form_with_array_inputs(): array {
+		$cases = [
+			'contact fields'          => [ [ 'contact[name]', 'contact[email]' ], 'contact[name]=User&contact[email]=user@example.com', true ],
+			'empty values'            => [ [ 'contact[name]', 'contact[email]' ], 'contact[name]=&contact[email]=', true ],
+			'missing sibling'         => [ [ 'contact[name]', 'contact[email]' ], 'contact[name]=User', false ],
+			'missing parent'          => [ [ 'contact[email]' ], 'other[email]=user@example.com', false ],
+			'scalar parent'           => [ [ 'contact[email]' ], 'contact=user@example.com', false ],
+			'deep field'              => [ [ 'contact[address][city]' ], 'contact[address][city]=Riga', true ],
+			'missing deep field'      => [ [ 'contact[address][city]' ], 'contact[address][country]=Latvia', false ],
+			'indexed field'           => [ [ 'contacts[2][email]' ], 'contacts[2][email]=user@example.com', true ],
+			'wrong index'             => [ [ 'contacts[2][email]' ], 'contacts[0][email]=user@example.com', false ],
+			'list'                    => [ [ 'emails[]' ], 'emails[]=user@example.com', true ],
+			'nonzero list index'      => [ [ 'emails[]' ], 'emails[3]=user@example.com', true ],
+			'scalar list'             => [ [ 'emails[]' ], 'emails=user@example.com', false ],
+			'nested list'             => [ [ 'contact[emails][]' ], 'contact[emails][]=user@example.com', true ],
+			'field inside list'       => [ [ 'contacts[][email]' ], 'contacts[2][name]=User&contacts[3][email]=user@example.com', true ],
+			'missing field in list'   => [ [ 'contacts[][email]' ], 'contacts[2][name]=User', false ],
+			'multidimensional list'   => [ [ 'contacts[][emails][]' ], 'contacts[2][emails][3]=user@example.com', true ],
+			'mixed field names'       => [ [ 'subject', 'contact[email]' ], 'subject=Hello&contact[email]=user@example.com', true ],
+			'normalized root'         => [ [ 'contact.details[email]' ], 'contact.details[email]=user@example.com', true ],
+			'literal plus and amp'    => [ [ 'contact+details[email&name]' ], 'contact%2Bdetails[email%26name]=User', true ],
+			'wrong widget identity'   => [ [ 'contact[email]' ], 'contact[email]=user@example.com&hcaptcha-widget-id=other-widget-id', false ],
+			'missing widget identity' => [ [ 'contact[email]' ], 'contact[email]=user@example.com&hcaptcha-widget-id=', false ],
+		];
+		$data  = [];
+
+		foreach ( [ false, true ] as $persistent ) {
+			foreach ( $cases as $name => $case ) {
+				$data[ $name . ( $persistent ? ' persistent' : ' legacy' ) ] = array_merge( $case, [ $persistent ] );
+			}
+		}
+
+		return $data;
+	}
+
+	/**
 	 * Get test request URI.
 	 *
 	 * @return string
@@ -1188,18 +1270,20 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	 */
 	public function test_registered_form_uses_canonical_path(): void {
 		$_SERVER['REQUEST_URI'] = '/raw-path/';
+		$_GET['pagename']       = 'page-slug';
 		$this->mock_url_helpers();
 		WP_Mock::passthruFunction( 'wp_unslash' );
 		FunctionMocker::replace( '\HCaptcha\Helpers\Request::current_url', 'https://test.test/raw-path/' );
 		FunctionMocker::replace(
 			'\HCaptcha\Helpers\Request::filter_input',
 			static function ( $type ) {
-				return INPUT_GET === $type ? 'page-slug' : 'widget-id';
+				return INPUT_POST === $type ? 'widget-id' : '';
 			}
 		);
-		WP_Mock::userFunction( 'url_to_postid' )->with( 'https://test.test/raw-path/' )->once()->andReturn( 0 );
-		WP_Mock::userFunction( 'get_page_by_path' )->with( 'page-slug' )->once()->andReturn( (object) [ 'ID' => 123 ] );
+		$query = Mockery::mock( 'overload:WP_Query' );
+		$query->shouldReceive( 'get_queried_object_id' )->once()->andReturn( 123 );
 		WP_Mock::userFunction( 'get_permalink' )->with( 123 )->once()->andReturn( 'https://test.test/canonical/' );
+		WP_Mock::userFunction( 'home_url' )->with( '/' )->once()->andReturn( 'https://test.test/' );
 
 		$form = [
 			'args'      => [ 'auto' => true ],
@@ -1227,11 +1311,13 @@ class AutoVerifyTest extends HCaptchaTestCase {
 	 * @throws ReflectionException Reflection exception.
 	 */
 	public function test_canonical_path_rejects_non_string_permalink(): void {
+		$this->mock_url_helpers();
+		FunctionMocker::replace( '\HCaptcha\Helpers\Request::filter_input', '' );
 		FunctionMocker::replace( '\HCaptcha\Helpers\Request::current_url', 'https://test.test/page/' );
 		WP_Mock::userFunction( 'url_to_postid' )->with( 'https://test.test/page/' )->once()->andReturn( 123 );
 		WP_Mock::userFunction( 'get_permalink' )->with( 123 )->once()->andReturn( false );
 
-		self::assertSame( '', $this->call_private( new AutoVerify(), 'get_canonical_request_path' ) );
+		self::assertSame( [], $this->call_private( new AutoVerify(), 'get_canonical_request_keys' ) );
 	}
 
 	/**
@@ -1308,13 +1394,246 @@ class AutoVerifyTest extends HCaptchaTestCase {
 		$registered_forms = [ '/form' => [ [ 'source' => 'post:1' ], [ 'source' => 'post:2' ] ] ];
 		$action_forms     = $registered_forms['/form'];
 		$option_name      = 'hcaptcha_auto_verify_form_' . hash( 'sha256', '/form' );
+		$updates          = 0;
 		WP_Mock::userFunction( 'update_option' )
 			->with( $option_name, [ [ 'source' => 'post:2' ] ], false )
-			->once();
+			->once()
+			->andReturnUsing(
+				static function () use ( &$updates ): void {
+					++$updates;
+				}
+			);
 
 		$method = $this->set_method_accessibility( $subject, 'remove_form_registration' );
 		$method->invokeArgs( $subject, [ &$registered_forms, [ 'source' => 'post:1' ], '/form', $action_forms, 0 ] );
 
 		self::assertSame( [ '/form' => [ [ 'source' => 'post:2' ] ] ], $registered_forms );
+		self::assertSame( 1, $updates );
+	}
+
+	/**
+	 * Prefer the query-qualified registration over the plain path.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_registered_form_uses_query_key(): void {
+		$_SERVER['REQUEST_URI'] = '/?p=123';
+		$this->mock_url_helpers();
+		WP_Mock::passthruFunction( 'wp_unslash' );
+		WP_Mock::userFunction( 'home_url' )->with( '/' )->andReturn( 'https://test.test/' );
+
+		$query = Mockery::mock( 'overload:WP_Query' );
+		$query->shouldReceive( 'get_queried_object_id' )->once()->andReturn( 123 );
+
+		$form                                  = [
+			'args'      => [ 'auto' => true ],
+			'inputs'    => [],
+			'widget_id' => 'query-widget',
+		];
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = 'query-widget';
+		FunctionMocker::replace(
+			'\HCaptcha\Helpers\Request::filter_input',
+			static function ( $type, $name ) {
+				return INPUT_POST === $type && HCaptcha::HCAPTCHA_WIDGET_ID === $name ? 'query-widget' : '';
+			}
+		);
+		WP_Mock::userFunction( 'get_option' )
+			->with( 'hcaptcha_auto_verify_form_' . hash( 'sha256', 'post:123:/' ), false )
+			->once()
+			->andReturn( [ $form ] );
+
+		self::assertSame( $form, $this->call_private( new AutoVerify(), 'get_registered_form_for_request' ) );
+	}
+
+	/**
+	 * Skip a canonical key that duplicates the request path.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_registered_form_skips_duplicate_canonical_key(): void {
+		$_SERVER['REQUEST_URI'] = '/';
+		$_GET                   = [];
+		$this->mock_url_helpers();
+		WP_Mock::passthruFunction( 'wp_unslash' );
+		WP_Mock::userFunction( 'home_url' )->with( '/' )->andReturn( 'https://test.test/' );
+		WP_Mock::userFunction( 'url_to_postid' )->with( 'https://test.test/' )->once()->andReturn( 1 );
+		WP_Mock::userFunction( 'get_permalink' )->with( 1 )->once()->andReturn( 'https://test.test/' );
+		FunctionMocker::replace( '\\HCaptcha\\Helpers\\Request::filter_input', '' );
+		FunctionMocker::replace( '\\HCaptcha\\Helpers\\Request::current_url', 'https://test.test/' );
+
+		foreach ( [ '/', 'post:1:/', 'post:1:/index.php' ] as $path ) {
+			WP_Mock::userFunction( 'get_option' )
+				->with( 'hcaptcha_auto_verify_form_' . hash( 'sha256', $path ), false )
+				->once()
+				->andReturn( false );
+		}
+		WP_Mock::userFunction( 'get_transient' )->with( AutoVerify::TRANSIENT )->times( 3 )->andReturn( false );
+
+		self::assertNull( $this->call_private( new AutoVerify(), 'get_registered_form_for_request' ) );
+	}
+
+	/**
+	 * Decode HTML action references using browser-compatible rules.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_decode_action_attribute_references(): void {
+		$subject = new AutoVerify();
+		$cases   = [
+			'&#65;'      => 'A',
+			'&#xA9;'     => '©',
+			'&#128;'     => '€',
+			'&#x1F600;'  => '😀',
+			'&#0;'       => "\xef\xbf\xbd",
+			'&#x110000;' => "\xef\xbf\xbd",
+			'&#xD800;'   => "\xef\xbf\xbd",
+			'&amp'       => '&',
+			'&bogus'     => '&bogus',
+		];
+
+		foreach ( $cases as $reference => $expected ) {
+			self::assertSame( $expected, $this->call_private( $subject, 'decode_action_attribute', [ $reference ] ) );
+		}
+	}
+
+	/**
+	 * Resolve pathless, relative and absolute form actions.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_resolve_form_action_paths(): void {
+		$_SERVER['REQUEST_URI'] = '/directory/current?old=1';
+		WP_Mock::passthruFunction( 'wp_unslash' );
+		WP_Mock::userFunction( 'wp_parse_url' )->andReturnUsing(
+			static function ( $url, $component = -1 ) {
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
+				return parse_url( $url, $component );
+			}
+		);
+
+		$subject = new AutoVerify();
+		self::assertSame( '/directory/current', $this->call_private( $subject, 'resolve_form_action', [ '' ] ) );
+		self::assertSame( '/directory/next', $this->call_private( $subject, 'resolve_form_action', [ 'next' ] ) );
+		self::assertSame( '/', $this->call_private( $subject, 'resolve_form_action', [ 'https://other.test' ] ) );
+	}
+
+	/**
+	 * Retire migrated actions while retaining unrelated legacy registrations.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_update_form_registrations_retires_legacy_transient(): void {
+		$action      = '/form';
+		$option_name = 'hcaptcha_auto_verify_form_' . hash( 'sha256', $action );
+		$form_data   = [
+			'action' => $action,
+			'inputs' => [],
+			'args'   => [ 'auto' => true ],
+		];
+		$stored_form = [
+			'inputs' => [],
+			'args'   => [ 'auto' => true ],
+		];
+
+		WP_Mock::userFunction( 'wp_parse_args' )->andReturnUsing(
+			static function ( $args, $defaults ) {
+				return array_merge( $defaults, $args );
+			}
+		);
+		WP_Mock::userFunction( 'get_transient' )->with( AutoVerify::TRANSIENT )->twice()->andReturn(
+			[
+				$action  => [],
+				'/other' => [],
+			],
+			[ $action => [] ]
+		);
+		WP_Mock::userFunction( 'get_option' )->with( $option_name, false )->twice()->andReturn( false );
+		WP_Mock::userFunction( 'update_option' )->with( $option_name, [ $stored_form ], false )->twice();
+		WP_Mock::userFunction( 'set_transient' )
+			->with( AutoVerify::TRANSIENT, [ '/other' => [] ], 86400 )
+			->once();
+		WP_Mock::userFunction( 'delete_transient' )->with( AutoVerify::TRANSIENT )->once();
+		FunctionMocker::replace( 'constant', 86400 );
+
+		$subject = new AutoVerify();
+		$method  = $this->set_method_accessibility( $subject, 'update_form_registrations' );
+		$method->invoke( $subject, [ $form_data ] );
+		$method->invoke( $subject, [ $form_data ] );
+	}
+
+	/**
+	 * Replace an existing registration with the same source and widget ID.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_update_form_registrations_replaces_existing_form(): void {
+		$action                        = '/form';
+		$option_name                   = 'hcaptcha_auto_verify_form_' . hash( 'sha256', $action );
+		$stored_form                   = [
+			'inputs'    => [ 'email' ],
+			'widget_id' => 'widget-id',
+			'source'    => 'post:1',
+			'args'      => [ 'auto' => true ],
+		];
+		$new_form                      = $stored_form;
+		$new_form['args']['mandatory'] = true;
+
+		WP_Mock::userFunction( 'wp_parse_args' )->andReturnUsing(
+			static function ( $args, $defaults ) {
+				return array_merge( $defaults, $args );
+			}
+		);
+		WP_Mock::userFunction( 'get_transient' )->with( AutoVerify::TRANSIENT )->once()->andReturn( false );
+		WP_Mock::userFunction( 'get_option' )->with( $option_name, false )->once()->andReturn( [ $stored_form ] );
+		WP_Mock::userFunction( 'update_option' )->with( $option_name, [ $new_form ], false )->once();
+
+		$subject = new AutoVerify();
+		$method  = $this->set_method_accessibility( $subject, 'update_form_registrations' );
+		$method->invoke( $subject, [ [ 'action' => $action ] + $new_form ] );
+	}
+
+	/**
+	 * Persist the remaining form when one source disables auto verification.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_update_form_registrations_removes_one_existing_form(): void {
+		$action      = '/form';
+		$option_name = 'hcaptcha_auto_verify_form_' . hash( 'sha256', $action );
+		$stored_form = [
+			'inputs'    => [ 'email' ],
+			'widget_id' => 'widget-id',
+			'source'    => 'post:1',
+			'args'      => [ 'auto' => true ],
+		];
+		$other_form  = [
+			'inputs'    => [ 'name' ],
+			'widget_id' => 'other-widget',
+			'source'    => 'post:2',
+			'args'      => [ 'auto' => true ],
+		];
+
+		WP_Mock::userFunction( 'wp_parse_args' )->andReturnUsing(
+			static function ( $args, $defaults ) {
+				return array_merge( $defaults, $args );
+			}
+		);
+		WP_Mock::userFunction( 'get_transient' )->with( AutoVerify::TRANSIENT )->once()->andReturn( false );
+		WP_Mock::userFunction( 'get_option' )->with( $option_name, false )->once()->andReturn( [ $stored_form, $other_form ] );
+		WP_Mock::userFunction( 'update_option' )->with( $option_name, [ $other_form ], false )->once();
+
+		$subject = new AutoVerify();
+		$method  = $this->set_method_accessibility( $subject, 'update_form_registrations' );
+		$method->invoke(
+			$subject,
+			[
+				[
+					'action'    => $action,
+					'inputs'    => [ 'email' ],
+					'widget_id' => 'widget-id',
+					'source'    => 'post:1',
+				],
+			]
+		);
 	}
 }

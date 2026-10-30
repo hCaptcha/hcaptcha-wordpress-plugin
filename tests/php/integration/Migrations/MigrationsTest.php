@@ -903,6 +903,44 @@ class MigrationsTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Retention migration stops when creating the Events table fails.
+	 */
+	public function test_add_events_retention_index_without_table(): void {
+		$subject = new Migrations();
+		$method  = $this->set_method_accessibility( $subject, 'add_events_retention_index' );
+
+		FunctionMocker::replace( Events::class . '::is_retention_schema_ready', false );
+		FunctionMocker::replace( Events::class . '::create_table' );
+		FunctionMocker::replace( Events::class . '::table_exists', false );
+
+		$method->invoke( $subject );
+		self::assertFalse( Events::table_exists() );
+	}
+
+	/**
+	 * Retention migration stops when another request completes the schema first.
+	 */
+	public function test_add_events_retention_index_when_schema_becomes_ready(): void {
+		$subject = new Migrations();
+		$method  = $this->set_method_accessibility( $subject, 'add_events_retention_index' );
+		$checks  = 0;
+
+		FunctionMocker::replace(
+			Events::class . '::is_retention_schema_ready',
+			static function () use ( &$checks ): bool {
+				++$checks;
+
+				return 1 < $checks;
+			}
+		);
+		FunctionMocker::replace( Events::class . '::create_table' );
+		FunctionMocker::replace( Events::class . '::table_exists', true );
+
+		$method->invoke( $subject );
+		self::assertSame( 2, $checks );
+	}
+
+	/**
 	 * Test repeated initialization skips DDL when the retention schema is ready.
 	 *
 	 * @return void

@@ -22,6 +22,19 @@ use ReflectionException;
  */
 class WhatsNewTest extends HCaptchaWPTestCase {
 	/**
+	 * Normalize supported release versions and reject malformed versions.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_normalize_version(): void {
+		$subject = new WhatsNew();
+		$method  = $this->set_method_accessibility( $subject, 'normalize_version' );
+
+		self::assertSame( '5.4.0-RC1', $method->invoke( $subject, ' 5.4.0-rc1 ' ) );
+		self::assertSame( '', $method->invoke( $subject, 'invalid' ) );
+	}
+
+	/**
 	 * Test init() and init_hooks().
 	 *
 	 * @param bool $wizard_completed Whether the wizard has been completed.
@@ -172,8 +185,18 @@ class WhatsNewTest extends HCaptchaWPTestCase {
 		usort( $versions, 'version_compare' );
 
 		$versions = array_reverse( $versions );
-		$version  = $versions[0];
-		$method   = $prefix . str_replace( '.', '_', $version );
+		$current  = explode( '-', HCAPTCHA_VERSION )[0];
+		$version  = '';
+
+		foreach ( $versions as $candidate ) {
+			if ( version_compare( $candidate, $current, '<=' ) ) {
+				$version = $candidate;
+
+				break;
+			}
+		}
+
+		$method = $prefix . str_replace( '.', '_', $version );
 
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'render_popup' )->once()->with( $method, true );
@@ -422,6 +445,7 @@ class WhatsNewTest extends HCaptchaWPTestCase {
 		self::assertStringContainsString( '<span id="hcaptcha-whats-new-version">' . $version . '</span>', $html );
 		self::assertStringContainsString( 'class="hcaptcha-whats-new-version-toggle"', $html );
 		self::assertStringContainsString( 'id="hcaptcha-whats-new-versions"', $html );
+		self::assertStringContainsString( 'data-version="5.5.0"', $html );
 		self::assertStringContainsString( 'data-version="5.4.0"', $html );
 		self::assertStringContainsString( 'data-version="5.3.0"', $html );
 		self::assertStringContainsString( 'data-version="5.2.0"', $html );
@@ -451,7 +475,7 @@ class WhatsNewTest extends HCaptchaWPTestCase {
 				</div>
 				<div class="hcaptcha-whats-new-button">
 					<a
-							href="http://test.test/wp-admin/options-general.php?page=hcaptcha&#038;tab=general#protect_content_1" class="button button-primary"
+							href="http://test.test/wp-admin/options-general.php?page=hcaptcha&#038;tab=advanced#protect_content_1" class="button button-primary"
 							target="_blank">
 						Protect Content
 					</a>
@@ -1031,6 +1055,46 @@ HTML;
 		self::assertStringContainsString( 'Open Anti-Spam Settings', $html );
 		self::assertStringContainsString( '#antispam_1', $html );
 		self::assertStringContainsString( 'assets/images/smarter-anti-spam-checks.png', $html );
+		self::assertSame( 1, substr_count( $html, 'class="hcaptcha-lightbox"' ) );
+	}
+
+	/**
+	 * Test whats_new_5_5_0().
+	 *
+	 * @return void
+	 */
+	public function test_whats_new_5_5_0(): void {
+		add_filter(
+			'hcap_settings_init_args',
+			static function ( $args ) {
+				$args['mode'] = 'tabs';
+
+				return $args;
+			}
+		);
+
+		wp_set_current_user( 1 );
+		hcaptcha()->init_hooks();
+		set_current_screen( 'hcaptcha' );
+		do_action( 'admin_menu' );
+
+		$subject = Mockery::mock( WhatsNew::class )->makePartial();
+
+		$subject->shouldAllowMockingProtectedMethods();
+
+		ob_start();
+
+		$subject->whats_new_5_5_0();
+
+		$html = ob_get_clean();
+
+		self::assertSame( 1, substr_count( $html, 'class="hcaptcha-whats-new-block ' ) );
+		self::assertStringContainsString( 'Unique REST API Protection', $html );
+		self::assertStringContainsString( 'REST post-password attempts are blocked', $html );
+		self::assertStringContainsString( 'none offered all three protections', $html );
+		self::assertStringContainsString( 'Configure Content Protection', $html );
+		self::assertStringContainsString( '#protect_content_1', $html );
+		self::assertStringContainsString( 'assets/images/rest-api-protection.png', $html );
 		self::assertSame( 1, substr_count( $html, 'class="hcaptcha-lightbox"' ) );
 	}
 

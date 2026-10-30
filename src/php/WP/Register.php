@@ -83,7 +83,7 @@ class Register extends RegisterBase {
 	 * @return WP_Error|mixed
 	 */
 	public function verify( $errors, string $sanitized_user_login, string $user_email ) {
-		if ( ! $this->is_login_action() ) {
+		if ( ! $this->can_handle_request() ) {
 			return $errors;
 		}
 
@@ -116,6 +116,15 @@ class Register extends RegisterBase {
 		);
 
 		return HCaptcha::add_error_message( $errors, $error_message );
+	}
+
+	/**
+	 * Whether native WordPress registration can handle this request.
+	 *
+	 * @return bool
+	 */
+	protected function can_handle_request(): bool {
+		return $this->is_login_action();
 	}
 
 	/**

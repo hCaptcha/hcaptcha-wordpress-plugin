@@ -146,11 +146,12 @@ class FormsPage extends ListPageBase {
 		$this->print_header();
 
 		if ( ! $this->allowed ) {
-			$statistics_url = admin_url( 'options-general.php?page=hcaptcha&tab=general#statistics_1' );
+			$settings       = hcaptcha()->settings();
+			$statistics_url = $settings->tab_url( Advanced::class ) . '#statistics_1';
 
 			$message = sprintf(
 			/* translators: 1: Statistics link. */
-				__( 'Want to see form statistics? Please turn on the %1$s on the General settings page.', 'hcaptcha-for-forms-and-more' ),
+				__( 'Want to see form statistics? Please turn on the %1$s on the Advanced settings page.', 'hcaptcha-for-forms-and-more' ),
 				sprintf(
 				/* translators: 1: Statistics switch link, 2: Statistics switch text. */
 					'<a href="%1$s" target="_blank">%2$s</a>',

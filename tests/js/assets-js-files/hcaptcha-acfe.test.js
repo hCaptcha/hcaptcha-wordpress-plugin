@@ -144,7 +144,8 @@ describe( 'hCaptcha ACFE', () => {
 		document.body.innerHTML =
 			'<div class="acfe-field-recaptcha">' +
 			'<div class="g-recaptcha"><iframe title="reCAPTCHA" src="https://www.google.com/recaptcha/api2/anchor"></iframe></div>' +
-			'<iframe title="Widget containing checkbox for hCaptcha security challenge" src="https://js.hcaptcha.com/1/api.js"></iframe>' +
+			'<h-captcha class="h-captcha"><iframe title="Widget containing checkbox for hCaptcha security challenge" ' +
+			'src="https://newassets.hcaptcha.com/captcha/v1/test/static/hcaptcha.html#frame=checkbox&recaptchacompat=true"></iframe></h-captcha>' +
 			'<input type="hidden" id="acf-field_test" value="">' +
 			'</div>';
 
@@ -162,6 +163,29 @@ describe( 'hCaptcha ACFE', () => {
 		window.hCaptchaACFE.removeRecaptchaNodes();
 
 		expect( document.querySelector( '.grecaptcha-badge' ) ).toBeNull();
+	} );
+
+	test.each( [
+		'action=acf%2Fvalidate_save_post',
+		{ action: 'acf/validate_save_post' },
+	] )( 'preserves tokens after successful ACF validation with data %p', ( data ) => {
+		window.hCaptchaBindEvents.mockClear();
+
+		window.hCaptchaACFE.ajaxCompleteHandler( {}, {
+			responseJSON: { success: true, data: { valid: 1, errors: 0 } },
+		}, { data } );
+
+		expect( window.hCaptchaBindEvents ).not.toHaveBeenCalled();
+	} );
+
+	test( 'refreshes widgets after failed ACF validation for another attempt', () => {
+		window.hCaptchaBindEvents.mockClear();
+
+		window.hCaptchaACFE.ajaxCompleteHandler( {}, {
+			responseJSON: { success: true, data: { valid: 0, errors: [ 'Validation failed.' ] } },
+		}, { data: 'action=acf%2Fvalidate_save_post' } );
+
+		expect( window.hCaptchaBindEvents ).toHaveBeenCalled();
 	} );
 
 	test( 'direct callbacks and fallback handlers can be invoked', () => {

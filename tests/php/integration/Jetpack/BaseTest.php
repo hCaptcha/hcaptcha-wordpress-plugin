@@ -5,12 +5,21 @@
  * @package HCaptcha\Tests
  */
 
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedNamespaceInspection */
+/** @noinspection PhpUndefinedClassInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
+
 namespace HCaptcha\Tests\Integration\Jetpack;
 
 use Automattic\Jetpack\Forms\ContactForm\Contact_Form as JetpackForm;
 use Automattic\Jetpack\Forms\ContactForm\Contact_Form_Plugin as JetpackFormPlugin;
+use Automattic\Jetpack\Forms\ContactForm\Feedback;
+use HCaptcha\AntiSpam\DisposableEmail;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Jetpack\Form;
+use Jetpack;
 use ReflectionClass;
 use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
@@ -36,7 +45,7 @@ class BaseTest extends JetpackTestCase {
 		self::assertNotFalse( $plugin_dir );
 		self::assertStringStartsWith( trailingslashit( wp_normalize_path( $plugin_dir ) ), $form_file );
 		self::assertTrue( version_compare( constant( 'JETPACK__VERSION' ), '16.0.1', '>=' ) );
-		self::assertTrue( \Jetpack::is_module_active( 'contact-form' ) );
+		self::assertTrue( Jetpack::is_module_active( 'contact-form' ) );
 		$shortcode_callback = $GLOBALS['shortcode_tags']['contact-form'];
 
 		self::assertSame( JetpackForm::class, ltrim( $shortcode_callback[0], '\\' ) );
@@ -59,6 +68,9 @@ class BaseTest extends JetpackTestCase {
 		unset(
 			$_POST['contact-form-hash'],
 			$_POST['contact-form-id'],
+			$_POST['jetpack_contact_form_jwt'],
+			$_POST['hcaptcha_jetpack_nonce'],
+			$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ],
 			$_POST['g13-name'],
 			$_POST['g13-email'],
 			$_POST['g13'],
@@ -96,6 +108,7 @@ class BaseTest extends JetpackTestCase {
 		self::assertSame( 10, has_filter( 'widget_text', 'do_shortcode' ) );
 
 		self::assertSame( 100, has_filter( 'jetpack_contact_form_is_spam', [ $subject, 'verify' ] ) );
+		self::assertSame( PHP_INT_MAX, has_filter( 'jetpack_forms_extra_webhooks', [ $subject, 'capture_form_hash' ] ) );
 
 		self::assertSame( 10, has_action( 'wp_head', [ $subject, 'print_inline_styles' ] ) );
 
@@ -166,6 +179,275 @@ class BaseTest extends JetpackTestCase {
 
 		self::assertSame( 100, has_filter( 'jetpack_contact_form_is_spam', [ $subject, 'verify' ] ) );
 		self::assertFalse( apply_filters( 'jetpack_contact_form_is_spam', false, $form ) );
+	}
+
+	// These tests pass synthetic POST data into native Jetpack readers without saving a submission.
+	// phpcs:disable WordPress.Security.NonceVerification.Missing
+	/**
+	 * Disposable-email checks must use Jetpack's email field, not a later POST alias.
+	 *
+	 * @param bool   $jwt   Whether Jetpack selected the form from a JWT.
+	 * @param string $label Native email field label.
+	 *
+	 * @dataProvider dp_test_native_email_policy
+	 */
+	public function test_native_email_policy_ignores_post_alias( bool $jwt, string $label ): void {
+		$original_post = $_POST;
+		$subject       = new Form();
+		do_shortcode( '[contact-form id="13"][contact-field label="' . $label . '" type="email" required="1"/][/contact-form]' );
+		$rendered = JetpackForm::$last;
+		$form     = $jwt ? JetpackForm::get_instance_from_jwt( $rendered->get_jwt(), true ) : $rendered;
+		$email_id = $form->get_field_ids()['email'];
+
+		try {
+			$_POST = [
+				'contact-form-id'   => '13',
+				'contact-form-hash' => $form->hash,
+				$email_id           => 'blocked@sec065-disposable.test',
+				'g13g13-email'      => 'allowed@example.org',
+			];
+
+			if ( $jwt ) {
+				$_POST['jetpack_contact_form_jwt'] = $rendered->get_jwt();
+				$subject->capture_form_hash( [], $form );
+			}
+
+			$form->validate();
+			self::assertFalse( $form->has_errors() );
+
+			$spam_data = Feedback::from_submission( $_POST, $form )->get_akismet_vars();
+			$entry     = $this->set_method_accessibility( $subject, 'get_entry' )->invoke( $subject, $spam_data );
+
+			self::assertSame( 'blocked@sec065-disposable.test', $spam_data['comment_author_email'] );
+			self::assertSame( 'blocked@sec065-disposable.test', $entry['email'] );
+			self::assertSame( 'blocked@sec065-disposable.test', $entry['data']['email'] );
+			self::assertSame( [ 'blocked@sec065-disposable.test' ], EntryData::get_emails( $entry ) );
+
+			set_transient( 'hcaptcha_disposable_email_blocklist', [ 'sec065-disposable.test' => true ] );
+			self::assertFalse( (bool) ( new DisposableEmail() )->verify( $entry ) );
+
+			$_POST[ $email_id ]    = 'allowed@example.org';
+			$_POST['g13g13-email'] = 'blocked@sec065-disposable.test';
+			$spam_data             = Feedback::from_submission( $_POST, $form )->get_akismet_vars();
+			$entry                 = $this->set_method_accessibility( $subject, 'get_entry' )->invoke( $subject, $spam_data );
+
+			self::assertSame( [ 'allowed@example.org' ], EntryData::get_emails( $entry ) );
+			self::assertTrue( (bool) ( new DisposableEmail() )->verify( $entry ) );
+		} finally {
+			delete_transient( 'hcaptcha_disposable_email_blocklist' );
+			$_POST = $original_post;
+		}
+	}
+
+	/**
+	 * Email policy routes and labels.
+	 *
+	 * @return array
+	 */
+	public function dp_test_native_email_policy(): array {
+		return [
+			'jwt_default'    => [ true, 'Email' ],
+			'jwt_custom'     => [ true, 'Contact Address' ],
+			'legacy_default' => [ false, 'Email' ],
+			'legacy_custom'  => [ false, 'Contact Address' ],
+		];
+	}
+
+	/**
+	 * Every visible native email field is checked, even when the first is permitted.
+	 */
+	public function test_native_email_policy_checks_additional_email_fields(): void {
+		$original_post = $_POST;
+		$subject       = new Form();
+		do_shortcode( '[contact-form id="13"][contact-field label="Primary" type="email" required="1"/][contact-field label="Secondary" type="email" required="1"/][/contact-form]' );
+		$form = JetpackForm::$last;
+		$ids  = $form->get_field_ids()['all'];
+
+		try {
+			$_POST = [
+				'contact-form-id'   => '13',
+				'contact-form-hash' => $form->hash,
+				$ids[0]             => 'allowed@example.org',
+				$ids[1]             => 'foo&bar@sec065-disposable.test',
+			];
+
+			$form->validate();
+			self::assertFalse( $form->has_errors() );
+
+			$spam_data = Feedback::from_submission( $_POST, $form )->get_akismet_vars();
+			$entry     = $this->set_method_accessibility( $subject, 'get_entry' )->invoke( $subject, $spam_data );
+
+			self::assertSame( 'allowed@example.org', $spam_data['comment_author_email'] );
+			self::assertSame( [ 'allowed@example.org', 'foo&bar@sec065-disposable.test' ], EntryData::get_emails( $entry ) );
+			set_transient( 'hcaptcha_disposable_email_blocklist', [ 'sec065-disposable.test' => true ] );
+			self::assertFalse( (bool) ( new DisposableEmail() )->verify( $entry ) );
+		} finally {
+			delete_transient( 'hcaptcha_disposable_email_blocklist' );
+			$_POST = $original_post;
+		}
+	}
+
+	/**
+	 * Legacy Jetpack can select a rebuilt form whose hash differs from the submitted hash.
+	 */
+	public function test_native_email_policy_checks_rebuilt_legacy_form(): void {
+		$original_post = $_POST;
+		$subject       = new Form();
+		do_shortcode( '[contact-form id="13"][contact-field label="Primary" type="email" required="1"/][contact-field label="Secondary" type="email" required="1"/][/contact-form]' );
+		$form      = JetpackForm::$last;
+		$ids       = $form->get_field_ids()['all'];
+		$old_hash  = $form->hash;
+		$fake_hash = str_repeat( 'a', 40 );
+
+		try {
+			self::assertNotSame( $old_hash, $fake_hash );
+			self::assertArrayNotHasKey( $fake_hash, JetpackForm::$forms );
+			$_POST = [
+				'contact-form-id'   => '13',
+				'contact-form-hash' => $fake_hash,
+				$ids[0]             => 'allowed@example.org',
+				$ids[1]             => 'blocked@sec065-disposable.test',
+			];
+
+			$spam_data = Feedback::from_submission( $_POST, $form )->get_akismet_vars();
+			$entry     = $this->set_method_accessibility( $subject, 'get_entry' )->invoke( $subject, $spam_data );
+
+			self::assertSame( 'allowed@example.org', $spam_data['comment_author_email'] );
+			self::assertSame( [ 'allowed@example.org', 'blocked@sec065-disposable.test' ], EntryData::get_emails( $entry ) );
+			set_transient( 'hcaptcha_disposable_email_blocklist', [ 'sec065-disposable.test' => true ] );
+			self::assertFalse( (bool) ( new DisposableEmail() )->verify( $entry ) );
+		} finally {
+			delete_transient( 'hcaptcha_disposable_email_blocklist' );
+			$_POST = $original_post;
+		}
+	}
+
+	/**
+	 * A filter may change the author email while Jetpack retains the submitted field.
+	 */
+	public function test_native_email_policy_checks_stored_email_after_author_filter(): void {
+		$original_post = $_POST;
+		$subject       = new Form();
+		do_shortcode( '[contact-form id="13"][contact-field label="Email" type="email" required="1"/][/contact-form]' );
+		$form     = JetpackForm::$last;
+		$email_id = $form->get_field_ids()['email'];
+		$filter   = static function (): string {
+			return 'allowed@example.org';
+		};
+
+		try {
+			$_POST = [
+				'contact-form-id'   => '13',
+				'contact-form-hash' => $form->hash,
+				$email_id           => 'blocked@sec065-disposable.test',
+			];
+
+			$form->validate();
+			self::assertFalse( $form->has_errors() );
+			add_filter( 'pre_comment_author_email', $filter );
+
+			$feedback  = Feedback::from_submission( $_POST, $form );
+			$spam_data = $feedback->get_akismet_vars();
+			$entry     = $this->set_method_accessibility( $subject, 'get_entry' )->invoke( $subject, $spam_data );
+
+			self::assertSame( 'allowed@example.org', $spam_data['comment_author_email'] );
+			self::assertSame( [ 'allowed@example.org', 'blocked@sec065-disposable.test' ], EntryData::get_emails( $entry ) );
+			set_transient( 'hcaptcha_disposable_email_blocklist', [ 'sec065-disposable.test' => true ] );
+			self::assertFalse( (bool) ( new DisposableEmail() )->verify( $entry ) );
+		} finally {
+			remove_filter( 'pre_comment_author_email', $filter );
+			delete_transient( 'hcaptcha_disposable_email_blocklist' );
+			$_POST = $original_post;
+		}
+	}
+
+	/**
+	 * A text field named email does not become a native email field.
+	 */
+	public function test_native_email_policy_preserves_email_free_form(): void {
+		$original_post = $_POST;
+		$subject       = new Form();
+		do_shortcode( '[contact-form id="13"][contact-field label="Email" type="text"/][/contact-form]' );
+		$form = JetpackForm::$last;
+		$id   = $form->get_field_ids()['all'][0];
+
+		try {
+			$_POST = [
+				'contact-form-id'   => '13',
+				'contact-form-hash' => $form->hash,
+				$id                 => 'blocked@sec065-disposable.test',
+				'g13g13-email'      => 'blocked@sec065-disposable.test',
+			];
+
+			$spam_data = Feedback::from_submission( $_POST, $form )->get_akismet_vars();
+			$entry     = $this->set_method_accessibility( $subject, 'get_entry' )->invoke( $subject, $spam_data );
+
+			self::assertSame( '', $spam_data['comment_author_email'] );
+			self::assertSame( [], EntryData::get_emails( $entry ) );
+			self::assertArrayNotHasKey( 'email', $entry );
+			self::assertArrayNotHasKey( 'email', $entry['data'] );
+		} finally {
+			$_POST = $original_post;
+		}
+	}
+	// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+	/**
+	 * A JWT-selected protected form cannot inherit another form's CAPTCHA exemption.
+	 */
+	public function test_jwt_form_hash_owns_captcha_policy(): void {
+		$subject = new Form();
+		$html_a  = do_shortcode( '[contact-form id="13"][contact-field label="Name A" type="name" required="1"/][/contact-form]' );
+		$form_a  = JetpackForm::$last;
+		$jwt_a   = $form_a->get_jwt();
+		$hash_a  = $form_a->hash;
+		$html_b  = do_shortcode( '[contact-form id="13"][contact-field label="Name B" type="name" required="1"/][/contact-form]' );
+		$form_b  = JetpackForm::$last;
+		$jwt_b   = $form_b->get_jwt();
+		$hash_b  = $form_b->hash;
+		$source  = HCaptcha::get_class_source( Form::class );
+
+		self::assertStringContainsString( "name='jetpack_contact_form_jwt'", $html_a );
+		self::assertStringContainsString( "name='jetpack_contact_form_jwt'", $html_b );
+		self::assertNotSame( $hash_a, $hash_b );
+
+		$native_a = JetpackForm::get_instance_from_jwt( $jwt_a, true );
+		$native_b = JetpackForm::get_instance_from_jwt( $jwt_b, true );
+		$exempt_b = static function ( $protect, $form_source, $form_id ) use ( $source, $hash_b ) {
+			return $source === $form_source && 'contact_' . $hash_b === $form_id ? false : $protect;
+		};
+
+		add_filter( 'hcap_protect_form', $exempt_b, 10, 3 );
+
+		try {
+			$_POST['contact-form-id']              = '13';
+			$_POST['hcaptcha_jetpack_nonce']       = wp_create_nonce( 'hcaptcha_jetpack' );
+			$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+				[
+					'source'  => $source,
+					'form_id' => 'contact_' . $hash_b,
+				]
+			);
+			$_POST['jetpack_contact_form_jwt']     = $jwt_a;
+			$_POST['contact-form-hash']            = $hash_b;
+
+			self::assertSame( [], $subject->capture_form_hash( [], $native_a ) );
+			self::assertSame( 'invalid_hcaptcha', $subject->verify()->get_error_code() );
+			self::assertSame( $hash_a, $this->get_protected_property( $subject, 'error_form_hash' ) );
+
+			$_POST['contact-form-hash'] = $hash_a;
+			self::assertSame( 'invalid_hcaptcha', $subject->verify()->get_error_code() );
+
+			$_POST['jetpack_contact_form_jwt'] = $jwt_b;
+			$_POST['contact-form-hash']        = $hash_b;
+			self::assertSame( [], $subject->capture_form_hash( [], $native_b ) );
+			self::assertFalse( $subject->verify() );
+
+			unset( $_POST['jetpack_contact_form_jwt'] );
+			self::assertFalse( $subject->verify() );
+		} finally {
+			remove_filter( 'hcap_protect_form', $exempt_b );
+		}
 	}
 
 	/**
@@ -328,6 +610,7 @@ class BaseTest extends JetpackTestCase {
 	 * Test editor_enqueue_scripts().
 	 *
 	 * @return void
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_editor_enqueue_scripts(): void {
 		$admin_handle   = 'admin-jetpack';

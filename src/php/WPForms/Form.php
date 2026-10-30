@@ -5,14 +5,19 @@
  * @package hcaptcha-wp
  */
 
-// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedNamespaceInspection */
+/** @noinspection PhpUndefinedClassInspection */
 /** @noinspection PhpUndefinedFunctionInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
 
 namespace HCaptcha\WPForms;
 
+use Exception;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
+use WPForms\Vendor\TrueBV\Punycode;
 
 /**
  * Class Form.
@@ -88,7 +93,7 @@ class Form {
 		add_action( 'wpforms_wp_footer', [ $this, 'block_assets_recaptcha' ], 0 );
 
 		add_action( 'wpforms_frontend_output', [ $this, 'wpforms_frontend_output' ], 19, 5 );
-		add_filter( 'wpforms_process_bypass_captcha', '__return_true' );
+		add_filter( 'wpforms_process_captcha_providers', [ $this, 'wpforms_process_captcha_providers' ] );
 		add_action( 'wpforms_process', [ $this, 'verify' ], 10, 3 );
 
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
@@ -120,11 +125,35 @@ class Form {
 			$wpforms_error_message = wpforms_setting( 'hcaptcha-fail-msg' );
 		}
 
-		$error_message = API::verify( $this->get_entry( $entry, $form_data ) );
+		$error_message = API::verify( $this->get_entry( $entry, $form_data, $fields ) );
 
 		if ( null !== $error_message ) {
 			wpforms()->obj( 'process' )->errors[ $form_data['id'] ]['footer'] = $wpforms_error_message ?: $error_message;
 		}
+	}
+
+	/**
+	 * Replace only native CAPTCHA verification for forms handled by this integration.
+	 * Keep WPForms' independent submission-time and spam checks active.
+	 *
+	 * @param array $providers Native CAPTCHA providers.
+	 *
+	 * @return array
+	 */
+	public function wpforms_process_captcha_providers( array $providers ): array {
+		$process   = wpforms()->obj( 'process' );
+		$form_data = is_object( $process ) ? ( $process->form_data ?? null ) : null;
+
+		if ( ! is_array( $form_data ) || ! $this->process_hcaptcha( $form_data ) ) {
+			return $providers;
+		}
+
+		$captcha_settings = wpforms_get_captcha_settings();
+		$provider         = $captcha_settings['provider'] ?? '';
+
+		unset( $providers[ $provider ] );
+
+		return $providers;
 	}
 
 	/**
@@ -487,28 +516,83 @@ class Form {
 	 *
 	 * @param array $wpforms_entry WPForms entry.
 	 * @param array $form_data     Form data.
+	 * @param array $fields        Native formatted fields.
 	 *
 	 * @return array
 	 */
-	private function get_entry( array $wpforms_entry, array $form_data ): array {
-		$post  = get_post( $wpforms_entry['id'] );
-		$entry = [
+	private function get_entry( array $wpforms_entry, array $form_data, array $fields = [] ): array {
+		$post   = get_post( $wpforms_entry['id'] );
+		$entry  = [
 			'nonce_name'    => self::NAME,
 			'nonce_action'  => self::ACTION,
 			'form_date_gmt' => $post->post_modified_gmt ?? null,
 			'expected_id'   => $this->get_expected_id( (int) $form_data['id'] ),
 			'data'          => [],
 		];
+		$emails = [];
 
 		foreach ( $form_data['fields'] as $id => $field ) {
 			if ( ! array_key_exists( $id, $wpforms_entry['fields'] ?? [] ) ) {
 				continue;
 			}
 
+			$this->add_email( $emails, $field, $fields[ $id ]['value'] ?? $wpforms_entry['fields'][ $id ] );
+
 			$this->add_entry_field( $entry, $field, $wpforms_entry['fields'][ $id ], (string) $id );
 		}
 
+		$entry = EntryData::with_emails( $entry, $emails );
+		unset( $entry['email'] );
+
+		if ( isset( $entry['data']['email'] ) ) {
+			$entry['email'] = $entry['data']['email'];
+		}
+
 		return $entry;
+	}
+
+	/**
+	 * Collect the primary native email before filtering generic field metadata.
+	 *
+	 * @param array $emails Email addresses.
+	 * @param array $field  Saved field settings.
+	 * @param mixed $value  Native formatted value or submitted primary value.
+	 *
+	 * @return void
+	 */
+	private function add_email( array &$emails, array $field, $value ): void {
+		if ( 'email' !== ( $field['type'] ?? '' ) ) {
+			return;
+		}
+
+		$value = is_array( $value ) ? ( $value['primary'] ?? '' ) : $value;
+
+		if ( is_string( $value ) ) {
+			$emails[] = $this->normalize_email( sanitize_text_field( $value ) );
+		}
+	}
+
+	/**
+	 * Match native WPForms international domain validation for email policy.
+	 *
+	 * @param string $email Native formatted email.
+	 *
+	 * @return string
+	 */
+	private function normalize_email( string $email ): string {
+		$parts = explode( '@', $email, 2 );
+
+		if ( ! class_exists( '\WPForms\Vendor\TrueBV\Punycode' ) || 2 !== count( $parts ) ) {
+			return $email;
+		}
+
+		try {
+			$punycode = new Punycode();
+
+			return $parts[0] . '@' . $punycode->encode( $parts[1] );
+		} catch ( Exception $exception ) {
+			return '';
+		}
 	}
 
 	/**

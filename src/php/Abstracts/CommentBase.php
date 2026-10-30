@@ -12,6 +12,7 @@ use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use WP_Error;
+use WP_REST_Request;
 
 /**
  * Class CommentBase
@@ -57,6 +58,61 @@ abstract class CommentBase {
 	}
 
 	/**
+	 * Verify a native REST comment before WordPress processes approval.
+	 *
+	 * @param array|WP_Error  $prepared_comment Prepared comment or an earlier error.
+	 * @param WP_REST_Request $request          REST request.
+	 *
+	 * @return array|WP_Error
+	 */
+	public function verify_rest_comment( $prepared_comment, WP_REST_Request $request ) {
+		if (
+			! $request->is_method( 'POST' ) ||
+			'/wp/v2/comments' !== strtolower( $request->get_route() ) ||
+			'note' === $request['type'] ||
+			is_wp_error( $prepared_comment )
+		) {
+			return $prepared_comment;
+		}
+
+		$comment_data                      = wp_parse_args(
+			(array) $prepared_comment,
+			[
+				'comment_author'       => '',
+				'comment_author_email' => '',
+				'comment_author_url'   => '',
+				'comment_content'      => '',
+				'comment_author_IP'    => '',
+				'comment_agent'        => '',
+			]
+		);
+		$this->form_id                     = (int) ( $comment_data['comment_post_ID'] ?? 0 );
+		$comment_data['comment_author_IP'] = hcap_get_user_ip();
+		$entry                             = $this->get_entry( $comment_data );
+		$entry['post_data']                = $request->get_params();
+		$entry['nonce_name']               = static::NONCE;
+		$entry['nonce_action']             = static::ACTION;
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Restore unrelated POST data after checking this REST request.
+		$original_post = $_POST;
+
+		// REST proof must come from this request, not from an outer form or batch request.
+		$_POST = [];
+
+		try {
+			$this->result = API::verify( $entry );
+		} finally {
+			$_POST = $original_post;
+		}
+
+		if ( null !== $this->result ) {
+			return new WP_Error( 'invalid_hcaptcha', (string) $this->result, [ 'status' => 400 ] );
+		}
+
+		return $prepared_comment;
+	}
+
+	/**
 	 * Get signature.
 	 *
 	 * @return string
@@ -84,8 +140,10 @@ abstract class CommentBase {
 	public function verify( $comment_data ): array {
 		$comment_data = (array) $comment_data;
 
-		if ( ! Request::is_frontend() ) {
-			// Do not work in ajax mode. It is served by WPDiscuz.
+		if ( ! Request::is_frontend() && ! $this->is_native_comment_submission() ) {
+			// Skip other transports; WPDiscuz handles its own AJAX comment submissions.
+			$this->result = null;
+
 			return $comment_data;
 		}
 
@@ -115,6 +173,28 @@ abstract class CommentBase {
 		}
 
 		return $comment_data;
+	}
+
+	/**
+	 * Whether WordPress itself is handling the submitted comment.
+	 *
+	 * WooCommerce may define DOING_AJAX from a query argument even when the
+	 * request is still handled by the core comment submission script.
+	 *
+	 * @return bool
+	 */
+	private function is_native_comment_submission(): bool {
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Server-provided filesystem path must retain its separators.
+		$script = $_SERVER['SCRIPT_FILENAME'] ?? '';
+
+		if ( ! is_string( $script ) || '' === $script ) {
+			return false;
+		}
+
+		$core_script    = realpath( ABSPATH . 'wp-comments-post.php' );
+		$request_script = realpath( $script );
+
+		return false !== $core_script && $core_script === $request_script;
 	}
 
 	/**

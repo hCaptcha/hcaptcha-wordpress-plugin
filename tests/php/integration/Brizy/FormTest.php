@@ -105,16 +105,20 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test that submitted fields are passed to verification.
 	 */
 	public function test_verify(): void {
-		$post_data = [
+		$expected_id = [
+			'source'  => [ 'brizy/brizy.php' ],
+			'form_id' => 'form',
+		];
+		$post_data   = [
 			'email'                => 'person@example.com',
 			'h-captcha-response'   => 'response-token',
-			'hcaptcha-widget-id'   => 'widget-id',
+			'hcaptcha-widget-id'   => HCaptcha::widget_id_value( $expected_id ),
 			'hcaptcha_brizy_nonce' => 'nonce',
 			'hcap_hp_dynamic'      => '',
 			'hcap_hp_sig'          => 'honeypot-signature',
 			'hcap_fst_token'       => 'fst-token',
 		];
-		$data      = [];
+		$data        = [];
 
 		foreach ( $post_data as $name => $value ) {
 			$data[] = [
@@ -134,21 +138,27 @@ class FormTest extends HCaptchaWPTestCase {
 
 		FunctionMocker::replace(
 			'\\HCaptcha\\Helpers\\API::verify_post_data',
-			static function ( string $name, string $action, array $submitted_data ) use ( &$actual ): ?string {
-				$actual = [ $name, $action, $submitted_data ];
+			static function ( string $name, string $action, array $submitted_data, array $bound_id ) use ( &$actual ): ?string {
+				$actual = [ $name, $action, $submitted_data, $bound_id ];
 
 				return null;
 			}
 		);
 
 		self::assertSame( 'form', ( new Form() )->verify( 'form' ) );
-		self::assertSame( [ 'hcaptcha_brizy_nonce', 'hcaptcha_brizy_form', $post_data ], $actual );
+		self::assertSame( [ 'hcaptcha_brizy_nonce', 'hcaptcha_brizy_form', $post_data, $expected_id ], $actual );
 	}
 
 	/**
 	 * Test that the legacy response field is normalized.
 	 */
 	public function test_verify_with_legacy_response_name(): void {
+		$expected_id = [
+			'source'  => [ 'brizy/brizy.php' ],
+			'form_id' => 'form',
+		];
+		$widget_id   = HCaptcha::widget_id_value( $expected_id );
+
 		$_POST['data'] = wp_json_encode(
 			[
 				[
@@ -159,14 +169,18 @@ class FormTest extends HCaptchaWPTestCase {
 					'name'  => 'hcaptcha_brizy_nonce',
 					'value' => 'nonce',
 				],
+				[
+					'name'  => HCaptcha::HCAPTCHA_WIDGET_ID,
+					'value' => $widget_id,
+				],
 			]
 		);
 		$actual        = [];
 
 		FunctionMocker::replace(
 			'\\HCaptcha\\Helpers\\API::verify_post_data',
-			static function ( string $name, string $action, array $submitted_data ) use ( &$actual ): ?string {
-				$actual = [ $name, $action, $submitted_data ];
+			static function ( string $name, string $action, array $submitted_data, array $bound_id ) use ( &$actual ): ?string {
+				$actual = [ $name, $action, $submitted_data, $bound_id ];
 
 				return null;
 			}
@@ -181,7 +195,9 @@ class FormTest extends HCaptchaWPTestCase {
 				[
 					'h-captcha-response'   => 'response-token',
 					'hcaptcha_brizy_nonce' => 'nonce',
+					'hcaptcha-widget-id'   => $widget_id,
 				],
+				$expected_id,
 			],
 			$actual
 		);

@@ -12,6 +12,7 @@ use HCaptcha\ProfileBuilder\Login;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WP\LoginOut;
 use Mockery;
+use WP_User;
 
 /**
  * Test Login class.
@@ -20,6 +21,35 @@ use Mockery;
  * @group profile-builder-login
  */
 class LoginTest extends HCaptchaWPTestCase {
+	/**
+	 * Skip unrelated form rendering and keep a low-risk login unchanged.
+	 */
+	public function test_other_form_and_login_below_limit(): void {
+		$subject = new Login();
+		$user    = new WP_User( 1 );
+
+		self::assertSame( 'other', $subject->add_wppb_captcha( 'other', [] ) );
+		self::assertSame( $user, $subject->verify( $user, 'password' ) );
+
+		add_filter( 'hcap_login_limit_exceeded', '__return_false' );
+		do_action( 'wppb_process_login_start' );
+
+		try {
+			self::assertSame( $user, $subject->verify( $user, 'password' ) );
+		} finally {
+			remove_filter( 'hcap_login_limit_exceeded', '__return_false' );
+		}
+	}
+
+	/**
+	 * Print the Profile Builder login spacing rule.
+	 */
+	public function test_print_inline_styles(): void {
+		ob_start();
+		( new Login() )->print_inline_styles();
+
+		self::assertStringContainsString( '#wppb-loginform .h-captcha', ob_get_clean() );
+	}
 
 	/**
 	 * Set up the test.

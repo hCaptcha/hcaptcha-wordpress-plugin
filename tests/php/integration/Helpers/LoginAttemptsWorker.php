@@ -281,18 +281,35 @@ final class LoginAttemptsWorkerDatabase {
 }
 
 /**
- * Write a JSON barrier or result marker.
+ * Atomically publish a JSON barrier or result marker.
  *
  * @param string $file File path.
  * @param array  $data Marker data.
  *
  * @return void
- * @throws RuntimeException When the marker cannot be written.
+ * @throws JsonException|RuntimeException When the marker cannot be encoded, written or published.
  */
 function login_attempts_worker_write( string $file, array $data ): void {
-	// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents, WordPress.WP.AlternativeFunctions.json_encode_json_encode -- Isolated test-worker marker; WordPress is intentionally not bootstrapped.
-	if ( false === file_put_contents( $file, (string) json_encode( $data ), LOCK_EX ) ) {
-		throw new RuntimeException( 'Cannot write concurrency marker.' );
+	// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode -- WordPress is intentionally not bootstrapped.
+	$content   = json_encode( $data, JSON_THROW_ON_ERROR );
+	$temp_file = $file . '.tmp';
+
+	try {
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Isolated test-worker marker.
+		if ( strlen( $content ) !== file_put_contents( $temp_file, $content, LOCK_EX ) ) {
+			throw new RuntimeException( 'Cannot write concurrency marker: ' . $file );
+		}
+
+		// Publish the final path only after the complete JSON has been written.
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.rename_rename -- Atomic publication within the same directory.
+		if ( ! rename( $temp_file, $file ) ) {
+			throw new RuntimeException( 'Cannot publish concurrency marker: ' . $file );
+		}
+	} finally {
+		if ( is_file( $temp_file ) ) {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink -- Remove an unpublished test-worker marker.
+			unlink( $temp_file );
+		}
 	}
 }
 

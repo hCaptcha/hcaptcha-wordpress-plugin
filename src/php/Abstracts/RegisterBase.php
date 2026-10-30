@@ -33,6 +33,6 @@ abstract class RegisterBase extends FormOwnerBase {
 	 * @return bool
 	 */
 	protected function is_owner_action(): bool {
-		return $this->is_wp_login_action( 'register' );
+		return $this->is_wp_login_action( 'register' ) && $this->can_handle_request();
 	}
 }

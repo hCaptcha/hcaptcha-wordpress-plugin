@@ -27,6 +27,7 @@ const notifications = ( $ ) => {
 	const navSelectors = navPrevSelector + ', ' + navNextSelector;
 	const buttonsSelector = '.hcaptcha-notification-buttons';
 	const resetBtnSelector = 'button#reset_notifications';
+	const resetRowSelector = 'tr.hcaptcha-general-reset-notifications';
 	const footerSelector = '#hcaptcha-notifications-footer';
 	let $notifications;
 
@@ -150,6 +151,7 @@ const notifications = ( $ ) => {
 
 		$notification.remove();
 		$next.show();
+		$( resetRowSelector ).removeClass( 'hidden' );
 
 		setNavStatus();
 		setButtons();
@@ -208,13 +210,17 @@ const notifications = ( $ ) => {
 		$.post( {
 			url: HCaptchaNotificationsObject.ajaxUrl,
 			data,
-		} ).success( function( response ) {
+		} ).done( function( response ) {
 			if ( ! response.success ) {
 				return;
 			}
 
-			$( notificationsSelector ).remove();
-			$( response.data ).insertBefore( sectionKeysSelector );
+			$( resetRowSelector ).addClass( 'hidden' );
+
+			if ( ! $( notificationsSelector ).hasClass( 'hcaptcha-setup-notice' ) ) {
+				$( notificationsSelector ).remove();
+				$( response.data ).insertBefore( sectionKeysSelector );
+			}
 
 			setButtons();
 			normalizeNotificationHeight();

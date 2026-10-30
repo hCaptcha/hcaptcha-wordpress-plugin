@@ -59,10 +59,11 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 * Test a live Otter form block and request an object.
 	 */
 	public function test_live_form_block(): void {
-		$form_id = 'live-form';
-		$content = <<<HTML
-<!-- wp:themeisle-blocks/form {"id":"wp-block-themeisle-blocks-form-$form_id"} -->
-<div id="wp-block-themeisle-blocks-form-$form_id" class="wp-block-themeisle-blocks-form has-captcha"><form class="otter-form__container"><div class="wp-block-themeisle-blocks-form-input"><input type="text" class="otter-form-input" /></div><div class="wp-block-button"><button class="wp-block-button__link" type="submit">Submit</button></div></form></div>
+		$form_id     = 'live-form';
+		$form_option = 'live-form-option';
+		$content     = <<<HTML
+<!-- wp:themeisle-blocks/form {"id":"wp-block-themeisle-blocks-form-$form_id","optionName":"$form_option"} -->
+<div id="wp-block-themeisle-blocks-form-$form_id" class="wp-block-themeisle-blocks-form has-captcha" data-option-name="$form_option"><form class="otter-form__container"><div class="wp-block-themeisle-blocks-form-input"><input type="text" class="otter-form-input" /></div><div class="wp-block-button"><button class="wp-block-button__link" type="submit">Submit</button></div></form></div>
 <!-- /wp:themeisle-blocks/form -->
 HTML;
 
@@ -77,13 +78,15 @@ HTML;
 		self::assertStringContainsString( 'otter-form__container', $html );
 		self::assertStringContainsString( 'class="h-captcha"', $html );
 		self::assertStringContainsString( 'hcaptcha_otter_nonce', $html );
+		self::assertSame( 1, preg_match( '/name="hcaptcha_otter_form_nonce" value="([^"]+)"/', $html, $form_nonce ) );
 		self::assertStringNotContainsString( 'has-captcha', $html );
 
 		$this->prepare_verify_post( 'hcaptcha_otter_nonce', 'hcaptcha_otter' );
 
 		$request_data = [
-			'payload'            => [
+			'payload'                   => [
 				'formId'           => 'wp-block-themeisle-blocks-form-' . $form_id,
+				'formOption'       => $form_option,
 				'antiSpamTime'     => 5000,
 				'antiSpamHoneyPot' => '',
 				'postId'           => wp_insert_post(
@@ -101,8 +104,9 @@ HTML;
 					],
 				],
 			],
-			'h-captcha-response' => 'some response',
-			'hcaptcha-widget-id' => HCaptcha::widget_id_value(
+			'h-captcha-response'        => 'some response',
+			'hcaptcha_otter_form_nonce' => $form_nonce[1],
+			'hcaptcha-widget-id'        => HCaptcha::widget_id_value(
 				[
 					'source'  => [ static::$plugin ],
 					'form_id' => $form_id,
@@ -147,6 +151,27 @@ HTML;
 	}
 
 	/**
+	 * Do not replace the native site key in the admin area.
+	 */
+	public function test_init_hooks_in_admin(): void {
+		set_current_screen( 'dashboard' );
+
+		$subject = new Form();
+
+		self::assertFalse( has_filter( 'option_themeisle_google_captcha_api_site_key', [ $subject, 'replace_site_key' ] ) );
+	}
+
+	/**
+	 * Reject a payload that cannot contain the native form nonce.
+	 */
+	public function test_has_valid_form_nonce_rejects_non_array_payload(): void {
+		$subject = new Form();
+		$method  = $this->set_method_accessibility( $subject, 'has_valid_form_nonce' );
+
+		self::assertFalse( $method->invoke( $subject, [ 'payload' => 'invalid' ] ) );
+	}
+
+	/**
 	 * Test replace_site_key().
 	 *
 	 * @return void
@@ -164,8 +189,10 @@ HTML;
 	 * @return void
 	 */
 	public function test_add_hcaptcha(): void {
-		$form_id   = 'fc0b7800';
-		$hcap_form = $this->get_hcap_form(
+		$form_id     = 'fc0b7800';
+		$form_option = 'fc0b7800-option';
+		$form_nonce  = $this->create_form_nonce( $form_id, $form_option );
+		$hcap_form   = $this->get_hcap_form(
 			[
 				'action' => 'hcaptcha_otter',
 				'name'   => 'hcaptcha_otter_nonce',
@@ -194,12 +221,16 @@ HTML;
 	</form>
 </div>
 HTML;
-		$block         = [ 'blockName' => 'themeisle-blocks/form' ];
+		$block         = [
+			'blockName' => 'themeisle-blocks/form',
+			'attrs'     => [ 'optionName' => $form_option ],
+		];
 		$expected      = <<<HTML
 <div id="wp-block-themeisle-blocks-form-$form_id" class="wp-block-themeisle-blocks-form ">
 	<form>
 		Some form inputs
 		$hcap_form
+<input type="hidden" name="hcaptcha_otter_form_nonce" value="$form_nonce">
 <div class="wp-block-button">
 			<button class="wp-block-button__link" type="submit">Submit</button>
 		</div>
@@ -209,6 +240,24 @@ HTML;
 
 		// Check if hCaptcha is added to the form block.
 		self::assertSame( $expected, $subject->add_hcaptcha( $block_content, $block, $instance ) );
+	}
+
+	/**
+	 * The signed option must match the rendered value Otter's script submits.
+	 */
+	public function test_add_hcaptcha_binds_rendered_option_name(): void {
+		$subject  = new Form();
+		$instance = Mockery::mock( WP_Block::class );
+		$block    = [
+			'blockName' => 'themeisle-blocks/form',
+			'attrs'     => [ 'optionName' => 'saved-option' ],
+		];
+		$content  = '<div data-option-name="rendered-option" id="wp-block-themeisle-blocks-form-rendered"><form><div class="wp-block-button"><button type="submit">Submit</button></div></form></div>';
+		$rendered = $subject->add_hcaptcha( $content, $block, $instance );
+
+		self::assertSame( 1, preg_match( '/name="hcaptcha_otter_form_nonce" value="([^"]+)"/', $rendered, $matches ) );
+		self::assertNotFalse( wp_verify_nonce( $matches[1], 'hcaptcha_otter|' . wp_json_encode( [ 'rendered', 'rendered-option' ] ) ) );
+		self::assertFalse( wp_verify_nonce( $matches[1], 'hcaptcha_otter|' . wp_json_encode( [ 'rendered', 'saved-option' ] ) ) );
 	}
 
 	/**
@@ -237,10 +286,11 @@ HTML;
 
 		$form_data_request->shouldReceive( 'has_error' )->andReturn( false );
 
-		$action    = 'hcaptcha_otter';
-		$nonce     = 'hcaptcha_otter_nonce';
-		$form_id   = 'fc0b7800';
-		$widget_id = HCaptcha::widget_id_value(
+		$action      = 'hcaptcha_otter';
+		$nonce       = 'hcaptcha_otter_nonce';
+		$form_id     = 'fc0b7800';
+		$form_option = 'fc0b7800-option';
+		$widget_id   = HCaptcha::widget_id_value(
 			[
 				'source'  => [ 'otter-blocks/otter-blocks.php' ],
 				'form_id' => $form_id,
@@ -251,15 +301,17 @@ HTML;
 
 		$form_data_arr = [
 			'form_data' => [
-				'payload'            => [
-					'formId' => 'wp-block-themeisle-blocks-form-' . $form_id,
+				'payload'                   => [
+					'formId'     => 'wp-block-themeisle-blocks-form-' . $form_id,
+					'formOption' => $form_option,
 				],
-				'h-captcha-response' => 'some response',
-				'hcaptcha-widget-id' => $widget_id,
-				$nonce               => $_POST[ $nonce ], // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
-				'hcap_fst_token'     => $_POST['hcap_fst_token'], // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
-				'hcap_hp_test'       => $_POST['hcap_hp_test'], // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
-				'hcap_hp_sig'        => $_POST['hcap_hp_sig'], // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+				'h-captcha-response'        => 'some response',
+				'hcaptcha_otter_form_nonce' => $this->create_form_nonce( $form_id, $form_option ),
+				'hcaptcha-widget-id'        => $widget_id,
+				$nonce                      => $_POST[ $nonce ], // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+				'hcap_fst_token'            => $_POST['hcap_fst_token'], // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+				'hcap_hp_test'              => $_POST['hcap_hp_test'], // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+				'hcap_hp_sig'               => $_POST['hcap_hp_sig'], // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 			],
 		];
 
@@ -293,14 +345,16 @@ HTML;
 		$form_data_request->shouldReceive( 'dump_data' )->with()->andReturn(
 			[
 				'form_data' => [
-					'payload'            => [
-						'formId' => 'wp-block-themeisle-blocks-form-fc0b7800',
+					'payload'                   => [
+						'formId'     => 'wp-block-themeisle-blocks-form-fc0b7800',
+						'formOption' => 'fc0b7800-option',
 					],
-					'h-captcha-response' => 'some response',
-					$nonce               => $_POST[ $nonce ], // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
-					'hcap_fst_token'     => $_POST['hcap_fst_token'], // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
-					'hcap_hp_test'       => $_POST['hcap_hp_test'], // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
-					'hcap_hp_sig'        => $_POST['hcap_hp_sig'], // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+					'h-captcha-response'        => 'some response',
+					'hcaptcha_otter_form_nonce' => $this->create_form_nonce( 'fc0b7800', 'fc0b7800-option' ),
+					$nonce                      => $_POST[ $nonce ], // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+					'hcap_fst_token'            => $_POST['hcap_fst_token'], // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+					'hcap_hp_test'              => $_POST['hcap_hp_test'], // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+					'hcap_hp_sig'               => $_POST['hcap_hp_sig'], // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 				],
 			]
 		);
@@ -309,6 +363,84 @@ HTML;
 		$result = $subject->verify( $form_data_request );
 
 		self::assertInstanceOf( Form_Data_Request::class, $result );
+	}
+
+	/**
+	 * A signed widget for an exempt form cannot select another form's options.
+	 */
+	public function test_form_option_binding_rejects_exempt_widget_swap(): void {
+		$subject     = new Form();
+		$form_id     = 'sec009-source';
+		$source_name = 'sec009-source-option';
+		$target_name = 'sec009-target-option';
+		$block       = [
+			'blockName' => 'themeisle-blocks/form',
+			'attrs'     => [ 'optionName' => $source_name ],
+		];
+		$content     = '<div id="wp-block-themeisle-blocks-form-' . $form_id . '" class="wp-block-themeisle-blocks-form"><form><div class="wp-block-button"><button type="submit">Submit</button></div></form></div>';
+		$instance    = Mockery::mock( WP_Block::class );
+		$rendered    = $subject->add_hcaptcha( $content, $block, $instance );
+
+		self::assertSame( 1, preg_match( '/name="hcaptcha_otter_form_nonce" value="([^"]+)"/', $rendered, $matches ) );
+		$source_nonce = $matches[1];
+
+		$exempt_source = static function ( $protect, $source, $checked_form_id ) use ( $form_id ) {
+			return $form_id === $checked_form_id ? false : $protect;
+		};
+		add_filter( 'hcap_protect_form', $exempt_source, 10, 3 );
+
+		try {
+			$widget_id = HCaptcha::widget_id_value(
+				[
+					'source'  => [ static::$plugin ],
+					'form_id' => $form_id,
+				]
+			);
+
+			$make_request = static function ( $form_option, $form_nonce, $submitted_form_id = null ) use ( $form_id, $widget_id ) {
+				$request = new WP_REST_Request( 'POST', '/otter/v1/form/frontend' );
+				$request->set_body(
+					wp_json_encode(
+						[
+							'payload'                   => [
+								'formId'     => $submitted_form_id ?? 'wp-block-themeisle-blocks-form-' . $form_id,
+								'formOption' => $form_option,
+								'postId'     => 0,
+							],
+							'hcaptcha-widget-id'        => $widget_id,
+							'hcaptcha_otter_form_nonce' => $form_nonce,
+						]
+					)
+				);
+
+				return new Form_Data_Request( $request );
+			};
+
+			$swapped = $make_request( $target_name, $source_nonce );
+			$subject->verify( $swapped );
+			self::assertTrue( $swapped->has_error() );
+			self::assertSame( 'bad-signature', $swapped->get_error_code() );
+
+			$missing = $make_request( $source_name, '' );
+			$subject->verify( $missing );
+			self::assertTrue( $missing->has_error() );
+			self::assertSame( 'bad-signature', $missing->get_error_code() );
+
+			$synthetic = $make_request( $source_name, $source_nonce, 'wp-block-themeisle-blocks-form-wrong' );
+			$subject->verify( $synthetic );
+			self::assertTrue( $synthetic->has_error() );
+			self::assertSame( 'bad-signature', $synthetic->get_error_code() );
+
+			$legitimate = $make_request( $source_name, $source_nonce );
+			$subject->verify( $legitimate );
+			self::assertFalse( $legitimate->has_error() );
+
+			$legacy_id = $make_request( $source_name, $source_nonce, $form_id );
+			$subject->verify( $legacy_id );
+			self::assertFalse( $legacy_id->has_error() );
+		} finally {
+			remove_filter( 'hcap_protect_form', $exempt_source );
+		}
 	}
 	/**
 	 * Data provider for test_verify().
@@ -345,6 +477,11 @@ HTML;
 			],
 			[
 				'label' => 'Email',
+				'value' => 'jane@sec060-disposable.test',
+				'type'  => 'email',
+			],
+			[
+				'label' => 'Secondary email',
 				'value' => 'jane@example.com',
 				'type'  => 'email',
 			],
@@ -361,6 +498,10 @@ HTML;
 			[
 				'label' => 'Empty',
 				'value' => '',
+			],
+			[
+				'label' => 'Empty array',
+				'value' => [],
 			],
 		];
 		$post_data = [
@@ -387,12 +528,28 @@ HTML;
 			],
 			$entry['expected_id']
 		);
-		self::assertSame( 'jane@example.com', $entry['data']['email'] );
+		self::assertSame( 'jane@sec060-disposable.test', $entry['data']['email'] );
+		self::assertSame( [ 'jane@sec060-disposable.test', 'jane@example.com' ], $entry['email_addresses'] );
+		self::assertSame( 'jane@example.com', $entry['data']['Secondary email'] );
 		self::assertSame( 'Jane Doe', $entry['data']['name'] );
 		self::assertSame( 'Jane Doe', $entry['data']['Name'] );
 		self::assertSame( [ 'Hello', 'world' ], $entry['data']['Message'] );
 		self::assertSame( 'Field value', $entry['data']['field-id'] );
 		self::assertArrayNotHasKey( 'Empty', $entry['data'] );
+		self::assertArrayNotHasKey( 'Empty array', $entry['data'] );
+
+		$post_data['payload']['formInputsData'] = [
+			[
+				'label' => '',
+				'id'    => '',
+				'type'  => 'email',
+				'value' => 'nameless@sec060-disposable.test',
+			],
+		];
+		$entry                                  = $method->invoke( $subject, $post_data );
+
+		self::assertSame( 'nameless@sec060-disposable.test', $entry['data']['email'] );
+		self::assertSame( [ 'nameless@sec060-disposable.test' ], $entry['email_addresses'] );
 	}
 
 	/**
@@ -459,5 +616,17 @@ HTML;
 
 		// Check if the script is enqueued.
 		self::assertTrue( wp_script_is( 'hcaptcha-otter' ) );
+	}
+
+	/**
+	 * Create an Otter form binding nonce for existing direct-filter cases.
+	 *
+	 * @param string $form_id     Form id without the Otter prefix.
+	 * @param string $form_option Native Otter option name.
+	 *
+	 * @return string
+	 */
+	private function create_form_nonce( string $form_id, string $form_option ): string {
+		return wp_create_nonce( 'hcaptcha_otter|' . wp_json_encode( [ $form_id, $form_option ] ) );
 	}
 }

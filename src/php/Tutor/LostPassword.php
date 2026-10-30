@@ -8,8 +8,10 @@
 namespace HCaptcha\Tutor;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData as FormEntryData;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
+use WP_User;
 
 /**
  * Class LostPassword.
@@ -27,6 +29,13 @@ class LostPassword {
 	private const NONCE = 'hcaptcha_tutor_lost_password_nonce';
 
 	/**
+	 * Whether this request passed the native Tutor pre-recovery verifier.
+	 *
+	 * @var bool
+	 */
+	private bool $verified_recovery = false;
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -41,6 +50,7 @@ class LostPassword {
 	protected function init_hooks(): void {
 		add_action( 'tutor_lostpassword_form', [ $this, 'add_hcaptcha' ] );
 		add_filter( 'tutor_before_retrieve_password_form_process', [ $this, 'verify' ] );
+		add_action( 'lostpassword_post', [ $this, 'verify_recipient' ], 10, 2 );
 	}
 
 	/**
@@ -73,7 +83,8 @@ class LostPassword {
 	 * @return WP_Error|null|mixed
 	 */
 	public function verify( $errors ) {
-		$error_message = API::verify( $this->get_entry() );
+		$error_message           = API::verify( $this->get_entry() );
+		$this->verified_recovery = null === $error_message;
 
 		if ( ! $error_message ) {
 			return $errors;
@@ -83,17 +94,37 @@ class LostPassword {
 	}
 
 	/**
+	 * Check the recipient resolved by WordPress after Tutor accepts the request.
+	 *
+	 * @param WP_Error           $errors Native recovery errors.
+	 * @param WP_User|false|null $user   Native recovery recipient.
+	 *
+	 * @return void
+	 */
+	public function verify_recipient( WP_Error $errors, $user = null ): void {
+		if ( ! $this->verified_recovery || ! $user instanceof WP_User ) {
+			return;
+		}
+
+		$entry = FormEntryData::with_emails( $this->get_entry(), [ $user->user_email ] );
+		HCaptcha::add_error_message( $errors, API::verify( $entry ) );
+	}
+
+	/**
 	 * Get lost-password data for hCaptcha and anti-spam verification.
 	 *
 	 * @return array
 	 */
 	private function get_entry(): array {
-		return [
-			'nonce_name'   => self::NONCE,
-			'nonce_action' => self::ACTION,
-			'data'         => EntryData::lost_password(),
-			'expected_id'  => $this->get_expected_id(),
-		];
+		return FormEntryData::with_emails(
+			[
+				'nonce_name'   => self::NONCE,
+				'nonce_action' => self::ACTION,
+				'data'         => EntryData::lost_password(),
+				'expected_id'  => $this->get_expected_id(),
+			],
+			[]
+		);
 	}
 
 	/**

@@ -28,6 +28,21 @@ use WP_User;
  * @group tutor
  */
 class FormsTest extends HCaptchaPluginWPTestCase {
+	/**
+	 * Ignore requests and templates outside Tutor's protected forms.
+	 */
+	public function test_non_matching_forms_are_ignored(): void {
+		$user     = new WP_User( 1 );
+		$errors   = new WP_Error();
+		$checkout = new Checkout();
+		$level    = ob_get_level();
+
+		self::assertSame( $user, ( new Login() )->verify( $user, 'password' ) );
+		self::assertSame( $errors, ( new Register() )->verify( $errors, '', '' ) );
+		$checkout->template_before( 'other', [] );
+		$checkout->template_after( 'other', [] );
+		self::assertSame( $level, ob_get_level() );
+	}
 
 	/**
 	 * Plugin relative path.
@@ -209,11 +224,12 @@ class FormsTest extends HCaptchaPluginWPTestCase {
 				'billing_email'      => 'jane@example.com',
 				'billing_phone'      => '123456789',
 				'billing_address'    => 'Some street',
-				'email'              => 'jane@example.com',
 				'name'               => 'Jane Doe',
+				'email'              => 'jane@example.com',
 			],
 			$entry['data']
 		);
+		self::assertSame( [ 'jane@example.com' ], $entry['email_addresses'] );
 		self::assertSame( 'checkout', $entry['expected_id']['form_id'] );
 	}
 
@@ -266,6 +282,26 @@ class FormsTest extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
+	 * Route native Tutor credentials through the login verifier.
+	 */
+	public function test_native_login_credentials_are_verified(): void {
+		$this->prepare_verify_post( 'hcaptcha_login_nonce', 'hcaptcha_login' );
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'tutor-pro/tutor-pro.php', 'tutor/tutor.php' ],
+				'form_id' => 'register',
+			]
+		);
+		add_filter( 'hcap_login_limit_exceeded', '__return_true' );
+		apply_filters( 'tutor_login_credentials', [] );
+
+		$result = ( new Login() )->verify( new WP_User( 1 ), 'secret' );
+
+		self::assertInstanceOf( WP_Error::class, $result );
+		self::assertSame( 'Bad hCaptcha signature!', $result->get_error_message( 'bad-signature' ) );
+	}
+
+	/**
 	 * Test Tutor registration rejects a signed widget ID from another source.
 	 *
 	 * @return void
@@ -308,5 +344,85 @@ class FormsTest extends HCaptchaPluginWPTestCase {
 			get_transient( CheckoutController::PAY_NOW_ERROR_TRANSIENT_KEY . get_current_user_id() )
 		);
 		self::assertFalse( has_action( 'tutor_action_tutor_pay_now' ) );
+	}
+
+	/**
+	 * Partial checkout checks stored billing until a native replacement is supplied.
+	 *
+	 * @param bool $replace_email Whether the native request supplies an allowed email.
+	 *
+	 * @return void
+	 * @dataProvider dp_partial_checkout
+	 */
+	public function test_partial_checkout_email_policy( bool $replace_email ): void {
+		global $wpdb;
+
+		$user_id = $this->factory()->user->create();
+		wp_set_current_user( $user_id );
+		$billing_reads       = 0;
+		$native_billing_read = static function ( string $query ) use ( $wpdb, $user_id, &$billing_reads ): string {
+			if ( false === strpos( $query, $wpdb->prefix . 'tutor_customers' ) || 0 !== strpos( ltrim( $query ), 'SELECT' ) ) {
+				return $query;
+			}
+
+			++$billing_reads;
+
+			// Native Tutor activation omits its tables here; keep BillingModel and QueryHelper real and supply their read result.
+			return $wpdb->prepare( 'SELECT %d AS id, %d AS user_id, %s AS billing_email', 1, $user_id, 'buyer@blocked.test' );
+		};
+		add_filter( 'query', $native_billing_read );
+		$this->prepare_verify_post( 'hcaptcha_tutor_checkout_nonce', 'hcaptcha_tutor_checkout' );
+		hcaptcha()->settings()->set( 'tutor_status', [ 'checkout' ] );
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'tutor-pro/tutor-pro.php', 'tutor/tutor.php' ],
+				'form_id' => 'checkout',
+			]
+		);
+		$_POST['email']                        = 'forged@allowed.test';
+
+		if ( $replace_email ) {
+			$_POST['billing_email'] = 'buyer@allowed.test';
+		} else {
+			unset( $_POST['billing_email'] );
+		}
+
+		$checked = [];
+		add_filter(
+			'hcap_is_disposable_email',
+			static function ( $disposable, string $address ) use ( &$checked ): bool {
+				$checked[] = $address;
+
+				return 'buyer@blocked.test' === $address;
+			},
+			10,
+			2
+		);
+		try {
+			( new Checkout() )->verify();
+			self::assertSame(
+				$replace_email ? false : [ 'Please use a permanent email address.' ],
+				get_transient( CheckoutController::PAY_NOW_ERROR_TRANSIENT_KEY . $user_id )
+			);
+			self::assertSame( [ $replace_email ? 'buyer@allowed.test' : 'buyer@blocked.test' ], $checked );
+			self::assertSame( $replace_email ? 0 : 1, $billing_reads );
+		} finally {
+			remove_filter( 'query', $native_billing_read );
+			delete_transient( CheckoutController::PAY_NOW_ERROR_TRANSIENT_KEY . $user_id );
+			wp_set_current_user( 0 );
+		}
+	}
+
+	/**
+	 * Native partial billing updates.
+	 *
+	 * @return array
+	 */
+	public function dp_partial_checkout(): array {
+		return [
+			'retained billing'     => [ false ],
+			'supplied replacement' => [ true ],
+		];
 	}
 }

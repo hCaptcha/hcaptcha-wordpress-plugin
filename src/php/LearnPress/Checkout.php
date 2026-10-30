@@ -12,7 +12,10 @@ namespace HCaptcha\LearnPress;
 
 use Exception;
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
+use LearnPress;
+use LP_Request;
 
 /**
  * Class Checkout
@@ -68,10 +71,7 @@ class Checkout {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'checkout',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		HCaptcha::form_display( $args );
@@ -126,10 +126,69 @@ class Checkout {
 	 * @noinspection ThrowRawExceptionInspection
 	 */
 	public function verify(): void {
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify_post(
+			self::NONCE,
+			self::ACTION,
+			$this->get_expected_id(),
+			EntryData::with_emails( [], [ $this->get_native_email() ] )
+		);
 
 		if ( null !== $error_message ) {
 			throw new Exception( esc_html( $error_message ) );
 		}
+	}
+
+	/**
+	 * Get the expected form identity.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => 'checkout',
+		];
+	}
+
+	/**
+	 * Resolve the email before native checkout creates an account or order.
+	 *
+	 * @return string
+	 */
+	private function get_native_email(): string {
+		// The native checkout selects the mode from POST and the values from LP_Request.
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		if ( isset( $_POST['reg_email'] ) ) {
+			return sanitize_email( $this->get_request_value( 'reg_email' ) );
+		}
+
+		if ( isset( $_POST['username'] ) ) {
+			$username = $this->get_request_value( 'username' );
+			$user     = get_user_by( 'login', $username ) ?: get_user_by( 'email', $username );
+
+			return $user->user_email ?? '';
+		}
+
+		if ( isset( $_POST['guest_email'] ) ) {
+			return $this->get_request_value( 'guest_email' );
+		}
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+
+		$email = LearnPress::instance()->checkout()->get_checkout_email();
+
+		return is_scalar( $email ) ? (string) $email : '';
+	}
+
+	/**
+	 * Get a scalar native request value with LearnPress normalization.
+	 *
+	 * @param string $field Native field name.
+	 *
+	 * @return string
+	 */
+	private function get_request_value( string $field ): string {
+		$value = LP_Request::get_param( $field );
+
+		return is_scalar( $value ) ? (string) $value : '';
 	}
 }

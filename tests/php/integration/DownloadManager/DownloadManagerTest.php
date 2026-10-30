@@ -16,6 +16,7 @@ use HCaptcha\DownloadManager\DownloadManager;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use ReflectionClass;
+use ReflectionException;
 use WPDM\Package\PackageController;
 
 /**
@@ -177,7 +178,7 @@ HTML;
 	</div>
 </div></form>
 HTML;
-		$vars      = [];
+		$vars      = [ 'ID' => $form_id ];
 
 		$subject = new DownloadManager();
 
@@ -185,9 +186,43 @@ HTML;
 	}
 
 	/**
+	 * The signed widget follows native template data rather than a link in the HTML.
+	 *
+	 * @return void
+	 */
+	public function test_add_hcaptcha_uses_native_package_id(): void {
+		$subject  = new DownloadManager();
+		$template = '<ul class="list-group ml"></ul><a data-downloadurl="https://test.test/?wpdmdl=121">Download</a>';
+		$html     = $subject->add_hcaptcha( $template, [ 'ID' => '0012' ] );
+		$widget   = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'download-manager/download-manager.php' ],
+				'form_id' => 12,
+			]
+		);
+
+		self::assertStringContainsString( 'name="hcaptcha-widget-id"', $html );
+		self::assertStringContainsString( 'value="' . $widget . '"', $html );
+	}
+
+	/**
+	 * Reject package data without an ID.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_get_package_id_without_package_data(): void {
+		$subject = new DownloadManager();
+		$method  = $this->set_method_accessibility( $subject, 'get_package_id' );
+
+		self::assertSame( 0, $method->invoke( $subject, null ) );
+		self::assertSame( 0, $method->invoke( $subject, [] ) );
+	}
+
+	/**
 	 * Test hCaptcha in a package rendered by the live Download Manager template.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_live_package_template(): void {
 		$package_id = PackageController::create(
@@ -230,7 +265,7 @@ HTML;
 
 		$subject = new DownloadManager();
 
-		$subject->verify( null );
+		$subject->verify( [ 'ID' => $form_id ] );
 	}
 
 	/**
@@ -266,7 +301,7 @@ HTML;
 			}
 		);
 
-		$subject->verify( null );
+		$subject->verify( [ 'ID' => $form_id ] );
 
 		self::assertSame( $expected, $die_arr );
 	}
@@ -302,9 +337,121 @@ HTML;
 			}
 		);
 
-		$subject->verify( null );
+		$subject->verify( [ 'ID' => 3220 ] );
 
 		self::assertSame( $expected, $die_arr );
+	}
+
+	/**
+	 * A different package's signed exemption cannot authorize a native download.
+	 *
+	 * @return void
+	 * @noinspection PhpArrayIsAlwaysEmptyInspection
+	 * @noinspection PhpUnusedLocalVariableInspection
+	 */
+	public function test_verify_rejects_other_package_exemption_for_malformed_query(): void {
+		$source  = HCaptcha::get_class_source( DownloadManager::class );
+		$exempt  = static function ( $protect, $form_source, $form_id ) use ( $source ) {
+			return $source === $form_source && 121 === $form_id ? false : $protect;
+		};
+		$die_arr = [];
+
+		$this->prepare_verify_post( 'hcaptcha_download_manager_nonce', 'hcaptcha_download_manager', null );
+		$this->prepare_widget_id( 121 );
+
+		add_filter( 'hcap_protect_form', $exempt, 10, 3 );
+		add_filter(
+			'wp_die_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		try {
+			$subject = new DownloadManager();
+
+			foreach ( [ '12<br>1', '12%201' ] as $query_id ) {
+				$_GET['wpdmdl'] = $query_id;
+				$die_arr        = [];
+
+				$subject->verify( [ 'ID' => 12 ] );
+
+				self::assertSame( 'Bad hCaptcha signature!', $die_arr[0] ?? null, $query_id );
+			}
+		} finally {
+			remove_filter( 'hcap_protect_form', $exempt );
+		}
+	}
+
+	/**
+	 * The native package's own exemption remains valid without remote proof.
+	 *
+	 * @return void
+	 */
+	public function test_verify_accepts_native_package_exemption(): void {
+		$source  = HCaptcha::get_class_source( DownloadManager::class );
+		$exempt  = static function ( $protect, $form_source, $form_id ) use ( $source ) {
+			return $source === $form_source && 121 === $form_id ? false : $protect;
+		};
+		$die_arr = [];
+
+		$this->prepare_verify_post( 'hcaptcha_download_manager_nonce', 'hcaptcha_download_manager', null );
+		$this->prepare_widget_id( 121 );
+
+		$_GET['wpdmdl'] = '12<br>1';
+
+		add_filter( 'hcap_protect_form', $exempt, 10, 3 );
+		add_filter(
+			'wp_die_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		try {
+			$subject = new DownloadManager();
+			$subject->verify( [ 'ID' => '00121' ] );
+
+			self::assertSame( [], $die_arr );
+		} finally {
+			remove_filter( 'hcap_protect_form', $exempt );
+		}
+	}
+
+	/**
+	 * Invalid native package data must fail closed even with a valid exemption.
+	 *
+	 * @return void
+	 */
+	public function test_verify_rejects_invalid_native_package_id(): void {
+		$die_arr = [];
+
+		$this->prepare_verify_post( 'hcaptcha_download_manager_nonce', 'hcaptcha_download_manager', null );
+		$this->prepare_widget_id( 121 );
+		$_GET['wpdmdl'] = '12<br>1';
+
+		add_filter( 'hcap_protect_form', '__return_false' );
+		add_filter(
+			'wp_die_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		try {
+			$subject = new DownloadManager();
+			$subject->verify( [ 'ID' => '12<br>1' ] );
+
+			self::assertSame( 'Bad hCaptcha signature!', $die_arr[0] ?? null );
+		} finally {
+			remove_filter( 'hcap_protect_form', '__return_false' );
+		}
 	}
 
 	/**

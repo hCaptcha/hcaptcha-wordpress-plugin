@@ -11,8 +11,10 @@
 namespace HCaptcha\EventsManager;
 
 use EM_Booking;
+use EM_Bookings;
 use EM_Event;
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -66,10 +68,7 @@ class Booking {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => $event->event_id,
-			],
+			'id'     => $this->get_id( $event->event_id ),
 		];
 
 		?>
@@ -105,7 +104,27 @@ class Booking {
 	 * @return bool
 	 */
 	public function verify( $validated, EM_Booking $booking ): bool {
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		$event       = $booking->get_event();
+		$expected_id = $this->get_id( $event instanceof EM_Event ? $event->event_id : 0 );
+		$person      = $booking->get_person();
+		$email       = $person->user_email ?? '';
+
+		// Guest registration reads this native field after booking validation, while get_person() still has a placeholder.
+		if ( ! is_user_logged_in() || EM_Bookings::is_registration_forced() ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash -- Native booking controller verifies its nonce; the exact address is unslashed below.
+			$native_email = $_REQUEST['user_email'] ?? null;
+
+			if ( is_string( $native_email ) ) {
+				$email = trim( wp_unslash( $native_email ) );
+			}
+		}
+
+		$error_message = API::verify_post(
+			self::NONCE,
+			self::ACTION,
+			$expected_id,
+			EntryData::with_emails( [], [ $email ] )
+		);
 
 		if ( null === $error_message ) {
 			return $validated;
@@ -113,7 +132,21 @@ class Booking {
 
 		$booking->add_error( $error_message );
 
-		return $validated;
+		return false;
+	}
+
+	/**
+	 * Get the widget identity for an event.
+	 *
+	 * @param int|string $event_id Event ID.
+	 *
+	 * @return array
+	 */
+	private function get_id( $event_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => $event_id,
+		];
 	}
 
 	/**

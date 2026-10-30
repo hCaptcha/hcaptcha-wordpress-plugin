@@ -13,10 +13,12 @@
 namespace HCaptcha\Tests\Integration\AutoVerify;
 
 use HCaptcha\AutoVerify\AutoVerify;
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
 use ReflectionException;
+use WP_Query;
 
 /**
  * Test AutoVerify class.
@@ -35,9 +37,15 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 			$_GET['p'],
 			$_GET['page_id'],
 			$_GET['rest_route'],
+			$_GET['name'],
+			$_GET['post_type'],
+			$_GET['attachment_id'],
+			$_GET['subpost_id'],
 			$GLOBALS['current_screen']
 		);
 		delete_transient( AutoVerify::TRANSIENT );
+		wp_dequeue_script( AutoVerify::HANDLE );
+		wp_deregister_script( AutoVerify::HANDLE );
 
 		parent::tearDown();
 	}
@@ -60,6 +68,70 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Uninstall cleanup deletes persisted registrations and the legacy transient.
+	 */
+	public function test_delete_all_removes_stored_forms(): void {
+		$name = 'hcaptcha_auto_verify_form_cleanup_test';
+		add_option( $name, [ 'form' => true ], '', 'no' );
+		set_transient( AutoVerify::TRANSIENT, [ 'legacy' => true ] );
+
+		AutoVerify::delete_all();
+
+		self::assertFalse( get_option( $name ) );
+		self::assertFalse( get_transient( AutoVerify::TRANSIENT ) );
+	}
+
+	/**
+	 * Auto forms receive a normalized widget ID while ordinary forms retain their arguments.
+	 */
+	public function test_auto_form_arguments_and_registration(): void {
+		$subject = new AutoVerify();
+		self::assertSame( [ 'auto' => false ], $subject->add_default_id( [ 'auto' => false ] ) );
+		$subject->register_hcaptcha( 'invalid' );
+
+		$args = $subject->add_default_id(
+			[
+				'auto'     => true,
+				'ajax'     => true,
+				'honeypot' => 'yes',
+			]
+		);
+		self::assertTrue( $args['id']['honeypot'] );
+		self::assertSame( [ AutoVerify::class ], $args['id']['source'] );
+		$subject->register_hcaptcha( $args );
+		$subject->enqueue_scripts();
+
+		self::assertTrue( wp_script_is( AutoVerify::HANDLE ) );
+		self::assertStringContainsString( 'hcaptcha-auto-verify', wp_scripts()->registered[ AutoVerify::HANDLE ]->src );
+		self::assertStringContainsString( 'HCaptchaAutoVerifyObject', wp_scripts()->registered[ AutoVerify::HANDLE ]->extra['data'] );
+	}
+
+	/**
+	 * Empty auto registry does not enqueue a script.
+	 */
+	public function test_enqueue_scripts_without_ajax_form(): void {
+		$subject = new AutoVerify();
+		$subject->enqueue_scripts();
+
+		self::assertFalse( wp_script_is( AutoVerify::HANDLE ) );
+	}
+
+	/**
+	 * Numeric references and sibling registrations retain their expected values.
+	 */
+	public function test_numeric_reference_and_sibling_registration(): void {
+		$subject = new AutoVerify();
+		$decode  = $this->set_method_accessibility( $subject, 'decode_numeric_reference' );
+		self::assertSame( '©', $decode->invoke( $subject, '&#xA9;' ) );
+
+		$forms  = [ 'action' => [ [ 'id' => 1 ], [ 'id' => 2 ] ] ];
+		$remove = $this->set_method_accessibility( $subject, 'remove_registered_form' );
+		$args   = [ &$forms, 'action', $forms['action'], 0 ];
+		$remove->invokeArgs( $subject, $args );
+		self::assertSame( [ [ 'id' => 2 ] ], $forms['action'] );
+	}
+
+	/**
 	 * Test content_filter().
 	 */
 	public function test_content_filter(): void {
@@ -79,6 +151,187 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 		$path = array_key_first( $expected );
 		self::assertSame( $expected[ $path ], $this->get_registered_action_forms( $path ) );
 		self::assertFalse( get_transient( $subject::TRANSIENT ) );
+	}
+
+	/**
+	 * Browser-equivalent form actions must protect the actual submission endpoint.
+	 *
+	 * @dataProvider dp_test_html_form_actions_verify_actual_target
+	 *
+	 * @param string $opening          Form opening tag.
+	 * @param string $target           Browser submission path.
+	 * @param bool   $valid_submission Whether hCaptcha data is valid.
+	 */
+	public function test_html_form_actions_verify_actual_target( string $opening, string $target, bool $valid_submission = false ): void {
+		$_SERVER['REQUEST_URI'] = '/render/contact/';
+		$subject                = new AutoVerify();
+		$subject->init();
+		$content = str_replace(
+			[ '<form method="post">', '</form>' ],
+			[ $opening, '</FORM >' ],
+			$this->get_test_content()
+		);
+		$subject->content_filter( do_shortcode( $content ) );
+		$forms = $this->get_registered_action_forms( $target );
+
+		self::assertCount( 1, $forms );
+		self::assertSame( [], $this->get_registered_action_forms( '/wrong' ) );
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$_SERVER['REQUEST_URI']    = $target;
+		$_POST                     = [ 'test_input' => 'value' ];
+
+		if ( $valid_submission ) {
+			$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = $forms[0]['widget_id'];
+			$args                                  = $forms[0]['args'];
+			$_POST[ $args['name'] ]                = wp_create_nonce( $args['action'] );
+			$this->prepare_verify_request( 'some response' );
+		}
+
+		$submitted = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$die_arr   = [];
+		add_filter(
+			'wp_die_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+		$subject->verify();
+
+		if ( $valid_submission ) {
+			self::assertSame( [], $die_arr );
+			self::assertTrue( hcaptcha()->has_result );
+			self::assertSame( $submitted, $_POST ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		} else {
+			self::assertSame( 'Bad hCaptcha signature!', $die_arr[0] ?? null );
+			self::assertSame( 403, $die_arr[2]['response'] ?? null );
+			self::assertSame( [], $_POST ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		}
+	}
+
+	/**
+	 * Form action syntax and ordinary submission controls.
+	 *
+	 * @return array
+	 * @noinspection HtmlUnknownTarget
+	 * @noinspection HtmlUnknownAnchorTarget
+	 */
+	public function dp_test_html_form_actions_verify_actual_target(): array {
+		return [
+			'single quotes'         => [ "<form action='/submit/' method='post'>", '/submit' ],
+			'unquoted'              => [ '<form action=/submit/ method=post>', '/submit' ],
+			'uppercase attribute'   => [ '<form ACTION="/submit/" method=post>', '/submit' ],
+			'ASCII whitespace'      => [ "<FORM\naction\t=\f'/submit/' method=post>", '/submit' ],
+			'quoted tag end'        => [ '<form title="quoted > action=/wrong" action="/submit/" method=post>', '/submit' ],
+			'data action decoy'     => [ '<form data-action="/wrong" action="/submit/" method=post>', '/submit' ],
+			'quoted action decoy'   => [ '<form title=\'action="/wrong"\' action="/submit/" method=post>', '/submit' ],
+			'first duplicate'       => [ '<form action="/submit/" ACTION="/wrong" method=post>', '/submit' ],
+			'first empty duplicate' => [ '<form action="" action="/wrong" method=post>', '/render/contact' ],
+			'bare action'           => [ '<form action method=post>', '/render/contact' ],
+			'no action'             => [ '<form method=post>', '/render/contact' ],
+			'data action only'      => [ '<form data-action="/wrong" method=post>', '/render/contact' ],
+			'descendant action'     => [ '<form method=post><input action="/wrong">', '/render/contact' ],
+			'entities'              => [ '<form action="&#47;submit&#47;" method=post>', '/submit' ],
+			'no semicolon numeric'  => [ '<form action="&#47submit" method=post>', '/submit' ],
+			'no semicolon hex'      => [ '<form action="&#x2fsubmit" method=post>', '/submit' ],
+			'relative path'         => [ '<form action="submit/" method=post>', '/render/contact/submit' ],
+			'dot relative path'     => [ '<form action="./submit/" method=post>', '/render/contact/submit' ],
+			'parent relative path'  => [ '<form action="../submit/" method=post>', '/render/submit' ],
+			'root dot segments'     => [ '<form action="/render/../submit/" method=post>', '/submit' ],
+			'absolute dot segments' => [ '<form action="https://test.test/render/../submit/" method=post>', '/submit' ],
+			'empty before parent'   => [ '<form action="/a//../submit" method=post>', '/a/submit' ],
+			'encoded slash parent'  => [ '<form action="/a%2Fb/../submit" method=post>', '/submit' ],
+			'encoded dot parent'    => [ '<form action="/a/%2e%2e/submit" method=post>', '/submit' ],
+			'zero action'           => [ '<form action="0" method=post>', '/render/contact/0' ],
+			'schemeless URL'        => [ '<form action="//test.test/submit/" method=post>', '/submit' ],
+			'origin only'           => [ '<form action="https://test.test" method=post>', '/' ],
+			'schemeless origin'     => [ '<form action="//test.test" method=post>', '/' ],
+			'fragment action'       => [ '<form action="#submit" method=post>', '/render/contact' ],
+			'valid single quotes'   => [ "<form action='/submit/' method='post'>", '/submit', true ],
+			'valid uppercase'       => [ '<FORM ACTION="/submit/" method=post>', '/submit', true ],
+		];
+	}
+
+	/**
+	 * Raw text and unrelated forms must not change the protected form's target.
+	 */
+	public function test_html_form_extraction_ignores_raw_text(): void {
+		$subject = new AutoVerify();
+		$subject->init();
+		$_SERVER['REQUEST_URI'] = '/render/contact/';
+		$content                = do_shortcode( $this->get_test_content() );
+		$content                = str_replace(
+			'<form method="post">',
+			'<form action="/submit/" method="post"><script>const end = "</form>";</script><textarea name="note">&lt;form&gt; </form></textarea><!-- </form> -->',
+			$content
+		);
+		$content                = '<form action="/wrong" method="post"><input name="unrelated"></form>' . $content;
+		$subject->content_filter( $content );
+
+		self::assertCount( 1, $this->get_registered_action_forms( '/submit' ) );
+		self::assertSame( [], $this->get_registered_action_forms( '/wrong' ) );
+	}
+
+	/**
+	 * Attribute entities retain browser decoding and never decode a reference twice.
+	 *
+	 * @dataProvider dp_test_decode_action_attribute
+	 *
+	 * @param string $value    Attribute source.
+	 * @param string $expected Browser attribute value.
+	 */
+	public function test_decode_action_attribute( string $value, string $expected ): void {
+		$subject = new AutoVerify();
+		$method  = $this->set_method_accessibility( $subject, 'decode_action_attribute' );
+
+		self::assertSame( $expected, $method->invoke( $subject, $value ) );
+	}
+
+	/**
+	 * Browser attribute character reference boundaries.
+	 *
+	 * @return array
+	 */
+	public function dp_test_decode_action_attribute(): array {
+		return [
+			[ '&#47submit', '/submit' ],
+			[ '&#x2fsubmit', '/submit' ],
+			[ '&#0000047;submit', '/submit' ],
+			[ '&amp;#47;', '&#47;' ],
+			[ '&#38;amp;', '&amp;' ],
+			[ '&amp/', '&/' ],
+			[ '&amp=1', '&amp=1' ],
+			[ '&ampnext', '&ampnext' ],
+			[ '&eacute/', 'é/' ],
+			[ '&COPY/', '©/' ],
+			[ '&sol/', '&sol/' ],
+			[ '&sol;', '/' ],
+			[ '&#0;', "\xef\xbf\xbd" ],
+			[ '&#xD800;', "\xef\xbf\xbd" ],
+			[ '&#1114112;', "\xef\xbf\xbd" ],
+			[ '&#128;', '€' ],
+			[ '&#x1F600;', '😀' ],
+		];
+	}
+
+	/**
+	 * Entity decoding and actionless fallback preserve query selectors after ampersands.
+	 *
+	 * @noinspection HtmlUnknownAnchorTarget
+	 */
+	public function test_html_form_actions_preserve_query_selectors(): void {
+		$page_id = $this->factory()->post->create( [ 'post_type' => 'page' ] );
+		$subject = new AutoVerify();
+		$subject->init();
+		$_SERVER['REQUEST_URI'] = '/?tracking=1&page_id=' . $page_id;
+		$method                 = $this->set_method_accessibility( $subject, 'get_form_action' );
+		$expected               = 'post:' . $page_id . ':/';
+
+		self::assertSame( $expected, $method->invoke( $subject, '<form>' ) );
+		self::assertSame( $expected, $method->invoke( $subject, '<form action="/?tracking=1&amp;page_id=' . $page_id . '">' ) );
+		self::assertSame( $expected, $method->invoke( $subject, '<form action="#fragment">' ) );
+		self::assertSame( '/', $method->invoke( $subject, '<form action="/?tracking=1&amp;amp;page_id=' . $page_id . '">' ) );
 	}
 
 	/**
@@ -132,6 +385,155 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 
 		self::assertSame( 'Bad hCaptcha signature!', $die_arr[0] ?? null );
 		self::assertSame( 403, $die_arr[2]['response'] ?? null );
+	}
+
+	/**
+	 * Equivalent plain permalink routes must verify the page's registered form.
+	 *
+	 * @param string $registration_path Registration path.
+	 * @param string $request_path      Submission path.
+	 * @param string $query             Page selector query.
+	 * @param bool   $explicit_action   Whether the form has an explicit action.
+	 * @param bool   $valid_submission  Whether the submission has valid hCaptcha data.
+	 * @param string $home_path         Home URL subdirectory.
+	 * @param bool   $post_selector     Whether the page selector is submitted in POST.
+	 * @param string $post_type         Protected post type.
+	 *
+	 * @dataProvider dp_test_plain_permalink_aliases_verify_registered_form
+	 */
+	public function test_plain_permalink_aliases_verify_registered_form(
+		string $registration_path,
+		string $request_path,
+		string $query,
+		bool $explicit_action = false,
+		bool $valid_submission = false,
+		string $home_path = '',
+		bool $post_selector = false,
+		string $post_type = 'page'
+	): void {
+		$old_structure   = (string) get_option( 'permalink_structure' );
+		$old_home        = get_option( 'home' );
+		$old_script_name = array_intersect_key( $_SERVER, [ 'SCRIPT_NAME' => true ] );
+
+		try {
+			$_SERVER['SCRIPT_NAME'] = '/index.php';
+			$this->set_permalink_structure();
+			update_option( 'home', untrailingslashit( $old_home ) . $home_path );
+			$page_id  = $this->factory()->post->create(
+				[
+					'post_type'   => $post_type,
+					'post_status' => 'publish',
+					'post_name'   => 'protected-auto-form',
+				]
+			);
+			$other_id = $this->factory()->post->create( [ 'post_type' => 'page' ] );
+			$subject  = new AutoVerify();
+			$subject->init();
+
+			$selector               = 'post' === $post_type ? 'p' : 'page_id';
+			$registration_uri       = $home_path . $registration_path . '?' . $selector . '=' . $page_id;
+			$_SERVER['REQUEST_URI'] = $home_path . '/?' . $selector . '=' . $page_id;
+			$_GET                   = [ $selector => (string) $page_id ];
+			$content                = $this->get_test_content();
+
+			if ( $explicit_action || '/index.php' === $registration_path ) {
+				$content = str_replace( '<form method="post">', '<form method="post" action="' . $registration_uri . '">', $content );
+			}
+
+			apply_filters( 'the_content', $content );
+			$target_key = 'post:' . $page_id . ':' . ( untrailingslashit( $home_path . $registration_path ) ?: '/' );
+			$forms      = $this->get_registered_action_forms( $target_key );
+			self::assertCount( 1, $forms );
+
+			$query = str_replace( [ '{id}', '{other_id}' ], [ (string) $page_id, (string) $other_id ], $query );
+			parse_str( $query, $query_vars );
+			$_GET                      = $post_selector ? [] : $query_vars;
+			$_POST                     = [ 'test_input' => 'value' ];
+			$_SERVER['REQUEST_METHOD'] = 'POST';
+			$_SERVER['REQUEST_URI']    = $home_path . $request_path . ( $post_selector ? '' : '?' . $query );
+
+			if ( $post_selector ) {
+				// phpcs:ignore WordPress.Security.NonceVerification.Missing
+				$_POST = array_merge( $_POST, $query_vars );
+			}
+
+			$page_query = new WP_Query( $query_vars );
+			self::assertSame( $page_id, $page_query->get_queried_object_id() );
+
+			if ( $valid_submission ) {
+				$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = $forms[0]['widget_id'];
+				$args                                  = $forms[0]['args'];
+				$_POST[ $args['name'] ]                = wp_create_nonce( $args['action'] );
+				$this->prepare_verify_request( 'some response' );
+			}
+
+			$submitted_post = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			$die_arr        = [];
+			add_filter(
+				'wp_die_handler',
+				static function () use ( &$die_arr ) {
+					return static function ( $message, $title, $args ) use ( &$die_arr ) {
+						$die_arr = [ $message, $title, $args ];
+					};
+				}
+			);
+
+			$subject->verify();
+
+			if ( $valid_submission ) {
+				self::assertSame( [], $die_arr );
+				self::assertTrue( hcaptcha()->has_result );
+				self::assertSame( $submitted_post, $_POST ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			} else {
+				self::assertSame( 403, $die_arr[2]['response'] ?? null );
+				self::assertSame( [], $_POST ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			}
+		} finally {
+			update_option( 'home', $old_home );
+			$this->set_permalink_structure( $old_structure );
+			unset( $_SERVER['SCRIPT_NAME'] );
+			$_SERVER += $old_script_name;
+		}
+	}
+
+	/**
+	 * Data provider for plain permalink registration and submission aliases.
+	 *
+	 * @return array
+	 */
+	public function dp_test_plain_permalink_aliases_verify_registered_form(): array {
+		return [
+			'root to index'          => [ '/', '/index.php', 'page_id={id}' ],
+			'root to fresh path'     => [ '/', '/fresh-path', 'page_id={id}' ],
+			'login-shaped alias'     => [ '/', '/wp-login.php', 'page_id={id}' ],
+			'index to root'          => [ '/index.php', '/', 'page_id={id}' ],
+			'index to fresh path'    => [ '/index.php', '/fresh-path', 'page_id={id}' ],
+			'explicit root action'   => [ '/', '/index.php', 'page_id={id}', true ],
+			'explicit index action'  => [ '/index.php', '/fresh-path', 'page_id={id}', true ],
+			'post selector'          => [ '/', '/fresh-path', 'p={id}', false, false, '', false, 'post' ],
+			'page slug selector'     => [ '/', '/fresh-path', 'pagename=protected-auto-form' ],
+			'encoded selector'       => [ '/', '/fresh-path', '%70age_id={id}' ],
+			'encoded post selector'  => [ '/', '/fresh-path', '%70={id}', false, false, '', false, 'post' ],
+			'preceding parameter'    => [ '/', '/fresh-path', 'tracking=1&page_id={id}' ],
+			'zero page selector'     => [ '/', '/fresh-path', 'page_id=0&p={id}', false, false, '', false, 'post' ],
+			'negative page selector' => [ '/', '/fresh-path', 'page_id=-{id}' ],
+			'numeric prefix'         => [ '/', '/fresh-path', 'page_id={id}suffix' ],
+			'HTML numeric suffix'    => [ '/', '/fresh-path', 'page_id={id}%3Cbr%3E1' ],
+			'percent numeric suffix' => [ '/', '/fresh-path', 'page_id={id}%25201' ],
+			'encoded slug value'     => [ '/', '/fresh-path', 'pagename=%2570rotected-auto-form' ],
+			'name selector'          => [ '/', '/fresh-path', 'post_type=page&name=protected-auto-form' ],
+			'post name selector'     => [ '/', '/fresh-path', 'name=protected-auto-form', false, false, '', false, 'post' ],
+			'attachment ID alias'    => [ '/', '/fresh-path', 'attachment_id={id}&post_type=page' ],
+			'subpost ID alias'       => [ '/', '/fresh-path', 'subpost_id={id}&post_type=page' ],
+			'name overrides path'    => [ '/', '/fresh-path', 'post_type=page&name=protected-auto-form&pagename=missing-page' ],
+			'page takes precedence'  => [ '/', '/fresh-path', 'post_type=page&p={other_id}&page_id={id}' ],
+			'POST page selector'     => [ '/', '/fresh-path', 'page_id={id}', false, false, '', true ],
+			'POST slug selector'     => [ '/', '/fresh-path', 'pagename=protected-auto-form', false, false, '', true ],
+			'subdirectory root'      => [ '/', '/index.php', 'page_id={id}', false, false, '/blog' ],
+			'subdirectory index'     => [ '/index.php', '/fresh-path', 'page_id={id}', false, false, '/blog' ],
+			'valid root form'        => [ '/', '/index.php', 'page_id={id}', false, true ],
+			'valid index form'       => [ '/index.php', '/fresh-path', 'page_id={id}', false, true ],
+		];
 	}
 
 	/**
@@ -606,6 +1008,173 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Array-named inputs must reach CAPTCHA verification after form registration.
+	 *
+	 * @param array  $inputs   Registered input names.
+	 * @param string $query    Encoded submission.
+	 * @param string $response CAPTCHA response.
+	 * @param string $error    Expected verification error.
+	 *
+	 * @dataProvider dp_test_verify_form_with_array_inputs
+	 */
+	public function test_verify_form_with_array_inputs( array $inputs, string $query, string $response, string $error ): void {
+		$_SERVER['REQUEST_URI'] = '/array-form';
+		$subject                = new AutoVerify();
+		$subject->init();
+		$content = '<form method="post">';
+
+		foreach ( $inputs as $input ) {
+			$content .= '<input type="text" name="' . esc_attr( $input ) . '">';
+		}
+
+		apply_filters( 'the_content', $content . '[hcaptcha auto="true"]</form>' );
+		$form = $this->get_registered_action_forms( '/array-form' )[0];
+
+		self::assertSame( $inputs, $form['inputs'] );
+		parse_str( $query, $post );
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$_POST                     = $post + [
+			HCaptcha::HCAPTCHA_WIDGET_ID => $form['widget_id'],
+			'hcaptcha_nonce'             => wp_create_nonce( 'hcaptcha_action' ),
+			'hcap_hp_test'               => '',
+			'hcap_hp_sig'                => wp_create_nonce( 'hcap_hp_test' ),
+		];
+		$this->prepare_verify_request( $response );
+		$submitted   = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$die_message = '';
+		add_filter(
+			'wp_die_handler',
+			static function () use ( &$die_message ) {
+				return static function ( $message ) use ( &$die_message ) {
+					$die_message = $message;
+				};
+			}
+		);
+		$subject->verify();
+
+		self::assertSame( $error, $die_message );
+
+		if ( '' === $error ) {
+			self::assertTrue( API::get_siteverify_response()['success'] );
+			self::assertSame( $submitted, $_POST ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		} else {
+			self::assertSame( [], $_POST ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		}
+	}
+
+	/**
+	 * Successful and rejected submissions with PHP array field names.
+	 *
+	 * @return array
+	 */
+	public function dp_test_verify_form_with_array_inputs(): array {
+		return [
+			'contact form'             => [
+				[ 'contact[name]', 'contact[email]' ],
+				'contact[name]=User&contact[email]=user@example.com',
+				'some response',
+				'',
+			],
+			'nested lists'             => [
+				[ 'contact[emails][]', 'contacts[][name]' ],
+				'contact[emails][]=user@example.com&contacts[2][name]=User',
+				'some response',
+				'',
+			],
+			'missing sibling'          => [
+				[ 'contact[name]', 'contact[email]' ],
+				'contact[name]=User',
+				'some response',
+				'Bad hCaptcha signature!',
+			],
+			'wrong widget'             => [
+				[ 'contact[email]' ],
+				'contact[email]=user@example.com&hcaptcha-widget-id=other-widget-id',
+				'some response',
+				'Bad hCaptcha signature!',
+			],
+			'missing CAPTCHA response' => [
+				[ 'contact[email]' ],
+				'contact[email]=user@example.com',
+				'',
+				'Please complete the hCaptcha.',
+			],
+		];
+	}
+
+	/**
+	 * Default auto-verified forms do not require unsupported timing protection.
+	 *
+	 * @param bool $ajax      Whether the form uses AJAX submission.
+	 * @param bool $logged_in Whether the submitter is logged in.
+	 *
+	 * @dataProvider dp_test_default_shortcode_with_global_fst
+	 */
+	public function test_default_shortcode_with_global_fst( bool $ajax, bool $logged_in ): void {
+		$settings                        = (array) get_option( 'hcaptcha_settings', [] );
+		$settings['set_min_submit_time'] = [ 'on' ];
+		$settings['min_submit_time']     = '0';
+		update_option( 'hcaptcha_settings', $settings );
+		$this->prepare_verify_request( 'some response' );
+
+		wp_set_current_user( $logged_in ? $this->factory()->user->create() : 0 );
+		$_POST                     = [];
+		$_SERVER['REQUEST_METHOD'] = 'GET';
+		$_SERVER['REQUEST_URI']    = '/default-auto-form';
+		$subject                   = new AutoVerify();
+		$subject->init();
+		$shortcode = '[hcaptcha auto="true"' . ( $ajax ? ' ajax="true"' : '' ) . ']';
+		$content   = '<form method="post"><input type="text" name="test_input">' . $shortcode . '</form>';
+
+		apply_filters( 'the_content', $content );
+		$form = $this->get_registered_action_forms( '/default-auto-form' )[0];
+
+		self::assertSame( [ AutoVerify::class ], $form['args']['id']['source'] );
+		self::assertFalse( hcaptcha()->settings()->is_on( 'set_min_submit_time' ) );
+		self::assertSame( [ 'on' ], get_option( 'hcaptcha_settings' )['set_min_submit_time'] );
+
+		// Reload persisted settings as a new submission request would.
+		$this->prepare_verify_request( 'some response' );
+		remove_filter( 'hcap_verify_fst_token', '__return_true' );
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$_POST                     = [
+			'test_input'         => 'some input',
+			'hcaptcha-widget-id' => $form['widget_id'],
+			'hcaptcha_nonce'     => wp_create_nonce( 'hcaptcha_action' ),
+			'h-captcha-response' => 'some response',
+		];
+		$expected_post             = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$die_message               = null;
+		$die_handler               = static function () use ( &$die_message ) {
+			return static function ( $message ) use ( &$die_message ) {
+				$die_message = $message;
+			};
+		};
+		add_filter( 'wp_die_handler', $die_handler );
+		add_filter( 'wp_die_ajax_handler', $die_handler );
+
+		self::assertTrue( hcaptcha()->settings()->is_on( 'set_min_submit_time' ) );
+		$subject->verify();
+
+		self::assertNull( $die_message );
+		self::assertTrue( API::get_siteverify_response()['success'] );
+		self::assertSame( $expected_post, $_POST ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+	}
+
+	/**
+	 * Data provider for default shortcode submissions with globally enabled FST.
+	 *
+	 * @return array
+	 */
+	public function dp_test_default_shortcode_with_global_fst(): array {
+		return [
+			'guest POST'     => [ false, false ],
+			'guest AJAX'     => [ true, false ],
+			'logged-in POST' => [ false, true ],
+		];
+	}
+
+	/**
 	 * Test verify_form() when the widget id is missing.
 	 */
 	public function test_verify_form_when_widget_id_is_missing(): void {
@@ -1014,6 +1583,7 @@ class AutoVerifyTest extends HCaptchaWPTestCase {
 				'form_id' => 0,
 			],
 			'protect'       => true,
+			'mandatory'     => false,
 		];
 
 		return [

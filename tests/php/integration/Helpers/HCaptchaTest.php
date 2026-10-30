@@ -510,7 +510,16 @@ HTML;
 
 		$_POST['hcaptcha-widget-id'] = $encoded_id . '-' . $hash;
 
-		self::assertSame( $expected, HCaptcha::is_protection_enabled() );
+		self::assertSame( $expected, HCaptcha::is_protection_enabled( $id ) );
+		self::assertTrue( HCaptcha::is_protection_enabled() );
+		self::assertTrue(
+			HCaptcha::is_protection_enabled(
+				[
+					'source'  => $id['source'],
+					'form_id' => 456,
+				]
+			)
+		);
 	}
 
 	/**

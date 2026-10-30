@@ -14,6 +14,7 @@ describe( 'hCaptcha Otter', () => {
 				<input name="h-captcha-response" value="response-token">
 				<input name="hcaptcha-widget-id" value="widget-id">
 				<input name="hcaptcha_otter_nonce" value="nonce-value">
+				<input name="hcaptcha_otter_form_nonce" value="bound-form-nonce">
 				<input name="hcap_fst_token" value="fst-token">
 				<input name="hcap_hp_sig" value="hp-sig">
 				<input id="hcap_hp_test" value="">
@@ -67,9 +68,24 @@ describe( 'hCaptcha Otter', () => {
 		expect( formData[ 'h-captcha-response' ] ).toBe( 'response-token' );
 		expect( formData[ 'hcaptcha-widget-id' ] ).toBe( 'widget-id' );
 		expect( formData.hcaptcha_otter_nonce ).toBe( 'nonce-value' );
+		expect( formData.hcaptcha_otter_form_nonce ).toBe( 'bound-form-nonce' );
 		expect( formData.hcap_fst_token ).toBe( 'fst-token' );
 		expect( formData.hcap_hp_sig ).toBe( 'hp-sig' );
 		expect( formData.hcap_hp_test ).toBe( '' );
+	} );
+
+	test( 'replaces a stale submitted form binding with the rendered one', () => {
+		const body = new FormData();
+		body.set( 'form_data', JSON.stringify( {
+			payload: { formId: 'fc0b7800' },
+			hcaptcha_otter_form_nonce: 'stale-form-nonce',
+		} ) );
+
+		window.dispatchEvent( new CustomEvent( 'hCaptchaFetch:before', {
+			detail: { args: [ '/otter/v1/form/frontend', { body } ] },
+		} ) );
+
+		expect( JSON.parse( body.get( 'form_data' ) ).hcaptcha_otter_form_nonce ).toBe( 'bound-form-nonce' );
 	} );
 
 	test( 'binds events again after Otter fetch complete', () => {

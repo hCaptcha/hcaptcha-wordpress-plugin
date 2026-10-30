@@ -887,6 +887,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 	public function test_base_admin_enqueue_scripts(): void {
 		$plugin_url     = 'http://test.test/wp-content/plugins/hcaptcha-for-forms-and-more';
 		$plugin_version = '1.0.0';
+		$style_version  = $plugin_version . '-' . filemtime( dirname( __DIR__, 5 ) . '/assets/css/settings-base.css' );
 
 		$page = Mockery::mock( SettingsBase::class );
 		$page->shouldReceive( 'admin_enqueue_scripts' )->with()->once();
@@ -920,7 +921,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				SettingsBase::PREFIX . '-' . SettingsBase::HANDLE,
 				$plugin_url . '/assets/css/settings-base.css',
 				[],
-				$plugin_version
+				$style_version
 			)
 			->once();
 
@@ -2936,10 +2937,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'is_multisite' )->with()->andReturn( false );
 		WP_Mock::userFunction( 'current_user_can' )->with( 'manage_network_options' )->andReturn( true );
 
-		$general_tab     = isset( $value['site_key'] );
-		$network_wide    = $general_tab
-			? $value['_network_wide']
-			: [];
+		$network_wide    = $value['_network_wide'] ?? [];
 		$get_site_option = $network_wide ? $old_value : [];
 
 		WP_Mock::userFunction( 'get_site_option' )
@@ -2947,6 +2945,23 @@ class SettingsBaseTest extends HCaptchaTestCase {
 			->andReturn( $get_site_option );
 
 		self::assertSame( $expected, $subject->pre_update_option_filter( $value, $old_value ) );
+	}
+
+	/**
+	 * Reject a native network-wide write from an unauthorized request.
+	 */
+	public function test_pre_update_option_filter_rejects_unauthorized_network_write(): void {
+		$old_value = [ 'theme' => 'light' ];
+		$new_value = [ 'theme' => 'dark' ];
+		$subject   = Mockery::mock( SettingsBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'option_name' )->andReturn( 'hcaptcha_settings' );
+		$subject->shouldReceive( 'is_network_wide' )->once()->andReturn( true );
+		$subject->shouldReceive( 'can_manage_settings' )->once()->andReturn( false );
+
+		FunctionMocker::replace( '\\HCaptcha\\Helpers\\Request::is_cli', false );
+
+		self::assertSame( $old_value, $subject->pre_update_option_filter( $new_value, $old_value ) );
 	}
 
 	/**
@@ -3153,7 +3168,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'_network_wide' => [],
 				],
 			],
-			'table and network wide changed not on general tab' => [
+			'table and network wide changed with explicit value' => [
 				'form_fields' => [],
 				'value'       => [
 					'bel'           => [ 'Б' => 'B1' ],
@@ -3166,7 +3181,7 @@ class SettingsBaseTest extends HCaptchaTestCase {
 				'expected'    => [
 					'iso9'          => [ 'Б' => 'B' ],
 					'bel'           => [ 'Б' => 'B1' ],
-					'_network_wide' => [],
+					'_network_wide' => [ 'on' ],
 				],
 			],
 			'table and network wide changed on general tab' => [
@@ -3185,6 +3200,27 @@ class SettingsBaseTest extends HCaptchaTestCase {
 					'bel'           => [ 'Б' => 'B1' ],
 					'_network_wide' => [ 'on' ],
 					'site_key'      => 'some_site_key',
+				],
+			],
+			'network wide changed on advanced tab' => [
+				'form_fields' => [
+					SettingsBase::NETWORK_WIDE => [
+						'type' => 'checkbox',
+						'disabled' => false,
+					],
+				],
+				'value'       => [
+					'bel'                  => [ 'Б' => 'B1' ],
+					SettingsBase::NETWORK_WIDE => [ 'on' ],
+				],
+				'old_value'   => [
+					'iso9' => [ 'Б' => 'B' ],
+					'bel'  => [ 'Б' => 'B' ],
+				],
+				'expected'    => [
+					'iso9'                 => [ 'Б' => 'B' ],
+					'bel'                  => [ 'Б' => 'B1' ],
+					SettingsBase::NETWORK_WIDE => [ 'on' ],
 				],
 			],
 		];
@@ -3217,13 +3253,17 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'is_multisite' )->with()->andReturn( true );
 		WP_Mock::userFunction( 'current_user_can' )->with( 'manage_network_options' )->andReturn( true );
 
-		$general_tab  = isset( $value['site_key'] );
-		$network_wide = $general_tab
-			? $value[ $netwide_name ] ?? []
-			: $get_network_wide;
+		$network_wide = $value[ $netwide_name ] ?? $get_network_wide;
 
 		if ( $network_wide ) {
 			$old_value = [];
+			WP_Mock::userFunction( 'get_site_option' )->with( $option_name, [] )->andReturn( $old_value );
+			WP_Mock::expectFilterAdded(
+				'pre_update_site_option_' . $option_name,
+				[ $subject, 'pre_update_option_filter' ],
+				10,
+				2
+			);
 		}
 
 		$merged_value                  = array_merge( $old_value, $value );
@@ -3232,7 +3272,9 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'update_site_option' )
 			->with( $option_name . $netwide_name, $merged_value[ $netwide_name ] );
 		WP_Mock::userFunction( 'remove_filter' )
-			->with( 'pre_update_site_option_' . $option_name, [ $subject, 'pre_update_option_filter' ] );
+			->with( 'pre_update_site_option_' . $option_name, [ $subject, 'pre_update_option_filter' ], 10 );
+		WP_Mock::userFunction( 'has_filter' )
+			->with( 'pre_update_site_option_' . $option_name, [ $subject, 'pre_update_option_filter' ] )->andReturn( 10 );
 		WP_Mock::userFunction( 'update_site_option' )->with( $option_name, $merged_value );
 
 		if ( $network_wide ) {
@@ -3240,6 +3282,57 @@ class SettingsBaseTest extends HCaptchaTestCase {
 		} else {
 			self::assertSame( $expected, $subject->pre_update_option_filter( $value, $old_value ) );
 		}
+	}
+
+	/**
+	 * Saving General must not turn off active network-wide settings moved to Advanced.
+	 */
+	public function test_general_save_preserves_network_wide_on_multisite(): void {
+		$option_name = 'hcaptcha_settings';
+		$old_value   = [
+			'site_key'      => 'old-key',
+			'_network_wide' => [ 'on' ],
+		];
+		$value       = [ 'site_key' => 'new-key' ];
+
+		$subject = Mockery::mock( SettingsBase::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'form_fields' )->andReturn(
+			[
+				'site_key' => [
+					'type'     => 'text',
+					'disabled' => false,
+				],
+			]
+		);
+		$subject->shouldReceive( 'option_name' )->andReturn( $option_name );
+		$subject->shouldReceive( 'get_network_wide' )->andReturn( [ 'on' ] );
+
+		WP_Mock::userFunction( 'is_multisite' )->andReturn( true );
+		WP_Mock::userFunction( 'current_user_can' )->with( 'manage_network_options' )->andReturn( true );
+		WP_Mock::userFunction( 'get_site_option' )->with( $option_name, [] )->andReturn( $old_value );
+		WP_Mock::userFunction( 'update_site_option' )
+			->with( $option_name . '_network_wide', [ 'on' ] )->once();
+		WP_Mock::userFunction( 'remove_filter' )
+			->with( 'pre_update_site_option_' . $option_name, [ $subject, 'pre_update_option_filter' ], 10 )->once();
+		WP_Mock::userFunction( 'has_filter' )
+			->with( 'pre_update_site_option_' . $option_name, [ $subject, 'pre_update_option_filter' ] )->andReturn( 10 );
+		WP_Mock::expectFilterAdded(
+			'pre_update_site_option_' . $option_name,
+			[ $subject, 'pre_update_option_filter' ],
+			10,
+			2
+		);
+		WP_Mock::userFunction( 'update_site_option' )
+			->with(
+				$option_name,
+				[
+					'site_key'      => 'new-key',
+					'_network_wide' => [ 'on' ],
+				]
+			)->once();
+
+		self::assertSame( $old_value, $subject->pre_update_option_filter( $value, $old_value ) );
 	}
 
 	/**
