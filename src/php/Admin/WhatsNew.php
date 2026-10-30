@@ -810,6 +810,39 @@ class WhatsNew extends NotificationsBase {
 	}
 
 	/**
+	 * What's New 5.5.0 content.
+	 *
+	 * @return void
+	 * @noinspection HtmlUnknownTarget
+	 * @noinspection PhpUnused
+	 */
+	protected function whats_new_5_5_0(): void {
+		$urls = $this->prepare_urls();
+
+		$block_rest_api_protection = [
+			'type'    => 'left',
+			'badge'   => __( 'New Feature', 'hcaptcha-for-forms-and-more' ),
+			'title'   => __( 'Unique REST API Protection', 'hcaptcha-for-forms-and-more' ),
+			'message' => sprintf(
+				'<p>%1$s</p><p>%2$s</p><p>%3$s</p>',
+				__( 'Protect Content now keeps selected posts and pages out of WordPress REST responses, collections, and search until the visitor passes hCaptcha.', 'hcaptcha-for-forms-and-more' ),
+				__( 'When the corresponding integrations are enabled, native REST comments require hCaptcha and REST post-password attempts are blocked.', 'hcaptcha-for-forms-and-more' ),
+				__( 'In our October 2026 review of the 10 most-installed WordPress.org plugins tagged captcha, none offered all three protections.', 'hcaptcha-for-forms-and-more' )
+			),
+			'button'  => [
+				'url'  => $urls['protect_content'],
+				'text' => __( 'Configure Content Protection', 'hcaptcha-for-forms-and-more' ),
+			],
+			'image'   => [
+				'url'      => $urls['rest_api_protection_img'],
+				'lightbox' => true,
+			],
+		];
+
+		$this->show_block( $block_rest_api_protection );
+	}
+
+	/**
 	 * Show block.
 	 *
 	 * @param array $block Block.

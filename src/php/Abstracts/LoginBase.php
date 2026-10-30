@@ -113,17 +113,26 @@ abstract class LoginBase {
 	 */
 	protected function init_hooks(): void {
 		add_action( 'hcap_signature', [ $this, 'display_signature' ] );
-		add_action( 'login_form', [ $this, 'display_signature' ], PHP_INT_MAX );
+		add_action( 'login_form', [ $this, 'display_signature' ], PHP_INT_MAX, 0 );
 		add_filter( 'login_form_middle', [ $this, 'add_signature' ], PHP_INT_MAX, 2 );
 		add_filter( 'wp_authenticate_user', [ $this, 'check_signature' ], PHP_INT_MAX, 2 );
 		add_filter( 'authenticate', [ $this, 'hide_login_error' ], 100, 3 );
 		add_filter( 'hcap_auto_verify_unmatched_form', [ $this, 'defer_auto_verification' ], 10, 3 );
 		add_filter( 'hcap_wp_login_can_skip_verification', [ $this, 'allow_wp_login_skip_verification' ] );
 
-		add_action( 'wp_login', [ $this, 'login' ], 10, 2 );
-		add_action( 'wp_login_failed', [ $this, 'login_failed' ] );
+		$this->init_login_attempt_hooks();
 
 		add_action( 'hcap_delay_api', [ $this, 'delay_api' ], 0 );
+	}
+
+	/**
+	 * Register adaptive login counters for integrations with custom hooks.
+	 *
+	 * @return void
+	 */
+	protected function init_login_attempt_hooks(): void {
+		add_action( 'wp_login', [ $this, 'login' ], 10, 2 );
+		add_action( 'wp_login_failed', [ $this, 'login_failed' ] );
 	}
 
 	/**
@@ -391,6 +400,11 @@ abstract class LoginBase {
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
 	public function login_failed( string $username, $error = null ): void {
+		// Simple Membership may call wp_signon after its own successful login.
+		if ( doing_action( 'wp_login_failed' ) && doing_action( 'swpm_after_login_authentication' ) ) {
+			return;
+		}
+
 		if ( doing_action( 'wp_login_failed' ) ) {
 			$action_count = did_action( 'wp_login_failed' );
 

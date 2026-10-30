@@ -35,10 +35,10 @@ const wordfence = window.hCaptchaWordfence || ( function( document, window, $ ) 
 
 			notice.classList.add( 'wfls-block-list', 'hcaptcha-wordfence-notice' );
 			noticeLabel.textContent = HCaptchaWordfenceObject.noticeLabel;
-			noticeDescription.innerHTML = HCaptchaWordfenceObject.noticeDescription;
+			noticeDescription.textContent = HCaptchaWordfenceObject.noticeDescription;
 			noticeItem.append( noticeLabel, noticeDescription );
 			notice.append( noticeItem );
-			$settings.find( '.wfls-block-content' ).empty().append( notice );
+			$settings.find( '.wfls-block-content' ).prepend( notice );
 		},
 
 		getLocationHref() {

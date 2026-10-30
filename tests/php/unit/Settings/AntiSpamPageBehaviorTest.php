@@ -11,6 +11,7 @@ use HCaptcha\Admin\MaxMindDb;
 use HCaptcha\AntiSpam\AntiSpam;
 use HCaptcha\AntiSpam\DisposableEmail;
 use HCaptcha\Helpers\CloudflareDetector;
+use HCaptcha\Helpers\Request;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\Settings\AntiSpamPage;
 use HCaptcha\Settings\PluginSettingsBase;
@@ -45,6 +46,7 @@ class AntiSpamPageBehaviorTest extends HCaptchaTestCase {
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'is_main_menu_page' )->once()->andReturn( false );
 		$subject->shouldReceive( 'is_tab_active' )->with( $subject )->once()->andReturn( false );
+		WP_Mock::userFunction( 'wp_doing_ajax' )->withNoArgs()->once()->andReturn( false );
 		WP_Mock::expectActionAdded( 'wp_ajax_' . AntiSpamPage::CHECK_IPS_ACTION, [ $subject, 'check_ips' ] );
 		WP_Mock::expectActionAdded( 'wp_ajax_' . AntiSpamPage::DETECT_CLOUDFLARE_ACTION, [ $subject, 'detect_cloudflare' ] );
 
@@ -187,30 +189,15 @@ class AntiSpamPageBehaviorTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test settings storage paths for site and network contexts.
+	 * Test only an authorized settings save clears stale review and detection data.
+	 *
+	 * @param bool $can_manage Whether the current user can manage settings.
+	 *
+	 * @dataProvider dp_test_clear_trusted_address_headers_review_notice
 	 *
 	 * @throws ReflectionException Reflection exception.
 	 */
-	public function test_stored_settings(): void {
-		$subject = $this->create_subject();
-		WP_Mock::userFunction( 'is_multisite' )->andReturn( true );
-		WP_Mock::userFunction( 'get_site_option' )
-			->with( PluginSettingsBase::OPTION_NAME . '_network_wide', [] )->andReturn( [ 'on' ] );
-		WP_Mock::userFunction( 'get_site_option' )->with( PluginSettingsBase::OPTION_NAME, [] )->andReturn( [ 'key' => 'value' ] );
-		WP_Mock::userFunction( 'update_site_option' )->with( PluginSettingsBase::OPTION_NAME, [ 'key' => 'new' ] )->once();
-
-		$get = $this->set_method_accessibility( $subject, 'get_stored_settings' );
-		$set = $this->set_method_accessibility( $subject, 'update_stored_settings' );
-		self::assertSame( [ 'key' => 'value' ], $get->invoke( $subject ) );
-		$set->invoke( $subject, [ 'key' => 'new' ] );
-	}
-
-	/**
-	 * Test saving trusted headers clears stale review and detection data.
-	 *
-	 * @throws ReflectionException Reflection exception.
-	 */
-	public function test_clear_trusted_address_headers_review_notice(): void {
+	public function test_clear_trusted_address_headers_review_notice( bool $can_manage ): void {
 		$subject = $this->create_subject();
 		$this->set_protected_property( $subject, 'form_fields', [ 'trusted_address_headers' => [] ] );
 		$value = [
@@ -220,6 +207,9 @@ class AntiSpamPageBehaviorTest extends HCaptchaTestCase {
 		];
 		WP_Mock::passthruFunction( 'wp_unslash' );
 		WP_Mock::passthruFunction( 'sanitize_key' );
+		WP_Mock::userFunction( 'is_multisite' )->andReturn( false );
+		WP_Mock::userFunction( 'current_user_can' )->with( 'manage_options' )->twice()->andReturn( $can_manage );
+		FunctionMocker::replace( '\\' . Request::class . '::is_cli', false );
 
 		self::assertSame( 'invalid', $subject->clear_trusted_address_headers_review_notice( 'invalid', [] ) );
 		self::assertSame( $value, $subject->clear_trusted_address_headers_review_notice( $value, [] ) );
@@ -230,14 +220,31 @@ class AntiSpamPageBehaviorTest extends HCaptchaTestCase {
 				$value,
 				[ 'trusted_address_headers' => [ 'HTTP_X_REAL_IP' ] ]
 			);
-			self::assertArrayNotHasKey( Migrations::REVIEW_TRUSTED_ADDRESS_HEADERS_OPTION, $unchanged );
-			self::assertArrayHasKey( AntiSpamPage::CLOUDFLARE_DETECTION_STATUS_OPTION, $unchanged );
+			$changed   = $subject->clear_trusted_address_headers_review_notice( $value, [] );
 
-			$changed = $subject->clear_trusted_address_headers_review_notice( $value, [] );
-			self::assertArrayNotHasKey( AntiSpamPage::CLOUDFLARE_DETECTION_STATUS_OPTION, $changed );
+			if ( $can_manage ) {
+				self::assertArrayNotHasKey( Migrations::REVIEW_TRUSTED_ADDRESS_HEADERS_OPTION, $unchanged );
+				self::assertArrayHasKey( AntiSpamPage::CLOUDFLARE_DETECTION_STATUS_OPTION, $unchanged );
+				self::assertArrayNotHasKey( AntiSpamPage::CLOUDFLARE_DETECTION_STATUS_OPTION, $changed );
+			} else {
+				self::assertSame( $value, $unchanged );
+				self::assertSame( $value, $changed );
+			}
 		} finally {
 			unset( $_POST[ PluginSettingsBase::OPTION_NAME ] );
 		}
+	}
+
+	/**
+	 * Settings save authorization cases.
+	 *
+	 * @return array
+	 */
+	public function dp_test_clear_trusted_address_headers_review_notice(): array {
+		return [
+			'authorized settings save'   => [ true ],
+			'unauthorized settings save' => [ false ],
+		];
 	}
 
 	/**
@@ -283,9 +290,22 @@ class AntiSpamPageBehaviorTest extends HCaptchaTestCase {
 	}
 
 	/**
-	 * Test Cloudflare detection persists a sanitized status.
+	 * Test Cloudflare detection changes only its status in the active storage scope.
+	 *
+	 * @param bool $network Network-wide settings are active.
+	 *
+	 * @dataProvider dp_test_detect_cloudflare
 	 */
-	public function test_detect_cloudflare(): void {
+	public function test_detect_cloudflare( bool $network ): void {
+		$stored_settings = [
+			'_network_wide'           => $network ? [ 'on' ] : [],
+			'site_key'                => 'existing-site-key',
+			'secret_key'              => 'existing-secret-key',
+			'theme'                   => 'dark',
+			'trusted_address_headers' => [ 'HTTP_X_REAL_IP' ],
+			Migrations::REVIEW_TRUSTED_ADDRESS_HEADERS_OPTION => 'on',
+		];
+
 		$subject = Mockery::mock( AntiSpamPage::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'run_checks' )->with( AntiSpamPage::DETECT_CLOUDFLARE_ACTION )->once();
@@ -298,24 +318,47 @@ class AntiSpamPageBehaviorTest extends HCaptchaTestCase {
 		);
 		FunctionMocker::replace( '\\' . CloudflareDetector::class . '::get_recommendation', 'Use CF-Connecting-IP.' );
 		WP_Mock::passthruFunction( 'sanitize_key' );
-		WP_Mock::userFunction( 'is_multisite' )->andReturn( false );
-		WP_Mock::userFunction( 'get_option' )->with( PluginSettingsBase::OPTION_NAME, [] )->once()->andReturn( [] );
-		WP_Mock::userFunction( 'update_option' )
+		WP_Mock::userFunction( 'is_multisite' )->andReturn( $network );
+		WP_Mock::userFunction( 'get_current_blog_id' )->withNoArgs()->once()->andReturn( 2 );
+		WP_Mock::userFunction( 'get_current_network_id' )->withNoArgs()->once()->andReturn( 1 );
+		if ( $network ) {
+			WP_Mock::userFunction( 'get_site_option' )
+				->with( PluginSettingsBase::OPTION_NAME . '_network_wide', [] )->once()->andReturn( [ 'on' ] );
+		}
+		WP_Mock::userFunction( $network ? 'get_site_option' : 'get_option' )
+			->with( PluginSettingsBase::OPTION_NAME, [] )->once()->andReturn( $stored_settings );
+		WP_Mock::userFunction( $network ? 'update_option' : 'update_site_option' )->never();
+		WP_Mock::userFunction( $network ? 'update_site_option' : 'update_option' )
 			->with(
 				PluginSettingsBase::OPTION_NAME,
 				Mockery::on(
-					static function ( $settings ) {
+					static function ( $settings ) use ( $stored_settings ) {
 						$status = $settings[ AntiSpamPage::CLOUDFLARE_DETECTION_STATUS_OPTION ] ?? [];
-						return CloudflareDetector::STATUS_VERIFIED_REQUEST === ( $status['status'] ?? '' ) &&
+						unset( $settings[ AntiSpamPage::CLOUDFLARE_DETECTION_STATUS_OPTION ] );
+
+						return $stored_settings === $settings &&
+							CloudflareDetector::STATUS_VERIFIED_REQUEST === ( $status['status'] ?? '' ) &&
 							'high' === ( $status['confidence'] ?? '' ) &&
 							is_int( $status['checked_at'] ?? null );
 					}
 				)
-			)->once();
+			)->once()->andReturn( true );
 		WP_Mock::userFunction( 'wp_send_json_success' )
 			->with( [ 'message' => 'Use CF-Connecting-IP.' ] )->once();
 
 		$subject->detect_cloudflare();
+	}
+
+	/**
+	 * Cloudflare maintenance storage scopes.
+	 *
+	 * @return array
+	 */
+	public function dp_test_detect_cloudflare(): array {
+		return [
+			'site settings'    => [ false ],
+			'network settings' => [ true ],
+		];
 	}
 
 	/**
@@ -348,5 +391,26 @@ class AntiSpamPageBehaviorTest extends HCaptchaTestCase {
 		WP_Mock::userFunction( 'hcaptcha' )->never();
 
 		$subject->setup_fields();
+	}
+
+	/**
+	 * Read stored settings from the network on a network-wide page.
+	 */
+	public function test_get_stored_settings_network_wide(): void {
+		$stored  = [ 'honeypot' => [ 'on' ] ];
+		$subject = $this->create_subject();
+
+		WP_Mock::userFunction( 'is_multisite' )->twice()->andReturn( true );
+		WP_Mock::userFunction( 'get_site_option' )
+			->with( PluginSettingsBase::OPTION_NAME . '_network_wide', [] )
+			->once()
+			->andReturn( [ 'on' ] );
+		WP_Mock::userFunction( 'get_site_option' )
+			->with( PluginSettingsBase::OPTION_NAME, [] )
+			->once()
+			->andReturn( $stored );
+
+		$method = $this->set_method_accessibility( $subject, 'get_stored_settings' );
+		self::assertSame( $stored, $method->invoke( $subject ) );
 	}
 }

@@ -103,10 +103,11 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_verify(): void {
-		$data    = [ 'some data' ];
+		$data    = [ 'topicid' => 21 ];
 		$subject = new Reply();
 
 		$this->prepare_verify_post( 'hcaptcha_wpforo_reply_nonce', 'hcaptcha_wpforo_reply' );
+		$this->prepare_reply_identity();
 
 		self::assertSame( '', WPF()->notice->get_notices() );
 		self::assertSame( $data, $subject->verify( $data ) );
@@ -123,13 +124,14 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 		$subject  = new Reply();
 
 		$this->prepare_verify_post( 'hcaptcha_wpforo_reply_nonce', 'hcaptcha_wpforo_reply', false );
+		$this->prepare_reply_identity();
 
 		FunctionMocker::replace( 'wpforo_is_ajax', true );
 
 		WPF()->session_token = '23';
 
 		self::assertSame( '', WPF()->notice->get_notices() );
-		self::assertFalse( $subject->verify( [] ) );
+		self::assertFalse( $subject->verify( [ 'topicid' => 21 ] ) );
 
 		WPF()->session_token = '';
 
@@ -158,10 +160,41 @@ class ReplyTest extends HCaptchaPluginWPTestCase {
 
 		WPF()->session_token = '23';
 
-		self::assertFalse( $subject->verify( [] ) );
+		self::assertFalse( $subject->verify( [ 'topicid' => 21 ] ) );
 
 		WPF()->session_token = '';
 
 		self::assertSame( '<p class="error">Anti-spam check failed.</p>', WPF()->notice->get_notices() );
+	}
+
+	/**
+	 * Replies without a native topic ID still reject another topic's widget.
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	public function test_missing_topic_id_rejects_foreign_widget(): void {
+		$this->prepare_verify_post( 'hcaptcha_wpforo_reply_nonce', 'hcaptcha_wpforo_reply' );
+		$this->prepare_reply_identity();
+		FunctionMocker::replace( 'wpforo_is_ajax', true );
+		WPF()->session_token = '23';
+
+		self::assertFalse( ( new Reply() )->verify( [] ) );
+		WPF()->session_token = '';
+		self::assertSame(
+			'<p class="error">' . hcap_get_error_messages()['bad-signature'] . '</p>',
+			WPF()->notice->get_notices()
+		);
+	}
+
+	/**
+	 * Prepare the widget rendered for the native reply topic.
+	 */
+	private function prepare_reply_identity(): void {
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'wpforo/wpforo.php' ],
+				'form_id' => 21,
+			]
+		);
 	}
 }

@@ -7,9 +7,15 @@
 
 namespace HCaptcha\ProtectContent;
 
+use Exception;
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
+use WP_Error;
+use WP_Post;
+use WP_Query;
+use WP_REST_Request;
+use WP_REST_Response;
 
 /**
  * Class ProtectContent
@@ -49,6 +55,11 @@ class ProtectContent {
 	private const TOKEN_BYTES = 32;
 
 	/**
+	 * Number of candidate posts inspected per REST query batch.
+	 */
+	private const REST_QUERY_BATCH_SIZE = 500;
+
+	/**
 	 * Error message.
 	 *
 	 * @var string
@@ -74,20 +85,43 @@ class ProtectContent {
 	protected string $resource_scope = '';
 
 	/**
+	 * Configured URL rules used before and after WordPress resolves the request.
+	 *
+	 * @var string[]
+	 */
+	private array $protected_urls = [];
+
+	/**
+	 * REST requests containing a protected post without clearance.
+	 *
+	 * @var array<int, bool>
+	 */
+	private array $denied_rest_requests = [];
+
+	/**
 	 * Init class.
 	 *
 	 * @return void
 	 */
 	public function init(): void {
-		$this->resource_scope = '';
-
-		if ( ! Request::is_frontend() ) {
-			return;
-		}
+		$this->resource_scope       = '';
+		$this->protected_urls       = [];
+		$this->denied_rest_requests = [];
 
 		$settings = hcaptcha()->settings();
 
 		if ( ! $settings || ! $settings->is_on( 'protect_content' ) ) {
+			return;
+		}
+
+		$protected_urls       = explode( "\n", $settings->get( 'protected_urls' ) );
+		$protected_urls       = array_filter( array_map( 'trim', $protected_urls ) );
+		$this->protected_urls = $protected_urls ?: [ '/' ]; // Protect all URLs by default.
+
+		add_action( 'rest_api_init', [ $this, 'init_rest_hooks' ], PHP_INT_MAX );
+		add_filter( 'rest_request_after_callbacks', [ $this, 'protect_rest_response' ], PHP_INT_MAX, 3 );
+
+		if ( ! Request::is_frontend() ) {
 			return;
 		}
 
@@ -100,27 +134,228 @@ class ProtectContent {
 			$request_uri = wp_unslash( $_SERVER['REQUEST_URI'] );
 		}
 
-		$this->request_uri = $this->normalize_url( $request_uri );
-		$request_uri       = $this->normalize_url( $request_uri, true );
+		$this->request_uri    = $this->normalize_url( $request_uri );
+		$request_uri          = $this->normalize_url( $request_uri, true );
+		$this->resource_scope = $this->match_resource_scope( $request_uri );
 
-		$protected_urls = explode( "\n", $settings->get( 'protected_urls' ) );
-		$protected_urls = array_filter( array_map( 'trim', $protected_urls ) );
-		$protected_urls = $protected_urls ?: [ '/' ]; // Protect all URLs by default.
+		$this->init_hooks();
+	}
 
-		foreach ( $protected_urls as $url ) {
-			if (
-				preg_match( '!' . preg_quote( $url, '!' ) . '!i', $request_uri ) &&
-				strlen( $url ) > strlen( $this->resource_scope )
-			) {
-				$this->resource_scope = $url;
+	/**
+	 * Register a response guard for every REST-enabled post type.
+	 *
+	 * @return void
+	 */
+	public function init_rest_hooks(): void {
+		add_filter( 'rest_post_search_query', [ $this, 'protect_rest_query' ], PHP_INT_MAX, 2 );
+
+		foreach ( get_post_types( [ 'show_in_rest' => true ] ) as $post_type ) {
+			add_filter( 'rest_' . $post_type . '_query', [ $this, 'protect_rest_query' ], PHP_INT_MAX, 2 );
+			add_filter( 'rest_prepare_' . $post_type, [ $this, 'protect_rest_post' ], PHP_INT_MAX, 3 );
+		}
+	}
+
+	/**
+	 * Suppress a protected resource before it enters a REST response.
+	 *
+	 * @param mixed           $response Prepared response.
+	 * @param WP_Post         $post     Server-selected post.
+	 * @param WP_REST_Request $request  REST request.
+	 *
+	 * @return mixed
+	 */
+	public function protect_rest_post( $response, WP_Post $post, WP_REST_Request $request ) {
+		if ( ! $response instanceof WP_REST_Response || ( ! $request->is_method( 'GET' ) && ! $request->is_method( 'HEAD' ) ) ) {
+			return $response;
+		}
+
+		if ( ! $this->is_rest_post_protected( $post, $request ) ) {
+			return $response;
+		}
+
+		$this->denied_rest_requests[ spl_object_id( $request ) ] = true;
+
+		return new WP_REST_Response( [], 403 );
+	}
+
+	/**
+	 * Remove uncleared posts before REST queries calculate totals and pages.
+	 *
+	 * Search results do not pass through rest_prepare_post. Excluding IDs in
+	 * native searches and collections also protects keyword counts.
+	 *
+	 * @param array           $query_args Native search query arguments.
+	 * @param WP_REST_Request $request    REST request.
+	 *
+	 * @return array
+	 */
+	public function protect_rest_query( array $query_args, WP_REST_Request $request ): array {
+		if ( ! $request->is_method( 'GET' ) && ! $request->is_method( 'HEAD' ) ) {
+			return $query_args;
+		}
+
+		if ( ! empty( $query_args['post__in'] ) ) {
+			$visible_ids = array_filter(
+				$query_args['post__in'],
+				function ( $post_id ) use ( $request ) {
+					return ! $this->is_rest_post_protected( get_post( $post_id ), $request );
+				}
+			);
+
+			// WP_Query ignores post__not_in whenever post__in is present.
+			$query_args['post__in'] = $visible_ids ?: [ 0 ];
+
+			return $query_args;
+		}
+
+		$candidate_args                   = $query_args;
+		$candidate_args['fields']         = 'ids';
+		$candidate_args['posts_per_page'] = self::REST_QUERY_BATCH_SIZE;
+		$candidate_args['paged']          = 1;
+		$candidate_args['nopaging']       = false;
+		$candidate_args['no_found_rows']  = true;
+		$protected_ids                    = [];
+
+		for ( $offset = 0; ; $offset += self::REST_QUERY_BATCH_SIZE ) {
+			$candidate_args['offset'] = $offset;
+			$candidates               = new WP_Query( $candidate_args );
+
+			foreach ( $candidates->posts as $post_id ) {
+				if ( $this->is_rest_post_protected( get_post( $post_id ), $request ) ) {
+					$protected_ids[] = $post_id;
+				}
+			}
+
+			if ( count( $candidates->posts ) < self::REST_QUERY_BATCH_SIZE ) {
+				break;
 			}
 		}
 
-		if ( '' === $this->resource_scope ) {
-			return;
+		if ( $protected_ids ) {
+			$query_args['post__not_in'] = array_merge( $query_args['post__not_in'] ?? [], $protected_ids );
 		}
 
-		$this->init_hooks();
+		return $query_args;
+	}
+
+	/**
+	 * Check the selected post against its own URL rule and clearance scope.
+	 *
+	 * @param WP_Post|null    $post    Selected post.
+	 * @param WP_REST_Request $request REST request.
+	 *
+	 * @return bool
+	 */
+	private function is_rest_post_protected( ?WP_Post $post, WP_REST_Request $request ): bool {
+		if ( ! $post || ( 'edit' === $request['context'] && current_user_can( 'edit_post', $post->ID ) ) ) {
+			return false;
+		}
+
+		$permalink = get_permalink( $post->ID );
+		$scope     = $permalink ? $this->match_resource_scope( $this->normalize_url( $permalink, true ) ) : '';
+
+		if ( '' === $scope ) {
+			return false;
+		}
+
+		$previous_scope       = $this->resource_scope;
+		$this->resource_scope = $scope;
+		$cleared              = $this->is_valid_cookie();
+		$this->resource_scope = $previous_scope;
+
+		return ! $cleared;
+	}
+
+	/**
+	 * Reject the entire response when it includes an uncleared resource.
+	 *
+	 * @param mixed           $response Existing REST response.
+	 * @param array           $handler  Matched route handler.
+	 * @param WP_REST_Request $request  REST request.
+	 *
+	 * @return mixed|WP_Error
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function protect_rest_response( $response, array $handler, WP_REST_Request $request ) {
+		$request_id = spl_object_id( $request );
+
+		if ( ! isset( $this->denied_rest_requests[ $request_id ] ) ) {
+			return $response;
+		}
+
+		unset( $this->denied_rest_requests[ $request_id ] );
+
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		return new WP_Error(
+			'hcaptcha_content_protected',
+			__( 'Complete the content protection challenge before accessing this resource.', 'hcaptcha-for-forms-and-more' ),
+			[ 'status' => 403 ]
+		);
+	}
+
+	/**
+	 * Select the most specific configured rule matching a normalized URL.
+	 *
+	 * @param string $url Normalized URL.
+	 *
+	 * @return string
+	 */
+	private function match_resource_scope( string $url ): string {
+		$scope = '';
+
+		foreach ( $this->protected_urls as $rule ) {
+			if ( $this->matches_protected_url( $rule, $url ) && strlen( $rule ) > strlen( $scope ) ) {
+				$scope = $rule;
+			}
+		}
+
+		return $scope;
+	}
+
+	/**
+	 * Match literal URL rules and the regular expressions supported by settings.
+	 *
+	 * @param string $rule URL rule without regex delimiters.
+	 * @param string $url  Normalized request URL.
+	 *
+	 * @return bool
+	 */
+	private function matches_protected_url( string $rule, string $url ): bool {
+		// Literal paths use the same single decoding pass as the request path.
+		$literal_parts = explode( '?', $rule, 2 );
+		$literal_rule  = rawurldecode( $literal_parts[0] );
+		$literal_rule .= isset( $literal_parts[1] ) ? '?' . $literal_parts[1] : '';
+
+		if ( false !== stripos( $url, $rule ) || false !== stripos( $url, $literal_rule ) ) {
+			return true;
+		}
+
+		// Choose a delimiter absent from the expression, preserving existing escapes.
+		foreach ( [ '~', '#', '!', '%', '@', ';', "\x01" ] as $delimiter ) {
+			if ( false !== strpos( $rule, $delimiter ) ) {
+				continue;
+			}
+
+			$pattern = $delimiter . $rule . $delimiter . 'i';
+
+			// Invalid expressions remain literal URL rules; do not emit compile warnings.
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			if ( false === @preg_match( $pattern, '' ) ) {
+				// Compilation errors are internal errors; execution limits fail closed.
+				return PREG_INTERNAL_ERROR !== preg_last_error();
+			}
+
+			// A request-specific regex execution error must not disable protection.
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			$result = @preg_match( $pattern, $url );
+
+			return false === $result || 1 === $result;
+		}
+
+		return false;
 	}
 
 	/**
@@ -138,6 +373,12 @@ class ProtectContent {
 	 * @return void
 	 */
 	public function protect_content(): void {
+		$this->resolve_resource_scope();
+
+		if ( '' === $this->resource_scope ) {
+			return;
+		}
+
 		if ( $this->is_valid_cookie() ) {
 			return;
 		}
@@ -152,6 +393,39 @@ class ProtectContent {
 	}
 
 	/**
+	 * Bind the protection scope to the resource selected by WordPress.
+	 *
+	 * @return void
+	 */
+	private function resolve_resource_scope(): void {
+		if ( is_singular() ) {
+			$queried_id = get_queried_object_id();
+			$permalink  = $queried_id ? get_permalink( $queried_id ) : false;
+
+			if ( $permalink ) {
+				$routed_url   = $this->normalize_url( $permalink, true );
+				$routed_scope = $this->match_resource_scope( $routed_url );
+				$request_path = untrailingslashit( rawurldecode( (string) wp_parse_url( $this->request_uri, PHP_URL_PATH ) ) );
+				$routed_path  = untrailingslashit( (string) wp_parse_url( $routed_url, PHP_URL_PATH ) );
+
+				if ( $request_path !== $routed_path ) {
+					$this->resource_scope = $routed_scope;
+
+					if ( '' !== $routed_scope ) {
+						// A POST-selected page must remain the target after the challenge.
+						$this->request_uri = $this->normalize_url( $permalink );
+					}
+				} elseif ( '' !== $routed_scope && '' !== $this->resource_scope && $routed_scope !== $this->resource_scope ) {
+					// Both rules must be satisfied when a query matches another scope.
+					$this->resource_scope = $routed_scope . "\n" . $this->resource_scope;
+				} elseif ( '' !== $routed_scope ) {
+					$this->resource_scope = $routed_scope;
+				}
+			}
+		}
+	}
+
+	/**
 	 * Verify hCaptcha.
 	 *
 	 * @return string
@@ -162,7 +436,7 @@ class ProtectContent {
 		// It is always too fast with Pro.
 		$settings && $settings->set( 'set_min_submit_time', [ '' ] );
 
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify_post( self::NONCE, self::ACTION, $this->get_expected_id() );
 
 		if ( null === $error_message ) {
 			$session_id = $this->get_session_id();
@@ -193,6 +467,20 @@ class ProtectContent {
 	}
 
 	/**
+	 * Get the content protection form identity.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		$settings = hcaptcha()->settings();
+
+		return [
+			'source'  => [ $settings ? $settings->get_plugin_name() : '' ],
+			'form_id' => 'protect',
+		];
+	}
+
+	/**
 	 * Check whether the cookie is valid.
 	 *
 	 * @return bool
@@ -200,7 +488,7 @@ class ProtectContent {
 	protected function is_valid_cookie(): bool {
 		$cookie     = $this->get_cookie( self::COOKIE_NAME );
 		$session_id = $this->get_session_id();
-		$parts      = explode( '.', $cookie );
+		$parts      = (array) explode( '.', $cookie );
 
 		if (
 			6 !== count( $parts ) ||
@@ -297,7 +585,11 @@ class ProtectContent {
 	 * @return string
 	 */
 	protected function generate_token(): string {
-		return bin2hex( random_bytes( self::TOKEN_BYTES ) );
+		try {
+			return bin2hex( random_bytes( self::TOKEN_BYTES ) );
+		} catch ( Exception $e ) {
+			return '';
+		}
 	}
 
 	/**
@@ -335,7 +627,7 @@ class ProtectContent {
 	 * @return string
 	 */
 	private function hash_binding( string $type, string $value ): string {
-		return hash_hmac( 'sha256', $type . '|' . $value, wp_salt( 'auth' ) );
+		return hash_hmac( 'sha256', $type . '|' . $value, wp_salt() );
 	}
 
 	/**
@@ -346,7 +638,7 @@ class ProtectContent {
 	 * @return string
 	 */
 	private function sign_clearance( string $payload ): string {
-		return hash_hmac( 'sha256', 'clearance|' . $payload, wp_salt( 'auth' ) );
+		return hash_hmac( 'sha256', 'clearance|' . $payload, wp_salt() );
 	}
 
 	/**
@@ -625,17 +917,13 @@ class ProtectContent {
 				<form method="post" action="<?php echo esc_url( $this->request_uri ); ?>">
 				<?php
 
-				$settings = hcaptcha()->settings();
-				$args     = [
+				$args = [
 					'action' => static::ACTION,
 					'name'   => static::NONCE,
 					'force'  => true,
 					'theme'  => 'auto',
 					'size'   => 'normal',
-					'id'     => [
-						'source'  => [ $settings ? $settings->get_plugin_name() : '' ],
-						'form_id' => 'protect',
-					],
+					'id'     => $this->get_expected_id(),
 				];
 
 				HCaptcha::form_display( $args );
@@ -751,6 +1039,7 @@ class ProtectContent {
 	private function normalize_url( string $url, bool $decode_path = false ): string {
 		$scheme = is_ssl() ? 'https' : 'http';
 		$host   = wp_parse_url( home_url(), PHP_URL_HOST );
+		$url    = 0 === strpos( $url, '//' ) ? $scheme . '://' . $host . $url : $url;
 
 		$parts = wp_parse_url( $url );
 		$parts = wp_parse_args(
@@ -764,8 +1053,7 @@ class ProtectContent {
 			]
 		);
 
-		// Force the site origin because a protocol-relative REQUEST_URI can otherwise
-		// turn the protection form action into a cross-origin URL.
+		// Force the site origin so a supplied URL cannot move the challenge action.
 		$parts = array_merge(
 			$parts,
 			[

@@ -15,6 +15,7 @@ use ActionScheduler_Store;
 use HCaptcha\Admin\Events\Events;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Settings\PluginSettingsBase;
+use HCaptcha\Settings\SettingsStorage;
 
 /**
  * Migrations class.
@@ -414,11 +415,9 @@ class Migrations {
 			}
 		}
 
-		// These two lines is a precaution for a case if options in a new format already exist.
-		$options = get_option( PluginSettingsBase::OPTION_NAME, [] );
-		$options = array_merge( $new_options, $options );
-
-		update_option( PluginSettingsBase::OPTION_NAME, $options );
+		// Preserve existing modern settings while migrating missing local fields.
+		$options = SettingsStorage::get( false );
+		SettingsStorage::update( array_diff_key( $new_options, $options ), [], false );
 
 		foreach ( array_keys( $options_map ) as $old_option_name ) {
 			delete_option( $old_option_name );
@@ -434,7 +433,7 @@ class Migrations {
 	 * @noinspection PhpUnused
 	 */
 	protected function migrate_360(): ?bool {
-		$option         = get_option( PluginSettingsBase::OPTION_NAME, [] );
+		$option         = SettingsStorage::get( false );
 		$wpforms_status = $option['wpforms_status'] ?? [];
 
 		if ( empty( $wpforms_status ) ) {
@@ -442,9 +441,7 @@ class Migrations {
 		}
 
 		// Convert any WPForms status ('lite' or 'pro') to the status 'form'.
-		$option['wpforms_status'] = [ 'form' ];
-
-		update_option( PluginSettingsBase::OPTION_NAME, $option );
+		SettingsStorage::update( [ 'wpforms_status' => [ 'form' ] ], [], false );
 
 		return true;
 	}
@@ -470,15 +467,13 @@ class Migrations {
 	 * @noinspection PhpUnused
 	 */
 	protected function migrate_4_6_0(): ?bool {
-		$option         = get_option( PluginSettingsBase::OPTION_NAME, [] );
+		$option         = SettingsStorage::get( false );
 		$cf7_status_old = (array) ( $option['cf7_status'] ?? [] );
 		$cf7_status_new = array_unique( array_merge( $cf7_status_old, [ 'live' ] ) );
 
 		if ( $cf7_status_new !== $cf7_status_old ) {
 			// Turn on CF7 Live Form in admin by default.
-			$option['cf7_status'] = $cf7_status_new;
-
-			update_option( PluginSettingsBase::OPTION_NAME, $option );
+			SettingsStorage::update( [ 'cf7_status' => $cf7_status_new ], [], false );
 		}
 
 		return true;
@@ -646,15 +641,17 @@ class Migrations {
 			$filtered_address_headers = hcap_filter_address_headers( $address_headers, '', $address_headers );
 		}
 
-		$option['trusted_address_headers'] = array_values(
-			array_intersect( $filtered_address_headers, $address_headers )
-		);
+		$changes = [
+			'trusted_address_headers' => array_values(
+				array_intersect( $filtered_address_headers, $address_headers )
+			),
+		];
 
-		if ( ! $option['trusted_address_headers'] ) {
-			$option[ self::REVIEW_TRUSTED_ADDRESS_HEADERS_OPTION ] = 'on';
+		if ( ! $changes['trusted_address_headers'] ) {
+			$changes[ self::REVIEW_TRUSTED_ADDRESS_HEADERS_OPTION ] = 'on';
 		}
 
-		update_option( PluginSettingsBase::OPTION_NAME, $option );
+		SettingsStorage::update( $changes, [], false );
 	}
 
 	/**

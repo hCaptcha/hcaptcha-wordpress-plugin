@@ -11,6 +11,7 @@ use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
+use WP_User;
 
 /**
  * Class LostPasswordBase
@@ -39,7 +40,7 @@ abstract class LostPasswordBase extends FormOwnerBase {
 		$this->init_auto_verify_hooks();
 
 		add_action( static::ADD_CAPTCHA_ACTION, [ $this, 'add_captcha' ] );
-		add_action( 'lostpassword_post', [ $this, 'verify' ] );
+		add_action( 'lostpassword_post', [ $this, 'verify' ], 10, 2 );
 	}
 
 	/**
@@ -60,11 +61,12 @@ abstract class LostPasswordBase extends FormOwnerBase {
 	/**
 	 * Verify a lost password form.
 	 *
-	 * @param WP_Error|mixed $errors Error.
+	 * @param WP_Error|mixed     $errors Error.
+	 * @param WP_User|false|null $user   Native resolved recovery recipient.
 	 *
 	 * @return void
 	 */
-	public function verify( $errors ): void {
+	public function verify( $errors, $user = null ): void {
 		if ( ! $this->can_handle_request() ) {
 			// This class cannot handle a submitted lost password form.
 			return;
@@ -82,18 +84,17 @@ abstract class LostPasswordBase extends FormOwnerBase {
 			return;
 		}
 
-		$error_message = API::verify(
-			[
-				'nonce_name'   => static::NONCE,
-				'nonce_action' => static::ACTION,
-				'data'         => EntryData::from_post(
-					[
-						'username' => [ 'user_login', 'user_email' ],
-					]
-				),
-				'expected_id'  => $this->get_expected_id(),
-			]
-		);
+		$entry         = [
+			'nonce_name'   => static::NONCE,
+			'nonce_action' => static::ACTION,
+			'data'         => EntryData::from_post(
+				[
+					'username' => [ 'user_login', 'user_email' ],
+				]
+			),
+			'expected_id'  => $this->get_expected_id(),
+		];
+		$error_message = API::verify( EntryData::with_emails( $entry, $user instanceof WP_User ? [ $user->user_email ] : [] ) );
 
 		HCaptcha::add_error_message( $errors, $error_message );
 	}
@@ -116,7 +117,16 @@ abstract class LostPasswordBase extends FormOwnerBase {
 	 * @return bool
 	 */
 	protected function is_owner_action(): bool {
-		return $this->is_wp_login_action( 'lostpassword' ) && $this->can_handle_request();
+		return $this->is_lost_password_action() && $this->can_handle_request();
+	}
+
+	/**
+	 * Whether the current request uses a native WordPress recovery action.
+	 *
+	 * @return bool
+	 */
+	protected function is_lost_password_action(): bool {
+		return $this->is_wp_login_action( 'lostpassword' ) || $this->is_wp_login_action( 'retrievepassword' );
 	}
 
 	/**
@@ -124,7 +134,7 @@ abstract class LostPasswordBase extends FormOwnerBase {
 	 *
 	 * @return bool
 	 */
-	private function can_handle_request(): bool {
+	protected function can_handle_request(): bool {
 		// Nonce is verified later by the owning form integration.
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$post_value = isset( $_POST[ static::POST_KEY ] ) ?

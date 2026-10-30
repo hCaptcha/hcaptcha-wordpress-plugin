@@ -143,8 +143,11 @@ class Form extends Base {
 	 * @return array
 	 */
 	private function get_entry( array $form_data ): array {
-		$post_id = isset( $form_data['_kb_form_post_id'] ) ? (int) $form_data['_kb_form_post_id'] : 0;
-		$post    = get_post( $post_id );
+		// Match Kadence's post selector before binding the widget and its fields.
+		$raw_post_id    = $form_data['_kb_form_post_id'] ?? '';
+		$native_post_id = is_scalar( $raw_post_id ) ? sanitize_text_field( wp_unslash( (string) $raw_post_id ) ) : '';
+		$post_id        = absint( $native_post_id );
+		$post           = get_post( $post_id );
 
 		$entry = [
 			'h-captcha-response' => $form_data['h-captcha-response'] ?? '',
@@ -153,8 +156,9 @@ class Form extends Base {
 			'expected_id'        => $this->get_expected_id( $post_id ),
 		];
 
-		$blocks = parse_blocks( $post->post_content ?? '' );
+		$blocks = $this->get_form_blocks( $native_post_id );
 		$fields = $this->get_fields( $blocks );
+		$emails = [];
 
 		foreach ( $fields as $id => $field ) {
 			$field = wp_parse_args(
@@ -168,6 +172,11 @@ class Form extends Base {
 			$type = $field['type'];
 
 			$label = (string) $field['label'];
+			$value = $form_data[ "kb_field_$id" ] ?? '';
+
+			if ( 'email' === $type && is_string( $value ) ) {
+				$emails[] = sanitize_email( trim( wp_unslash( $value ) ) );
+			}
 
 			if (
 				! array_key_exists( "kb_field_$id", $form_data ) ||
@@ -177,16 +186,49 @@ class Form extends Base {
 				continue;
 			}
 
-			$value = $form_data[ "kb_field_$id" ] ?? '';
-
-			if ( 'email' === $type ) {
-				$entry['data']['email'] = $value;
-			}
-
 			EntryData::add_field( $entry['data'], $label, $value, (string) $id );
 		}
 
-		return $entry;
+		return EntryData::with_emails( $entry, $emails );
+	}
+
+	/**
+	 * Resolve the post or block widget selected by native Kadence processing.
+	 *
+	 * @param string $post_id Native post or widget identifier.
+	 *
+	 * @return array
+	 */
+	private function get_form_blocks( string $post_id ): array {
+		if ( false === strpos( $post_id, 'block' ) ) {
+			$post = get_post( absint( $post_id ) );
+
+			return parse_blocks( $post->post_content ?? '' );
+		}
+
+		$widgets = (array) get_option( 'widget_block', [] );
+
+		if ( false === strpos( $post_id, 'block-unknown' ) ) {
+			$widget_id = absint( preg_replace( '/[^0-9]/', '', $post_id ) );
+
+			return parse_blocks( $widgets[ $widget_id ]['content'] ?? '' );
+		}
+
+		$form_id = Request::filter_input( INPUT_POST, '_kb_form_id' );
+
+		if ( ! is_string( $form_id ) ) {
+			return [];
+		}
+
+		foreach ( $widgets as $widget ) {
+			$content = is_array( $widget ) ? ( $widget['content'] ?? '' ) : '';
+
+			if ( is_string( $content ) && false !== strpos( $content, '<!-- wp:kadence/form {"uniqueID":"' . $form_id . '"' ) ) {
+				return parse_blocks( $content );
+			}
+		}
+
+		return [];
 	}
 
 	/**
@@ -222,18 +264,25 @@ class Form extends Base {
 	 *
 	 * @param array  $blocks   Blocks.
 	 * @param string $block_id Block ID.
+	 * @param array  $references Referenced blocks already visited.
 	 *
 	 * @return array
 	 */
-	private function get_form( array $blocks, string $block_id ): array {
+	private function get_form( array $blocks, string $block_id, array $references = [] ): array {
 		foreach ( $blocks as $block ) {
+			$form = $this->get_referenced_form( $block, $block_id, $references );
+
+			if ( $form ) {
+				return $form;
+			}
+
 			$current_block_id = $block['attrs']['uniqueID'] ?? '';
 
 			if ( 'kadence/form' === $block['blockName'] && $current_block_id === $block_id ) {
 				return $block;
 			}
 
-			$form = $this->get_form( $block['innerBlocks'] ?? [], $block_id );
+			$form = $this->get_form( $block['innerBlocks'] ?? [], $block_id, $references );
 
 			if ( $form ) {
 				return $form;
@@ -241,5 +290,34 @@ class Form extends Base {
 		}
 
 		return [];
+	}
+
+	/**
+	 * Resolve the native reusable form location without revisiting cycles.
+	 *
+	 * @param array  $block      Block.
+	 * @param string $block_id   Form ID.
+	 * @param array  $references Referenced blocks already visited.
+	 *
+	 * @return array
+	 */
+	private function get_referenced_form( array $block, string $block_id, array $references ): array {
+		if ( 'core/block' !== ( $block['blockName'] ?? '' ) ) {
+			return [];
+		}
+
+		$reference = (int) ( $block['attrs']['ref'] ?? 0 );
+
+		if ( ! $reference || in_array( $reference, $references, true ) ) {
+			return [];
+		}
+
+		$post = get_post( $reference );
+
+		if ( ! $post || 'wp_block' !== $post->post_type ) {
+			return [];
+		}
+
+		return $this->get_form( parse_blocks( $post->post_content ), $block_id, array_merge( $references, [ $reference ] ) );
 	}
 }

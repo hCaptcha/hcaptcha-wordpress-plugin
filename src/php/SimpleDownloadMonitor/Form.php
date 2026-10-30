@@ -44,8 +44,9 @@ class Form {
 	 */
 	private function init_hooks(): void {
 		add_filter( 'sdm_download_shortcode_output', [ $this, 'add_captcha' ], 10, 2 );
-		add_action( 'init', [ $this, 'verify' ], 0 );
+		add_action( 'sdm_download_via_direct_post', [ $this, 'verify' ], 0 );
 		add_action( 'wp_print_footer_scripts', [ $this, 'enqueue_scripts' ], 9 );
+		add_filter( 'script_loader_tag', [ $this, 'add_type_module' ], 10, 3 );
 	}
 
 
@@ -62,10 +63,7 @@ class Form {
 		$args   = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => $atts['id'],
-			],
+			'id'     => $this->get_id( absint( $atts['id'] ) ),
 		];
 
 		return str_replace(
@@ -81,21 +79,13 @@ class Form {
 	 * @noinspection ForgottenDebugOutputInspection
 	 */
 	public function verify(): void {
-		// phpcs:disable WordPress.Security.NonceVerification.Recommended
-		$smd_process_download = isset( $_REQUEST['smd_process_download'] ) ?
-			sanitize_text_field( wp_unslash( $_REQUEST['smd_process_download'] ) ) :
-			'';
-		$sdm_process_download = isset( $_REQUEST['sdm_process_download'] ) ?
-			sanitize_text_field( wp_unslash( $_REQUEST['sdm_process_download'] ) ) :
-			'';
-		// phpcs:enable WordPress.Security.NonceVerification.Recommended
-
-		if ( '1' !== $smd_process_download && '1' !== $sdm_process_download ) {
-			return;
-		}
-
+		// The native action fires after Simple Download Monitor selects a download request,
+		// and before it validates the item or dispatches the file.
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$error_message = API::verify_post_data( self::NONCE, self::ACTION, $_GET );
+		$download_id = isset( $_REQUEST['download_id'] ) ? absint( $_REQUEST['download_id'] ) : 0;
+		$expected_id = $this->get_id( $download_id );
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$error_message = API::verify_post_data( self::NONCE, self::ACTION, $_GET, $expected_id );
 
 		if ( null === $error_message ) {
 			return;
@@ -112,7 +102,21 @@ class Form {
 	}
 
 	/**
-	 * Enqueue MailPoet script.
+	 * Get the widget identity for a download.
+	 *
+	 * @param int $download_id Download ID.
+	 *
+	 * @return array
+	 */
+	private function get_id( int $download_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => $download_id,
+		];
+	}
+
+	/**
+	 * Enqueue Simple Download Monitor script.
 	 *
 	 * @return void
 	 */
@@ -130,5 +134,25 @@ class Form {
 			HCAPTCHA_VERSION,
 			true
 		);
+	}
+
+	/**
+	 * Load the unbundled source as a module so its imports work with SCRIPT_DEBUG.
+	 *
+	 * @param string|mixed $tag    Script tag.
+	 * @param string       $handle Script handle.
+	 * @param string       $src    Script source.
+	 *
+	 * @return string
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function add_type_module( $tag, string $handle, string $src ): string {
+		$tag = (string) $tag;
+
+		if ( self::HANDLE !== $handle ) {
+			return $tag;
+		}
+
+		return HCaptcha::add_type_module( $tag );
 	}
 }

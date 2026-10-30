@@ -9,7 +9,7 @@ namespace HCaptcha\Tests\Integration\BBPress;
 
 use HCaptcha\BBPress\LostPassword;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
-use WP_Error;
+use ReflectionMethod;
 
 /**
  * Test LostPassword class.
@@ -69,6 +69,25 @@ class LostPasswordTest extends HCaptchaPluginWPTestCase {
 		$subject = new LostPassword();
 
 		self::assertSame( 10, has_filter( 'do_shortcode_tag', [ $subject, 'add_captcha' ] ) );
+	}
+
+	/**
+	 * The lost-password request is owned only for the matching login action.
+	 */
+	public function test_is_owner_action(): void {
+		$subject = new LostPassword();
+		$method  = new ReflectionMethod( $subject, 'is_owner_action' );
+		$method->setAccessible( true );
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_GET['action'] = 'lostpassword';
+		self::assertTrue( $method->invoke( $subject ) );
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$_GET['action'] = 'register';
+		self::assertFalse( $method->invoke( $subject ) );
+
+		unset( $_GET['action'] );
 	}
 
 	/**

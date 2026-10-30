@@ -12,6 +12,7 @@ namespace KAGG\Settings\Abstracts;
 
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
+use HCaptcha\Settings\SettingsStorage;
 
 /**
  * Class SettingsBase
@@ -634,11 +635,18 @@ abstract class SettingsBase {
 			true
 		);
 
+		$style_version = $this->plugin_version();
+
+		if ( '' === $this->min_suffix ) {
+			$style_mtime    = filemtime( dirname( __DIR__, 4 ) . '/assets/css/settings-base.css' );
+			$style_version .= false === $style_mtime ? '' : '-' . $style_mtime;
+		}
+
 		wp_enqueue_style(
 			static::PREFIX . '-' . self::HANDLE,
 			$this->plugin_url() . "/assets/css/settings-base$this->min_suffix.css",
 			[],
-			$this->plugin_version()
+			$style_version
 		);
 
 		$this->get_active_tab()->admin_enqueue_scripts();
@@ -999,8 +1007,11 @@ abstract class SettingsBase {
 					$settings[ $key ] = array_map( 'sanitize_text_field', (array) $setting );
 					break;
 				case 'textarea':
-					$setting          = is_scalar( $setting ) ? (string) $setting : '';
-					$settings[ $key ] = wp_kses_post( $setting );
+					$setting = is_scalar( $setting ) ? (string) $setting : '';
+
+					// Plain configuration text can contain regex groups resembling HTML tags.
+					$settings[ $key ] = empty( $this->form_fields[ $key ]['preserve_text'] ) ?
+						wp_kses_post( $setting ) : wp_check_invalid_utf8( $setting );
 					break;
 				default:
 					$settings[ $key ] = sanitize_text_field( $setting );
@@ -1098,7 +1109,7 @@ abstract class SettingsBase {
 			esc_html( $this->option_name() ),
 			esc_attr( $arguments['field_id'] ),
 			esc_attr( $arguments['placeholder'] ),
-			wp_kses_post( $value )
+			empty( $arguments['preserve_text'] ) ? wp_kses_post( $value ) : esc_textarea( $value )
 		);
 	}
 
@@ -1613,8 +1624,13 @@ abstract class SettingsBase {
 	 * @return mixed
 	 */
 	public function pre_update_option_filter( $value, $old_value ) {
-		if ( $value === $old_value ) {
+		if ( $value === $old_value || SettingsStorage::is_internal_write( $this->option_name(), $value ) ) {
 			return $value;
+		}
+
+		// Reject native writes before form preparation can copy credentials or change ownership.
+		if ( $this->is_network_wide() && ! Request::is_cli() && ! $this->can_manage_settings() ) {
+			return $old_value;
 		}
 
 		$value = $this->prepare_value( $value, $old_value );
@@ -1625,14 +1641,23 @@ abstract class SettingsBase {
 
 			// Check if the network-wide setting is on.
 			if ( [ 'on' ] === $value[ self::NETWORK_WIDE ] ) {
+				$hook     = 'pre_update_site_option_' . $this->option_name();
+				$callback = [ $this, 'pre_update_option_filter' ];
+				$priority = has_filter( $hook, $callback );
+
 				// Prevent endless loop.
-				remove_filter(
-					'pre_update_site_option_' . $this->option_name(),
-					[ $this, 'pre_update_option_filter' ]
-				);
+				if ( false !== $priority ) {
+					remove_filter( $hook, $callback, $priority );
+				}
 
 				// Save the current settings in the site option.
-				update_site_option( $this->option_name(), $value );
+				try {
+					update_site_option( $this->option_name(), $value );
+				} finally {
+					if ( false !== $priority ) {
+						add_filter( $hook, $callback, $priority, 2 );
+					}
+				}
 
 				// Do not update the blog option.
 				return $old_value;
@@ -1884,13 +1909,13 @@ abstract class SettingsBase {
 	 * @return array
 	 */
 	private function prepare_network_wide_values( $value, $old_value ): array {
-		$value       = is_array( $value ) ? $value : [];
-		$general_tab = isset( $value['site_key'] );
+		$value = is_array( $value ) ? $value : [];
 
-		// When saving not the General tab, use the network-wide site option.
-		$network_wide = $general_tab
-			? $value[ self::NETWORK_WIDE ] ?? []
-			: $this->get_network_wide();
+		// A present value may come from Advanced or a combined settings import.
+		$network_wide = isset( $this->form_fields()[ self::NETWORK_WIDE ] ) ? [] : $this->get_network_wide();
+		$network_wide = array_key_exists( self::NETWORK_WIDE, $value )
+			? (array) $value[ self::NETWORK_WIDE ]
+			: $network_wide;
 
 		$can_manage_network = current_user_can( 'manage_network_options' ) || Request::is_cli();
 		$network_wide       = $can_manage_network ? $network_wide : [];

@@ -14,6 +14,7 @@ const defaultOnboardingObject = {
 	page: 'general',
 	currentStep: 'step 3',
 	generalUrl: 'https://test.test/wp-admin/admin.php?page=hcaptcha',
+	antispamUrl: 'https://test.test/wp-admin/admin.php?page=hcaptcha-antispampage',
 	integrationsUrl: 'https://test.test/wp-admin/admin.php?page=hcaptcha-integrations',
 	stepParam: 'onboarding_step',
 	stepNonce: 'step_nonce',
@@ -21,6 +22,7 @@ const defaultOnboardingObject = {
 	iconAnimatedUrl: 'https://test.test/wp-content/plugins/hcaptcha/assets/images/icon.svg',
 	videoUrl: 'https://youtu.be/khKYehgr8t0',
 	ratingUrl: 'https://wordpress.org/support/plugin/hcaptcha-for-forms-and-more/reviews/#new-post',
+	signupUrl: 'https://www.hcaptcha.com/signup-interstitial/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk',
 	selectors: {
 		general: {
 			site_key: '#site_key',
@@ -32,7 +34,10 @@ const defaultOnboardingObject = {
 			set_min_submit_time: '#set_min_submit_time_1',
 			antispam_check: '#antispam_1',
 			antispam_provider: 'select[name="hcaptcha_settings[antispam_provider]"]',
-			antispam: '.hcaptcha-section-antispam+table',
+			save: '#hcaptcha-options #submit',
+		},
+		antispam: {
+			bot_detection: '.hcaptcha-section-bot-detection+table',
 			save: '#hcaptcha-options #submit',
 		},
 		integrations: {
@@ -45,16 +50,17 @@ const defaultOnboardingObject = {
 		2: 'Switch Mode to Live',
 		3: 'Enter keys, solve hCaptcha and Check Config',
 		4: 'Enable Force (recommended)',
-		5: 'Enable Anti-spam options (recommended)',
-		6: 'Save settings',
-		7: 'Enable hCaptcha for installed plugins',
-		8: 'Save settings',
+		5: 'Save settings',
+		6: 'Review bot detection options',
+		7: 'Save settings',
+		8: 'Enable hCaptcha for installed plugins',
+		9: 'Save settings',
 	},
 	i18n: {
 		done: 'Done',
 		choiceTitle: 'How would you like to continue?',
 		choiceBody: 'Your keys are configured and verified. We can now apply the recommended setup automatically, or you can continue step by step.',
-		choiceAutoBody: 'Automatic setup will enable Force, apply the recommended anti-spam options, enable hCaptcha for installed plugins and themes, and save your settings.',
+		choiceAutoBody: 'Automatic setup will enable Force, Honeypot, and minimum submit time, apply available reCAPTCHA migrations, and save your settings.',
 		choiceAutoCta: 'Apply recommended setup automatically',
 		choiceManualCta: 'Continue step by step',
 		close: 'Close',
@@ -109,6 +115,16 @@ function getIntegrationsDom() {
 					<tr><td><input id="integration-disabled" type="checkbox" name="hcaptcha_settings[wpforms_status][]" value="register" disabled /></td></tr>
 				</tbody>
 			</table>
+			<input id="submit" type="submit" value="Save settings" />
+		</form>
+	`;
+}
+
+function getAntiSpamDom() {
+	return `
+		<form id="hcaptcha-options">
+			<h3 class="hcaptcha-section-bot-detection">Bot Detection</h3>
+			<table><tbody><tr><td><input id="honeypot_1" type="checkbox" /></td></tr></tbody></table>
 			<input id="submit" type="submit" value="Save settings" />
 		</form>
 	`;
@@ -194,7 +210,7 @@ describe( 'onboarding.js', () => {
 		expect( $( '.hcap-onb-panel [data-step="4"]' ).hasClass( 'current' ) ).toBe( true );
 	} );
 
-	test( 'automatic setup on the general page enables recommended options and prepares integrations auto-save', () => {
+	test( 'automatic setup submits General settings through the auto-setup URL', () => {
 		bootOnboarding();
 		const form = document.getElementById( 'hcaptcha-options' );
 
@@ -210,14 +226,14 @@ describe( 'onboarding.js', () => {
 		);
 	} );
 
-	test( 'automatic setup on the integrations page completes the wizard on step 8', () => {
+	test( 'automatic setup completion on General clears its session flag and shows congrats', () => {
 		sessionStorage.setItem( 'hcapOnbAutoSetup', '1' );
 		bootOnboarding(
 			{
-				page: 'integrations',
-				currentStep: 'step 8',
+				page: 'general',
+				currentStep: 'step 9',
 			},
-			getIntegrationsDom(),
+			getGeneralDom(),
 		);
 
 		expect( postSpy ).toHaveBeenCalledWith(
@@ -225,7 +241,7 @@ describe( 'onboarding.js', () => {
 			expect.objectContaining( { value: 'completed' } ),
 		);
 		expect( document.body.textContent ).toContain( 'Congrats — setup complete!' );
-		expect( sessionStorage.getItem( 'hcapOnbAutoSetup' ) ).toBe( '1' );
+		expect( sessionStorage.getItem( 'hcapOnbAutoSetup' ) ).toBeNull();
 	} );
 
 	// ─── welcome modal ────────────────────────────────────────────────────────
@@ -241,6 +257,16 @@ describe( 'onboarding.js', () => {
 
 		expect( $( '.hcap-onb-panel' ).length ).toBe( 1 );
 		expect( $( '.hcap-onb-tip-text' ).first().text() ).toBe( 'Get your keys at hcaptcha.com' );
+
+		const $signupLinks = $( '.hcap-onb-signup-link' );
+
+		expect( $signupLinks ).toHaveLength( 2 );
+		$signupLinks.each( function() {
+			expect( $( this ).text() ).toBe( 'Get your keys at hcaptcha.com' );
+			expect( $( this ).attr( 'href' ) ).toBe( defaultOnboardingObject.signupUrl );
+			expect( $( this ).attr( 'target' ) ).toBe( '_blank' );
+			expect( $( this ).attr( 'rel' ) ).toBe( 'noopener noreferrer' );
+		} );
 	} );
 
 	test( 'clicking the welcome overlay also dismisses and proceeds', () => {
@@ -427,11 +453,28 @@ describe( 'onboarding.js', () => {
 
 	test( 'clicking an integrations-page step in the panel navigates to the integrations URL', () => {
 		bootOnboarding();
-		$( '.hcap-onb-list li[data-step="7"]' ).trigger( 'click' );
+		$( '.hcap-onb-list li[data-step="8"]' ).trigger( 'click' );
 
-		expect( locationHref ).toContain( 'onboarding_step=7' );
+		expect( locationHref ).toContain( 'onboarding_step=8' );
 		expect( locationHref ).toContain( 'hcaptcha_onboarding_nonce=step_nonce' );
 		expect( locationHref ).toContain( 'page=hcaptcha-integrations' );
+	} );
+
+	test( 'clicking an Anti-Spam step in the panel navigates to the Anti-Spam URL', () => {
+		bootOnboarding();
+		$( '.hcap-onb-list li[data-step="6"]' ).trigger( 'click' );
+
+		expect( locationHref ).toContain( 'onboarding_step=6' );
+		expect( locationHref ).toContain( 'page=hcaptcha-antispampage' );
+	} );
+
+	test( 'clicking the signup link does not navigate to a wizard step', () => {
+		bootOnboarding();
+		const event = $.Event( 'click' );
+		event.preventDefault();
+		$( '.hcap-onb-panel .hcap-onb-signup-link' ).trigger( event );
+
+		expect( locationHref ).toBe( 'http://localhost/' );
 	} );
 
 	test( 'clicking a list item with data-step=0 does not navigate', () => {
@@ -451,6 +494,13 @@ describe( 'onboarding.js', () => {
 
 		expect( locationHref ).toContain( 'onboarding_step=2' );
 		expect( locationHref ).toContain( 'hcaptcha_onboarding_nonce=step_nonce' );
+	} );
+
+	test( 'keydown Enter on the signup link does not navigate to a wizard step', () => {
+		bootOnboarding();
+		$( '.hcap-onb-panel .hcap-onb-signup-link' ).trigger( $.Event( 'keydown', { key: 'Enter' } ) );
+
+		expect( locationHref ).toBe( 'http://localhost/' );
 	} );
 
 	test( 'keydown Space on panel step item navigates', () => {
@@ -507,7 +557,7 @@ describe( 'onboarding.js', () => {
 	// ─── showStep: target on wrong page ───────────────────────────────────────
 
 	test( 'showStep returns early when target step belongs to another page', () => {
-		// step 7 belongs to integrations; booting general page at step 7 should show no tooltip
+		// Step 7 belongs to Anti-Spam; General has no tooltip for it.
 		bootOnboarding( { page: 'general', currentStep: 'step 7' } );
 		jest.runAllTimers();
 
@@ -639,41 +689,64 @@ describe( 'onboarding.js', () => {
 		} ).not.toThrow();
 	} );
 
-	// ─── step 6 done → redirect to integrations ───────────────────────────────
+	// ─── step 5 done → save General ────────────────────────────────────────────
 
-	test( 'done button on step 6 (general) redirects to integrationsUrl', () => {
-		bootOnboarding( { currentStep: 'step 6' } );
+	test( 'done button on step 5 saves General and prepares Anti-Spam', () => {
+		bootOnboarding( { currentStep: 'step 5' } );
+		const form = document.getElementById( 'hcaptcha-options' );
+		form.submit = jest.fn();
 		jest.runAllTimers();
 
 		$( '.hcap-onb-done' ).trigger( 'click' );
 
 		expect( postSpy ).toHaveBeenCalledWith(
 			'https://test.test/wp-admin/admin-ajax.php',
-			expect.objectContaining( { value: 'step 7' } ),
+			expect.objectContaining( { value: 'step 6' } ),
 		);
-		expect( locationHref ).toContain( 'page=hcaptcha-integrations' );
+		expect( form.submit ).toHaveBeenCalledTimes( 1 );
+		expect( sessionStorage.getItem( 'hcapOnbGoAntiSpam' ) ).toBe( '1' );
 	} );
 
-	// ─── step 8 done → congrats modal ─────────────────────────────────────────
+	test( 'Anti-Spam steps highlight bot detection and save before Integrations', () => {
+		bootOnboarding( { page: 'antispam', currentStep: 'step 6' }, getAntiSpamDom() );
+		const form = document.getElementById( 'hcaptcha-options' );
+		form.submit = jest.fn();
 
-	test( 'done button on step 8 (integrations) shows congrats modal and removes panel on dismiss', () => {
-		bootOnboarding( { page: 'integrations', currentStep: 'step 8' }, getIntegrationsDom() );
+		expect( $( '.hcap-onb-tip-text' ).first().text() ).toBe( 'Review bot detection options' );
+		$( '.hcap-onb-done' ).trigger( 'click' );
+		expect( $( '.hcap-onb-tip-text' ).first().text() ).toBe( 'Save settings' );
+		$( '.hcap-onb-done' ).trigger( 'click' );
+
+		expect( postSpy ).toHaveBeenCalledWith(
+			'https://test.test/wp-admin/admin-ajax.php',
+			expect.objectContaining( { value: 'step 8' } ),
+		);
+		expect( form.submit ).toHaveBeenCalledTimes( 1 );
+		expect( sessionStorage.getItem( 'hcapOnbGoIntegrations' ) ).toBe( '1' );
+	} );
+
+	// ─── step 9 done → congrats modal ─────────────────────────────────────────
+
+	test( 'done button on step 9 (integrations) shows congrats modal', () => {
+		bootOnboarding( { page: 'integrations', currentStep: 'step 9' }, getIntegrationsDom() );
+		document.getElementById( 'hcaptcha-options' ).submit = jest.fn();
 		jest.runAllTimers();
 
 		$( '.hcap-onb-done' ).trigger( 'click' );
 
 		expect( document.body.textContent ).toContain( 'Congrats — setup complete!' );
 
-		// Dismiss via overlay → removes tooltip and panel.
+		// Dismiss via overlay and submit the Integration settings.
 		$( '.hcap-onb-modal-overlay' ).trigger( 'click' );
 		jest.runAllTimers();
 
 		expect( $( '.hcap-onb-modal-overlay' ).length ).toBe( 0 );
-		expect( $( '.hcap-onb-panel' ).length ).toBe( 0 );
+		expect( document.getElementById( 'hcaptcha-options' ).submit ).toHaveBeenCalledTimes( 1 );
 	} );
 
 	test( 'congrats modal rate button click schedules a dismiss via setTimeout', () => {
-		bootOnboarding( { page: 'integrations', currentStep: 'step 8' }, getIntegrationsDom() );
+		bootOnboarding( { page: 'integrations', currentStep: 'step 9' }, getIntegrationsDom() );
+		document.getElementById( 'hcaptcha-options' ).submit = jest.fn();
 		jest.runAllTimers();
 
 		$( '.hcap-onb-done' ).trigger( 'click' );
@@ -690,7 +763,7 @@ describe( 'onboarding.js', () => {
 
 	test( 'congrats overlay dismiss when no onDismiss callback (autoSetup path)', () => {
 		sessionStorage.setItem( 'hcapOnbAutoSetup', '1' );
-		bootOnboarding( { page: 'integrations', currentStep: 'step 8' }, getIntegrationsDom() );
+		bootOnboarding( { page: 'integrations', currentStep: 'step 9' }, getIntegrationsDom() );
 
 		expect( document.body.textContent ).toContain( 'Congrats — setup complete!' );
 
@@ -699,10 +772,10 @@ describe( 'onboarding.js', () => {
 		expect( $( '.hcap-onb-modal-overlay' ).length ).toBe( 0 );
 	} );
 
-	// ─── form submit: step 6 general ─────────────────────────────────────────
+	// ─── form submit: step 5 general ─────────────────────────────────────────
 
-	test( 'form submit on step 6 (general) posts step 7 and sets sessionStorage flag', () => {
-		bootOnboarding( { currentStep: 'step 6' } );
+	test( 'form submit on step 5 (general) posts step 6 and sets sessionStorage flag', () => {
+		bootOnboarding( { currentStep: 'step 5' } );
 
 		document.getElementById( 'hcaptcha-options' ).submit = jest.fn();
 
@@ -710,9 +783,9 @@ describe( 'onboarding.js', () => {
 
 		expect( postSpy ).toHaveBeenCalledWith(
 			'https://test.test/wp-admin/admin-ajax.php',
-			expect.objectContaining( { value: 'step 7' } ),
+			expect.objectContaining( { value: 'step 6' } ),
 		);
-		expect( sessionStorage.getItem( 'hcapOnbGoIntegrations' ) ).toBe( '1' );
+		expect( sessionStorage.getItem( 'hcapOnbGoAntiSpam' ) ).toBe( '1' );
 	} );
 
 	test( 'form submit on other steps is a no-op for post', () => {
@@ -727,10 +800,10 @@ describe( 'onboarding.js', () => {
 		expect( postSpy ).not.toHaveBeenCalled();
 	} );
 
-	// ─── form submit: step 8 integrations ────────────────────────────────────
+	// ─── form submit: step 9 integrations ────────────────────────────────────
 
-	test( 'form submit on step 8 (integrations, first time) prevents default and shows congrats, then resubmits form', () => {
-		bootOnboarding( { page: 'integrations', currentStep: 'step 8' }, getIntegrationsDom() );
+	test( 'form submit on step 9 (integrations, first time) prevents default and shows congrats, then resubmits form', () => {
+		bootOnboarding( { page: 'integrations', currentStep: 'step 9' }, getIntegrationsDom() );
 
 		const form = document.getElementById( 'hcaptcha-options' );
 		const submitSpy = jest.fn();
@@ -750,8 +823,8 @@ describe( 'onboarding.js', () => {
 		expect( submitSpy ).toHaveBeenCalledTimes( 1 );
 	} );
 
-	test( 'form submit on step 8 (integrations, second time) allows normal submit', () => {
-		bootOnboarding( { page: 'integrations', currentStep: 'step 8' }, getIntegrationsDom() );
+	test( 'form submit on step 9 (integrations, second time) allows normal submit', () => {
+		bootOnboarding( { page: 'integrations', currentStep: 'step 9' }, getIntegrationsDom() );
 
 		const form = document.getElementById( 'hcaptcha-options' );
 
@@ -763,16 +836,34 @@ describe( 'onboarding.js', () => {
 		jest.runAllTimers();
 
 		// Second submit: hcapOnbSubmitting is true → just return, no new congrats modal.
+		window.HCaptchaOnboardingObject.currentStep = 'step 9';
 		const beforeCalls = postSpy.mock.calls.length;
-
-		$( '#hcaptcha-options' ).trigger( 'submit' );
+		const event = $.Event( 'submit' );
+		event.preventDefault = jest.fn();
+		$( '#hcaptcha-options' ).trigger( event );
 
 		expect( postSpy.mock.calls.length ).toBe( beforeCalls );
+		expect( event.preventDefault ).not.toHaveBeenCalled();
 		expect( document.body.textContent ).not.toContain( 'Congrats' );
 	} );
 
-	test( 'form submit step 8: fallback trigger click when form.submit throws', () => {
-		bootOnboarding( { page: 'integrations', currentStep: 'step 8' }, getIntegrationsDom() );
+	test( 'skips settings submission when the form disappears before the update completes', () => {
+		bootOnboarding( { currentStep: 'step 5' } );
+		const deferred = $.Deferred();
+		postSpy.mockImplementationOnce( () => deferred );
+		const form = document.getElementById( 'hcaptcha-options' );
+		form.submit = jest.fn();
+
+		$( form ).trigger( 'submit' );
+		form.remove();
+		deferred.resolve( { success: true } );
+
+		expect( form.submit ).not.toHaveBeenCalled();
+		expect( sessionStorage.getItem( 'hcapOnbGoAntiSpam' ) ).toBe( '1' );
+	} );
+
+	test( 'form submit step 9: fallback trigger click when form.submit throws', () => {
+		bootOnboarding( { page: 'integrations', currentStep: 'step 9' }, getIntegrationsDom() );
 
 		const form = document.getElementById( 'hcaptcha-options' );
 
@@ -797,16 +888,20 @@ describe( 'onboarding.js', () => {
 	test( 'automatic setup falls back to window.location.href when form has no submit method', () => {
 		bootOnboarding();
 
-		// Ensure form.submit is not a function (jsdom normally provides one).
+		// Simulate a browser that cannot submit the form.
 		const form = document.getElementById( 'hcaptcha-options' );
 
 		form.submit = 'not-a-function';
+		const submitSpy = jest.spyOn( HTMLFormElement.prototype, 'submit' ).mockImplementation( () => {
+			throw new Error( 'submit blocked' );
+		} );
 
 		$( '.hcap-onb-done' ).trigger( 'click' );
 		$( '.hcap-onb-auto-setup' ).trigger( 'click' );
 
 		expect( locationHref ).toContain( 'auto-setup=1' );
 		expect( locationHref ).toContain( 'hcaptcha_onboarding_nonce=auto_setup_nonce' );
+		submitSpy.mockRestore();
 	} );
 
 	test( 'automatic setup falls back to window.location.href when form element is absent', () => {
@@ -870,18 +965,26 @@ describe( 'onboarding.js', () => {
 		Storage.prototype.setItem.mockRestore();
 	} );
 
-	// ─── init: page=general num=7 with goIntegrations flag ───────────────────
+	// ─── init: redirects after saving a settings page ─────────────────────────
 
-	test( 'init redirects to integrations when goIntegrations session flag is set at step 7', () => {
+	test( 'init redirects to Anti-Spam after saving General', () => {
+		sessionStorage.setItem( 'hcapOnbGoAntiSpam', '1' );
+		bootOnboarding( { page: 'general', currentStep: 'step 6' } );
+
+		expect( locationHref ).toContain( 'page=hcaptcha-antispampage' );
+		expect( sessionStorage.getItem( 'hcapOnbGoAntiSpam' ) ).toBeNull();
+	} );
+
+	test( 'init redirects to integrations when goIntegrations session flag is set at step 8', () => {
 		sessionStorage.setItem( 'hcapOnbGoIntegrations', '1' );
-		bootOnboarding( { page: 'general', currentStep: 'step 7' } );
+		bootOnboarding( { page: 'antispam', currentStep: 'step 8' } );
 
 		expect( locationHref ).toContain( 'page=hcaptcha-integrations' );
 		expect( sessionStorage.getItem( 'hcapOnbGoIntegrations' ) ).toBeNull();
 	} );
 
-	test( 'init does not redirect when goIntegrations flag is absent at step 7', () => {
-		bootOnboarding( { page: 'general', currentStep: 'step 7' } );
+	test( 'init does not redirect when goIntegrations flag is absent at step 8', () => {
+		bootOnboarding( { page: 'antispam', currentStep: 'step 8' } );
 
 		expect( locationHref ).toBe( 'http://localhost/' );
 	} );
@@ -1124,8 +1227,10 @@ describe( 'onboarding.js', () => {
 		Object.defineProperty( window, 'sessionStorage', descriptor );
 	} );
 
-	test( 'form submit step 6 continues when sessionStorage is unavailable', () => {
-		bootOnboarding( { currentStep: 'step 6' } );
+	test( 'form submit step 5 continues when sessionStorage is unavailable', () => {
+		bootOnboarding( { currentStep: 'step 5' } );
+		const form = document.getElementById( 'hcaptcha-options' );
+		form.submit = jest.fn();
 		const descriptor = Object.getOwnPropertyDescriptor( window, 'sessionStorage' );
 		Object.defineProperty( window, 'sessionStorage', {
 			configurable: true,
@@ -1135,6 +1240,7 @@ describe( 'onboarding.js', () => {
 		expect( () => {
 			$( '#hcaptcha-options' ).trigger( 'submit' );
 		} ).not.toThrow();
+		expect( form.submit ).toHaveBeenCalledTimes( 1 );
 
 		Object.defineProperty( window, 'sessionStorage', descriptor );
 	} );

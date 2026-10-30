@@ -12,12 +12,14 @@
 
 namespace HCaptcha\Tests\Integration\WC;
 
+use Exception;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\WC\Checkout;
 use Mockery;
 use ReflectionClass;
-use ReflectionException;
+use WC_Cart;
 use WC_Payment_Gateway;
+use WC_Customer;
 use WooCommerce;
 use WP_Error;
 use WP_REST_Request;
@@ -54,6 +56,8 @@ class CheckoutTest extends WooCommerceTestCase {
 
 		wp_dequeue_script( 'hcaptcha-wc-checkout' );
 		wp_dequeue_script( 'hcaptcha-wc-block-checkout' );
+		wp_dequeue_script( 'hcaptcha-wc-stripe-express' );
+		wp_deregister_script( 'hcaptcha-wc-stripe-express' );
 
 		parent::tearDown();
 	}
@@ -69,6 +73,10 @@ class CheckoutTest extends WooCommerceTestCase {
 			has_action( 'woocommerce_review_order_before_submit', [ $subject, 'add_captcha' ] )
 		);
 		self::assertSame(
+			20,
+			has_action( 'woocommerce_checkout_before_customer_details', [ $subject, 'add_stripe_checkout_banner_captcha' ] )
+		);
+		self::assertSame(
 			10,
 			has_filter( 'render_block', [ $subject, 'add_block_captcha' ] )
 		);
@@ -76,6 +84,18 @@ class CheckoutTest extends WooCommerceTestCase {
 			10,
 			has_action( 'woocommerce_checkout_process', [ $subject, 'verify' ] )
 		);
+		self::assertSame(
+			0,
+			has_action( 'wc_stripe_rest_process_checkout', [ $subject, 'verify_stripe_rest_checkout' ] )
+		);
+		self::assertSame( 10, has_action( 'wc_stripe_product_before_payment_methods', [ $subject, 'mark_stripe_product_buttons' ] ) );
+		self::assertSame( 10, has_action( 'woocommerce_after_add_to_cart_form', [ $subject, 'add_stripe_product_captcha' ] ) );
+		self::assertSame( 10, has_action( 'wc_stripe_cart_before_payment_methods', [ $subject, 'add_stripe_cart_captcha' ] ) );
+		self::assertSame( 10, has_action( 'wc_stripe_minicart_before_payment_methods', [ $subject, 'mark_stripe_minicart_buttons' ] ) );
+		self::assertSame( 10, has_action( 'woocommerce_widget_shopping_cart_after_buttons', [ $subject, 'add_stripe_minicart_captcha' ] ) );
+		self::assertSame( 10, has_filter( 'wc_stripe_express_checkout_skeleton', [ $subject, 'mark_stripe_checkout_banner' ] ) );
+		self::assertSame( 10, has_filter( 'wc_stripe_script_dependencies', [ $subject, 'add_stripe_script_dependency' ] ) );
+		self::assertSame( 0, has_action( 'init', [ $subject, 'register_stripe_express_script' ] ) );
 		self::assertSame(
 			10,
 			has_filter( 'rest_request_before_callbacks', [ $subject, 'verify_block' ] )
@@ -168,7 +188,220 @@ class CheckoutTest extends WooCommerceTestCase {
 
 		self::assertStringContainsString( 'woocommerce-checkout-payment', $output );
 		self::assertSame( 1, substr_count( $output, $hcaptcha ) );
+		self::assertSame( 1, substr_count( $output, 'class="hcaptcha-wc-checkout-proof"' ) );
+		self::assertStringNotContainsString( 'class="hcaptcha-wc-stripe-express-proof"', $output );
 		self::assertLessThan( strpos( $output, 'id="place_order"' ), strpos( $output, $hcaptcha ) );
+	}
+
+	/**
+	 * A native Stripe banner makes the existing checkout widget visible.
+	 */
+	public function test_stripe_checkout_banner_forces_one_visible_widget(): void {
+		$original_settings = get_option( 'hcaptcha_settings' );
+		$subject           = new Checkout();
+
+		update_option( 'hcaptcha_settings', [ 'size' => 'invisible' ] );
+		hcaptcha()->init_hooks();
+
+		try {
+			self::assertFalse( $subject->mark_stripe_checkout_banner( false ) );
+			self::assertFalse( $subject->mark_stripe_checkout_banner( false, 'product' ) );
+			ob_start();
+			$subject->add_stripe_checkout_banner_captcha();
+			self::assertSame( '', ob_get_clean() );
+
+			ob_start();
+			$subject->add_captcha();
+			$without_banner = (string) ob_get_clean();
+
+			self::assertStringContainsString( 'data-size="invisible"', $without_banner );
+			self::assertSame( 1, substr_count( $without_banner, 'class="hcaptcha-wc-checkout-proof"' ) );
+			self::assertStringNotContainsString( 'name="hcaptcha_wc_stripe_banner_present"', $without_banner );
+			$fallback = new Checkout();
+			$fallback->mark_stripe_checkout_banner( true, 'express_checkout' );
+			ob_start();
+			$fallback->add_captcha();
+			self::assertStringContainsString( 'class="hcaptcha-wc-checkout-proof"', (string) ob_get_clean() );
+			self::assertTrue( $subject->mark_stripe_checkout_banner( true, 'express_checkout' ) );
+
+			ob_start();
+			$subject->add_stripe_checkout_banner_captcha();
+			$with_banner = (string) ob_get_clean();
+
+			self::assertStringContainsString( 'data-size="normal"', $with_banner );
+			self::assertStringContainsString( 'data-force="false"', $with_banner );
+			self::assertSame( 1, substr_count( $with_banner, 'class="hcaptcha-wc-checkout-proof"' ) );
+			self::assertSame( 1, substr_count( $with_banner, '<h-captcha' ) );
+			self::assertSame( 1, substr_count( $with_banner, 'name="hcaptcha_wc_stripe_banner_present" value="1"' ) );
+			self::assertStringNotContainsString( 'class="hcaptcha-wc-stripe-express-proof"', $with_banner );
+			ob_start();
+			$subject->add_stripe_checkout_banner_captcha();
+			$subject->add_captcha();
+			self::assertSame( '', ob_get_clean() );
+		} finally {
+			if ( false === $original_settings ) {
+				delete_option( 'hcaptcha_settings' );
+			} else {
+				update_option( 'hcaptcha_settings', $original_settings );
+			}
+
+			hcaptcha()->init_hooks();
+		}
+	}
+
+	/**
+	 * The payment fragment omits its widget only when the existing checkout form has one.
+	 */
+	public function test_checkout_fragment_uses_actual_banner_marker(): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Preserve the test request while checking the display-only marker.
+		$original_post = $_POST;
+		$subject       = new Checkout();
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+
+		try {
+			do_action( 'woocommerce_checkout_update_order_review', '' );
+
+			$cases = [
+				'with banner'     => [ 'hcaptcha_wc_stripe_banner_present=1', false ],
+				'without banner'  => [ 'billing_email=buyer%40example.com', true ],
+				'false marker'    => [ 'hcaptcha_wc_stripe_banner_present=0', true ],
+				'array marker'    => [ 'hcaptcha_wc_stripe_banner_present%5B%5D=1', true ],
+				'array post data' => [ [ 'hcaptcha_wc_stripe_banner_present' => '1' ], true ],
+			];
+
+			foreach ( $cases as $label => [ $post_data, $should_render ] ) {
+				$_POST['post_data'] = $post_data;
+
+				ob_start();
+				$subject->add_captcha();
+				$output = (string) ob_get_clean();
+
+				self::assertSame( (int) $should_render, substr_count( $output, 'class="hcaptcha-wc-checkout-proof"' ), $label );
+			}
+
+			remove_filter( 'wp_doing_ajax', '__return_true' );
+			add_filter( 'wp_doing_ajax', '__return_false' );
+			$_POST['post_data'] = 'hcaptcha_wc_stripe_banner_present=1';
+
+			ob_start();
+			$subject->add_captcha();
+			self::assertSame( 1, substr_count( (string) ob_get_clean(), 'class="hcaptcha-wc-checkout-proof"' ) );
+		} finally {
+			$_POST = $original_post;
+			remove_filter( 'wp_doing_ajax', '__return_true' );
+			remove_filter( 'wp_doing_ajax', '__return_false' );
+		}
+	}
+
+	/**
+	 * Native Stripe hooks render distinct visible checkout-identity widgets only where buttons exist.
+	 */
+	public function test_stripe_express_widgets_follow_native_button_hooks(): void {
+		$subject = new Checkout();
+		$id      = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'woocommerce/woocommerce.php' ],
+				'form_id' => 'checkout',
+			]
+		);
+
+		ob_start();
+		$subject->add_stripe_product_captcha();
+		$subject->add_stripe_minicart_captcha();
+		self::assertSame( '', ob_get_clean() );
+
+		$subject->mark_stripe_product_buttons();
+		ob_start();
+		$subject->add_stripe_product_captcha();
+		$product = (string) ob_get_clean();
+
+		self::assertStringContainsString( 'class="hcaptcha-wc-stripe-express-proof" data-context="product"', $product );
+		self::assertStringContainsString( 'data-size="normal"', $product );
+		self::assertStringContainsString( 'data-force="false"', $product );
+		self::assertStringContainsString( 'data-callback="hCaptchaWCStripeExpress.onProductSolved"', $product );
+		self::assertStringContainsString( 'data-expired-callback="hCaptchaWCStripeExpress.onProductExpired"', $product );
+		self::assertStringContainsString( 'data-error-callback="hCaptchaWCStripeExpress.onProductExpired"', $product );
+		self::assertStringContainsString( 'name="hcaptcha_wc_checkout_nonce"', $product );
+		self::assertStringContainsString( 'value="' . $id . '"', $product );
+
+		ob_start();
+		$subject->add_stripe_product_captcha();
+		self::assertSame( '', ob_get_clean() );
+
+		ob_start();
+		$subject->add_stripe_cart_captcha();
+		$cart = (string) ob_get_clean();
+
+		self::assertStringContainsString( 'data-context="cart"', $cart );
+		self::assertStringContainsString( 'data-callback="hCaptchaWCStripeExpress.onCartSolved"', $cart );
+		self::assertStringContainsString( 'data-expired-callback="hCaptchaWCStripeExpress.onCartExpired"', $cart );
+		self::assertStringContainsString( 'value="' . $id . '"', $cart );
+
+		$subject->mark_stripe_minicart_buttons();
+		ob_start();
+		$subject->add_stripe_minicart_captcha();
+		$minicart = (string) ob_get_clean();
+
+		self::assertStringContainsString( 'data-context="minicart"', $minicart );
+		self::assertStringContainsString( 'data-callback="hCaptchaWCStripeExpress.onMinicartSolved"', $minicart );
+		self::assertStringContainsString( 'data-expired-callback="hCaptchaWCStripeExpress.onMinicartExpired"', $minicart );
+		self::assertStringContainsString( 'value="' . $id . '"', $minicart );
+
+		ob_start();
+		$subject->add_stripe_minicart_captcha();
+		self::assertSame( '', ob_get_clean() );
+	}
+
+	/**
+	 * A form-specific exemption still renders a signed checkout identity for Stripe.
+	 */
+	public function test_stripe_express_widget_preserves_form_exemption_identity(): void {
+		$subject = new Checkout();
+		$filter  = static function ( bool $protect, array $source, $form_id ): bool {
+			return 'checkout' === $form_id ? false : $protect;
+		};
+
+		add_filter( 'hcap_protect_form', $filter, 10, 3 );
+
+		try {
+			ob_start();
+			$subject->add_stripe_cart_captcha();
+			$output = (string) ob_get_clean();
+		} finally {
+			remove_filter( 'hcap_protect_form', $filter );
+		}
+
+		self::assertStringContainsString( 'class="hcaptcha-wc-stripe-express-proof" data-context="cart"', $output );
+		self::assertStringContainsString( 'name="hcaptcha-widget-id"', $output );
+		self::assertStringNotContainsString( '<h-captcha', $output );
+		self::assertStringNotContainsString( 'name="hcaptcha_wc_checkout_nonce"', $output );
+	}
+
+	/**
+	 * The bridge loads before Stripe controllers and only with native Stripe scripts.
+	 */
+	public function test_stripe_express_script_dependency_and_localization(): void {
+		$subject = new Checkout();
+		$handle  = 'hcaptcha-wc-stripe-express';
+
+		$subject->register_stripe_express_script();
+
+		self::assertTrue( wp_script_is( $handle, 'registered' ) );
+		self::assertFalse( wp_script_is( $handle ) );
+		self::assertSame( [ 'hcaptcha', 'wp-api-fetch', 'wc-stripe-actions' ], wp_scripts()->registered[ $handle ]->deps );
+		self::assertStringContainsString( 'HCaptchaWCStripeExpressObject', wp_scripts()->registered[ $handle ]->extra['data'] );
+		self::assertStringContainsString( 'hcaptcha_wc_checkout_nonce', wp_scripts()->registered[ $handle ]->extra['data'] );
+		self::assertSame(
+			[ 'wc-stripe-actions', $handle ],
+			$subject->add_stripe_script_dependency( [ 'wc-stripe-actions' ], 'wc-stripe-controllers' )
+		);
+		self::assertSame(
+			[ 'wc-stripe-actions', $handle ],
+			$subject->add_stripe_script_dependency( [ 'wc-stripe-actions', $handle ], 'wc-stripe-controllers' )
+		);
+		self::assertSame( [ 'wc-stripe-actions' ], $subject->add_stripe_script_dependency( [ 'wc-stripe-actions' ], 'unrelated-script' ) );
+		self::assertSame( [ 'wc-stripe-actions' ], $subject->add_stripe_script_dependency( [ 'wc-stripe-actions' ] ) );
 	}
 
 	/**
@@ -257,42 +490,367 @@ class CheckoutTest extends WooCommerceTestCase {
 	}
 
 	/**
-	 * Test verify() skips Stripe frontend checkout request.
+	 * Missing proof stops Stripe checkout before its customer-creation step.
+	 */
+	public function test_stripe_rest_checkout_rejects_missing_proof_before_later_hooks(): void {
+		$this->prepare_verify_post( Checkout::NONCE, Checkout::ACTION, false );
+		$this->prepare_widget_id();
+		unset( $_POST['h-captcha-response'] );
+
+		new Checkout();
+
+		$continued = false;
+		$later     = static function () use ( &$continued ): void {
+			$continued = true;
+		};
+
+		add_action( 'wc_stripe_rest_process_checkout', $later );
+
+		try {
+			do_action( 'wc_stripe_rest_process_checkout' );
+			self::fail( 'Missing hCaptcha proof must stop Stripe checkout.' );
+		} catch ( Exception $exception ) {
+			self::assertSame( hcap_get_error_messages()['empty'], $exception->getMessage() );
+		} finally {
+			remove_action( 'wc_stripe_rest_process_checkout', $later );
+		}
+
+		self::assertFalse( $continued );
+	}
+
+	/**
+	 * An invalid remote proof cannot reach Stripe's customer creation.
+	 */
+	public function test_stripe_rest_checkout_rejects_invalid_proof(): void {
+		$this->prepare_verify_post( Checkout::NONCE, Checkout::ACTION, false );
+		$this->prepare_widget_id();
+
+		$subject = new Checkout();
+
+		$this->expectExceptionMessage( hcap_get_error_messages()['fail'] );
+		$subject->verify_stripe_rest_checkout();
+	}
+
+	/**
+	 * A token signed for another form cannot authorize Stripe checkout.
+	 */
+	public function test_stripe_rest_checkout_rejects_foreign_widget_identity(): void {
+		$this->prepare_verify_post( Checkout::NONCE, Checkout::ACTION );
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'woocommerce/woocommerce.php' ],
+				'form_id' => 'login',
+			]
+		);
+
+		$subject = new Checkout();
+
+		$this->expectExceptionMessage( hcap_get_error_messages()['bad-signature'] );
+		$subject->verify_stripe_rest_checkout();
+	}
+
+	/**
+	 * The later WooCommerce check can reuse the same verified request proof.
 	 *
-	 * @return void
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function test_verify_skips_stripe_frontend_checkout_request(): void {
-		$_GET['wc-ajax'] = 'wc_stripe_frontend_request';
-		$_GET['path']    = '/wc-stripe/v1/checkout';
+	public function test_stripe_rest_checkout_reuses_valid_proof_at_woocommerce_checkout_process(): void {
+		$this->prepare_verify_post( Checkout::NONCE, Checkout::ACTION );
+		$this->prepare_widget_id();
 
 		WC()->init();
 		wc_clear_notices();
 
-		$subject = new Checkout();
-		$subject->verify();
+		$siteverify_calls = 0;
+		$count_siteverify = static function ( $preempt, $parsed_args, $url ) use ( &$siteverify_calls ) {
+			if ( 'https://api.hcaptcha.com/siteverify' === $url ) {
+				++$siteverify_calls;
+			}
 
+			return $preempt;
+		};
+
+		add_filter( 'pre_http_request', $count_siteverify, 9, 3 );
+
+		try {
+			$subject = new Checkout();
+			$subject->verify_stripe_rest_checkout();
+			$subject->verify();
+		} finally {
+			remove_filter( 'pre_http_request', $count_siteverify, 9 );
+		}
+
+		self::assertSame( 1, $siteverify_calls );
 		self::assertSame( [], wc_get_notices() );
 	}
 
 	/**
-	 * Test verify() skips express payment methods.
+	 * Stripe frontend checkout requests still require proof for ordinary gateways.
 	 *
 	 * @return void
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function test_verify_skips_express_payment_method(): void {
-		$_POST['payment_method'] = 'express_gateway';
-
-		$this->mock_express_payment_gateway();
+	public function test_verify_checks_stripe_frontend_checkout_request(): void {
+		$_GET['wc-ajax'] = 'wc_stripe_frontend_request';
+		$_GET['path']    = '/wc-stripe/v1/checkout';
+		$this->prepare_verify_post( 'hcaptcha_wc_checkout_nonce', 'hcaptcha_wc_checkout', false );
+		$this->prepare_widget_id();
 
 		WC()->init();
 		wc_clear_notices();
 
-		$subject = new Checkout();
-		$subject->verify();
+		$gateway                 = new class() extends WC_Payment_Gateway {
+			/**
+			 * Set an available ordinary gateway identity.
+			 *
+			 * @noinspection PhpDynamicFieldDeclarationInspection*/
+			public function __construct() {
+				$this->id = 'ordinary_gateway';
+			}
 
-		self::assertSame( [], wc_get_notices() );
+			/**
+			 * Make the synthetic gateway available.
+			 *
+			 * @return bool
+			 * @noinspection PhpUnused
+			 */
+			public function is_available(): bool {
+				return true;
+			}
+		};
+		$add_gateway             = static function ( array $gateways ) use ( $gateway ): array {
+			$gateways[ $gateway->id ] = $gateway;
+
+			return $gateways;
+		};
+		$original_cart           = WC()->cart;
+		WC()->cart               = new class() extends WC_Cart {
+			/**
+			 * Simulate a paid cart.
+			 *
+			 * @return bool
+			 * @noinspection PhpUnused
+			 */
+			public function needs_payment(): bool {
+				return true;
+			}
+		};
+		$_POST['payment_method'] = $gateway->id;
+		$subject                 = new Checkout();
+		$callback                = static function () use ( $subject ): void {
+			$subject->verify();
+		};
+
+		add_filter( 'woocommerce_available_payment_gateways', $add_gateway );
+		add_action( 'wc_ajax_wc_stripe_frontend_request', $callback );
+		try {
+			do_action( 'wc_ajax_wc_stripe_frontend_request' );
+		} finally {
+			WC()->cart = $original_cart;
+			remove_action( 'wc_ajax_wc_stripe_frontend_request', $callback );
+			remove_filter( 'woocommerce_available_payment_gateways', $add_gateway );
+		}
+
+		self::assertSame( 'The hCaptcha is invalid.', wc_get_notices( 'error' )[0]['notice'] );
+	}
+
+	/**
+	 * Stripe labels do not exempt the earlier native classic place-order handler.
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	public function test_verify_does_not_trust_stripe_labels_before_dispatch(): void {
+		$_GET['wc-ajax']                           = 'wc_stripe_frontend_request';
+		$_GET['path']                              = '/wc-stripe/v1/checkout';
+		$_POST['woocommerce_checkout_place_order'] = 'Place order';
+
+		$this->prepare_verify_post( 'hcaptcha_wc_checkout_nonce', 'hcaptcha_wc_checkout', false );
+		$this->prepare_widget_id();
+
+		WC()->init();
+		wc_clear_notices();
+
+		( new Checkout() )->verify();
+
+		self::assertSame( 'The hCaptcha is invalid.', wc_get_notices( 'error' )[0]['notice'] );
+	}
+
+	/**
+	 * Legacy Stripe action and an enabled express gateway do not bypass hCaptcha.
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	public function test_verify_legacy_stripe_action_checks_paid_express_gateway(): void {
+		$_GET['wc-ajax'] = 'wc_stripe_frontend_request';
+		$_GET['path']    = '/wc-stripe/v1/checkout';
+
+		$gateway       = new class() extends WC_Payment_Gateway {
+			/**
+			 * Set synthetic gateway identity and express capability.
+			 *
+			 * @noinspection PhpDynamicFieldDeclarationInspection*/
+			public function __construct() {
+				$this->id       = 'legacy_product_express';
+				$this->supports = [ 'wc_stripe_product_checkout' ];
+			}
+
+			/**
+			 * Make the synthetic gateway available.
+			 *
+			 * @return bool
+			 * @noinspection PhpUnused
+			 */
+			public function is_available(): bool {
+				return true;
+			}
+
+			/**
+			 * Enable the product-page express button only.
+			 *
+			 * @return bool
+			 * @noinspection PhpUnused
+			 */
+			public function product_checkout_enabled(): bool {
+				return true;
+			}
+		};
+		$add_gateway   = static function ( array $gateways ) use ( $gateway ): array {
+			$gateways[ $gateway->id ] = $gateway;
+
+			return $gateways;
+		};
+		$original_cart = WC()->cart;
+		$subject       = new Checkout();
+		$run_checkout  = static function () use ( $subject ): void {
+			$subject->verify();
+		};
+
+		add_filter( 'woocommerce_available_payment_gateways', $add_gateway );
+		add_action( 'wc_ajax_wc_stripe_frontend_request', $run_checkout );
+
+		try {
+			$_POST['payment_method'] = $gateway->id;
+			$this->prepare_verify_post( Checkout::NONCE, Checkout::ACTION, false );
+			$this->prepare_widget_id();
+			unset( $_POST['h-captcha-response'] );
+			WC()->cart = new class() extends WC_Cart {
+				/**
+				 * Simulate a paid cart.
+				 *
+				 * @return bool
+				 * @noinspection PhpUnused
+				 */
+				public function needs_payment(): bool {
+					return true;
+				}
+			};
+			wc_clear_notices();
+			do_action( 'wc_ajax_wc_stripe_frontend_request' );
+			self::assertSame( hcap_get_error_messages()['empty'], wc_get_notices( 'error' )[0]['notice'] );
+		} finally {
+			WC()->cart = $original_cart;
+			remove_action( 'wc_ajax_wc_stripe_frontend_request', $run_checkout );
+			remove_filter( 'woocommerce_available_payment_gateways', $add_gateway );
+		}
+	}
+
+	/**
+	 * A valid checkout proof still works inside the legacy Stripe AJAX action.
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	public function test_verify_legacy_stripe_action_accepts_valid_checkout_proof(): void {
+		$_GET['wc-ajax'] = 'wc_stripe_frontend_request';
+		$_GET['path']    = '/wc-stripe/v1/checkout';
+
+		$_POST['payment_method'] = 'express_gateway';
+
+		$this->mock_express_payment_gateway();
+		$this->prepare_verify_post( Checkout::NONCE, Checkout::ACTION );
+		$this->prepare_widget_id();
+
+		WC()->init();
+		wc_clear_notices();
+
+		$original_cart = WC()->cart;
+		$this->set_test_cart_needs_payment( true );
+		$subject          = new Checkout();
+		$siteverify_calls = 0;
+		$count_siteverify = static function ( $preempt, $parsed_args, $url ) use ( &$siteverify_calls ) {
+			if ( 'https://api.hcaptcha.com/siteverify' === $url ) {
+				++$siteverify_calls;
+			}
+
+			return $preempt;
+		};
+		$run_checkout     = static function () use ( $subject ): void {
+			$subject->verify();
+		};
+
+		add_filter( 'pre_http_request', $count_siteverify, 9, 3 );
+		add_action( 'wc_ajax_wc_stripe_frontend_request', $run_checkout );
+
+		try {
+			do_action( 'wc_ajax_wc_stripe_frontend_request' );
+			self::assertSame( [], wc_get_notices() );
+			self::assertSame( 1, $siteverify_calls );
+		} finally {
+			WC()->cart = $original_cart;
+			remove_action( 'wc_ajax_wc_stripe_frontend_request', $run_checkout );
+			remove_filter( 'pre_http_request', $count_siteverify, 9 );
+		}
+	}
+
+	/**
+	 * A paid classic checkout cannot use a banner gateway ID to skip CAPTCHA.
+	 *
+	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	public function test_verify_checks_express_gateway_on_paid_cart(): void {
+		$_POST['payment_method'] = 'express_gateway';
+
+		$this->mock_express_payment_gateway();
+		$this->prepare_verify_post( 'hcaptcha_wc_checkout_nonce', 'hcaptcha_wc_checkout', false );
+		$this->prepare_widget_id();
+
+		WC()->init();
+		wc_clear_notices();
+		$original_cart = WC()->cart;
+		$this->set_test_cart_needs_payment( true );
+
+		try {
+			( new Checkout() )->verify();
+
+			self::assertSame( 'The hCaptcha is invalid.', wc_get_notices( 'error' )[0]['notice'] );
+		} finally {
+			WC()->cart = $original_cart;
+		}
+	}
+
+	/**
+	 * A zero-total classic checkout cannot use a banner gateway ID to skip CAPTCHA.
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	public function test_verify_checks_express_gateway_on_free_cart(): void {
+		$_POST['payment_method'] = 'express_gateway';
+		$this->mock_express_payment_gateway();
+		$this->prepare_verify_post( 'hcaptcha_wc_checkout_nonce', 'hcaptcha_wc_checkout', false );
+		$this->prepare_widget_id();
+
+		WC()->init();
+		wc_clear_notices();
+		$original_cart = WC()->cart;
+		$this->set_test_cart_needs_payment( false );
+
+		try {
+			( new Checkout() )->verify();
+
+			self::assertSame( 'The hCaptcha is invalid.', wc_get_notices( 'error' )[0]['notice'] );
+		} finally {
+			WC()->cart = $original_cart;
+		}
 	}
 
 	/**
@@ -413,18 +971,85 @@ class CheckoutTest extends WooCommerceTestCase {
 		$expected = new WP_Error(
 			'fail',
 			'The hCaptcha is invalid.',
-			400
+			[ 'status' => 400 ]
 		);
 
 		self::assertEquals( $expected, $subject->verify_block( $response, $handler, $request ) );
 	}
 
 	/**
-	 * Test verify_block() skips express payment methods.
+	 * A partial Store API checkout checks the effective retained billing address.
+	 *
+	 * @param bool $replace_email Whether the request supplies an allowed replacement.
 	 *
 	 * @return void
+	 * @dataProvider dp_partial_checkout_email
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function test_verify_block_skips_express_payment_method(): void {
+	public function test_partial_block_checkout_checks_effective_email( bool $replace_email ): void {
+		$previous_customer = WC()->customer;
+		$customer          = new WC_Customer();
+		$customer->set_billing_email( 'buyer@blocked.test' );
+		WC()->customer = $customer;
+		$this->prepare_verify_request( 'valid-checkout-response' );
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		$request = new WP_REST_Request( 'POST', '/wc/store/v1/checkout' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$billing = $replace_email ? [ 'email' => 'buyer@allowed.test' ] : [ 'first_name' => 'Buyer' ];
+		$request->set_body( wp_json_encode( [ 'billing_address' => $billing ] ) );
+		$request->set_param( 'hcaptcha-widget-id', $this->get_test_widget_id() );
+		$request->set_param( 'h-captcha-response', 'valid-checkout-response' );
+		$request->set_param( 'hcap_hp_test', '' );
+		$request->set_param( 'hcap_hp_sig', wp_create_nonce( 'hcap_hp_test' ) );
+		$request->set_param( 'hcap_fst_token', 'test_token' );
+		$checked = [];
+		add_filter(
+			'hcap_is_disposable_email',
+			static function ( $disposable, string $address ) use ( &$checked ): bool {
+				$checked[] = $address;
+
+				return 'buyer@blocked.test' === $address;
+			},
+			10,
+			2
+		);
+
+		try {
+			$result = ( new Checkout() )->verify_block( 'native response', [], $request );
+
+			if ( $replace_email ) {
+				self::assertSame( 'native response', $result );
+			} else {
+				$this->assertWPError( $result );
+				self::assertSame( 'Please use a permanent email address.', $result->get_error_message( 'disposable-email' ) );
+			}
+
+			self::assertSame( [ $replace_email ? 'buyer@allowed.test' : 'buyer@blocked.test' ], $checked );
+			self::assertSame( 'buyer@blocked.test', $customer->get_billing_email() );
+		} finally {
+			WC()->customer = $previous_customer;
+		}
+	}
+
+	/**
+	 * Provide partial checkout email updates.
+	 *
+	 * @return array
+	 */
+	public function dp_partial_checkout_email(): array {
+		return [
+			'retained billing'     => [ false ],
+			'supplied replacement' => [ true ],
+		];
+	}
+
+	/**
+	 * A paid Store API checkout cannot use a banner gateway ID to skip CAPTCHA.
+	 *
+	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	public function test_verify_block_checks_express_gateway_on_paid_cart(): void {
 		$response = 'some response';
 		$handler  = [];
 		$request  = new WP_REST_Request( '', '/wc/store/v1/checkout' );
@@ -433,19 +1058,65 @@ class CheckoutTest extends WooCommerceTestCase {
 		$request->set_body( wp_json_encode( [ 'payment_method' => 'express_gateway' ] ) );
 
 		$this->mock_express_payment_gateway();
+		$this->prepare_verify_request( '', false );
+		$request->set_param( 'hcaptcha-widget-id', $this->get_test_widget_id() );
+		$request->set_param( 'h-captcha-response', '' );
+		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		$request->set_param( 'hcap_hp_sig', $_POST['hcap_hp_sig'] );
+		$request->set_param( 'hcap_fst_token', $_POST['hcap_fst_token'] );
+		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		$request->set_param( 'hcap_hp_test', '' );
 
-		$subject = new Checkout();
+		$original_cart = WC()->cart;
+		$this->set_test_cart_needs_payment( true );
 
-		self::assertSame( $response, $subject->verify_block( $response, $handler, $request ) );
+		try {
+			$result = ( new Checkout() )->verify_block( $response, $handler, $request );
+			$this->assertWPError( $result );
+			self::assertSame( hcap_get_error_messages()['empty'], $result->get_error_message() );
+		} finally {
+			WC()->cart = $original_cart;
+		}
 	}
 
 	/**
-	 * Test that an empty payment method does not load available gateways.
+	 * A zero-total Store API checkout cannot use a banner gateway ID to skip CAPTCHA.
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	public function test_verify_block_checks_express_gateway_on_free_cart(): void {
+		$request = new WP_REST_Request( 'POST', '/wc/store/v1/checkout' );
+		$request->set_body( wp_json_encode( [ 'payment_method' => 'express_gateway' ] ) );
+		$this->mock_express_payment_gateway();
+		$this->prepare_verify_request( '', false );
+		$request->set_param( 'hcaptcha-widget-id', $this->get_test_widget_id() );
+		$request->set_param( 'h-captcha-response', '' );
+		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		$request->set_param( 'hcap_hp_sig', $_POST['hcap_hp_sig'] );
+		$request->set_param( 'hcap_fst_token', $_POST['hcap_fst_token'] );
+		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+		$request->set_param( 'hcap_hp_test', '' );
+
+		$original_cart = WC()->cart;
+		$this->set_test_cart_needs_payment( false );
+
+		try {
+			$result = ( new Checkout() )->verify_block( 'native response', [], $request );
+
+			$this->assertWPError( $result );
+			self::assertSame( hcap_get_error_messages()['empty'], $result->get_error_message() );
+		} finally {
+			WC()->cart = $original_cart;
+		}
+	}
+
+	/**
+	 * An empty payment method still requires CAPTCHA without loading gateways.
 	 *
 	 * @return void
-	 * @throws ReflectionException ReflectionException.
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
-	public function test_empty_payment_method_skips_loading_gateways(): void {
+	public function test_empty_payment_method_checks_captcha_without_loading_gateways(): void {
 		$gateways_loaded = false;
 		$filter          = static function ( array $gateways ) use ( &$gateways_loaded ): array {
 			$gateways_loaded = true;
@@ -456,10 +1127,13 @@ class CheckoutTest extends WooCommerceTestCase {
 		add_filter( 'woocommerce_available_payment_gateways', $filter );
 
 		try {
-			$subject = new Checkout();
-			$method  = $this->set_method_accessibility( $subject, 'is_express_payment_method' );
-
-			self::assertFalse( $method->invoke( $subject, '' ) );
+			$_POST['payment_method'] = '';
+			$this->prepare_verify_post( 'hcaptcha_wc_checkout_nonce', 'hcaptcha_wc_checkout', false );
+			$this->prepare_widget_id();
+			WC()->init();
+			wc_clear_notices();
+			( new Checkout() )->verify();
+			self::assertSame( 'The hCaptcha is invalid.', wc_get_notices( 'error' )[0]['notice'] );
 		} finally {
 			remove_filter( 'woocommerce_available_payment_gateways', $filter );
 		}
@@ -508,7 +1182,7 @@ class CheckoutTest extends WooCommerceTestCase {
 		$expected = new WP_Error(
 			'empty',
 			hcap_get_error_messages()['empty'],
-			400
+			[ 'status' => 400 ]
 		);
 
 		self::assertEquals( $expected, $subject->verify_block( $response, $handler, $request ) );
@@ -633,6 +1307,43 @@ class CheckoutTest extends WooCommerceTestCase {
 				return $gateways;
 			}
 		);
+	}
+
+	/**
+	 * Set a synthetic cart with a fixed payment requirement.
+	 *
+	 * @param bool $needs_payment Whether the cart needs payment.
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	private function set_test_cart_needs_payment( bool $needs_payment ): void {
+		WC()->cart = new class( $needs_payment ) extends WC_Cart {
+			/**
+			 * Whether payment is needed.
+			 *
+			 * @var bool
+			 */
+			private bool $needs_payment;
+
+			/**
+			 * Set the payment requirement.
+			 *
+			 * @param bool $needs_payment Whether payment is needed.
+			 */
+			public function __construct( bool $needs_payment ) {
+				$this->needs_payment = $needs_payment;
+			}
+
+			/**
+			 * Report the payment requirement.
+			 *
+			 * @return bool
+			 * @noinspection PhpUnused
+			 */
+			public function needs_payment(): bool {
+				return $this->needs_payment;
+			}
+		};
 	}
 
 	/**

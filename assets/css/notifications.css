@@ -43,6 +43,14 @@
 	border-bottom: 1px solid #c3c4c7;
 }
 
+#hcaptcha-notifications .hcaptcha-notification.notice-warning {
+	border-left: 4px solid #dba617;
+}
+
+#hcaptcha-notifications.hcaptcha-setup-notice #hcaptcha-navigation {
+	display: none;
+}
+
 .hcaptcha-notification .hcaptcha-notification-title {
 	margin: 7px 0;
 	padding: 2px;

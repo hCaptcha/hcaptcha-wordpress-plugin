@@ -14,11 +14,14 @@ namespace HCaptcha\Tests\Integration\CF7;
 
 use HCaptcha\CF7\Base;
 use HCaptcha\CF7\CF7;
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Settings\General;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
+use ReflectionProperty;
 use tad\FunctionMocker\FunctionMocker;
+use WPCF7_ContactForm;
 use WPCF7_FormTag;
 use WPCF7_Submission;
 use WPCF7_Validation;
@@ -446,6 +449,67 @@ class CF7Test extends HCaptchaPluginWPTestCase {
 		$subject = new CF7();
 
 		self::assertSame( $expected, $subject->wpcf7_shortcode( $output, $tag, $attr, $m ) );
+	}
+
+	/**
+	 * CF7 form IDs are read from either hidden-input order or the data attribute.
+	 */
+	public function test_get_form_id_from_alternate_native_markup(): void {
+		$subject = new CF7();
+		$method  = $this->set_method_accessibility( $subject, 'get_form_id' );
+
+		self::assertSame( 41, $method->invoke( $subject, '<input type="hidden" value="41" name="_wpcf7">', [] ) );
+		self::assertSame( 42, $method->invoke( $subject, '<form data-wpcf7-id="42"></form>', [] ) );
+	}
+
+	/**
+	 * A saved RSC tag is found when CF7 has no current matching form.
+	 */
+	public function test_form_has_rsc_tag_uses_saved_form(): void {
+		$contact_form       = WPCF7_ContactForm::get_template(
+			[
+				'locale' => 'en_US',
+				'title'  => 'Saved RSC form',
+			]
+		);
+		$properties         = $contact_form->get_properties();
+		$properties['form'] = '[captchar captcha-1]';
+		$contact_form->set_properties( $properties );
+		$form_id = $contact_form->save();
+
+		$subject = new CF7();
+		$method  = $this->set_method_accessibility( $subject, 'form_has_rsc_tag' );
+		self::assertFalse( $method->invoke( $subject, 0, 'captchar' ) );
+		$current          = WPCF7_ContactForm::get_current();
+		$current_property = new ReflectionProperty( WPCF7_ContactForm::class, 'current' );
+		$current_property->setAccessible( true );
+		$current_property->setValue( null, null );
+
+		try {
+			self::assertTrue( $method->invoke( $subject, $form_id, 'captchar' ) );
+		} finally {
+			$current_property->setValue( null, $current );
+		}
+	}
+
+	/**
+	 * CF7's optional Unicode whitespace helper is used when available.
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 * @group process-isolation-php74
+	 */
+	public function test_has_rsc_tag_with_unicode_whitespace_helper(): void {
+		if ( ! function_exists( 'wpcf7_get_unicode_whitespaces' ) ) {
+			require_once dirname( __DIR__ ) . '/Stubs/CF7/wpcf7_get_unicode_whitespaces.php';
+		}
+
+		$contact_form = Mockery::mock( WPCF7_ContactForm::class );
+		$contact_form->shouldReceive( 'prop' )->with( 'form' )->andReturn( '[captchar captcha-1]' );
+		$subject = new CF7();
+		$method  = $this->set_method_accessibility( $subject, 'has_rsc_tag' );
+
+		self::assertTrue( $method->invoke( $subject, $contact_form, 'captchar' ) );
 	}
 
 	/**
@@ -1077,5 +1141,78 @@ CSS;
 		];
 
 		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value( $id );
+	}
+	/**
+	 * Apply email policy to all native email tags despite custom names and collisions.
+	 *
+	 * @param bool $blocked Whether the trusted email is disposable.
+	 * @dataProvider dp_sec063_email_policy
+	 */
+	public function test_sec063_typed_email_policy( bool $blocked ): void {
+		$this->prepare_verify_request( 'sec063-challenge' );
+		$this->prepare_widget_id( 23 );
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		set_transient( 'hcaptcha_disposable_email_blocklist', [ 'sec063-disposable.test' => true ] );
+		$form = Mockery::mock( WPCF7_ContactForm::class );
+		$form->shouldReceive( 'id' )->andReturn( 23 );
+		$form->shouldReceive( 'scan_form_tags' )->andReturn(
+			[
+				new WPCF7_FormTag(
+					[
+						'type'     => 'email',
+						'basetype' => 'email',
+						'name'     => 'billing_email',
+					]
+				),
+				new WPCF7_FormTag(
+					[
+						'type'     => 'email',
+						'basetype' => 'email',
+						'name'     => 'contact_address',
+					]
+				),
+				new WPCF7_FormTag(
+					[
+						'type'     => 'text',
+						'basetype' => 'text',
+						'name'     => 'email',
+					]
+				),
+				new WPCF7_FormTag(
+					[
+						'type'     => 'text',
+						'basetype' => 'text',
+						'name'     => 'password',
+					]
+				),
+			]
+		);
+		$submission = Mockery::mock( WPCF7_Submission::class );
+		$submission->shouldReceive( 'get_contact_form' )->andReturn( $form );
+		$submission->shouldReceive( 'get_posted_data' )->andReturn(
+			[
+				'billing_email'   => [ 'primary@example.com', [ $blocked ? 'person@sec063-disposable.test' : 'person@example.com' ] ],
+				'contact_address' => 'reader@example.com',
+				'email'           => 'spoof@sec063-disposable.test',
+				'password'        => 'private-password',
+			]
+		);
+		$subject = new CF7();
+		$entry   = $this->set_method_accessibility( $subject, 'get_entry' )->invoke( $subject, $submission );
+
+		self::assertArrayNotHasKey( 'password', $entry['data'] );
+		self::assertTrue( hcaptcha()->settings()->is_on( 'disposable_email' ) );
+		self::assertSame( $blocked ? 'Please use a permanent email address.' : null, API::verify_request( null, $entry ) );
+	}
+	/**
+	 * Exercise both policy rejection and permanent address acceptance.
+	 *
+	 * @return array
+	 */
+	public function dp_sec063_email_policy(): array {
+		return [
+			'disposable' => [ true ],
+			'permanent'  => [ false ],
+		];
 	}
 }

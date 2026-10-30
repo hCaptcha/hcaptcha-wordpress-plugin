@@ -117,7 +117,7 @@ class Form {
 			return $html;
 		}
 
-		if ( ! preg_match( '#<div\s+id="(.+)"\s+class="[^"]*\bh-captcha\b[^"]*" .+></div>#', (string) $html, $m ) ) {
+		if ( ! preg_match( '#<div\s+id="([^"]+)"\s+class="[^"]*\bh-captcha\b[^"]*"[^>]*></div>#', (string) $html, $m ) ) {
 			return $html;
 		}
 
@@ -252,6 +252,14 @@ class Form {
 
 			$field_id = $field->id;
 			$val      = $values['item_meta'][ $field_id ] ?? '';
+			if ( 'email' === $field->type ) {
+				if ( is_array( $val ) && 1 === count( $val ) && isset( $val[0] ) ) {
+					$val = reset( $val );
+				}
+				if ( is_scalar( $val ) ) {
+					$val = trim( (string) $val );
+				}
+			}
 
 			if ( null === $val || '' === $val ) {
 				continue;

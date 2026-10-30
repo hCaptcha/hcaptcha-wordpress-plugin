@@ -9,7 +9,6 @@ namespace HCaptcha\DownloadManager;
 
 use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Helpers\Request;
 
 /**
  * Class DownloadManager.
@@ -51,15 +50,11 @@ class DownloadManager {
 	 * @param array  $vars     Variables.
 	 *
 	 * @return string
-	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection HtmlUnknownAttribute
+	 * @noinspection UnnecessaryCastingInspection
 	 */
 	public function add_hcaptcha( string $template, array $vars ): string {
-		$form_id = 0;
-
-		if ( preg_match( '/wpdmdl=(\d+)/', $template, $m ) ) {
-			$form_id = (int) $m[1];
-		}
+		$form_id = $this->get_package_id( $vars );
 
 		$args = [
 			'action' => self::ACTION,
@@ -87,16 +82,17 @@ class DownloadManager {
 	/**
 	 * Verify request.
 	 *
-	 * @param array|null $package Result of the hCaptcha verification.
+	 * @param array|null $package Download Manager package being downloaded.
 	 *
 	 * @return void
-	 * @noinspection PhpUnusedParameterInspection
 	 * @noinspection ForgottenDebugOutputInspection
 	 * @noinspection PhpMissingParamTypeInspection
 	 */
 	public function verify( $package ): void {
-
-		$result = API::verify( $this->get_entry() );
+		$package_id = $this->get_package_id( $package );
+		$result     = $package_id > 0 ?
+			API::verify( $this->get_entry( $package_id ) ) :
+			hcap_get_error_messages()['bad-signature'];
 
 		if ( null === $result ) {
 			return;
@@ -115,13 +111,16 @@ class DownloadManager {
 	/**
 	 * Get entry.
 	 *
+	 * @param int $package_id Download Manager package ID.
+	 *
 	 * @return array
 	 */
-	private function get_entry(): array {
+	private function get_entry( int $package_id ): array {
 		return [
 			'nonce_name'   => self::NONCE,
 			'nonce_action' => self::ACTION,
-			'expected_id'  => $this->get_expected_id( $this->get_form_id() ),
+			'expected_id'  => $this->get_expected_id( $package_id ),
+			'data'         => [ 'package_id' => $package_id ],
 		];
 	}
 
@@ -140,12 +139,30 @@ class DownloadManager {
 	}
 
 	/**
-	 * Get form id.
+	 * Get a positive package ID without reinterpreting malformed values.
+	 *
+	 * @param mixed $package Download Manager package data.
 	 *
 	 * @return int
 	 */
-	private function get_form_id(): int {
-		return absint( Request::filter_input( INPUT_GET, 'wpdmdl' ) );
+	private function get_package_id( $package ): int {
+		if ( ! is_array( $package ) || ! isset( $package['ID'] ) ) {
+			return 0;
+		}
+
+		$id = $package['ID'];
+
+		if ( is_int( $id ) ) {
+			return max( $id, 0 );
+		}
+
+		if ( ! is_string( $id ) || ! ctype_digit( $id ) ) {
+			return 0;
+		}
+
+		$id = ltrim( $id, '0' );
+
+		return '' !== $id && (string) (int) $id === $id ? (int) $id : 0;
 	}
 
 	/**

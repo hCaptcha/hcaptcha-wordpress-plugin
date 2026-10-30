@@ -59,7 +59,7 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 
 		hcaptcha()->settings()->set( 'honeypot', 'on' );
 		hcaptcha()->settings()->set( 'set_min_submit_time', 'on' );
-		hcaptcha()->settings()->set( 'learn_press_status', 'checkout' );
+		hcaptcha()->settings()->set( 'learn_press_status', [ 'checkout' ] );
 		$this->set_protected_property( hcaptcha(), 'supported_forms', null );
 	}
 
@@ -70,6 +70,7 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 	 */
 	public function tearDown(): void {
 		wp_set_current_user( 0 );
+		unset( $_REQUEST['reg_email'], $_REQUEST['guest_email'], $_REQUEST['username'] );
 
 		parent::tearDown();
 	}
@@ -344,5 +345,77 @@ class CheckoutTest extends HCaptchaPluginWPTestCase {
 				'form_id' => 'checkout',
 			]
 		);
+	}
+
+	/**
+	 * Check native checkout mode precedence before account or order creation.
+	 *
+	 * @dataProvider dp_test_native_email_policy
+	 *
+	 * @param string $mode    Native checkout mode.
+	 * @param string $email   Native accepted address.
+	 * @param bool   $blocked Whether disposal policy rejects it.
+	 */
+	public function test_native_email_policy( string $mode, string $email, bool $blocked ): void {
+		add_filter(
+			'hcap_disposable_email_domains',
+			static function (): array {
+				return [ 'disposable.example' => true ];
+			}
+		);
+		wp_set_current_user( 0 );
+		$this->set_protected_property( LearnPress::instance()->checkout(), '_checkout_email', '' );
+		if ( 'login' === $mode || 'current' === $mode ) {
+			$user_id = $this->factory()->user->create( [ 'user_email' => $email ] );
+			$user    = get_userdata( $user_id );
+			if ( 'current' === $mode ) {
+				wp_set_current_user( $user_id );
+			} else {
+				$_POST['username']    = $user->user_login;
+				$_REQUEST['username'] = $user->user_login;
+			}
+		} else {
+			$field              = 'register' === $mode ? 'reg_email' : 'guest_email';
+			$_POST[ $field ]    = $email;
+			$_REQUEST[ $field ] = $email;
+		}
+		if ( 'register' === $mode || 'login' === $mode ) {
+			$_POST['guest_email']    = 'safe@example.com';
+			$_REQUEST['guest_email'] = 'safe@example.com';
+		}
+		$_POST['email'] = 'safe@example.com';
+		$this->prepare_verify_post( 'hcaptcha_learn_press_checkout_nonce', 'hcaptcha_learn_press_checkout' );
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		hcaptcha()->settings()->set( 'learn_press_status', [ 'checkout' ] );
+		$this->set_protected_property( hcaptcha(), 'supported_forms', null );
+		self::assertTrue( hcaptcha()->settings()->is_on( 'disposable_email' ) );
+		$this->prepare_widget_id();
+		$message = '';
+
+		try {
+			( new Checkout() )->verify();
+		} catch ( Exception $exception ) {
+			$message = $exception->getMessage();
+		}
+
+		self::assertSame( $blocked ? hcap_get_error_messages()['disposable-email'] : '', $message );
+	}
+
+	/**
+	 * Native checkout address controls.
+	 *
+	 * @return array
+	 */
+	public function dp_test_native_email_policy(): array {
+		return [
+			'disposable register before guest' => [ 'register', 'user@disposable.example', true ],
+			'permanent register before guest'  => [ 'register', 'safe@example.com', false ],
+			'disposable guest'                 => [ 'guest', 'user@disposable.example', true ],
+			'permanent guest'                  => [ 'guest', 'safe@example.com', false ],
+			'disposable login recipient'       => [ 'login', 'user@disposable.example', true ],
+			'permanent login recipient'        => [ 'login', 'safe@example.com', false ],
+			'disposable current user'          => [ 'current', 'user@disposable.example', true ],
+			'permanent current user'           => [ 'current', 'safe@example.com', false ],
+		];
 	}
 }

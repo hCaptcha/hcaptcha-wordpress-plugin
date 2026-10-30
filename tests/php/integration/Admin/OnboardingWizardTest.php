@@ -9,12 +9,14 @@ namespace HCaptcha\Tests\Integration\Admin;
 
 use Exception;
 use HCaptcha\Admin\OnboardingWizard;
+use HCaptcha\Settings\AntiSpamPage;
 use HCaptcha\Settings\General;
 use HCaptcha\Settings\Integrations;
 use HCaptcha\Settings\PluginSettingsBase;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use ReflectionClass;
 use ReflectionException;
+use tad\FunctionMocker\FunctionMocker;
 
 /**
  * Class OnboardingWizardTest
@@ -98,6 +100,7 @@ class OnboardingWizardTest extends HCaptchaWPTestCase {
 
 		self::assertSame( 'completed', $option[ OnboardingWizard::OPTION_NAME ] );
 		self::assertInstanceOf( General::class, $this->get_wizard_property( $subject, 'general_tab' ) );
+		self::assertInstanceOf( AntiSpamPage::class, $this->get_wizard_property( $subject, 'antispam_tab' ) );
 		self::assertInstanceOf( Integrations::class, $this->get_wizard_property( $subject, 'integrations_tab' ) );
 	}
 
@@ -172,9 +175,8 @@ class OnboardingWizardTest extends HCaptchaWPTestCase {
 		$_GET[ OnboardingWizard::NONCE_PARAM ] = wp_create_nonce( OnboardingWizard::STEP_ACTION );
 
 		$general      = $this->get_general_tab();
-		$integrations = $this->get_integrations_tab();
 		$subject      = $this->make_initialized_wizard( $general );
-		$target       = General::class === $target_tab ? $general : $integrations;
+		$target       = hcaptcha()->settings()->get_tab( $target_tab );
 		$expected_url = $general->tab_url( $target );
 
 		$subject->maybe_handle_direct_step();
@@ -193,7 +195,9 @@ class OnboardingWizardTest extends HCaptchaWPTestCase {
 	public function dp_test_maybe_handle_direct_step(): array {
 		return [
 			'general step'      => [ '3', 'step 3', General::class ],
-			'integrations step' => [ '7', 'step 7', Integrations::class ],
+			'anti-spam step'    => [ '6', 'step 6', AntiSpamPage::class ],
+			'integrations step' => [ '8', 'step 8', Integrations::class ],
+			'final step'        => [ '9', 'step 9', Integrations::class ],
 			'out of range step' => [ '99', 'step 1', General::class ],
 		];
 	}
@@ -249,6 +253,19 @@ class OnboardingWizardTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * A fresh installation shows settings until the wizard is explicitly started.
+	 */
+	public function test_admin_enqueue_scripts_without_explicit_start(): void {
+		$this->refresh_settings();
+		set_current_screen( 'settings_page_hcaptcha' );
+
+		$subject = $this->make_initialized_wizard( $this->get_general_tab() );
+		$subject->admin_enqueue_scripts();
+
+		self::assertFalse( wp_script_is( OnboardingWizard::HANDLE, 'registered' ) );
+	}
+
+	/**
 	 * Test admin_enqueue_scripts().
 	 */
 	public function test_admin_enqueue_scripts(): void {
@@ -270,6 +287,8 @@ class OnboardingWizardTest extends HCaptchaWPTestCase {
 		self::assertStringContainsString( 'var HCaptchaOnboardingObject = ', $script->extra['data'] );
 		self::assertStringContainsString( '"page":"general"', $script->extra['data'] );
 		self::assertStringContainsString( '"currentStep":"step 5"', $script->extra['data'] );
+		self::assertStringContainsString( '"signupUrl":"https:', $script->extra['data'] );
+		self::assertStringContainsString( 'utm_campaign=sk', $script->extra['data'] );
 
 		self::assertTrue( wp_style_is( OnboardingWizard::HANDLE, 'registered' ) );
 
@@ -278,6 +297,59 @@ class OnboardingWizardTest extends HCaptchaWPTestCase {
 		self::assertSame( HCAPTCHA_URL . '/assets/css/onboarding-wizard.min.css', $style->src );
 		self::assertSame( [], $style->deps );
 		self::assertSame( HCAPTCHA_VERSION, $style->ver );
+	}
+
+	/**
+	 * The localized wizard identifies each non-general settings tab.
+	 */
+	public function test_admin_enqueue_scripts_on_other_tabs(): void {
+		$this->refresh_settings( [ OnboardingWizard::OPTION_NAME => 'step 8' ] );
+		foreach ( [
+			Integrations::class => 'integrations',
+			AntiSpamPage::class => 'antispam',
+		] as $class => $page ) {
+			$tab = hcaptcha()->settings()->get_tab( $class );
+			self::assertInstanceOf( $class, $tab );
+			$option_page = $this->set_method_accessibility( $tab, 'option_page' )->invoke( $tab );
+			set_current_screen( 'settings_page_' . $option_page );
+			$subject = $this->make_initialized_wizard( $tab );
+			$subject->admin_enqueue_scripts();
+
+			self::assertTrue( wp_script_is( OnboardingWizard::HANDLE, 'registered' ) );
+			self::assertStringContainsString(
+				'"page":"' . $page . '"',
+				wp_scripts()->registered[ OnboardingWizard::HANDLE ]->extra['data']
+			);
+			wp_dequeue_script( OnboardingWizard::HANDLE );
+			wp_deregister_script( OnboardingWizard::HANDLE );
+		}
+	}
+
+	/**
+	 * Debug mode serves the unminified wizard script with its file version.
+	 */
+	public function test_admin_enqueue_scripts_in_debug_mode(): void {
+		FunctionMocker::replace(
+			'defined',
+			static function ( $name ) {
+				return 'SCRIPT_DEBUG' === $name ? true : FunctionMocker::callOriginal();
+			}
+		);
+		FunctionMocker::replace(
+			'constant',
+			static function ( $name ) {
+				return 'SCRIPT_DEBUG' === $name ? true : FunctionMocker::callOriginal();
+			}
+		);
+
+		$this->refresh_settings( [ OnboardingWizard::OPTION_NAME => 'step 1' ] );
+		set_current_screen( 'settings_page_hcaptcha' );
+		$subject = $this->make_initialized_wizard( $this->get_general_tab() );
+		$subject->admin_enqueue_scripts();
+
+		$script = wp_scripts()->registered[ OnboardingWizard::HANDLE ];
+		self::assertSame( HCAPTCHA_URL . '/assets/js/onboarding-wizard.js', $script->src );
+		self::assertStringStartsWith( HCAPTCHA_VERSION . '-', $script->ver );
 	}
 
 	/**
@@ -485,19 +557,6 @@ class OnboardingWizardTest extends HCaptchaWPTestCase {
 		$tab = hcaptcha()->settings()->get_tab( General::class );
 
 		self::assertInstanceOf( General::class, $tab );
-
-		return $tab;
-	}
-
-	/**
-	 * Get Integrations tab.
-	 *
-	 * @return Integrations
-	 */
-	private function get_integrations_tab(): Integrations {
-		$tab = hcaptcha()->settings()->get_tab( Integrations::class );
-
-		self::assertInstanceOf( Integrations::class, $tab );
 
 		return $tab;
 	}

@@ -13,6 +13,7 @@
 namespace HCaptcha\Tutor;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData as FormEntryData;
 use HCaptcha\Helpers\HCaptcha;
 use Tutor\Ecommerce\CheckoutController;
 
@@ -122,12 +123,17 @@ class Checkout {
 	 * @return array
 	 */
 	private function get_entry(): array {
-		return [
-			'nonce_name'   => self::NONCE,
-			'nonce_action' => self::ACTION,
-			'data'         => EntryData::checkout(),
-			'expected_id'  => $this->get_expected_id(),
-		];
+		$data = EntryData::checkout();
+
+		return FormEntryData::with_emails(
+			[
+				'nonce_name'   => self::NONCE,
+				'nonce_action' => self::ACTION,
+				'data'         => $data,
+				'expected_id'  => $this->get_expected_id(),
+			],
+			[ $data['email'] ?? '' ]
+		);
 	}
 
 	/**

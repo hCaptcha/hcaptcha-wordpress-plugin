@@ -12,6 +12,7 @@
 
 namespace HCaptcha\Tests\Integration\WC;
 
+use HCaptcha\AntiSpam\DisposableEmail;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use HCaptcha\WC\OrderWithdrawal;
@@ -63,6 +64,46 @@ class OrderWithdrawalTest extends WooCommerceTestCase {
 		self::assertSame( 'Jane Doe', $entry['data']['name'] );
 		self::assertSame( 'Please return the item.', $entry['data']['message'] );
 		self::assertArrayNotHasKey( 'card_number', $entry['data'] );
+	}
+
+	/**
+	 * The checked withdrawal address matches WooCommerce's notification recipient.
+	 *
+	 * @dataProvider dp_test_email_normalization_policy
+	 *
+	 * @param string $submitted Submitted email value.
+	 * @param string $expected  Native normalized address.
+	 * @param bool   $blocked   Whether the domain is disposable.
+	 */
+	public function test_email_normalization_policy( string $submitted, string $expected, bool $blocked ): void {
+		$_POST['order_withdrawal_email'] = $submitted;
+		$subject                         = new OrderWithdrawal();
+		$entry                           = $this->set_method_accessibility( $subject, 'get_entry' )->invoke( $subject );
+
+		add_filter(
+			'hcap_disposable_email_domains',
+			static function (): array {
+				return [ 'disposable.example' => true ];
+			}
+		);
+		add_filter( 'pre_transient_hcaptcha_disposable_email_blocklist', '__return_empty_array' );
+
+		self::assertSame( $expected, $entry['data']['email'] );
+		self::assertSame( $expected, sanitize_email( sanitize_text_field( wp_unslash( $submitted ) ) ) );
+		self::assertSame( $blocked, ( new DisposableEmail() )->is_disposable_email( $entry['data']['email'] ) );
+	}
+
+	/**
+	 * Native withdrawal-recipient normalization cases.
+	 *
+	 * @return array
+	 */
+	public function dp_test_email_normalization_policy(): array {
+		return [
+			'plain blocked' => [ 'user@disposable.example', 'user@disposable.example', true ],
+			'html suffix'   => [ 'user@disposable.example<br>', 'user@disposable.example', true ],
+			'allowed'       => [ 'safe@example.com<br>', 'safe@example.com', false ],
+		];
 	}
 
 	/**

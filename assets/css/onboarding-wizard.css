@@ -129,6 +129,12 @@
 	margin-bottom: 8px;
 }
 
+.hcap-onb-tip .hcap-onb-signup-link,
+.hcap-onb-tip .hcap-onb-signup-link:hover,
+.hcap-onb-tip .hcap-onb-signup-link:focus {
+	color: #fff;
+}
+
 .hcap-onb-tip .hcap-onb-done {
 	margin-top: 4px;
 	background: #4de1d2;

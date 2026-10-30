@@ -7,6 +7,7 @@
 
 namespace HCaptcha\Tests\Integration\Settings;
 
+use Exception;
 use HCaptcha\Abilities\Abilities;
 use HCaptcha\Admin\OnboardingWizard;
 use HCaptcha\Helpers\Request;
@@ -17,7 +18,6 @@ use HCaptcha\Settings\Tools;
 use KAGG\Settings\Abstracts\SettingsBase;
 use lucatume\WPBrowser\TestCase\WPAjaxTestCase;
 use ReflectionClass;
-use WPAjaxDieContinueException;
 
 /**
  * Test network settings authorization against real WordPress multisite capabilities.
@@ -141,8 +141,8 @@ class NetworkSettingsAuthorizationTest extends WPAjaxTestCase {
 	 * Test that a secondary-site administrator receives no broader network access.
 	 */
 	public function test_secondary_site_administrator_cannot_render_or_export_network_settings(): void {
-		$blog_id = self::factory()->blog->create();
-		$user_id = self::factory()->user->create( [ 'role' => 'subscriber' ] );
+		$blog_id = $this->factory()->blog->create();
+		$user_id = $this->factory()->user->create( [ 'role' => 'subscriber' ] );
 		$added   = add_user_to_blog( $blog_id, $user_id, 'administrator' );
 
 		self::assertTrue( $added );
@@ -246,6 +246,9 @@ class NetworkSettingsAuthorizationTest extends WPAjaxTestCase {
 
 	/**
 	 * Test that onboarding cannot copy network credentials into site-local settings.
+	 *
+	 * @noinspection PhpArrayWriteIsNotUsedInspection
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_onboarding_cannot_copy_network_settings_to_site_option(): void {
 		$this->create_main_site_administrator();
@@ -272,7 +275,7 @@ class NetworkSettingsAuthorizationTest extends WPAjaxTestCase {
 
 		try {
 			$this->_handleAjax( OnboardingWizard::UPDATE_ACTION );
-		} catch ( WPAjaxDieContinueException $exception ) {
+		} catch ( Exception $exception ) {
 			$did_die = true;
 		}
 
@@ -401,6 +404,56 @@ class NetworkSettingsAuthorizationTest extends WPAjaxTestCase {
 	}
 
 	/**
+	 * Native option writes cannot downgrade ownership or copy credentials for an unauthorized caller.
+	 *
+	 * @dataProvider dp_test_native_updates_preserve_network_ownership
+	 *
+	 * @param bool $site_administrator Whether the caller is a blog administrator.
+	 */
+	public function test_native_updates_preserve_network_ownership( bool $site_administrator ): void {
+		if ( $site_administrator ) {
+			$this->create_main_site_administrator();
+		} else {
+			wp_set_current_user( 0 );
+		}
+
+		$this->activate_network_settings();
+		$network_settings = get_site_option( PluginSettingsBase::OPTION_NAME );
+		$site_settings    = get_option( PluginSettingsBase::OPTION_NAME );
+		add_filter( 'pre_update_option_' . PluginSettingsBase::OPTION_NAME, [ $this->general, 'pre_update_option_filter' ], 10, 2 );
+		add_filter( 'pre_update_site_option_' . PluginSettingsBase::OPTION_NAME, [ $this->general, 'pre_update_option_filter' ], 10, 2 );
+
+		foreach ( [ [], [ SettingsBase::NETWORK_WIDE => [] ], [ SettingsBase::NETWORK_WIDE => [ 'on' ] ] ] as $flags ) {
+			$value = array_merge(
+				[
+					'license'    => 'free',
+					'theme'      => 'dark',
+					'secret_key' => '',
+				],
+				$flags
+			);
+			update_option( PluginSettingsBase::OPTION_NAME, $value );
+			update_site_option( PluginSettingsBase::OPTION_NAME, $value );
+
+			self::assertSame( [ 'on' ], get_site_option( PluginSettingsBase::OPTION_NAME . SettingsBase::NETWORK_WIDE ) );
+			self::assertSame( $site_settings, get_option( PluginSettingsBase::OPTION_NAME ) );
+			self::assertSame( $network_settings, get_site_option( PluginSettingsBase::OPTION_NAME ) );
+		}
+	}
+
+	/**
+	 * Both unauthenticated requests and blog administrators lack network authority.
+	 *
+	 * @return array
+	 */
+	public function dp_test_native_updates_preserve_network_ownership(): array {
+		return [
+			'anonymous'          => [ false ],
+			'site administrator' => [ true ],
+		];
+	}
+
+	/**
 	 * Test that blank credentials keep their active value when settings ownership changes.
 	 *
 	 * @param bool $network_wide Whether network-wide settings are initially active.
@@ -471,7 +524,7 @@ class NetworkSettingsAuthorizationTest extends WPAjaxTestCase {
 
 		self::assertSame( get_main_site_id(), get_current_blog_id() );
 
-		$user_id = self::factory()->user->create( [ 'role' => 'administrator' ] );
+		$user_id = $this->factory()->user->create( [ 'role' => 'administrator' ] );
 
 		wp_set_current_user( $user_id );
 
@@ -485,9 +538,10 @@ class NetworkSettingsAuthorizationTest extends WPAjaxTestCase {
 	 * Create and select a network administrator.
 	 *
 	 * @return int
+	 * @noinspection PhpReturnValueOfMethodIsNeverUsedInspection
 	 */
 	private function create_network_administrator(): int {
-		$user_id = self::factory()->user->create( [ 'role' => 'administrator' ] );
+		$user_id = $this->factory()->user->create( [ 'role' => 'administrator' ] );
 
 		grant_super_admin( $user_id );
 		$this->super_admins[] = $user_id;
@@ -538,7 +592,7 @@ class NetworkSettingsAuthorizationTest extends WPAjaxTestCase {
 		$not_ajax_filter = static function (): bool {
 			return false;
 		};
-		$die_filter      = static function ( $handler ) use ( &$die_message ): callable {
+		$die_filter      = static function () use ( &$die_message ): callable {
 			return static function ( $message ) use ( &$die_message ): void {
 				$die_message = (string) $message;
 			};
@@ -594,7 +648,7 @@ class NetworkSettingsAuthorizationTest extends WPAjaxTestCase {
 
 			$result = ( new SettingsTransfer() )->apply_import_payload( $payload, true );
 
-			self::assertWPError( $result );
+			$this->assertWPError( $result );
 			self::assertSame( 'hcaptcha_network_settings_forbidden', $result->get_error_code() );
 			self::assertSame( $network_settings, get_site_option( PluginSettingsBase::OPTION_NAME ) );
 			self::assertSame( [ 'on' ], get_site_option( PluginSettingsBase::OPTION_NAME . SettingsBase::NETWORK_WIDE ) );
@@ -640,6 +694,8 @@ class NetworkSettingsAuthorizationTest extends WPAjaxTestCase {
 	 * @param bool   $include_keys Whether keys should be included.
 	 *
 	 * @return array{0: array, 1: string}
+	 * @noinspection PhpArrayWriteIsNotUsedInspection
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	private function export_settings_with_raw_response( string $nonce, bool $include_keys ): array {
 		$_POST = [
@@ -652,7 +708,7 @@ class NetworkSettingsAuthorizationTest extends WPAjaxTestCase {
 
 		try {
 			$this->_handleAjax( Tools::EXPORT_ACTION );
-		} catch ( WPAjaxDieContinueException $exception ) {
+		} catch ( Exception $exception ) {
 			$did_die = true;
 		}
 

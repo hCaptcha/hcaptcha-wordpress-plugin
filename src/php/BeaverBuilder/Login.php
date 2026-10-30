@@ -26,6 +26,7 @@ class Login extends Base {
 	 */
 	protected function init_hooks(): void {
 		parent::init_hooks();
+		$this->init_login_attempt_hooks();
 
 		add_filter( 'fl_builder_render_module_content', [ $this, 'add_beaver_builder_captcha' ], 10, 2 );
 		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );

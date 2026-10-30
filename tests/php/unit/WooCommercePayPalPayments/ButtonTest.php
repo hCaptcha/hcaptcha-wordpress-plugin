@@ -154,6 +154,131 @@ class ButtonTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Require the shared checkout challenge only for its own form.
+	 */
+	public function test_require_checkout_challenge(): void {
+		FunctionMocker::replace( '\\HCaptcha\\Helpers\\HCaptcha::get_class_source', [ 'checkout-source' ] );
+		$subject = $this->create_subject();
+		$args    = [
+			'id' => [
+				'form_id' => 'checkout',
+				'source'  => [ 'checkout-source' ],
+			],
+		];
+
+		self::assertSame( $args + [ 'mandatory' => true ], $subject->require_checkout_challenge( $args ) );
+		self::assertSame(
+			[
+				'id' => [
+					'form_id' => 'cart',
+					'source'  => [ 'checkout-source' ],
+				],
+			],
+			$subject->require_checkout_challenge(
+				[
+					'id' => [
+						'form_id' => 'cart',
+						'source'  => [ 'checkout-source' ],
+					],
+				]
+			)
+		);
+	}
+
+	/**
+	 * Read payer emails from encoded and structured PayPal requests.
+	 */
+	public function test_get_email_entry_from_native_request(): void {
+		WP_Mock::userFunction( 'sanitize_text_field' )->andReturnUsing(
+			static function ( $value ) {
+				return $value;
+			}
+		);
+		$subject = $this->create_subject();
+		$method  = $this->set_method_accessibility( $subject, 'get_email_entry' );
+
+		$encoded = $method->invoke(
+			$subject,
+			[
+				'context'      => 'cart',
+				'form_encoded' => 'billing_email=encoded%40example.test',
+			]
+		);
+		$payer   = $method->invoke(
+			$subject,
+			[
+				'context' => 'cart',
+				'payer'   => [ 'email_address' => 'payer@example.test' ],
+			]
+		);
+
+		self::assertSame( [ 'encoded@example.test' ], $encoded['email_addresses'] );
+		self::assertSame( [ 'payer@example.test' ], $payer['email_addresses'] );
+	}
+
+	/**
+	 * Use an order email only when WooCommerce validates the key and capability.
+	 */
+	public function test_get_order_email_after_native_checks(): void {
+		$order = Mockery::mock( 'WC_Order' );
+		$order->shouldReceive( 'key_is_valid' )->with( 'order-key' )->twice()->andReturn( false, true );
+		$order->shouldReceive( 'get_billing_email' )->once()->andReturn( 'buyer@example.test' );
+
+		FunctionMocker::replace( 'function_exists', true );
+		WP_Mock::userFunction( 'wc_get_order' )->with( 42 )->twice()->andReturn( $order );
+		WP_Mock::userFunction( 'current_user_can' )->with( 'pay_for_order', 42 )->once()->andReturn( true );
+
+		$subject = $this->create_subject();
+		$method  = $this->set_method_accessibility( $subject, 'get_order_email' );
+
+		self::assertSame(
+			'',
+			$method->invoke(
+				$subject,
+				[
+					'order_id'  => 42,
+					'order_key' => 'order-key',
+				]
+			)
+		);
+		self::assertSame(
+			'buyer@example.test',
+			$method->invoke(
+				$subject,
+				[
+					'order_id'  => 42,
+					'order_key' => 'order-key',
+				]
+			)
+		);
+	}
+
+	/**
+	 * A pay-now request without an order cannot supply a billing email.
+	 */
+	public function test_get_email_entry_without_pay_now_order(): void {
+		WP_Mock::userFunction( 'sanitize_text_field' )->andReturnUsing(
+			static function ( $value ) {
+				return $value;
+			}
+		);
+		FunctionMocker::replace( 'function_exists', false );
+		$subject = $this->create_subject();
+		$method  = $this->set_method_accessibility( $subject, 'get_email_entry' );
+
+		self::assertSame(
+			[],
+			$method->invoke(
+				$subject,
+				[
+					'context'  => 'pay-now',
+					'order_id' => 42,
+				]
+			)['email_addresses']
+		);
+	}
+
+	/**
 	 * Test PayPal order verification outcomes.
 	 *
 	 * @param bool        $enabled       Whether button protection is enabled.
@@ -170,6 +295,11 @@ class ButtonTest extends HCaptchaTestCase {
 		FunctionMocker::replace( '\\HCaptcha\\Helpers\\Utils::json_decode_arr', [ 'context' => 'cart' ] );
 
 		if ( $enabled ) {
+			WP_Mock::userFunction( 'sanitize_text_field' )->andReturnUsing(
+				static function ( $value ) {
+					return $value;
+				}
+			);
 			FunctionMocker::replace( '\\HCaptcha\\Helpers\\API::verify_post_data', $error_message );
 			if ( null !== $error_message ) {
 				WP_Mock::userFunction( 'wp_send_json_error' )

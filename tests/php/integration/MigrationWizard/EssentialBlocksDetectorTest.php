@@ -17,6 +17,21 @@ use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
  * @group migration-wizard
  */
 class EssentialBlocksDetectorTest extends HCaptchaWPTestCase {
+	/**
+	 * Find reCAPTCHA blocks below another non-CAPTCHA inner block.
+	 */
+	public function test_contains_recaptcha_block_nested_under_group(): void {
+		$subject = new EssentialBlocksDetector();
+		$method  = $this->set_method_accessibility( $subject, 'contains_recaptcha_block' );
+		$blocks  = [
+			[
+				'blockName'   => 'core/group',
+				'innerBlocks' => [ [ 'blockName' => 'essential-blocks/recaptcha' ] ],
+			],
+		];
+
+		self::assertTrue( $method->invoke( $subject, $blocks ) );
+	}
 
 	/**
 	 * Test source details and applicability.

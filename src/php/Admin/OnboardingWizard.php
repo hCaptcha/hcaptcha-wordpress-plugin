@@ -8,6 +8,7 @@
 namespace HCaptcha\Admin;
 
 use HCaptcha\Helpers\Request;
+use HCaptcha\Settings\AntiSpamPage;
 use HCaptcha\Settings\General;
 use HCaptcha\Settings\Integrations;
 use HCaptcha\Settings\PluginSettingsBase;
@@ -80,6 +81,13 @@ class OnboardingWizard {
 	private PluginSettingsBase $general_tab;
 
 	/**
+	 * Anti-Spam tab instance.
+	 *
+	 * @var PluginSettingsBase
+	 */
+	private PluginSettingsBase $antispam_tab;
+
+	/**
 	 * Integration tab instance.
 	 *
 	 * @var PluginSettingsBase
@@ -112,6 +120,7 @@ class OnboardingWizard {
 	public function init(): void {
 		$this->settings         = hcaptcha()->settings();
 		$this->general_tab      = $this->settings->get_tab( General::class );
+		$this->antispam_tab     = $this->settings->get_tab( AntiSpamPage::class );
 		$this->integrations_tab = $this->settings->get_tab( Integrations::class );
 
 		$this->init_wizard_state();
@@ -152,10 +161,10 @@ class OnboardingWizard {
 			return;
 		}
 
-		// Accept a numeric step only: onb=1..8.
+		// Accept a numeric step only: onb=1..9.
 		$num = (int) $step;
 
-		if ( $num < 1 || $num > 8 ) {
+		if ( $num < 1 || $num > 9 ) {
 			$num = 1;
 		}
 
@@ -163,9 +172,15 @@ class OnboardingWizard {
 		$this->set_wizard_state( 'step ' . $num );
 
 		// Determine the target page by step.
-		$url = ( $num <= 6 )
-			? $this->tab->tab_url( $this->general_tab )
-			: $this->tab->tab_url( $this->integrations_tab );
+		if ( $num <= 5 ) {
+			$target_tab = $this->general_tab;
+		} elseif ( $num <= 7 ) {
+			$target_tab = $this->antispam_tab;
+		} else {
+			$target_tab = $this->integrations_tab;
+		}
+
+		$url = $this->tab->tab_url( $target_tab );
 
 		$this->redirect_after_direct_step( $url );
 	}
@@ -218,8 +233,8 @@ class OnboardingWizard {
 
 		$wizard = $this->get_wizard_state();
 
-		// Start the wizard if the key is absent or its value is not 'completed'.
-		if ( 'completed' === $wizard ) {
+		// Show the wizard only after the user explicitly starts it.
+		if ( ! preg_match( '/^step [1-9]$/', $wizard ) ) {
 			return;
 		}
 
@@ -231,13 +246,19 @@ class OnboardingWizard {
 			// @codeCoverageIgnoreEnd
 		}
 
-		$min = hcap_min_suffix();
+		$min            = hcap_min_suffix();
+		$script_version = constant( 'HCAPTCHA_VERSION' );
+
+		if ( '' === $min ) {
+			$script_mtime    = filemtime( constant( 'HCAPTCHA_PATH' ) . '/assets/js/onboarding-wizard.js' );
+			$script_version .= false === $script_mtime ? '' : '-' . $script_mtime;
+		}
 
 		wp_enqueue_script(
 			self::HANDLE,
 			constant( 'HCAPTCHA_URL' ) . "/assets/js/onboarding-wizard$min.js",
 			[ 'jquery', $this->tab::HANDLE ],
-			constant( 'HCAPTCHA_VERSION' ),
+			$script_version,
 			true
 		);
 
@@ -262,8 +283,11 @@ class OnboardingWizard {
 				'set_min_submit_time' => '#set_min_submit_time_1',
 				'antispam_check'      => '#antispam_1',
 				'antispam_provider'   => 'select[name="hcaptcha_settings[antispam_provider]"]',
-				'antispam'            => '.hcaptcha-section-antispam+table',
 				'save'                => '#hcaptcha-options #submit',
+			],
+			'antispam'     => [
+				'bot_detection' => '.hcaptcha-section-bot-detection+table',
+				'save'          => '#hcaptcha-options #submit',
 			],
 			'integrations' => [
 				'integrations_list' => '.hcaptcha-enabled-section+h3+table tr:first-child',
@@ -277,14 +301,21 @@ class OnboardingWizard {
 			2 => __( 'Switch Mode to Live', 'hcaptcha-for-forms-and-more' ),
 			3 => __( 'Enter keys, solve hCaptcha and Check Config', 'hcaptcha-for-forms-and-more' ),
 			4 => __( 'Enable Force (recommended)', 'hcaptcha-for-forms-and-more' ),
-			5 => __( 'Enable Anti-spam options (recommended)', 'hcaptcha-for-forms-and-more' ),
-			6 => __( 'Save settings', 'hcaptcha-for-forms-and-more' ),
-			7 => __( 'Enable hCaptcha for installed plugins', 'hcaptcha-for-forms-and-more' ),
-			8 => __( 'Save settings', 'hcaptcha-for-forms-and-more' ),
+			5 => __( 'Save settings', 'hcaptcha-for-forms-and-more' ),
+			6 => __( 'Review bot detection options', 'hcaptcha-for-forms-and-more' ),
+			7 => __( 'Save settings', 'hcaptcha-for-forms-and-more' ),
+			8 => __( 'Enable hCaptcha for installed plugins', 'hcaptcha-for-forms-and-more' ),
+			9 => __( 'Save settings', 'hcaptcha-for-forms-and-more' ),
 		];
 
 		// Detect which settings page we are on by looking at the body class via the section title echoing into form class.
-		$page = $this->tab === $this->integrations_tab ? 'integrations' : 'general';
+		if ( $this->tab === $this->integrations_tab ) {
+			$page = 'integrations';
+		} elseif ( $this->tab === $this->antispam_tab ) {
+			$page = 'antispam';
+		} else {
+			$page = 'general';
+		}
 
 		wp_localize_script(
 			self::HANDLE,
@@ -300,7 +331,9 @@ class OnboardingWizard {
 				'currentStep'     => $current_step,
 				'selectors'       => $selectors,
 				'steps'           => $steps,
+				'signupUrl'       => 'https://www.hcaptcha.com/signup-interstitial/?r=wp&utm_source=wordpress&utm_medium=wpplugin&utm_campaign=sk',
 				'generalUrl'      => $settings->tab_url( General::class ),
+				'antispamUrl'     => $settings->tab_url( AntiSpamPage::class ),
 				'integrationsUrl' => $settings->tab_url( Integrations::class ),
 				'stepParam'       => self::STEP_PARAM,
 				'stepNonce'       => wp_create_nonce( self::STEP_ACTION ),
@@ -311,7 +344,7 @@ class OnboardingWizard {
 					'done'            => __( 'Done', 'hcaptcha-for-forms-and-more' ),
 					'choiceTitle'     => __( 'How would you like to continue?', 'hcaptcha-for-forms-and-more' ),
 					'choiceBody'      => __( 'Your keys are configured and verified. We can now apply the recommended setup automatically, or you can continue step by step.', 'hcaptcha-for-forms-and-more' ),
-					'choiceAutoBody'  => __( 'Automatic setup will enable Force, apply the recommended anti-spam options, enable hCaptcha for installed plugins and themes, and save your settings.', 'hcaptcha-for-forms-and-more' ),
+					'choiceAutoBody'  => __( 'Automatic setup will enable Force, Honeypot, and minimum submit time, apply available reCAPTCHA migrations, and save your settings.', 'hcaptcha-for-forms-and-more' ),
 					'choiceAutoCta'   => __( 'Apply recommended setup automatically', 'hcaptcha-for-forms-and-more' ),
 					'choiceManualCta' => __( 'Continue step by step', 'hcaptcha-for-forms-and-more' ),
 					'close'           => __( 'Close', 'hcaptcha-for-forms-and-more' ),

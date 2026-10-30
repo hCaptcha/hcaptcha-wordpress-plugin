@@ -85,7 +85,7 @@ class Request {
 		$rest_route  = self::filter_input( INPUT_GET, 'rest_route' );
 		$script_name = self::filter_input( INPUT_SERVER, 'SCRIPT_NAME' );
 
-		if ( 0 === strpos( $rest_route, '/' ) && 'index.php' === basename( $script_name ) ) {
+		if ( is_string( $rest_route ) && is_string( $script_name ) && 0 === strpos( $rest_route, '/' ) && 'index.php' === basename( $script_name ) ) {
 			return true;
 		}
 
@@ -101,12 +101,19 @@ class Request {
 
 		// Case #4.
 		$current_url = (string) wp_parse_url( add_query_arg( [] ), PHP_URL_PATH );
-		$rest_url    = wp_parse_url( trailingslashit( rest_url() ), PHP_URL_PATH );
+		$rest_url    = rest_url();
+		$rest_path   = rtrim( (string) wp_parse_url( $rest_url, PHP_URL_PATH ), '/' );
+		$rest_query  = wp_parse_url( $rest_url, PHP_URL_QUERY );
 
 		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 		$wp_rewrite = $initial_wp_rewrite;
 
-		return 0 === strpos( $current_url, $rest_url );
+		// Plain permalinks route REST via the query, not the /index.php path.
+		if ( '' === $rest_path || ( is_string( $rest_query ) && preg_match( '/(?:^|&)rest_route=/', $rest_query ) ) ) {
+			return false;
+		}
+
+		return $current_url === $rest_path || 0 === strpos( $current_url, $rest_path . '/' );
 	}
 
 	/**
@@ -230,7 +237,14 @@ class Request {
 			$ip_dec    = @inet_pton( $ip );
 			// phpcs:enable WordPress.PHP.NoSilencedErrors.Discouraged
 
-			return ( $ip_dec >= $start_dec && $ip_dec <= $end_dec );
+			if (
+				false === $start_dec || false === $end_dec || false === $ip_dec ||
+				strlen( $ip_dec ) !== strlen( $start_dec ) || strlen( $ip_dec ) !== strlen( $end_dec )
+			) {
+				return false;
+			}
+
+			return strcmp( $ip_dec, $start_dec ) >= 0 && strcmp( $ip_dec, $end_dec ) <= 0;
 		}
 
 		// Single IP.

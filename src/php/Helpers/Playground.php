@@ -983,7 +983,6 @@ class Playground {
 		$settings['honeypot']                     = [ 'on' ];
 		$settings['set_min_submit_time']          = [ 'on' ];
 		$settings['min_submit_time']              = '2';
-		$settings['show_antispam_coverage']       = [ 'on' ];
 
 		update_option( 'hcaptcha_settings', $settings );
 	}

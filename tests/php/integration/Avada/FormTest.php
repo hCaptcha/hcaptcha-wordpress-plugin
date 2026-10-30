@@ -62,7 +62,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 * @return void
 	 */
 	public function tearDown(): void {
-		unset( $_POST['field_types'], $_POST['formData'], $_POST['hcaptcha-widget-id'] );
+		unset( $_POST['field_types'], $_POST['formData'], $_POST['form_id'], $_POST['hcaptcha-widget-id'] );
 
 		wp_dequeue_script( 'hcaptcha-avada' );
 		wp_deregister_script( 'hcaptcha-avada' );
@@ -202,10 +202,33 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode
 		$_POST['field_types'] = json_encode( $field_types );
 		$_POST['formData']    = $form_data;
+		$_POST['form_id']     = (string) $form_id;
 
 		$subject = new Form();
 
 		self::assertSame( $demo_mode, $subject->verify( $demo_mode ) );
+	}
+
+	/**
+	 * A request without the native form ID cannot select a CAPTCHA identity.
+	 */
+	public function test_verify_without_form_id(): void {
+		$messages = [];
+		add_filter(
+			'wp_die_handler',
+			static function () use ( &$messages ) {
+				return static function ( $message ) use ( &$messages ) {
+					$messages[] = $message;
+				};
+			}
+		);
+
+		( new Form() )->verify( true );
+
+		self::assertSame(
+			[ '{"status":"error","info":{"hcaptcha":"Bad hCaptcha signature!"}}' ],
+			$messages
+		);
 	}
 
 	/**
@@ -233,6 +256,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		$this->prepare_verify_request( $hcaptcha_response );
 
 		$_POST['formData'] = $this->get_form_data( $form_id, $hcaptcha_response, $bad_widget_id );
+		$_POST['form_id']  = (string) $form_id;
 
 		$subject = new Form();
 
@@ -257,7 +281,8 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function test_verify_not_verified(): void {
-		$hcaptcha_response = 'some_response';
+		$form_id           = 123;
+		$hcaptcha_response = '';
 		$die_arr           = [];
 		$expected          = [
 			'{"status":"error","info":{"hcaptcha":"Please complete the hCaptcha."}}',
@@ -267,7 +292,9 @@ class FormTest extends HCaptchaPluginWPTestCase {
 
 		$this->prepare_verify_request( $hcaptcha_response, false );
 
-		$subject = new Form();
+		$_POST['form_id']  = (string) $form_id;
+		$_POST['formData'] = $this->get_form_data( $form_id, $hcaptcha_response );
+		$subject           = new Form();
 
 		add_filter(
 			'wp_die_handler',
@@ -281,6 +308,58 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		$subject->verify( true );
 
 		self::assertSame( $expected, $die_arr );
+	}
+
+	/**
+	 * A nonce key inside formData cannot select another CAPTCHA identity.
+	 *
+	 * @return void
+	 */
+	public function test_verify_binds_to_native_form_id(): void {
+		$target_id = 123;
+		$die_arr   = [];
+
+		$_POST['form_id'] = (string) $target_id;
+
+		add_filter(
+			'wp_die_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message ) use ( &$die_arr ) {
+					$die_arr[] = $message;
+				};
+			}
+		);
+
+		$foreign_ids = [
+			0   => [
+				'source'  => [ 'WordPress' ],
+				'form_id' => 'register',
+			],
+			456 => [
+				'source'  => [ 'Avada' ],
+				'form_id' => 456,
+			],
+		];
+
+		foreach ( $foreign_ids as $foreign_id => $widget_identity ) {
+			$_POST['formData'] = http_build_query(
+				[
+					"fusion-form-nonce-$foreign_id" => 'untrusted-first',
+					"fusion-form-nonce-$target_id"  => 'valid-target',
+					'hcaptcha-widget-id'            => HCaptcha::widget_id_value( $widget_identity ),
+				]
+			);
+
+			( new Form() )->verify( false );
+		}
+
+		self::assertSame(
+			[
+				'{"status":"error","info":{"hcaptcha":"Bad hCaptcha signature!"}}',
+				'{"status":"error","info":{"hcaptcha":"Bad hCaptcha signature!"}}',
+			],
+			$die_arr
+		);
 	}
 
 	/**

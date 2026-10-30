@@ -7,7 +7,9 @@
 
 // phpcs:disable Generic.Commenting.DocComment.MissingShort
 /** @noinspection PhpLanguageLevelInspection */
+/** @noinspection PhpUndefinedNamespaceInspection */
 /** @noinspection PhpUndefinedClassInspection */
+/** @noinspection PhpUndefinedFunctionInspection */
 // phpcs:enable Generic.Commenting.DocComment.MissingShort
 
 namespace HCaptcha\Tests\Integration\Abilities;
@@ -22,7 +24,11 @@ use HCaptcha\Settings\SettingsTransfer;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
 use ReflectionException;
+use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
+use function Patchwork\relay;
+
+require_once __DIR__ . '/UnreadableImportStream.php';
 
 /**
  * Test Abilities API integration.
@@ -30,6 +36,83 @@ use WP_Error;
  * @group abilities
  */
 class AbilitiesTest extends HCaptchaWPTestCase {
+	/**
+	 * Older WordPress versions leave Abilities API registration unavailable.
+	 */
+	public function test_registration_without_wordpress_abilities_api(): void {
+		FunctionMocker::replace(
+			'function_exists',
+			static function ( string $name ): bool {
+				if ( in_array( $name, [ 'wp_register_ability_category', 'wp_register_ability' ], true ) ) {
+					return false;
+				}
+
+				return relay();
+			}
+		);
+		$subject = new Abilities();
+
+		$subject->register_categories();
+		$subject->register_abilities();
+		self::assertFalse( function_exists( 'hcaptcha_nonexistent_ability' ) );
+	}
+
+	/**
+	 * Threat queries also work against the Events schema before Trash Folder columns.
+	 */
+	public function test_legacy_events_schema_queries(): void {
+		global $wpdb;
+
+		remove_all_filters( 'query', 10 );
+		Events::create_table();
+		$subject = new Abilities();
+		$table   = $wpdb->prefix . Events::TABLE_NAME;
+		$from    = '2000-01-01 00:00:00';
+		$to      = '2000-01-01 00:01:00';
+		$total   = $this->set_method_accessibility( $subject, 'get_threats_total' );
+		$failed  = $this->set_method_accessibility( $subject, 'get_threats_failed_rows' );
+
+		self::assertSame( '0', (string) $total->invoke( $subject, $table, $from, $to, false ) );
+		self::assertSame( [], $failed->invoke( $subject, $table, $from, $to, false ) );
+	}
+
+	/**
+	 * Persist the current offender map through the same option used by lookups.
+	 */
+	public function test_set_offender_blocks(): void {
+		$subject = new Abilities();
+		$blocks  = [
+			'hashed-offender' => [
+				'expires_at' => time() + 60,
+				'reason'     => 'test',
+				'created_at' => time(),
+			],
+		];
+		$this->set_method_accessibility( $subject, 'set_offender_blocks' )->invoke( $subject, $blocks );
+
+		self::assertSame( $blocks, get_option( 'hcaptcha_offender_blocks_v1' ) );
+	}
+
+	/**
+	 * A file that becomes unreadable after stat is rejected before decoding.
+	 */
+	public function test_import_file_read_failure(): void {
+		$scheme = 'hcapunreadable';
+		self::assertTrue( stream_wrapper_register( $scheme, UnreadableImportStream::class ) );
+
+		try {
+			$subject = new Abilities();
+			$method  = $this->set_method_accessibility( $subject, 'read_import_file' );
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- The stream intentionally fails when opened.
+			$result = @$method->invoke( $subject, $scheme . '://payload' );
+
+			self::assertInstanceOf( WP_Error::class, $result );
+			self::assertSame( 'Input file is too large or cannot be read.', $result->get_error_message() );
+		} finally {
+			stream_wrapper_unregister( $scheme );
+		}
+	}
+
 
 	/**
 	 * Test init() and init_hooks().
@@ -366,6 +449,83 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test import_settings() rejects a directory before attempting to read it.
+	 */
+	public function test_import_settings_rejects_directory(): void {
+		$result = ( new Abilities() )->import_settings(
+			[ 'input_file' => sys_get_temp_dir() ]
+		);
+
+		self::assertInstanceOf( WP_Error::class, $result );
+		self::assertSame( 'hcaptcha_invalid_payload', $result->get_error_code() );
+		self::assertSame( 'Input file not found or unreadable.', $result->get_error_message() );
+	}
+
+	/**
+	 * Test import_settings() rejects an oversized regular file before JSON decoding.
+	 */
+	public function test_import_settings_rejects_oversized_file(): void {
+		$file = tempnam( HCAPTCHA_PATH, 'hcap' );
+		self::assertNotFalse( $file );
+
+		try {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+			file_put_contents( $file, str_repeat( ' ', 1024 * 1024 + 1 ) );
+
+			$result = ( new Abilities() )->import_settings(
+				[
+					'input_file' => $file,
+					'dry_run'    => true,
+				]
+			);
+
+			self::assertInstanceOf( WP_Error::class, $result );
+			self::assertSame( 'hcaptcha_invalid_payload', $result->get_error_code() );
+			self::assertSame( 'Input file is too large.', $result->get_error_message() );
+		} finally {
+			if ( is_string( $file ) && file_exists( $file ) ) {
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
+				unlink( $file );
+			}
+		}
+	}
+
+	/**
+	 * Test import_settings() still accepts valid JSON at the exact file limit.
+	 */
+	public function test_import_settings_accepts_file_at_size_limit(): void {
+		$file = tempnam( HCAPTCHA_PATH, 'hcap' );
+		self::assertNotFalse( $file );
+
+		try {
+			$payload = ( new SettingsTransfer() )->build_export_payload();
+			$json    = wp_json_encode( $payload );
+			self::assertIsString( $json );
+			self::assertLessThanOrEqual( 1024 * 1024, strlen( $json ) );
+
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+			file_put_contents( $file, str_pad( $json, 1024 * 1024 ) );
+
+			$result = ( new Abilities() )->import_settings(
+				[
+					'input_file' => $file,
+					'dry_run'    => true,
+				]
+			);
+
+			self::assertIsArray( $result );
+			self::assertTrue( $result['success'] );
+			self::assertTrue( $result['dry_run'] );
+			self::assertFalse( $result['applied']['settings'] );
+		} finally {
+			if ( is_string( $file ) && file_exists( $file ) ) {
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
+				unlink( $file );
+			}
+		}
+	}
+
+	/**
 	 * Test import_settings() returns an error for invalid JSON in input_file.
 	 */
 	public function test_import_settings_invalid_json_in_input_file(): void {
@@ -520,7 +680,7 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 					'reason'     => 'test',
 					'created_at' => $now,
 				],
-				// Expired block to ensure it gets pruned by prune_offender_blocks().
+				// Expired entries must be ignored without persisting a public lookup.
 				$expired_hash => [
 					'expires_at' => $expired_expires,
 					'reason'     => 'expired',
@@ -538,15 +698,60 @@ class AbilitiesTest extends HCaptchaWPTestCase {
 		self::assertFalse( $subject->block_offender( false, '8.8.8.8' ) );
 		self::assertTrue( $subject->block_offender( true, '8.8.8.8' ) );
 
-		// Ensure expired blocks are pruned and persisted back to the option.
+		self::assertFalse( $subject->block_offender( false, $expired_ip ) );
+
+		// Public reads preserve the stored map, including expired entries.
 		$blocks = get_option( 'hcaptcha_offender_blocks_v1', [] );
 		self::assertIsArray( $blocks );
 		self::assertArrayHasKey( $hash, $blocks );
-		self::assertArrayNotHasKey( $expired_hash, $blocks );
+		self::assertArrayHasKey( $expired_hash, $blocks );
 
 		// Edge case: false client IP should not break and should preserve denylisted value.
 		self::assertFalse( $subject->block_offender( false, false ) );
 		self::assertTrue( $subject->block_offender( true, false ) );
+	}
+
+	/**
+	 * A suspended public lookup cannot overwrite a newly persisted administrator ban.
+	 */
+	public function test_public_lookup_preserves_intervening_offender_ban(): void {
+		$subject      = new Abilities();
+		$option       = 'hcaptcha_offender_blocks_v1';
+		$expired_hash = wp_hash( '192.0.2.1' );
+		$visitor      = '192.0.2.2';
+		$new_hash     = wp_hash( $visitor );
+		$stale        = [
+			$expired_hash => [
+				'expires_at' => time() - 1,
+				'reason'     => 'expired',
+				'created_at' => time() - 300,
+			],
+		];
+		update_option( $option, $stale, false );
+		$interleave = null;
+		$interleave = static function () use ( $subject, $option, $new_hash, $stale, &$interleave ) {
+			remove_filter( 'option_' . $option, $interleave );
+			$subject->block_offenders(
+				[
+					'offender_ids' => [ $new_hash ],
+					'ttl_seconds'  => 300,
+				]
+			);
+
+			return $stale;
+		};
+		add_filter( 'option_' . $option, $interleave );
+
+		try {
+			self::assertFalse( $subject->block_offender( false, $visitor ) );
+		} finally {
+			remove_filter( 'option_' . $option, $interleave );
+		}
+
+		$blocks = get_option( $option, [] );
+		self::assertArrayHasKey( $new_hash, $blocks );
+		self::assertArrayNotHasKey( $expired_hash, $blocks );
+		self::assertTrue( $subject->block_offender( false, $visitor ) );
 	}
 
 	/**

@@ -2,3 +2,5 @@
 /.yarn/releases/*    binary
 /.yarn/plugins/**/*  binary
 /.pnp.*              binary linguist-generated
+/.githooks/*         text eol=lf
+/.github/scripts/*.sh text eol=lf

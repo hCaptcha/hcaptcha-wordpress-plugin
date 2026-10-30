@@ -10,6 +10,7 @@ namespace HCaptcha\Tests\Integration\Admin;
 use HCaptcha\Admin\PluginStats;
 use HCaptcha\Admin\Privacy;
 use HCaptcha\Helpers\Playground;
+use HCaptcha\Settings\Advanced;
 use HCaptcha\Settings\General;
 use HCaptcha\Settings\SystemInfo;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
@@ -375,7 +376,7 @@ class PluginStatsTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_telemetry_disclosures(): void {
-		$fields = $this->get_protected_property( new General(), 'form_fields' );
+		$fields = $this->get_protected_property( new Advanced(), 'form_fields' );
 		$helper = $fields['statistics']['helper'];
 		$claims = [
 			'visitor IP of the current request (X-Forwarded-For)',

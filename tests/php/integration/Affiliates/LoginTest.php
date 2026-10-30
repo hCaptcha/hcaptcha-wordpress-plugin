@@ -17,6 +17,19 @@ use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
  * @group affiliates-login
  */
 class LoginTest extends HCaptchaWPTestCase {
+	/**
+	 * Skip other login forms and render the dashboard spacing rule.
+	 */
+	public function test_other_form_and_inline_styles(): void {
+		$subject = new Login();
+
+		self::assertSame( 'other form', $subject->add_affiliates_captcha( 'other form', [] ) );
+
+		ob_start();
+		$subject->print_inline_styles();
+
+		self::assertStringContainsString( '.affiliates-dashboard .h-captcha', ob_get_clean() );
+	}
 
 	/**
 	 * Test that the rendered login form contains honeypot fields.

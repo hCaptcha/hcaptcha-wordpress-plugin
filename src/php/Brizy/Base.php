@@ -60,10 +60,7 @@ abstract class Base {
 		$args = [
 			'action' => static::ACTION,
 			'name'   => static::NAME,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( static::class ),
-				'form_id' => 'form',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		$search  = '<div class="brz-forms2 brz-forms2__item brz-forms2__item-button"';
@@ -104,7 +101,7 @@ abstract class Base {
 			$post_data[ $item['name'] ] = $item['value'];
 		}
 
-		$error_message = API::verify_post_data( static::NAME, static::ACTION, $post_data );
+		$error_message = API::verify_post_data( static::NAME, static::ACTION, $post_data, $this->get_expected_id() );
 
 		if ( null !== $error_message ) {
 			wp_send_json_error(
@@ -183,5 +180,17 @@ abstract class Base {
 		}
 
 		return HCaptcha::add_type_module( $tag );
+	}
+
+	/**
+	 * Get the expected form identity.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( static::class ),
+			'form_id' => 'form',
+		];
 	}
 }

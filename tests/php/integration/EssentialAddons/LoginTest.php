@@ -17,7 +17,7 @@ use Essential_Addons_Elementor\Classes\Bootstrap;
 use Essential_Addons_Elementor\Elements\Login_Register as EssentialAddonsLoginRegister;
 use HCaptcha\EssentialAddons\Login;
 use HCaptcha\Helpers\HCaptcha;
-use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use HCaptcha\Tests\Integration\WC\WooCommerceTestCase;
 use Mockery;
 use ReflectionClass;
 use tad\FunctionMocker\FunctionMocker;
@@ -28,25 +28,16 @@ use tad\FunctionMocker\FunctionMocker;
  * @group essential-addons
  * @group essential-addons-login
  */
-class LoginTest extends HCaptchaPluginWPTestCase {
+class LoginTest extends WooCommerceTestCase {
 	/**
 	 * Plugin relative paths.
 	 *
 	 * @var string[]
 	 */
 	protected static $plugin = [
+		'woocommerce/woocommerce.php',
 		'elementor/elementor.php',
 		'essential-addons-for-elementor-lite/essential_adons_elementor.php',
-	];
-
-	/**
-	 * Hooks to replay after loading the plugin.
-	 *
-	 * @var string[]
-	 */
-	protected static array $plugin_load_hooks = [
-		'plugins_loaded',
-		'init',
 	];
 
 	/**
@@ -74,7 +65,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 	 * @return void
 	 */
 	public function tearDown(): void {
-		unset( $_POST['widget_id'], $_SERVER['HTTP_REFERER'] );
+		unset( $_POST['page_id'], $_POST['widget_id'], $_SERVER['HTTP_REFERER'] );
 
 		parent::tearDown();
 	}
@@ -274,7 +265,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 
 		$subject = Mockery::mock( Login::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'exit' )->with()->times( (int) $has_referer );
+		$subject->shouldReceive( 'exit' )->with()->once();
 
 		ob_start();
 		$subject->verify( $post, $settings, $bootstrap );
@@ -284,7 +275,7 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 		self::assertSame( '{"success":false,"data":"' . $error_message . '"}', $json );
 		self::assertSame( 'eael_login_error_' . $widget_id, $setcookie[0] );
 		self::assertSame( $error_message, $setcookie[1] );
-		self::assertSame( $redirect, $has_referer );
+		self::assertTrue( $redirect );
 	}
 
 	/**
@@ -296,6 +287,84 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 		return [
 			[ false ],
 			[ true ],
+		];
+	}
+
+	/**
+	 * Test that a non-AJAX CAPTCHA rejection stops native login processing.
+	 *
+	 * @param bool $has_referer Whether the request has a Referer header.
+	 * @param bool $has_page    Whether the native form page is supplied.
+	 *
+	 * @return void
+	 * @dataProvider dp_test_verify_not_verified_without_ajax
+	 */
+	public function test_verify_not_verified_without_ajax( bool $has_referer, bool $has_page ): void {
+		$page_id       = $this->factory()->post->create( [ 'post_type' => 'page' ] );
+		$page_url      = get_permalink( $page_id );
+		$post          = [];
+		$widget_id     = 'some_id';
+		$error_message = 'The hCaptcha is invalid.';
+		$setcookie     = [];
+		$redirect_url  = '';
+
+		$_POST['widget_id'] = $widget_id;
+
+		if ( $has_page ) {
+			$post['page_id']  = $page_id;
+			$_POST['page_id'] = $page_id;
+		}
+
+		if ( $has_referer ) {
+			$_SERVER['HTTP_REFERER'] = $page_url;
+		}
+
+		$this->prepare_verify_post( 'hcaptcha_login_nonce', 'hcaptcha_login', false );
+		$this->prepare_widget_id(
+			[
+				'source'  => [],
+				'form_id' => 'login',
+			]
+		);
+
+		add_filter( 'hcap_login_limit_exceeded', '__return_true' );
+		add_filter( 'wp_doing_ajax', '__return_false' );
+		add_filter(
+			'wp_redirect',
+			static function ( $location ) use ( &$redirect_url ) {
+				$redirect_url = $location;
+
+				return false;
+			}
+		);
+
+		FunctionMocker::replace(
+			'setcookie',
+			static function ( $name, $value ) use ( &$setcookie ) {
+				$setcookie = [ $name, $value ];
+			}
+		);
+
+		$subject = Mockery::mock( Login::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'exit' )->with()->once();
+
+		$subject->verify( $post, [], Bootstrap::instance() );
+
+		self::assertSame( [ 'eael_login_error_' . $widget_id, $error_message ], $setcookie );
+		self::assertSame( $has_referer || $has_page ? $page_url : home_url( '/' ), $redirect_url );
+	}
+
+	/**
+	 * Data provider for non-AJAX CAPTCHA rejections.
+	 *
+	 * @return array
+	 */
+	public function dp_test_verify_not_verified_without_ajax(): array {
+		return [
+			'headerless form page'     => [ false, true ],
+			'headerless home fallback' => [ false, false ],
+			'referer'                  => [ true, true ],
 		];
 	}
 
@@ -345,7 +414,9 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 			}
 		);
 
-		$subject = new Login();
+		$subject = Mockery::mock( Login::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'exit' )->with()->once();
 
 		ob_start();
 		$subject->verify( $post, $settings, $bootstrap );

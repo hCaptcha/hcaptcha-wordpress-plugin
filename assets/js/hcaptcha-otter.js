@@ -67,12 +67,14 @@ const hCaptchaOtter = window.hCaptchaOtter || ( function( window ) {
 			const responseName = 'h-captcha-response';
 			const widgetName = 'hcaptcha-widget-id';
 			const nonceName = 'hcaptcha_otter_nonce';
+			const formNonceName = 'hcaptcha_otter_form_nonce';
 			const tokenName = 'hcap_fst_token';
 			const sigName = 'hcap_hp_sig';
 
 			const response = form.querySelector( `[name="${ responseName }"]` )?.value ?? '';
 			const widget = form.querySelector( `[name="${ widgetName }"]` )?.value ?? '';
 			const nonce = form.querySelector( `[name="${ nonceName }"]` )?.value ?? '';
+			const formNonce = form.querySelector( `[name="${ formNonceName }"]` )?.value ?? '';
 			const token = form.querySelector( `[name="${ tokenName }"]` )?.value ?? '';
 			const sig = form.querySelector( `[name="${ sigName }"]` )?.value ?? '';
 			const hcapHp = form.querySelector( `[id^="hcap_hp_"]` );
@@ -88,6 +90,8 @@ const hCaptchaOtter = window.hCaptchaOtter || ( function( window ) {
 			if ( ! Object.prototype.hasOwnProperty.call( formData, nonceName ) ) {
 				formData[ nonceName ] = nonce;
 			}
+
+			formData[ formNonceName ] = formNonce;
 
 			if ( token ) {
 				formData[ tokenName ] = token;

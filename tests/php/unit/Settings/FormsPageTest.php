@@ -11,6 +11,7 @@ use DateTimeZone;
 use HCaptcha\Admin\Events\Events;
 use HCaptcha\Admin\Events\FormsTable;
 use HCaptcha\Main;
+use HCaptcha\Settings\Advanced;
 use HCaptcha\Settings\FormsPage;
 use HCaptcha\Settings\ListPageBase;
 use HCaptcha\Settings\PluginSettingsBase;
@@ -386,12 +387,18 @@ class FormsPageTest extends HCaptchaTestCase {
 
 			<div class="hcaptcha-forms-sample-text">
 				<p>It is an example of the Forms page.</p>
-				<p>Want to see form statistics? Please turn on the <a href="options-general.php?page=hcaptcha&tab=general#statistics_1" target="_blank">Statistics switch</a> on the General settings page.</p>
+				<p>Want to see form statistics? Please turn on the <a href="options-general.php?page=hcaptcha&tab=advanced#statistics_1" target="_blank">Statistics switch</a> on the Advanced settings page.</p>
 			</div>
 			';
 
 		$subject = Mockery::mock( FormsPage::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
+		$settings = Mockery::mock( Settings::class );
+		$settings->shouldReceive( 'tab_url' )->with( Advanced::class )
+			->andReturn( 'options-general.php?page=hcaptcha&tab=advanced' );
+		$main = Mockery::mock( Main::class );
+		$main->shouldReceive( 'settings' )->andReturn( $settings );
+		WP_Mock::userFunction( 'hcaptcha' )->with()->andReturn( $main );
 
 		WP_Mock::passthruFunction( 'admin_url' );
 		WP_Mock::passthruFunction( 'wp_kses_post' );

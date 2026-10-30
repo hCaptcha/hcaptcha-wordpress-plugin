@@ -8,6 +8,7 @@
 namespace HCaptcha\EasyDigitalDownloads;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -58,10 +59,7 @@ class Checkout {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'checkout',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		HCaptcha::form_display( $args );
@@ -90,6 +88,7 @@ class Checkout {
 	 * @param array|mixed $errors Errors.
 	 *
 	 * @return array|mixed
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify( $errors ) {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
@@ -97,12 +96,28 @@ class Checkout {
 			sanitize_text_field( wp_unslash( $_POST['action'] ) ) :
 			'';
 
-		if ( 'edd_process_checkout' !== $post_value ) {
+		// Native purchase and AJAX dispatch can both omit a POST action field.
+		if (
+			'edd_process_checkout' !== $post_value &&
+			! doing_action( 'edd_purchase' ) &&
+			! doing_action( 'wp_ajax_edd_process_checkout' ) &&
+			! doing_action( 'wp_ajax_nopriv_edd_process_checkout' )
+		) {
 			return $errors;
 		}
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		// Match the native slashed checkout field and its logged-in fallback.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$email = $_POST['edd_email'] ?? wp_get_current_user()->user_email;
+		$email = is_scalar( $email ) ? sanitize_email( (string) $email ) : '';
+
+		$error_message = API::verify_post(
+			self::NONCE,
+			self::ACTION,
+			$this->get_expected_id(),
+			EntryData::with_emails( [], [ $email ] )
+		);
 
 		if ( null === $error_message ) {
 			return $errors;
@@ -113,6 +128,23 @@ class Checkout {
 		$errors          = $errors ? (array) $errors : [];
 		$errors[ $code ] = $error_message;
 
+		// EDD renders checkout notices from its stored messages, not this filtered array.
+		if ( function_exists( 'edd_set_error' ) ) {
+			edd_set_error( $code, $error_message );
+		}
+
 		return $errors;
+	}
+
+	/**
+	 * Get the expected form identity.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => 'checkout',
+		];
 	}
 }

@@ -99,6 +99,26 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 			has_filter( 'fl_builder_render_module_content', [ $subject, 'add_beaver_builder_captcha' ] )
 		);
 		self::assertSame( 10, has_filter( 'wp_authenticate_user', [ $subject, 'verify' ] ) );
+		self::assertSame( 10, has_action( 'wp_login', [ $subject, 'login' ] ) );
+		self::assertSame( 10, has_action( 'wp_login_failed', [ $subject, 'login_failed' ] ) );
+	}
+
+	/**
+	 * Beaver login failures activate its adaptive challenge.
+	 *
+	 * @return void
+	 */
+	public function test_failed_login_activates_adaptive_challenge(): void {
+		hcaptcha()->settings()->set( 'login_limit', 1 );
+		hcaptcha()->settings()->set( 'login_interval', 15 );
+
+		$subject = new Login();
+		$this->set_protected_property( $subject, 'ip', '198.51.100.223' );
+		$exceeded = $this->set_method_accessibility( $subject, 'is_login_limit_exceeded' );
+
+		self::assertFalse( $exceeded->invoke( $subject ) );
+		$subject->login_failed( 'sec022-invalid-user' );
+		self::assertTrue( $exceeded->invoke( $subject ) );
 	}
 
 	/**

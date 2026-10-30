@@ -72,8 +72,17 @@
   "scripts": {
     "pre-autoload-dump": "HCaptcha\\Scoper\\Scoper::pre_autoload_dump",
     "post-cmd": "HCaptcha\\Scoper\\Scoper::post_cmd",
-    "post-install-cmd": "@post-cmd",
-    "post-update-cmd": "@post-cmd",
+    "post-install-cmd": [
+      "@post-cmd",
+      "@hooks:install"
+    ],
+    "post-update-cmd": [
+      "@post-cmd",
+      "@hooks:install"
+    ],
+    "hooks:install": "@php .githooks/setup.php",
+    "changelog": "@php .github/scripts/update-changelog.php",
+    "changelog:check": "@php .github/scripts/update-changelog.php --check",
     "phpcs": "vendor/bin/phpcs --colors --standard=phpcs.xml",
     "integration": "codecept run integration -c codeception.yml",
     "integration:multisite": "codecept run multisite -c codeception.yml",

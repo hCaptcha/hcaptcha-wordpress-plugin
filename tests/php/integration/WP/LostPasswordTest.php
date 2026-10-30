@@ -74,10 +74,14 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test add_captcha().
+	 *
+	 * @dataProvider dp_test_recovery_actions
+	 *
+	 * @param string $action      Recovery action.
+	 * @param bool   $post_action Whether to submit the action in POST.
 	 */
-	public function test_add_captcha(): void {
-		$_SERVER['REQUEST_URI'] = '/wp-login.php';
-		$_GET['action']         = 'lostpassword';
+	public function test_add_captcha( string $action, bool $post_action ): void {
+		$this->prepare_lost_password_request( $action, $post_action );
 
 		$args     = [
 			'action' => 'hcaptcha_wp_lost_password',
@@ -115,6 +119,9 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 		$subject->add_captcha();
 
 		self::assertSame( $expected, ob_get_clean() );
+		$errors = new WP_Error();
+		$subject->verify( $errors );
+		self::assertFalse( $errors->has_errors() );
 	}
 
 	/**
@@ -136,11 +143,16 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test verify().
+	 *
+	 * @dataProvider dp_test_recovery_actions
+	 *
+	 * @param string $action      Recovery action.
+	 * @param bool   $post_action Whether to submit the action in POST.
 	 */
-	public function test_verify(): void {
+	public function test_verify( string $action, bool $post_action ): void {
 		$validation_error = new WP_Error( 'some error' );
 		$expected         = clone $validation_error;
-		$this->prepare_lost_password_request();
+		$this->prepare_lost_password_request( $action, $post_action );
 
 		$this->prepare_verify_post( 'hcaptcha_wp_lost_password_nonce', 'hcaptcha_wp_lost_password' );
 		$this->prepare_widget_id();
@@ -153,11 +165,16 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test verify() not verified.
+	 *
+	 * @dataProvider dp_test_recovery_actions
+	 *
+	 * @param string $action      Recovery action.
+	 * @param bool   $post_action Whether to submit the action in POST.
 	 */
-	public function test_verify_not_verified(): void {
+	public function test_verify_not_verified( string $action, bool $post_action ): void {
 		$validation_error = new WP_Error( 'some error' );
 		$expected         = clone $validation_error;
-		$this->prepare_lost_password_request();
+		$this->prepare_lost_password_request( $action, $post_action );
 
 		$expected->add( 'fail', 'The hCaptcha is invalid.' );
 
@@ -172,11 +189,16 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test verify() when widget id is bad.
+	 *
+	 * @dataProvider dp_test_recovery_actions
+	 *
+	 * @param string $action      Recovery action.
+	 * @param bool   $post_action Whether to submit the action in POST.
 	 */
-	public function test_verify_bad_widget_id(): void {
+	public function test_verify_bad_widget_id( string $action, bool $post_action ): void {
 		$validation_error = new WP_Error( 'some error' );
 		$expected         = clone $validation_error;
-		$this->prepare_lost_password_request();
+		$this->prepare_lost_password_request( $action, $post_action );
 
 		$expected->add( 'bad-signature', 'Bad hCaptcha signature!' );
 
@@ -222,12 +244,16 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	 * Test AutoVerify defers a native request to the WordPress verifier.
 	 *
 	 * @return void
+	 *
+	 * @dataProvider dp_test_recovery_actions
+	 *
+	 * @param string $action      Recovery action.
+	 * @param bool   $post_action Whether to submit the action in POST.
 	 */
-	public function test_auto_verify_defers_wordpress_owner(): void {
+	public function test_auto_verify_defers_wordpress_owner( string $action, bool $post_action ): void {
 		$_SERVER['REQUEST_METHOD'] = 'POST';
-		$_POST['action']           = 'lostpassword';
 
-		$this->prepare_lost_password_request();
+		$this->prepare_lost_password_request( $action, $post_action );
 		$this->prepare_widget_id();
 		$this->register_colliding_auto_form();
 
@@ -304,6 +330,52 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Test a WooCommerce signature cannot suppress recovery without its marker.
+	 */
+	public function test_foreign_owner_without_its_post_marker(): void {
+		$this->prepare_lost_password_request();
+		$this->prepare_widget_id(
+			[
+				'source'  => [ 'woocommerce/woocommerce.php' ],
+				'form_id' => 'lost_password',
+			]
+		);
+
+		new WCLostPassword();
+		new LostPassword();
+		$errors = new WP_Error();
+
+		do_action( 'lostpassword_post', $errors );
+
+		self::assertSame( 'Bad hCaptcha signature!', $errors->get_error_message( 'bad-signature' ) );
+	}
+
+	/**
+	 * Test a valid WooCommerce recovery owner requires its challenge.
+	 */
+	public function test_foreign_owner_with_its_post_marker(): void {
+		$this->prepare_lost_password_request();
+		$_POST['wc_reset_password'] = '1';
+		$this->prepare_widget_id(
+			[
+				'source'  => [ 'woocommerce/woocommerce.php' ],
+				'form_id' => 'lost_password',
+			]
+		);
+		$this->prepare_verify_post( 'hcaptcha_wc_lost_password_nonce', 'hcaptcha_wc_lost_password' );
+		$_POST['h-captcha-response'] = '';
+
+		new LostPassword();
+		new WCLostPassword();
+		$errors = new WP_Error();
+
+		do_action( 'lostpassword_post', $errors );
+
+		self::assertSame( 'Please complete the hCaptcha.', $errors->get_error_message( 'empty' ) );
+		self::assertSame( '', $errors->get_error_message( 'bad-signature' ) );
+	}
+
+	/**
 	 * Test verify() when not proper post key.
 	 */
 	public function test_verify_when_NOT_proper_post_key(): void {
@@ -320,14 +392,19 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Test verify() without the optional submit field.
+	 *
+	 * @dataProvider dp_test_recovery_actions
+	 *
+	 * @param string $action      Recovery action.
+	 * @param bool   $post_action Whether to submit the action in POST.
 	 */
-	public function test_verify_without_submit_field(): void {
+	public function test_verify_without_submit_field( string $action, bool $post_action ): void {
 		$validation_error = new WP_Error( 'some error' );
 		$expected         = clone $validation_error;
 
 		$expected->add( 'fail', 'The hCaptcha is invalid.' );
 
-		$this->prepare_lost_password_request();
+		$this->prepare_lost_password_request( $action, $post_action );
 		$this->prepare_verify_post_html( 'hcaptcha_wp_lost_password_nonce', 'hcaptcha_wp_lost_password', false );
 		$this->prepare_widget_id();
 
@@ -335,6 +412,157 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 		$subject->verify( $validation_error );
 
 		self::assertEquals( $expected, $validation_error );
+	}
+
+	/**
+	 * Test native recovery stops before changing the key or sending an email.
+	 *
+	 * @dataProvider dp_test_recovery_actions
+	 *
+	 * @param string $action      Recovery action.
+	 * @param bool   $post_action Whether to submit the action in POST.
+	 */
+	public function test_native_recovery_without_captcha( string $action, bool $post_action ): void {
+		$user_id = $this->factory()->user->create();
+		$user    = get_userdata( $user_id );
+		$mailed  = false;
+
+		wp_set_current_user( 0 );
+		$this->prepare_lost_password_request( $action, $post_action );
+		$_POST['user_login'] = $user->user_login;
+
+		add_filter(
+			'pre_wp_mail',
+			static function () use ( &$mailed ) {
+				$mailed = true;
+
+				return true;
+			}
+		);
+
+		new LostPassword();
+		$result = retrieve_password( $user->user_login );
+
+		$this->assertWPError( $result );
+		self::assertContains( 'bad-signature', $result->get_error_codes() );
+		self::assertFalse( $mailed );
+		self::assertSame( '', get_userdata( $user_id )->user_activation_key );
+	}
+
+	/**
+	 * Native recovery checks the resolved account email before sending a reset link.
+	 *
+	 * @param bool $blocked Whether the account email is disposable.
+	 *
+	 * @return void
+	 * @dataProvider dp_recipient_email_policy
+	 */
+	public function test_native_recovery_checks_resolved_email( bool $blocked ): void {
+		$email   = $blocked ? 'recipient@blocked.test' : 'recipient@allowed.test';
+		$user_id = $this->factory()->user->create( [ 'user_email' => $email ] );
+		$user    = get_userdata( $user_id );
+		$mailed  = false;
+		$checked = [];
+
+		wp_set_current_user( 0 );
+		$this->prepare_lost_password_request();
+		$this->prepare_verify_post( 'hcaptcha_wp_lost_password_nonce', 'hcaptcha_wp_lost_password' );
+		$this->prepare_widget_id();
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		$_POST['user_login'] = $user->user_login;
+		$_POST['email']      = 'forged@allowed.test';
+
+		add_filter(
+			'hcap_is_disposable_email',
+			static function ( $disposable, string $address ) use ( &$checked ): bool {
+				$checked[] = $address;
+
+				return 'recipient@blocked.test' === $address;
+			},
+			10,
+			2
+		);
+		add_filter(
+			'pre_wp_mail',
+			static function () use ( &$mailed ): bool {
+				$mailed = true;
+
+				return true;
+			}
+		);
+		$remote_addr_exists = array_key_exists( 'REMOTE_ADDR', $_SERVER );
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- Preserve the prior native request value for exact restoration.
+		$remote_addr            = $_SERVER['REMOTE_ADDR'] ?? null;
+		$_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+
+		try {
+			new LostPassword();
+			$result = retrieve_password( $user->user_login );
+		} finally {
+			if ( $remote_addr_exists ) {
+				$_SERVER['REMOTE_ADDR'] = $remote_addr;
+			} else {
+				unset( $_SERVER['REMOTE_ADDR'] );
+			}
+		}
+
+		if ( $blocked ) {
+			$this->assertWPError( $result );
+			self::assertSame( 'Please use a permanent email address.', $result->get_error_message( 'disposable-email' ) );
+			self::assertFalse( $mailed );
+			self::assertSame( '', get_userdata( $user_id )->user_activation_key );
+		} else {
+			self::assertTrue( $result );
+			self::assertTrue( $mailed );
+		}
+
+		self::assertSame( [ $email ], $checked );
+	}
+
+	/**
+	 * Provide native recipient policy outcomes.
+	 *
+	 * @return array
+	 */
+	public function dp_recipient_email_policy(): array {
+		return [
+			'blocked recipient' => [ true ],
+			'allowed recipient' => [ false ],
+		];
+	}
+
+	/**
+	 * Test recovery keeps a server-authorized form exemption.
+	 *
+	 * @dataProvider dp_test_recovery_actions
+	 *
+	 * @param string $action      Recovery action.
+	 * @param bool   $post_action Whether to submit the action in POST.
+	 */
+	public function test_recovery_form_exemption( string $action, bool $post_action ): void {
+		wp_set_current_user( 0 );
+		$this->prepare_lost_password_request( $action, $post_action );
+		$this->prepare_widget_id();
+		add_filter( 'hcap_protect_form', '__return_false' );
+
+		$errors = new WP_Error();
+		( new LostPassword() )->verify( $errors );
+
+		self::assertSame( [], $errors->get_error_codes() );
+	}
+
+	/**
+	 * Data provider for native recovery actions and action precedence.
+	 *
+	 * @return array
+	 */
+	public function dp_test_recovery_actions(): array {
+		return [
+			'lostpassword GET'      => [ 'lostpassword', false ],
+			'retrievepassword GET'  => [ 'retrievepassword', false ],
+			'lostpassword POST'     => [ 'lostpassword', true ],
+			'retrievepassword POST' => [ 'retrievepassword', true ],
+		];
 	}
 
 	/**
@@ -418,11 +646,18 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 
 	/**
 	 * Prepare a WordPress lost password request without the optional submit field.
+	 *
+	 * @param string $action      Recovery action.
+	 * @param bool   $post_action Whether to submit the action in POST.
 	 */
-	private function prepare_lost_password_request(): void {
+	private function prepare_lost_password_request( string $action = 'lostpassword', bool $post_action = false ): void {
 		$_SERVER['REQUEST_URI'] = '/wp-login.php';
-		$_GET['action']         = 'lostpassword';
+		$_GET['action']         = $post_action ? 'login' : $action;
 		$_POST['user_login']    = 'igor';
+
+		if ( $post_action ) {
+			$_POST['action'] = $action;
+		}
 	}
 
 	/**

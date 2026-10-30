@@ -5,10 +5,17 @@
  * @package hcaptcha-wp
  */
 
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+/** @noinspection PhpUndefinedNamespaceInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
+
 namespace HCaptcha\Jetpack;
 
+use Automattic\Jetpack\Forms\ContactForm\Contact_Form;
 use HCaptcha\DelayedScript\DelayedScript;
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use HCaptcha\Helpers\Utils;
@@ -60,6 +67,20 @@ abstract class Base {
 	protected ?string $error_form_hash = null;
 
 	/**
+	 * Form hashes authenticated by Jetpack JWTs in this request.
+	 *
+	 * @var array<string, string>
+	 */
+	private array $jwt_form_hashes = [];
+
+	/**
+	 * Forms selected by Jetpack's verified JWT route in this request.
+	 *
+	 * @var array<string, Contact_Form>
+	 */
+	private array $jwt_forms = [];
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -82,6 +103,7 @@ abstract class Base {
 		add_filter( 'widget_text', 'do_shortcode' );
 
 		add_filter( 'jetpack_contact_form_is_spam', [ $this, 'verify' ], 100, 2 );
+		add_filter( 'jetpack_forms_extra_webhooks', [ $this, 'capture_form_hash' ], PHP_INT_MAX, 2 );
 
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
 
@@ -110,18 +132,26 @@ abstract class Base {
 	/**
 	 * Verify hCaptcha answer from the Jetpack Contact Form.
 	 *
-	 * @param bool|mixed $is_spam Is spam.
+	 * @param bool|mixed  $is_spam   Is spam.
+	 * @param array|mixed $form_data Jetpack's computed spam data.
 	 *
 	 * @return bool|WP_Error|mixed
 	 */
-	public function verify( $is_spam = false ) {
-		$this->error_message = API::verify( $this->get_entry() );
+	public function verify( $is_spam = false, $form_data = [] ) {
+		$submitted_hash = $this->get_submitted_form_hash();
+		$verified_hash  = $this->get_verified_jwt_form_hash();
+
+		if ( null !== $verified_hash && ( '' === $verified_hash || ! hash_equals( $verified_hash, $submitted_hash ?? '' ) ) ) {
+			$this->error_message = hcap_get_error_messages()['bad-signature'];
+		} else {
+			$this->error_message = API::verify( $this->get_entry( is_array( $form_data ) ? $form_data : [] ) );
+		}
 
 		if ( null === $this->error_message ) {
 			return $is_spam;
 		}
 
-		$this->error_form_hash = $this->get_submitted_form_hash();
+		$this->error_form_hash = $verified_hash ?: $submitted_hash;
 
 		$error = new WP_Error();
 
@@ -129,6 +159,53 @@ abstract class Base {
 		add_filter( 'hcap_hcaptcha_content', [ $this, 'error_message' ], 10, 2 );
 
 		return $error;
+	}
+
+	/**
+	 * Retain the hash of the form selected by Jetpack's verified JWT route.
+	 *
+	 * @param mixed $webhooks Extra webhook configurations.
+	 * @param mixed $form     Jetpack form selected for this submission.
+	 *
+	 * @return mixed
+	 */
+	public function capture_form_hash( $webhooks, $form ) {
+		$jwt = Request::filter_input( INPUT_POST, 'jetpack_contact_form_jwt' );
+
+		if (
+			$form instanceof Contact_Form &&
+			$form->has_verified_jwt &&
+			is_string( $form->hash ) &&
+			'' !== $form->hash &&
+			is_string( $jwt ) &&
+			'' !== $jwt
+		) {
+			$jwt_key                           = hash( 'sha256', $jwt );
+			$this->jwt_form_hashes[ $jwt_key ] = $form->hash;
+			$this->jwt_forms[ $jwt_key ]       = $form;
+		}
+
+		return $webhooks;
+	}
+
+	/**
+	 * Get the hash Jetpack authenticated for the submitted JWT.
+	 *
+	 * Null means a legacy submission without a JWT; an empty string fails closed.
+	 *
+	 * @return string|null
+	 */
+	private function get_verified_jwt_form_hash(): ?string {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( ! isset( $_POST['jetpack_contact_form_jwt'] ) ) {
+			return null;
+		}
+
+		$jwt = Request::filter_input( INPUT_POST, 'jetpack_contact_form_jwt' );
+
+		return is_string( $jwt ) && '' !== $jwt
+			? $this->jwt_form_hashes[ hash( 'sha256', $jwt ) ] ?? ''
+			: '';
 	}
 
 	/**
@@ -432,9 +509,11 @@ abstract class Base {
 	/**
 	 * Get entry.
 	 *
+	 * @param array $form_data Jetpack's computed spam data.
+	 *
 	 * @return array
 	 */
-	private function get_entry(): array {
+	private function get_entry( array $form_data = [] ): array {
 		$contact_form_id = Request::filter_input( INPUT_POST, 'contact-form-id' );
 		$form_id         = 'g' . $contact_form_id;
 		$post_id         = (int) $contact_form_id;
@@ -467,7 +546,100 @@ abstract class Base {
 			$entry['data'][ $data_key ] = $value;
 		}
 
+		$form = $this->get_native_form();
+
+		if ( null === $form && ! array_key_exists( 'comment_author_email', $form_data ) ) {
+			return $entry;
+		}
+
+		$entry = EntryData::with_emails( $entry, $this->get_native_emails( $form, $form_data ) );
+		unset( $entry['email'] );
+
+		if ( $entry['email_addresses'] ) {
+			$entry['email'] = $entry['email_addresses'][0];
+		}
+
 		return $entry;
+	}
+
+	/**
+	 * Get the same form instance Jetpack selected for this submission.
+	 *
+	 * @return Contact_Form|null
+	 * @noinspection UnnecessaryCastingInspection
+	 */
+	private function get_native_form(): ?Contact_Form {
+		$verified_hash = $this->get_verified_jwt_form_hash();
+
+		if ( null !== $verified_hash ) {
+			$jwt = Request::filter_input( INPUT_POST, 'jetpack_contact_form_jwt' );
+
+			return is_string( $jwt ) ? $this->jwt_forms[ hash( 'sha256', $jwt ) ] ?? null : null;
+		}
+
+		$hash = $this->get_submitted_form_hash();
+		$hash = null !== $hash ? (string) preg_replace( '/[^\da-f]/i', '', $hash ) : null;
+		$form = null !== $hash ? Contact_Form::$forms[ $hash ] ?? null : null;
+
+		// Jetpack can rebuild a legacy form from post meta and then select $last
+		// even when the rebuilt hash differs from the submitted hash.
+		if ( ! $form && Contact_Form::$last instanceof Contact_Form ) {
+			$form = Contact_Form::$last;
+		}
+
+		return $form instanceof Contact_Form ? $form : null;
+	}
+
+	/**
+	 * Read every visible email field from Jetpack's selected form schema.
+	 *
+	 * @param Contact_Form|null $form      Native form, if available.
+	 * @param array             $form_data Jetpack's computed spam data.
+	 *
+	 * @return string[]
+	 */
+	private function get_native_emails( ?Contact_Form $form, array $form_data ): array {
+		$author_email = $form_data['comment_author_email'] ?? '';
+
+		if ( null === $form ) {
+			return is_string( $author_email ) ? [ $author_email ] : [];
+		}
+
+		$field_ids  = $form->get_field_ids();
+		$visibility = method_exists( $form, 'get_resolved_field_visibility' ) ? $form->get_resolved_field_visibility() : [];
+		$emails     = [];
+
+		foreach ( $field_ids['all'] as $field_id ) {
+			if ( false === ( $visibility[ $field_id ] ?? true ) || 'email' !== $form->fields[ $field_id ]->get_attribute( 'type' ) ) {
+				continue;
+			}
+
+			$this->append_native_email_values( $emails, (string) $field_id, $field_ids['email'] ?? null, $author_email );
+		}
+
+		return $emails;
+	}
+
+	/**
+	 * Include both Jetpack's filtered author email and its stored field value.
+	 *
+	 * @param array       $emails          Native email list.
+	 * @param string      $field_id        Native field ID.
+	 * @param string|null $author_field_id Native author email field ID.
+	 * @param mixed       $author_email    Jetpack's computed author email.
+	 *
+	 * @return void
+	 */
+	private function append_native_email_values( array &$emails, string $field_id, ?string $author_field_id, $author_email ): void {
+		if ( $author_field_id === $field_id && is_string( $author_email ) ) {
+			$emails[] = $author_email;
+		}
+
+		$value = Request::filter_input( INPUT_POST, $field_id );
+
+		if ( is_string( $value ) ) {
+			$emails[] = $value;
+		}
 	}
 
 	/**

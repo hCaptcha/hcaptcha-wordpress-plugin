@@ -53,6 +53,13 @@ class Form {
 	private bool $captcha_added = false;
 
 	/**
+	 * Verification result shared by callbacks in one validation stage.
+	 *
+	 * @var array|null
+	 */
+	private ?array $form_validation = null;
+
+	/**
 	 * Form constructor.
 	 */
 	public function __construct() {
@@ -66,6 +73,7 @@ class Form {
 	 */
 	public function init_hooks(): void {
 		add_action( 'acfe/form/render/before_fields', [ $this, 'before_fields' ] );
+		add_action( 'acfe/form/validate_form', [ $this, 'validate_form' ] );
 		add_action( self::RENDER_HOOK, [ $this, 'remove_recaptcha_render' ], 8 );
 		add_action( self::RENDER_HOOK, [ $this, 'add_hcaptcha' ], 11 );
 		add_filter( self::VALIDATION_HOOK, [ $this, 'remove_recaptcha_verify' ], 9, 4 );
@@ -154,6 +162,33 @@ class Form {
 	}
 
 	/**
+	 * Verify forms with a required CAPTCHA even when its field is omitted from POST.
+	 *
+	 * @param array $form Registered ACFE form.
+	 *
+	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	public function validate_form( array $form ): void {
+		if ( ! $this->has_required_recaptcha( $form ) ) {
+			return;
+		}
+
+		$this->form_validation = null;
+		$result                = $this->verify( true, '', [ 'required' => true ], '' );
+		$this->form_validation = [
+			'form_id'    => (int) ( $form['ID'] ?? 0 ),
+			'submission' => $this->get_transient_name( wp_unslash( $_POST ) ), // phpcs:ignore WordPress.Security.NonceVerification.Missing -- ACFE verifies its form nonce before this hook.
+			'result'     => $result,
+			'ajax'       => wp_doing_ajax(),
+		];
+
+		if ( true !== $result ) {
+			acf_add_validation_error( '', $result );
+		}
+	}
+
+	/**
 	 * Verify request.
 	 *
 	 * @param bool|mixed $valid Whether the field is valid.
@@ -169,14 +204,53 @@ class Form {
 			return $valid;
 		}
 
-		if ( is_admin() ) {
+		$form = $this->get_form();
+
+		if ( is_admin() && ( ! wp_doing_ajax() || ! $form ) ) {
 			// In admin, the recaptcha field is required and $valid set to false in the acf_validate_value().
 			// So, we fix it.
 			return true;
 		}
 
-		$form          = $this->get_form();
-		$this->form_id = $form['ID'] ?? 0;
+		$this->form_id = (int) ( $form['ID'] ?? 0 );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$post_data = wp_unslash( $_POST );
+
+		if (
+			null !== $this->form_validation &&
+			$this->form_id === $this->form_validation['form_id'] &&
+			$this->get_transient_name( $post_data ) === $this->form_validation['submission'] &&
+			wp_doing_ajax() === $this->form_validation['ajax']
+		) {
+			return $this->form_validation['result'];
+		}
+
+		$result = $this->verify_submission( $post_data );
+
+		if ( wp_doing_ajax() ) {
+			// API::verify() clears the consumed proof from POST; bind the in-request result to that state.
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing
+			$validated_data        = wp_unslash( $_POST );
+			$this->form_validation = [
+				'form_id'    => $this->form_id,
+				'submission' => $this->get_transient_name( $validated_data ),
+				'result'     => $result,
+				'ajax'       => true,
+			];
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Verify the current ACFE submission across its AJAX and final POST stages.
+	 *
+	 * @param array $post_data Unslashed POST data.
+	 *
+	 * @return bool|string
+	 */
+	private function verify_submission( array $post_data ) {
+		$transient_name = $this->get_transient_name( $post_data );
 
 		// ACFE uses a two-step submission flow: AJAX field validation first, then a direct POST submission.
 		// The token/honeypot can only be verified once,
@@ -184,18 +258,16 @@ class Form {
 		// On the subsequent direct POST, we retrieve the cached result instead of verifying again
 		// (which would fail on a consumed token).
 		if ( wp_doing_ajax() ) {
-			// phpcs:ignore WordPress.Security.NonceVerification.Missing
-			$post_data = wp_unslash( $_POST );
-			$result    = API::verify( $this->get_entry( $post_data ) ) ?: true;
+			$result = API::verify( $this->get_entry( $post_data ) ) ?: true;
 
-			set_transient( self::TRANSIENT, [ $this->form_id, $result ], 30 );
+			set_transient( $transient_name, [ $this->form_id, $result ], 30 );
 
 			return $result;
 		}
 
-		$transient = get_transient( self::TRANSIENT );
+		$transient = get_transient( $transient_name );
 
-		delete_transient( self::TRANSIENT );
+		delete_transient( $transient_name );
 
 		$form_id = $transient[0] ?? false;
 		$result  = $transient[1] ?? false;
@@ -206,10 +278,25 @@ class Form {
 
 		// Some ACFE forms submit directly without the AJAX validation step.
 		// In that case, verify the current POST once instead of requiring a transient.
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$post_data = wp_unslash( $_POST );
-
 		return API::verify( $this->get_entry( $post_data ) ) ?: true;
+	}
+
+	/**
+	 * Bind the cached validation result to the same tokens and submitted answers.
+	 *
+	 * @param array $post_data Post data.
+	 *
+	 * @return string
+	 */
+	private function get_transient_name( array $post_data ): string {
+		$submission = [
+			$this->form_id,
+			$post_data['h-captcha-response'] ?? '',
+			$post_data['hcap_fst_token'] ?? '',
+			$post_data['acf'] ?? [],
+		];
+
+		return self::TRANSIENT . '_' . hash( 'sha256', wp_json_encode( $submission ) );
 	}
 
 	/**
@@ -372,6 +459,40 @@ class Form {
 		$form = Utils::json_decode_arr( acf_decrypt( $acf_form ) );
 
 		return $form ?: false;
+	}
+
+	/**
+	 * Find required CAPTCHA fields from the form's registered field groups.
+	 *
+	 * @param array $form Registered ACFE form.
+	 *
+	 * @return bool
+	 * @noinspection PhpUndefinedFunctionInspection
+	 */
+	private function has_required_recaptcha( array $form ): bool {
+		$field_groups = acfe_as_array( $form['field_groups'] ?? [] );
+
+		if ( ! empty( $form['post_field_groups'] ) ) {
+			$field_groups = wp_list_pluck( acf_get_field_groups( [ 'post_id' => $form['post_field_groups'] ] ), 'key' );
+		}
+
+		foreach ( $field_groups as $group_key ) {
+			$fields = acf_get_fields( $group_key );
+
+			if ( ! $fields ) {
+				continue;
+			}
+
+			foreach ( acfe_get_fields_details_recursive( $fields ) as $details ) {
+				$field = $details['field'];
+
+				if ( $this->is_recaptcha( $field ) && ! empty( $field['required'] ) ) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	/**

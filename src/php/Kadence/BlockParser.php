@@ -34,6 +34,13 @@ class BlockParser extends WP_Block_Parser {
 	public function parse( $document ): array {
 		$output = parent::parse( $document );
 
+		// Runtime CAPTCHA replacement must never change the configuration being saved.
+		foreach ( [ 'pre_kses', 'content_save_pre', 'content_filtered_save_pre', 'excerpt_save_pre' ] as $filter ) {
+			if ( doing_filter( $filter ) ) {
+				return $output;
+			}
+		}
+
 		foreach ( $output as &$block ) {
 			$this->process_block( $block );
 		}
@@ -79,6 +86,10 @@ class BlockParser extends WP_Block_Parser {
 	 * @return void
 	 */
 	private function process_form_block( array &$block ): void {
+		if ( ! hcaptcha()->settings()->is( 'kadence_status', 'form' ) ) {
+			return;
+		}
+
 		// Disable reCAPTCHA.
 		$block['attrs']['recaptcha'] = false;
 	}
@@ -91,6 +102,10 @@ class BlockParser extends WP_Block_Parser {
 	 * @return void
 	 */
 	private function process_advanced_form_block( array &$block ): void {
+		if ( ! hcaptcha()->settings()->is( 'kadence_status', 'advanced_form' ) ) {
+			return;
+		}
+
 		self::$form_id = (int) ( $block['attrs']['id'] ?? 0 );
 
 		if ( ! ( isset( $block['innerBlocks'] ) && is_array( $block['innerBlocks'] ) ) ) {

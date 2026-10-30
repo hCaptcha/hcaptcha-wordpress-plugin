@@ -79,10 +79,7 @@ class Login {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'login',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		return preg_replace(
@@ -98,7 +95,7 @@ class Login {
 	 * @return void
 	 */
 	public function verify(): void {
-		$this->error_message = API::verify_post( self::NONCE, self::ACTION );
+		$this->error_message = API::verify_post( self::NONCE, self::ACTION, $this->get_expected_id() );
 
 		if ( null !== $this->error_message ) {
 			// Prevent login.
@@ -148,5 +145,17 @@ class Login {
 	public function delay_api( $delay ): int {
 		// Do not delay API request on login forms for compatibility with password managers.
 		return $this->login_form_shown ? 0 : (int) $delay;
+	}
+
+	/**
+	 * Get the expected form identity.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => 'login',
+		];
 	}
 }

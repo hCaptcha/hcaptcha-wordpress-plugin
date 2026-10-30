@@ -9,7 +9,7 @@ jobs:
   tag:
     name: New release
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     # Security: 1. Check if user is authorized.
     if: contains(fromJson('["kagg-design", "e271828-"]'), github.actor)

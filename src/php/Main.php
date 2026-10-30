@@ -44,6 +44,7 @@ use HCaptcha\NF\NF;
 use HCaptcha\ProtectContent\ProtectContent;
 use HCaptcha\Quform\Quform;
 use HCaptcha\Sendinblue\Sendinblue;
+use HCaptcha\Settings\Advanced;
 use HCaptcha\Settings\AntiSpamPage;
 use HCaptcha\Settings\EventsPage;
 use HCaptcha\Settings\FormsPage;
@@ -96,6 +97,15 @@ class Main {
 	 * Priority of the plugins_loaded action to load Main.
 	 */
 	public const LOAD_PRIORITY = Migrations::LOAD_PRIORITY + 10;
+
+	/**
+	 * Native Brevo signup module, including requests that skip ordinary modules.
+	 */
+	private const SENDINBLUE_MODULE = [
+		[ 'sendinblue_status', 'form' ],
+		'mailin/sendinblue.php',
+		Sendinblue::class,
+	];
 
 	/**
 	 * Form shown somewhere, use this flag to run the script.
@@ -210,8 +220,9 @@ class Main {
 				'hCaptcha' => [
 					'classes' => [
 						General::class,
-						AntiSpamPage::class,
 						Integrations::class,
+						AntiSpamPage::class,
+						Advanced::class,
 						FormsPage::class,
 						EventsPage::class,
 						Tools::class,
@@ -228,10 +239,14 @@ class Main {
 				add_filter( 'xmlrpc_enabled', '__return_false', PHP_INT_MAX );
 			}
 
+			$this->load_signup_guard();
+
 			return;
 		}
 
 		if ( wp_doing_cron() ) {
+			$this->load_signup_guard();
+
 			return;
 		}
 
@@ -272,6 +287,35 @@ class Main {
 
 		$this->protect_content = new ProtectContent();
 		$this->protect_content->init();
+	}
+
+	/**
+	 * Protect Brevo's global POST handler during otherwise skipped bootstraps.
+	 *
+	 * @return void
+	 */
+	private function load_signup_guard(): void {
+		if (
+			! class_exists( '\SIB_Manager' ) ||
+			! Sendinblue::is_signup_request() ||
+			! in_array( 'form', (array) $this->settings->get( 'sendinblue_status' ), true )
+		) {
+			return;
+		}
+
+		add_filter( 'hcap_blacklist_ip', [ $this, 'denylist_ip' ], -PHP_INT_MAX, 2 );
+		add_filter( 'hcap_whitelist_ip', [ $this, 'allowlist_ip' ], -PHP_INT_MAX, 2 );
+		$this->active = $this->activate_hcaptcha();
+		if ( ! $this->active ) {
+			return;
+		}
+
+		$this->modules['Sendinblue'] = self::SENDINBLUE_MODULE;
+		if ( ! $this->get( FormSubmitTime::class ) ) {
+			$this->load( FormSubmitTime::class );
+		}
+		$this->load( Sendinblue::class );
+		add_filter( 'hcap_protect_form', [ $this, 'allow_honeypot_and_fst' ], 10, 3 );
 	}
 
 	/**
@@ -439,28 +483,54 @@ class Main {
 		$hcap_csp       = "script-src $script_src; frame-src $hcap_src; style-src $hcap_src; connect-src $hcap_src";
 		$hcap_csp_arr   = $this->parse_csp( $hcap_csp );
 
+		$policies = [];
+
 		foreach ( $headers as $key => $header ) {
-			if ( strtolower( $key ) === $csp_key_lower ) {
-				$hcap_csp_arr = $this->merge_csp( $hcap_csp_arr, $this->parse_csp( $header ) );
+			if ( strtolower( $key ) !== $csp_key_lower ) {
+				continue;
+			}
+
+			unset( $headers[ $key ] );
+
+			// Each policy imposes independent restrictions; do not union their sources.
+			foreach ( explode( ',', $header ) as $policy ) {
+				if ( '' === trim( $policy, "\x09\x0a\x0c\x0d\x20" ) ) {
+					continue;
+				}
+
+				$policies[] = $this->extend_csp_policy( $policy, $hcap_csp_arr );
 			}
 		}
 
+		$headers[ $csp_key ] = implode( ', ', $policies );
+
+		return $headers;
+	}
+
+	/**
+	 * Add hCaptcha sources while retaining one policy's existing restrictions.
+	 *
+	 * @param string $policy   Original policy.
+	 * @param array  $hcap_csp hCaptcha directives.
+	 *
+	 * @return string
+	 */
+	private function extend_csp_policy( string $policy, array $hcap_csp ): string {
+		$directives       = $this->merge_csp( $hcap_csp, $this->parse_csp( $policy ) );
 		$hcap_csp_headers = [];
 
-		foreach ( $hcap_csp_arr as $key => $value ) {
-			$hcap_csp_headers[] = $key . ' ' . implode( ' ', $value );
+		foreach ( $directives as $key => $value ) {
+			$hcap_csp_headers[] = $key . ( $value ? ' ' . implode( ' ', $value ) : '' );
 		}
 
 		/**
 		 * Filters the Content Security Policy (CSP) headers.
 		 *
-		 * @param string $hcap_csp_headers Content Security Policy (CSP) headers.
+		 * @param array $hcap_csp_headers Content Security Policy (CSP) directives.
 		 */
 		$hcap_csp_headers = (array) apply_filters( 'hcap_csp_headers', $hcap_csp_headers );
 
-		$headers[ $csp_key ] = implode( '; ', $hcap_csp_headers );
-
-		return $headers;
+		return implode( '; ', $hcap_csp_headers );
 	}
 
 	/**
@@ -475,14 +545,15 @@ class Main {
 		$csp_arr        = [];
 
 		foreach ( $csp_subheaders as $csp_subheader ) {
-			$csp_subheader_arr = explode( ' ', trim( $csp_subheader ) );
-			$key               = (string) array_shift( $csp_subheader_arr );
-			$csp_arr[ $key ]   = $csp_subheader_arr;
+			$csp_subheader_arr = preg_split( '/[\x09\x0a\x0c\x0d\x20]+/', trim( $csp_subheader, "\x09\x0a\x0c\x0d\x20" ) );
+			$key               = strtolower( (string) array_shift( $csp_subheader_arr ) );
+
+			if ( '' !== $key && ! array_key_exists( $key, $csp_arr ) ) {
+				$csp_arr[ $key ] = $csp_subheader_arr;
+			}
 		}
 
-		unset( $csp_arr[''] );
-
-		return array_filter( $csp_arr );
+		return $csp_arr;
 	}
 
 	/**
@@ -1453,20 +1524,21 @@ class Main {
 				'coblocks/class-coblocks.php',
 				CoBlocks\Form::class,
 			],
+			// Colorlib styles native WordPress login forms, so their renderers and verifiers must also be loaded.
 			'Colorlib Customizer Login'            => [
 				[ 'colorlib_customizer_status', 'login' ],
 				'colorlib-login-customizer/colorlib-login-customizer.php',
-				ColorlibCustomizer\Login::class,
+				[ ColorlibCustomizer\Login::class, WP\Login::class, WP\LoginOut::class ],
 			],
 			'Colorlib Customizer Lost Password'    => [
 				[ 'colorlib_customizer_status', 'lost_pass' ],
 				'colorlib-login-customizer/colorlib-login-customizer.php',
-				ColorlibCustomizer\LostPassword::class,
+				[ ColorlibCustomizer\LostPassword::class, WP\LostPassword::class ],
 			],
 			'Colorlib Customizer Register'         => [
 				[ 'colorlib_customizer_status', 'register' ],
 				'colorlib-login-customizer/colorlib-login-customizer.php',
-				ColorlibCustomizer\Register::class,
+				[ ColorlibCustomizer\Register::class, WP\Register::class ],
 			],
 			'Contact Form 7'                       => [
 				[ 'cf7_status', null ],
@@ -1636,7 +1708,7 @@ class Main {
 			],
 			'Icegram Express'                      => [
 				[ 'icegram_express_status', 'form' ],
-				'email-subscribers/email-subscribers.php',
+				[ 'email-subscribers-premium/email-subscribers-premium.php', 'email-subscribers/email-subscribers.php' ],
 				IcegramExpress\Form::class,
 			],
 			'Jetpack'                              => [
@@ -1764,11 +1836,7 @@ class Main {
 				'quform/quform.php',
 				Quform::class,
 			],
-			'Sendinblue'                           => [
-				[ 'sendinblue_status', 'form' ],
-				'mailin/sendinblue.php',
-				Sendinblue::class,
-			],
+			'Sendinblue'                           => self::SENDINBLUE_MODULE,
 			'Simple Download Monitor'              => [
 				[ 'simple_download_monitor_status', 'form' ],
 				'simple-download-monitor/main.php',

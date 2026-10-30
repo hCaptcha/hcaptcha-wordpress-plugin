@@ -8,11 +8,16 @@
 namespace HCaptcha\Tests\Integration\ProtectContent;
 
 use HCaptcha\PasswordProtected\Protect;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\ProtectContent\ProtectContent;
+use HCaptcha\Settings\Advanced;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use Mockery;
 use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
+use WP_Query;
+use WP_REST_Request;
+use WP_REST_Response;
 use WP_Scripts;
 use WP_Styles;
 
@@ -32,6 +37,291 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 	 * Browser session cookie name.
 	 */
 	private const SESSION_COOKIE_NAME = 'hcaptcha_content_protection_session';
+
+	/**
+	 * REST post and page responses use the selected resource's clearance scope.
+	 *
+	 * @return void
+	 */
+	public function test_rest_posts_and_pages_require_resource_clearance(): void {
+		$post_id    = $this->factory()->post->create(
+			[
+				'post_status'  => 'publish',
+				'post_content' => 'Protected REST post marker.',
+			]
+		);
+		$page_id    = $this->factory()->post->create(
+			[
+				'post_type'    => 'page',
+				'post_status'  => 'publish',
+				'post_content' => 'Protected REST page marker.',
+			]
+		);
+		$public_id  = $this->factory()->post->create( [ 'post_status' => 'publish' ] );
+		$post_scope = get_permalink( $post_id );
+		$page_scope = get_permalink( $page_id );
+
+		$this->configure_protected_urls( $post_scope . "\n" . $page_scope );
+		$_SERVER['REQUEST_URI'] = '/wp-json/wp/v2/posts';
+		$subject                = new ProtectContent();
+		$subject->init();
+
+		$previous_server = $GLOBALS['wp_rest_server'] ?? null;
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Isolate the native REST registry.
+		$GLOBALS['wp_rest_server'] = null;
+
+		try {
+			$server          = rest_get_server();
+			$post_response   = $server->dispatch( new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id ) );
+			$page_response   = $server->dispatch( new WP_REST_Request( 'GET', '/wp/v2/pages/' . $page_id ) );
+			$public_response = $server->dispatch( new WP_REST_Request( 'GET', '/wp/v2/posts/' . $public_id ) );
+
+			self::assertSame( 403, $post_response->get_status() );
+			self::assertSame( 'hcaptcha_content_protected', $post_response->get_data()['code'] );
+			self::assertSame( 403, $page_response->get_status() );
+			self::assertSame( 'hcaptcha_content_protected', $page_response->get_data()['code'] );
+			self::assertSame( 200, $public_response->get_status() );
+
+			wp_set_current_user( $this->factory()->user->create( [ 'role' => 'editor' ] ) );
+			$edit_request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id );
+			$edit_request->set_query_params( [ 'context' => 'edit' ] );
+			$edit_response = $server->dispatch( $edit_request );
+
+			self::assertSame( 200, $edit_response->get_status() );
+			self::assertSame( 'Protected REST post marker.', $edit_response->get_data()['content']['raw'] );
+			wp_set_current_user( 0 );
+
+			$collection = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+			$collection->set_query_params( [ '_fields' => 'content' ] );
+			$collection_response      = $server->dispatch( $collection );
+			$page_collection_response = $server->dispatch( new WP_REST_Request( 'GET', '/wp/v2/pages' ) );
+
+			self::assertSame( 200, $collection_response->get_status() );
+			self::assertStringNotContainsString( 'Protected REST post marker.', wp_json_encode( $collection_response->get_data() ) );
+			self::assertSame( 200, $page_collection_response->get_status() );
+			self::assertStringNotContainsString( 'Protected REST page marker.', wp_json_encode( $page_collection_response->get_data() ) );
+
+			$session_id                           = 'v1.' . str_repeat( 'a', 64 );
+			$_COOKIE[ self::SESSION_COOKIE_NAME ] = $session_id;
+			$_COOKIE[ self::COOKIE_NAME ]         = $this->create_clearance_cookie( str_repeat( 'b', 64 ), $session_id, $post_scope, time() + 300 );
+
+			$cleared_response     = $server->dispatch( new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id ) );
+			$cleared_collection   = $server->dispatch( new WP_REST_Request( 'GET', '/wp/v2/posts' ) );
+			$other_scope_response = $server->dispatch( new WP_REST_Request( 'GET', '/wp/v2/pages/' . $page_id ) );
+
+			self::assertSame( 200, $cleared_response->get_status() );
+			self::assertStringContainsString( 'Protected REST post marker.', $cleared_response->get_data()['content']['rendered'] );
+			self::assertSame( 200, $cleared_collection->get_status() );
+			self::assertStringContainsString( 'Protected REST post marker.', wp_json_encode( $cleared_collection->get_data() ) );
+			self::assertSame( 403, $other_scope_response->get_status() );
+		} finally {
+			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Restore the native REST registry.
+			$GLOBALS['wp_rest_server'] = $previous_server;
+		}
+	}
+
+	/**
+	 * REST search must not expose protected results or keyword match counts.
+	 *
+	 * @return void
+	 */
+	public function test_rest_search_excludes_uncleared_resources_before_pagination(): void {
+		$protected_post = $this->factory()->post->create(
+			[
+				'post_status'  => 'publish',
+				'post_title'   => 'Restindexneedle hidden post',
+				'post_content' => 'Restindexsecretword',
+			]
+		);
+		$protected_page = $this->factory()->post->create(
+			[
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'post_title'  => 'Restindexneedle hidden page',
+			]
+		);
+		$public_post    = $this->factory()->post->create(
+			[
+				'post_status' => 'publish',
+				'post_title'  => 'Restindexneedle public post',
+			]
+		);
+		$post_scope     = get_permalink( $protected_post );
+		$page_scope     = get_permalink( $protected_page );
+
+		$this->configure_protected_urls( $post_scope . "\n" . $page_scope );
+		$_SERVER['REQUEST_URI'] = '/wp-json/wp/v2/search';
+		$subject                = new ProtectContent();
+		$subject->init();
+
+		$previous_server = $GLOBALS['wp_rest_server'] ?? null;
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Isolate the native REST registry.
+		$GLOBALS['wp_rest_server'] = null;
+
+		try {
+			$server = rest_get_server();
+			$search = new WP_REST_Request( 'GET', '/wp/v2/search' );
+			$search->set_query_params(
+				[
+					'search'   => 'Restindexneedle',
+					'per_page' => 1,
+					'_fields'  => 'title',
+				]
+			);
+			$response = $server->dispatch( $search );
+
+			self::assertSame( 200, $response->get_status() );
+			self::assertCount( 1, $response->get_data() );
+			self::assertSame( 'Restindexneedle public post', $response->get_data()[0]['title'] );
+			self::assertSame( 1, $response->get_headers()['X-WP-Total'] );
+			self::assertSame( 1, $response->get_headers()['X-WP-TotalPages'] );
+
+			$second_page = new WP_REST_Request( 'GET', '/wp/v2/search' );
+			$second_page->set_query_params(
+				[
+					'search'   => 'Restindexneedle',
+					'per_page' => 1,
+					'page'     => 2,
+				]
+			);
+			$second_page_response = $server->dispatch( $second_page );
+
+			self::assertSame( 200, $second_page_response->get_status() );
+			self::assertSame( [], $second_page_response->get_data() );
+			self::assertSame( 0, $second_page_response->get_headers()['X-WP-Total'] );
+
+			$secret = new WP_REST_Request( 'GET', '/wp/v2/search' );
+			$secret->set_query_params( [ 'search' => 'Restindexsecretword' ] );
+			$secret_response = $server->dispatch( $secret );
+
+			self::assertSame( [], $secret_response->get_data() );
+			self::assertSame( 0, $secret_response->get_headers()['X-WP-Total'] );
+
+			$post_collection = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+			$post_collection->set_query_params(
+				[
+					'search'  => 'Restindexneedle',
+					'_fields' => 'id',
+				]
+			);
+			$post_collection_response = $server->dispatch( $post_collection );
+
+			self::assertSame( 200, $post_collection_response->get_status() );
+			self::assertSame( [ [ 'id' => $public_post ] ], $post_collection_response->get_data() );
+			self::assertSame( 1, $post_collection_response->get_headers()['X-WP-Total'] );
+
+			$post_collection->set_query_params( [ 'search' => 'Restindexsecretword' ] );
+			$post_secret_response = $server->dispatch( $post_collection );
+
+			self::assertSame( [], $post_secret_response->get_data() );
+			self::assertSame( 0, $post_secret_response->get_headers()['X-WP-Total'] );
+
+			$page_collection = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+			$page_collection->set_query_params( [ 'search' => 'Restindexneedle' ] );
+			$page_collection_response = $server->dispatch( $page_collection );
+
+			self::assertSame( [], $page_collection_response->get_data() );
+			self::assertSame( 0, $page_collection_response->get_headers()['X-WP-Total'] );
+
+			$slug_request = new WP_REST_Request( 'HEAD', '/wp/v2/posts' );
+			$slug_request->set_query_params( [ 'slug' => get_post_field( 'post_name', $protected_post ) ] );
+			$slug_response = $server->dispatch( $slug_request );
+
+			self::assertSame( 200, $slug_response->get_status() );
+			self::assertSame( 0, $slug_response->get_headers()['X-WP-Total'] );
+
+			$include = new WP_REST_Request( 'GET', '/wp/v2/search' );
+			$include->set_query_params(
+				[
+					'include' => [ $protected_post, $public_post ],
+					'_fields' => 'id',
+				]
+			);
+			$include_response = $server->dispatch( $include );
+
+			self::assertSame( [ [ 'id' => $public_post ] ], $include_response->get_data() );
+			self::assertSame( 1, $include_response->get_headers()['X-WP-Total'] );
+
+			$include->set_query_params( [ 'include' => [ $protected_post ] ] );
+			$hidden_include_response = $server->dispatch( $include );
+
+			self::assertSame( [], $hidden_include_response->get_data() );
+			self::assertSame( 0, $hidden_include_response->get_headers()['X-WP-Total'] );
+
+			$page_search = new WP_REST_Request( 'HEAD', '/wp/v2/search' );
+			$page_search->set_query_params(
+				[
+					'search'  => 'Restindexneedle',
+					'subtype' => 'page',
+				]
+			);
+			$page_response = $server->dispatch( $page_search );
+
+			self::assertSame( 0, $page_response->get_headers()['X-WP-Total'] );
+
+			$session_id                           = 'v1.' . str_repeat( 'a', 64 );
+			$_COOKIE[ self::SESSION_COOKIE_NAME ] = $session_id;
+			$_COOKIE[ self::COOKIE_NAME ]         = $this->create_clearance_cookie( str_repeat( 'b', 64 ), $session_id, $post_scope, time() + 300 );
+			$cleared_response                     = $server->dispatch( $search );
+
+			self::assertSame( 2, $cleared_response->get_headers()['X-WP-Total'] );
+		} finally {
+			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Restore the native REST registry.
+			$GLOBALS['wp_rest_server'] = $previous_server;
+		}
+	}
+
+	/**
+	 * Broad REST searches inspect every batch without rejecting the request.
+	 *
+	 * @return void
+	 */
+	public function test_rest_search_filters_candidates_beyond_first_batch(): void {
+		$protected_post = $this->factory()->post->create( [ 'post_status' => 'publish' ] );
+		$public_post    = $this->factory()->post->create( [ 'post_status' => 'publish' ] );
+		$this->configure_protected_urls( get_permalink( $protected_post ) );
+		$_SERVER['REQUEST_URI'] = '/wp-json/wp/v2/search';
+		$subject                = new ProtectContent();
+		$subject->init();
+		$request = new WP_REST_Request( 'GET', '/wp/v2/search' );
+		$args    = [
+			'post_type'      => 'post',
+			'post_status'    => 'publish',
+			'posts_per_page' => 10,
+		];
+		$offsets = [];
+		$pretend = static function ( $posts, WP_Query $query ) use ( &$offsets, $protected_post, $public_post ) {
+			if ( 'ids' === $query->get( 'fields' ) ) {
+				self::assertSame( 500, $query->get( 'posts_per_page' ) );
+				$offset    = (int) $query->get( 'offset' );
+				$offsets[] = $offset;
+
+				return 1000 === $offset ? [ $protected_post ] : array_fill( 0, 500, $public_post );
+			}
+
+			return $posts;
+		};
+
+		add_filter( 'posts_pre_query', $pretend, 10, 2 );
+
+		try {
+			$result = $subject->protect_rest_query( $args, $request );
+
+			self::assertSame( [ 0, 500, 1000 ], $offsets );
+			self::assertSame( [ $protected_post ], $result['post__not_in'] );
+			self::assertSame( 10, $result['posts_per_page'] );
+			$response = new WP_REST_Response( [] );
+			self::assertSame( $response, $subject->protect_rest_response( $response, [], $request ) );
+		} finally {
+			remove_filter( 'posts_pre_query', $pretend );
+		}
+
+		$included     = new WP_REST_Request( 'GET', '/wp/v2/search' );
+		$included_ids = array_merge( array_fill( 0, 1000, $public_post ), [ $protected_post ] );
+		$result       = $subject->protect_rest_query( [ 'post__in' => $included_ids ], $included );
+
+		self::assertSame( array_fill( 0, 1000, $public_post ), array_values( $result['post__in'] ) );
+	}
 
 	/**
 	 * Tear down.
@@ -71,7 +361,7 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 
 		self::assertFalse( has_action( 'template_redirect', [ $subject, 'protect_content' ] ) );
 
-		// The feature is activated, but the request uri is not in the list.
+		// The final WordPress route can be protected even when the raw URI is not.
 		update_option(
 			'hcaptcha_settings',
 			[
@@ -85,7 +375,7 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 
 		$subject->init();
 
-		self::assertFalse( has_action( 'template_redirect', [ $subject, 'protect_content' ] ) );
+		self::assertSame( -PHP_INT_MAX, has_action( 'template_redirect', [ $subject, 'protect_content' ] ) );
 
 		// The request uri is in the list.
 		update_option(
@@ -149,6 +439,112 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Configured expressions and literal URLs select the intended clearance scope.
+	 *
+	 * @dataProvider dp_test_init_matches_url_rules
+	 *
+	 * @param string $rules Rules separated by newlines.
+	 * @param string $uri   Request URI.
+	 * @param string $scope Expected matching rule.
+	 */
+	public function test_init_matches_url_rules( string $rules, string $uri, string $scope ): void {
+		update_option(
+			'hcaptcha_settings',
+			[
+				'protect_content' => [ 'on' ],
+				'protected_urls'  => $rules,
+			]
+		);
+		hcaptcha()->init_hooks();
+		$_SERVER['REQUEST_URI'] = $uri;
+		$subject                = new ProtectContent();
+		$subject->init();
+
+		self::assertSame( $scope, $this->get_protected_property( $subject, 'resource_scope' ) );
+		self::assertSame( -PHP_INT_MAX, has_action( 'template_redirect', [ $subject, 'protect_content' ] ) );
+	}
+
+	/**
+	 * URL rules retain literal compatibility and regular expression semantics.
+	 *
+	 * @return array
+	 */
+	public function dp_test_init_matches_url_rules(): array {
+		$expression = '/private/(members|reports)/[0-9]+';
+		$limited    = '(*NO_AUTO_POSSESS)(*LIMIT_MATCH=10)https?://.*/(a+)+$';
+		$preflight  = '(*NO_START_OPT)(*LIMIT_MATCH=1)(?:/private/.*|(?:a?)*)';
+
+		return [
+			'wildcard'          => [ '/private/.*', '/private/welcome', '/private/.*' ],
+			'alternation'       => [ $expression, '/private/reports/42', $expression ],
+			'nonmatch'          => [ $expression, '/public/welcome', '' ],
+			'case variation'    => [ '/private/.*', '/PRIVATE/welcome', '/private/.*' ],
+			'encoded path'      => [ '/private/.*', '/%70rivate/welcome', '/private/.*' ],
+			'encoded literal'   => [ '/private/%61ccount', '/private/%61ccount', '/private/%61ccount' ],
+			'decoded literal'   => [ '/private/%61ccount', '/private/account', '/private/%61ccount' ],
+			'literal query'     => [ '/private/file.php?download=1', '/private/file.php?download=1', '/private/file.php?download=1' ],
+			'absolute URL'      => [ home_url( '/private/.*' ), '/private/welcome', home_url( '/private/.*' ) ],
+			'delimiter'         => [ '/private/!.*', '/private/!welcome', '/private/!.*' ],
+			'escaped delimiter' => [ '/private/\!.*', '/private/!welcome', '/private/\!.*' ],
+			'delimiter choice'  => [ '/private/[~#!%@;]+', '/private/~', '/private/[~#!%@;]+' ],
+			'invalid literal'   => [ '/private/[', '/private/[', '/private/[' ],
+			'invalid nonmatch'  => [ '/private/[', '/public/welcome', '' ],
+			'longest scope'     => [ "/private/.*\n/private/reports/[0-9]+", '/private/reports/42', '/private/reports/[0-9]+' ],
+			'CRLF whitespace'   => [ "\r\n /private/.* \r\n", '/private/welcome', '/private/.*' ],
+			'empty list'        => [ "\r\n \t", '/public/welcome', '/' ],
+			'execution error'   => [ $limited, '/' . str_repeat( 'a', 200 ) . 'X', $limited ],
+			'preflight error'   => [ $preflight, '/private/welcome', $preflight ],
+		];
+	}
+
+	/**
+	 * Named regex groups survive the actual settings sanitizer and textarea render.
+	 *
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_named_group_survives_settings_round_trip(): void {
+		$rule     = '/private/(?<id>[0-9]+)';
+		$text     = $rule . "\n</textarea><script>alert(1)</script>";
+		$settings = new Advanced();
+		$value    = $settings->sanitize_option_callback(
+			[
+				'protect_content' => [ 'on' ],
+				'protected_urls'  => $text,
+			]
+		);
+
+		self::assertSame( $text, $value['protected_urls'] );
+		update_option( 'hcaptcha_settings', $value );
+		hcaptcha()->init_hooks();
+		$settings = new Advanced();
+		$method   = $this->set_method_accessibility( $settings, 'print_textarea_field' );
+
+		ob_start();
+		$method->invoke(
+			$settings,
+			[
+				'field_id'      => 'protected_urls',
+				'placeholder'   => '',
+				'disabled'      => false,
+				'preserve_text' => true,
+			]
+		);
+		$html = ob_get_clean();
+		$method->setAccessible( false );
+
+		self::assertStringContainsString( esc_textarea( $text ), $html );
+		self::assertStringNotContainsString( '<id>', $html );
+		self::assertStringNotContainsString( '<script>', $html );
+		self::assertSame( 1, substr_count( $html, '</textarea>' ) );
+		$_SERVER['REQUEST_URI'] = '/private/42';
+		$subject                = new ProtectContent();
+		$subject->init();
+
+		self::assertSame( $rule, $this->get_protected_property( $subject, 'resource_scope' ) );
+		self::assertSame( -PHP_INT_MAX, has_action( 'template_redirect', [ $subject, 'protect_content' ] ) );
+	}
+
+	/**
 	 * Test normalize_url() with a protocol-relative request URI.
 	 *
 	 * @return void
@@ -159,11 +555,250 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 		$method  = $this->set_method_accessibility( $subject, 'normalize_url' );
 
 		self::assertSame(
-			home_url( '/anything?foo=bar' ),
+			untrailingslashit( home_url() ) . '//attacker.example/anything?foo=bar',
 			$method->invoke( $subject, '//attacker.example/anything?foo=bar' )
 		);
 
 		$method->setAccessible( false );
+	}
+
+	/**
+	 * A leading double slash stays a path on the site, not another origin.
+	 *
+	 * @return void
+	 */
+	public function test_leading_double_slash_is_protected_on_site_origin(): void {
+		$this->configure_protected_urls( '/private' );
+		$_SERVER['REQUEST_URI'] = '//attacker.example/private';
+		$subject                = new ProtectContent();
+		$subject->init();
+
+		self::assertSame( '/private', $this->get_protected_property( $subject, 'resource_scope' ) );
+		self::assertSame(
+			untrailingslashit( home_url() ) . '//attacker.example/private',
+			$this->get_protected_property( $subject, 'request_uri' )
+		);
+		remove_action( 'template_redirect', [ $subject, 'protect_content' ], -PHP_INT_MAX );
+	}
+
+	/**
+	 * A plain page selector is challenged when WordPress resolves a protected page.
+	 *
+	 * @return void
+	 */
+	public function test_resolved_protected_page_challenges_unprotected_raw_uri(): void {
+		$this->with_queried_page(
+			'private-page',
+			function ( int $page_id ): void {
+				$this->configure_protected_urls( '/private-page' );
+				$_SERVER['REQUEST_URI']    = '/?page_id=' . $page_id;
+				$_SERVER['REQUEST_METHOD'] = 'GET';
+
+				$subject = Mockery::mock( ProtectContent::class )->makePartial();
+				$subject->shouldAllowMockingProtectedMethods();
+				$subject->shouldReceive( 'is_valid_cookie' )->once()->andReturnFalse();
+				$subject->shouldReceive( 'ensure_session_cookie' )->once();
+				$subject->shouldReceive( 'show_protection_page' )->once();
+				$subject->shouldNotReceive( 'verify' );
+				$subject->init();
+
+				self::assertSame( '', $this->get_protected_property( $subject, 'resource_scope' ) );
+				$subject->protect_content();
+				self::assertSame( '/private-page', $this->get_protected_property( $subject, 'resource_scope' ) );
+				self::assertSame( get_permalink( $page_id ), $this->get_protected_property( $subject, 'request_uri' ) );
+				remove_action( 'template_redirect', [ $subject, 'protect_content' ], -PHP_INT_MAX );
+			}
+		);
+	}
+
+	/**
+	 * The routed page restores a protected scope when the direct scope is empty.
+	 */
+	public function test_resolved_page_restores_empty_direct_scope(): void {
+		$this->with_queried_page(
+			'private-page',
+			function (): void {
+				$this->configure_protected_urls( '/private-page' );
+				$_SERVER['REQUEST_URI'] = '/private-page/';
+				$subject                = new ProtectContent();
+				$subject->init();
+				$this->set_protected_property( $subject, 'resource_scope', '' );
+				$method = $this->set_method_accessibility( $subject, 'resolve_resource_scope' );
+				$method->invoke( $subject );
+
+				self::assertSame( '/private-page', $this->get_protected_property( $subject, 'resource_scope' ) );
+			}
+		);
+	}
+
+	/**
+	 * Rules containing every available regex delimiter cannot become expressions.
+	 */
+	public function test_url_rule_with_no_available_delimiter(): void {
+		$subject = new ProtectContent();
+		$method  = $this->set_method_accessibility( $subject, 'matches_protected_url' );
+		$rule    = '~#!%@;' . "\x01";
+
+		self::assertFalse( $method->invoke( $subject, $rule, '/public-page' ) );
+	}
+
+	/**
+	 * A clearance for one page does not unlock a POST to another protected page.
+	 *
+	 * @return void
+	 */
+	public function test_resolved_post_rejects_clearance_from_another_scope(): void {
+		$this->with_queried_page(
+			'private-page',
+			function ( int $page_id ): void {
+				$this->factory()->post->create(
+					[
+						'post_type'   => 'page',
+						'post_status' => 'publish',
+						'post_name'   => 'members-page',
+					]
+				);
+				$this->configure_protected_urls( "/members-page\n/private-page" );
+
+				$session_id                           = 'v1.' . str_repeat( 'a', 64 );
+				$_COOKIE[ self::SESSION_COOKIE_NAME ] = $session_id;
+				$_COOKIE[ self::COOKIE_NAME ]         = $this->create_clearance_cookie(
+					str_repeat( 'b', 64 ),
+					$session_id,
+					'/members-page',
+					time() + 300
+				);
+				$_SERVER['REQUEST_URI']               = '/?page_id=' . $page_id;
+				$_SERVER['REQUEST_METHOD']            = 'POST';
+
+				$subject = Mockery::mock( ProtectContent::class )->makePartial();
+				$subject->shouldAllowMockingProtectedMethods();
+				$subject->shouldReceive( 'ensure_session_cookie' )->once();
+				$subject->shouldReceive( 'verify' )->once()->andReturn( 'Challenge required.' );
+				$subject->shouldReceive( 'show_protection_page' )->once();
+				$subject->init();
+
+				$this->set_protected_property( $subject, 'resource_scope', '/members-page' );
+				$subject->shouldAllowMockingProtectedMethods();
+				self::assertTrue( $subject->is_valid_cookie() );
+				$this->set_protected_property( $subject, 'resource_scope', '' );
+
+				$subject->protect_content();
+				self::assertSame( '/private-page', $this->get_protected_property( $subject, 'resource_scope' ) );
+				$subject->shouldAllowMockingProtectedMethods();
+				self::assertFalse( $subject->is_valid_cookie() );
+				self::assertSame( 'Challenge required.', $this->get_protected_property( $subject, 'error_message' ) );
+				self::assertSame( get_permalink( $page_id ), $this->get_protected_property( $subject, 'request_uri' ) );
+				remove_action( 'template_redirect', [ $subject, 'protect_content' ], -PHP_INT_MAX );
+			}
+		);
+	}
+
+	/**
+	 * A resolved public page without a matching rule is not challenged.
+	 *
+	 * @return void
+	 */
+	public function test_resolved_unprotected_page_is_not_challenged(): void {
+		$this->with_queried_page(
+			'public-page',
+			function ( int $page_id ): void {
+				$this->configure_protected_urls( '/private-page' );
+				$_SERVER['REQUEST_URI'] = '/?page_id=' . $page_id;
+
+				$subject = Mockery::mock( ProtectContent::class )->makePartial();
+				$subject->shouldAllowMockingProtectedMethods();
+				$subject->shouldNotReceive( 'is_valid_cookie' );
+				$subject->shouldNotReceive( 'ensure_session_cookie' );
+				$subject->shouldNotReceive( 'show_protection_page' );
+				$subject->init();
+				$subject->protect_content();
+
+				self::assertSame( '', $this->get_protected_property( $subject, 'resource_scope' ) );
+				remove_action( 'template_redirect', [ $subject, 'protect_content' ], -PHP_INT_MAX );
+			}
+		);
+	}
+
+	/**
+	 * A query-specific direct rule remains distinct from the resolved permalink.
+	 *
+	 * @return void
+	 */
+	public function test_query_specific_direct_rule_survives_resolved_page(): void {
+		$this->with_queried_page(
+			'reports',
+			function (): void {
+				$this->configure_protected_urls( '/reports/?download=1' );
+				$_SERVER['REQUEST_URI'] = '/reports/?download=1';
+
+				$subject = Mockery::mock( ProtectContent::class )->makePartial();
+				$subject->shouldAllowMockingProtectedMethods();
+				$subject->shouldReceive( 'is_valid_cookie' )->once()->andReturnTrue();
+				$subject->shouldNotReceive( 'show_protection_page' );
+				$subject->init();
+				$subject->protect_content();
+
+				self::assertSame( '/reports/?download=1', $this->get_protected_property( $subject, 'resource_scope' ) );
+				self::assertSame(
+					home_url( '/reports/?download=1' ),
+					$this->get_protected_property( $subject, 'request_uri' )
+				);
+
+				$_SERVER['REQUEST_URI'] = '/reports/';
+				$plain_subject          = Mockery::mock( ProtectContent::class )->makePartial();
+				$plain_subject->shouldAllowMockingProtectedMethods();
+				$plain_subject->shouldNotReceive( 'is_valid_cookie' );
+				$plain_subject->shouldNotReceive( 'show_protection_page' );
+				$plain_subject->init();
+				$plain_subject->protect_content();
+
+				self::assertSame( '', $this->get_protected_property( $plain_subject, 'resource_scope' ) );
+				remove_action( 'template_redirect', [ $subject, 'protect_content' ], -PHP_INT_MAX );
+				remove_action( 'template_redirect', [ $plain_subject, 'protect_content' ], -PHP_INT_MAX );
+			}
+		);
+	}
+
+	/**
+	 * A rule appearing only in a query value cannot reuse another page's clearance.
+	 *
+	 * @return void
+	 */
+	public function test_query_value_cannot_switch_resolved_page_clearance_scope(): void {
+		$this->with_queried_page(
+			'private-page',
+			function (): void {
+				$this->configure_protected_urls( "/private-page\n/members-page-long" );
+
+				$session_id                           = 'v1.' . str_repeat( 'a', 64 );
+				$_COOKIE[ self::SESSION_COOKIE_NAME ] = $session_id;
+				$_COOKIE[ self::COOKIE_NAME ]         = $this->create_clearance_cookie(
+					str_repeat( 'b', 64 ),
+					$session_id,
+					'/members-page-long',
+					time() + 300
+				);
+
+				$_SERVER['REQUEST_URI']    = '/private-page/?next=/members-page-long';
+				$_SERVER['REQUEST_METHOD'] = 'GET';
+
+				$subject = Mockery::mock( ProtectContent::class )->makePartial();
+				$subject->shouldAllowMockingProtectedMethods();
+				$subject->shouldReceive( 'ensure_session_cookie' )->once();
+				$subject->shouldReceive( 'show_protection_page' )->once();
+				$subject->init();
+
+				self::assertSame( '/members-page-long', $this->get_protected_property( $subject, 'resource_scope' ) );
+				$subject->shouldAllowMockingProtectedMethods();
+				self::assertTrue( $subject->is_valid_cookie() );
+				$subject->protect_content();
+				self::assertSame( "/private-page\n/members-page-long", $this->get_protected_property( $subject, 'resource_scope' ) );
+				$subject->shouldAllowMockingProtectedMethods();
+				self::assertFalse( $subject->is_valid_cookie() );
+				remove_action( 'template_redirect', [ $subject, 'protect_content' ], -PHP_INT_MAX );
+			}
+		);
 	}
 
 	/**
@@ -178,6 +813,7 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 		$subject = Mockery::mock( ProtectContent::class )->makePartial();
 
 		$subject->shouldAllowMockingProtectedMethods();
+		$this->set_protected_property( $subject, 'resource_scope', '/protected-content' );
 		$subject->shouldReceive( 'is_valid_cookie' )->andReturnUsing(
 			static function () use ( &$is_valid_cookie ) {
 				return $is_valid_cookie;
@@ -233,10 +869,7 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_verify( bool $verified ): void {
-		$action = 'hcaptcha_protect_content';
-		$nonce  = 'hcaptcha_protect_content_nonce';
-
-		$this->prepare_verify_post( $nonce, $action, $verified );
+		$this->prepare_content_verification( $verified );
 
 		$subject = Mockery::mock( ProtectContent::class )->makePartial();
 
@@ -295,7 +928,7 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_verify_requires_preexisting_session_cookie(): void {
-		$this->prepare_verify_post( 'hcaptcha_protect_content_nonce', 'hcaptcha_protect_content', true );
+		$this->prepare_content_verification();
 
 		$subject = Mockery::mock( ProtectContent::class )->makePartial();
 
@@ -368,6 +1001,7 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 		// Malformed and legacy unbound cookies fail closed.
 		$_COOKIE[ self::COOKIE_NAME ] = 'not-a-clearance';
 
+		$subject->shouldAllowMockingProtectedMethods();
 		self::assertFalse( $subject->is_valid_cookie() );
 
 		$time = time();
@@ -375,11 +1009,13 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 
 		$_COOKIE[ self::COOKIE_NAME ] = $time . '|' . wp_hash( $time );
 
+		$subject->shouldAllowMockingProtectedMethods();
 		self::assertFalse( $subject->is_valid_cookie() );
 
 		$_COOKIE[ self::COOKIE_NAME ]         = [ 'v2.invalid' ];
 		$_COOKIE[ self::SESSION_COOKIE_NAME ] = 'v1.' . str_repeat( 'a', 64 );
 
+		$subject->shouldAllowMockingProtectedMethods();
 		self::assertFalse( $subject->is_valid_cookie() );
 
 		// A valid, unexpired token works in its bound session and scope.
@@ -391,6 +1027,10 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 		$_COOKIE[ self::SESSION_COOKIE_NAME ] = $session_id;
 
 		self::assertTrue( $subject->is_valid_cookie() );
+
+		// A structurally invalid token is rejected before its signature is checked.
+		$_COOKIE[ self::COOKIE_NAME ] = str_replace( $token, str_repeat( 'g', 64 ), $cookie );
+		self::assertFalse( $subject->is_valid_cookie() );
 
 		// A well-formed but tampered token fails the stateless integrity check.
 		$_COOKIE[ self::COOKIE_NAME ] = str_replace( $token, str_repeat( 'd', 64 ), $cookie );
@@ -419,6 +1059,21 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Failure to obtain entropy must not produce a clearance token.
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 * @group process-isolation-php74
+	 */
+	public function test_generate_token_fails_closed_when_entropy_fails(): void {
+		$subject = new ProtectContent();
+		require_once dirname( __DIR__ ) . '/Stubs/ProtectContent/random_bytes.php';
+
+		$method = $this->set_method_accessibility( $subject, 'generate_token' );
+		self::assertSame( '', $method->invoke( $subject ) );
+	}
+
+	/**
 	 * Test that copying the complete clearance response does not cross sessions.
 	 *
 	 * The session cookie is established on the earlier challenge response. A
@@ -429,7 +1084,7 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_clearance_response_cannot_be_replayed_in_another_session(): void {
-		$this->prepare_verify_post( 'hcaptcha_protect_content_nonce', 'hcaptcha_protect_content', true );
+		$this->prepare_content_verification();
 
 		$time             = time();
 		$token            = str_repeat( 'e', 64 );
@@ -455,25 +1110,30 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 
 		add_filter( 'wp_redirect', '__return_empty_string' );
 
+		$subject->shouldAllowMockingProtectedMethods();
 		self::assertSame( '', $subject->verify() );
 		self::assertSame( [ self::COOKIE_NAME => $cookie ], $response_cookies );
 
 		$_COOKIE = array_merge( $_COOKIE, $response_cookies );
 
+		$subject->shouldAllowMockingProtectedMethods();
 		self::assertTrue( $subject->is_valid_cookie() );
 
 		// Fresh client receives the complete successful clearance response.
 		$_COOKIE = $response_cookies;
 
+		$subject->shouldAllowMockingProtectedMethods();
 		self::assertFalse( $subject->is_valid_cookie() );
 
 		// Even an independently established session cannot use session A's token.
 		$_COOKIE[ self::SESSION_COOKIE_NAME ] = $session_b;
 
+		$subject->shouldAllowMockingProtectedMethods();
 		self::assertFalse( $subject->is_valid_cookie() );
 
 		$_COOKIE[ self::SESSION_COOKIE_NAME ] = $session_a;
 
+		$subject->shouldAllowMockingProtectedMethods();
 		self::assertTrue( $subject->is_valid_cookie() );
 	}
 
@@ -505,15 +1165,70 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 
 		$subject = $this->init_subject_for_uri( '/members/welcome' );
 
+		$subject->shouldAllowMockingProtectedMethods();
 		self::assertTrue( $subject->is_valid_cookie() );
 
 		$subject = $this->init_subject_for_uri( '/members/account' );
 
+		$subject->shouldAllowMockingProtectedMethods();
 		self::assertTrue( $subject->is_valid_cookie() );
 
 		$subject = $this->init_subject_for_uri( '/private/welcome' );
 
+		$subject->shouldAllowMockingProtectedMethods();
 		self::assertFalse( $subject->is_valid_cookie() );
+	}
+
+	/**
+	 * Enable content protection for the given URL rules.
+	 *
+	 * @param string $rules URL rules.
+	 *
+	 * @return void
+	 */
+	private function configure_protected_urls( string $rules ): void {
+		update_option(
+			'hcaptcha_settings',
+			[
+				'protect_content' => [ 'on' ],
+				'protected_urls'  => $rules,
+			]
+		);
+		hcaptcha()->init_hooks();
+	}
+
+	/**
+	 * Run assertions with a published page selected by the main WordPress query.
+	 *
+	 * @param string   $slug       Page slug.
+	 * @param callable $assertions Assertions to run with the selected page ID.
+	 *
+	 * @return void
+	 */
+	private function with_queried_page( string $slug, callable $assertions ): void {
+		$old_structure = (string) get_option( 'permalink_structure' );
+		$old_query     = $GLOBALS['wp_query'] ?? null;
+
+		try {
+			$this->set_permalink_structure( '/%postname%/' );
+			$page_id = $this->factory()->post->create(
+				[
+					'post_type'   => 'page',
+					'post_status' => 'publish',
+					'post_name'   => $slug,
+				]
+			);
+			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+			$GLOBALS['wp_query'] = new WP_Query( [ 'page_id' => $page_id ] );
+
+			self::assertTrue( is_singular( 'page' ) );
+			self::assertSame( $page_id, get_queried_object_id() );
+			$assertions( $page_id );
+		} finally {
+			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+			$GLOBALS['wp_query'] = $old_query;
+			$this->set_permalink_structure( $old_structure );
+		}
 	}
 
 	/**
@@ -527,7 +1242,7 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 	 * @return string
 	 */
 	private function create_clearance_cookie( string $token, string $session_id, string $scope, int $expires ): string {
-		$key     = wp_salt( 'auth' );
+		$key     = wp_salt();
 		$payload = implode(
 			'.',
 			[
@@ -547,7 +1262,7 @@ class ProtectContentTest extends HCaptchaWPTestCase {
 	 *
 	 * @param string $uri Request URI.
 	 *
-	 * @return ProtectContent
+	 * @return ProtectContent|Mockery\MockInterface
 	 */
 	private function init_subject_for_uri( string $uri ): ProtectContent {
 		$_SERVER['REQUEST_URI'] = $uri;
@@ -716,6 +1431,22 @@ HTML;
 		$subject->show_protection_page();
 
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Prepare a submission from the content protection renderer.
+	 *
+	 * @param bool $verified Remote challenge result.
+	 */
+	private function prepare_content_verification( bool $verified = true ): void {
+		$this->prepare_verify_post( 'hcaptcha_protect_content_nonce', 'hcaptcha_protect_content', $verified );
+
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ hcaptcha()->settings()->get_plugin_name() ],
+				'form_id' => 'protect',
+			]
+		);
 	}
 
 	/**

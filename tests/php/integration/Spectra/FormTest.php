@@ -12,11 +12,14 @@
 
 namespace HCaptcha\Tests\Integration\Spectra;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Spectra\Form;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
 use ReflectionException;
+use ReflectionMethod;
+use RuntimeException;
 use UAGB_Forms;
 use WP_Block;
 use tad\FunctionMocker\FunctionMocker;
@@ -771,5 +774,387 @@ HTML;
 </div>
 <!-- /wp:uagb/forms -->
 HTML;
+	}
+	/**
+	 * Apply email policy to all stored email blocks despite localized labels.
+	 *
+	 * @param bool $blocked Whether the trusted email is disposable.
+	 * @dataProvider dp_sec063_email_policy
+	 */
+	public function test_sec063_typed_email_policy( bool $blocked ): void {
+		$this->prepare_verify_request( 'sec063-challenge' );
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		set_transient( 'hcaptcha_disposable_email_blocklist', [ 'sec063-disposable.test' => true ] );
+		$post_id                               = $this->factory()->post->create(
+			[ 'post_content' => '<!-- wp:uagb/forms {"block_id":"sec063"} --><!-- wp:uagb/forms-email {"block_id":"one"} --><div class="uagb-forms-email-label" id="one">Payment contact</div><input type="email" name="one" /><!-- /wp:uagb/forms-email --><!-- wp:uagb/forms-email {"block_id":"two"} --><div class="uagb-forms-email-label" id="two">Другой адрес</div><input type="email" name="two" /><!-- /wp:uagb/forms-email --><!-- wp:uagb/forms-name {"block_id":"three"} --><div class="uagb-forms-name-label" id="three">email</div><input type="text" name="three" /><!-- /wp:uagb/forms-name --><!-- /wp:uagb/forms -->' ]
+		);
+		$_POST['post_id']                      = $post_id;
+		$_POST['block_id']                     = 'sec063';
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = $this->get_widget_id( 'sec063' );
+		$data                                  = [
+			'Payment contact' => $blocked ? 'person@sec063-disposable.test' : 'person@example.com',
+			'Другой адрес'    => 'reader@example.com',
+			'email'           => 'spoof@sec063-disposable.test',
+		];
+		$subject                               = new Form();
+		$entry                                 = $this->set_method_accessibility( $subject, 'get_entry' )->invoke( $subject, $data );
+
+		self::assertSame( $blocked ? 'Please use a permanent email address.' : null, API::verify_request( null, $entry ) );
+	}
+	/**
+	 * Exercise both policy rejection and permanent address acceptance.
+	 *
+	 * @return array
+	 */
+	public function dp_sec063_email_policy(): array {
+		return [
+			'disposable' => [ true ],
+			'permanent'  => [ false ],
+		];
+	}
+
+	/**
+	 * Compare actual AJAX email policy with the native sender's accepted address.
+	 *
+	 * @param string $raw_email Posted native email input.
+	 * @param string $email     Native normalized address.
+	 * @param bool   $blocked   Whether native address is disposable.
+	 * @dataProvider dp_sec063_native_email_normalization
+	 * @return void
+	 */
+	public function test_sec063_native_email_normalization( string $raw_email, string $email, bool $blocked ): void {
+		$this->prepare_verify_post( 'hcaptcha_spectra_form_nonce', 'hcaptcha_spectra_form' );
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		self::assertTrue( hcaptcha()->settings()->is_on( 'disposable_email' ) );
+		set_transient( 'hcaptcha_disposable_email_blocklist', [ 'sec063-disposable.test' => true ] );
+		$post_id                               = $this->factory()->post->create(
+			[ 'post_content' => '<!-- wp:uagb/forms {"block_id":"sec063-normalization"} --><!-- wp:uagb/forms-email {"block_id":"one"} --><div class="uagb-forms-email-label" id="one">Email</div><input type="email" name="one" /><!-- /wp:uagb/forms-email --><!-- /wp:uagb/forms -->' ]
+		);
+		$_POST['post_id']                      = $post_id;
+		$_POST['block_id']                     = 'sec063-normalization';
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = $this->get_widget_id( 'sec063-normalization' );
+		$data                                  = [
+			'Email'                       => $raw_email,
+			// phpcs:disable WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput -- Preserve transport just created by the fixture helper.
+			'h-captcha-response'          => $_POST['h-captcha-response'],
+			'hcaptcha_spectra_form_nonce' => $_POST['hcaptcha_spectra_form_nonce'],
+			HCaptcha::HCAPTCHA_WIDGET_ID  => $_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ],
+			// phpcs:enable WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput
+		];
+		$native_headers = [];
+		$mail_capture   = static function ( $pre, array $args ) use ( &$native_headers ) {
+			$native_headers = $args['headers'];
+			throw new RuntimeException( 'sec063-native-spectra-before-mail' );
+		};
+		add_filter( 'pre_wp_mail', $mail_capture, PHP_INT_MAX, 2 );
+		try {
+			UAGB_Forms::get_instance()->send_email( '', $data, [ 'afterSubmitToEmail' => 'recipient@example.com' ] );
+			self::fail( 'Native mail boundary was not reached.' );
+		} catch ( RuntimeException $error ) {
+			self::assertSame( 'sec063-native-spectra-before-mail', $error->getMessage() );
+		} finally {
+			remove_filter( 'pre_wp_mail', $mail_capture, PHP_INT_MAX );
+		}
+		self::assertContains( 'From: Email <' . $email . '>', $native_headers );
+
+		$api_result     = 'verification did not run';
+		$policy_emails  = [];
+		$result_capture = static function ( $result ) use ( &$api_result ) {
+			$api_result = $result;
+			return $result;
+		};
+		$email_capture  = static function ( $disposable, $checked ) use ( &$policy_emails ) {
+			$policy_emails[] = $checked;
+			return $disposable;
+		};
+		add_filter( 'hcap_verify_request', $result_capture, PHP_INT_MAX );
+		add_filter( 'hcap_is_disposable_email', $email_capture, PHP_INT_MAX, 2 );
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter(
+			'wp_die_ajax_handler',
+			static function () {
+				return static function () {};
+			}
+		);
+		$_POST['form_data'] = wp_slash( wp_json_encode( $data ) );
+		$subject            = new Form();
+		ob_start();
+		try {
+			$subject->process_ajax();
+		} finally {
+			ob_end_clean();
+			remove_filter( 'hcap_verify_request', $result_capture, PHP_INT_MAX );
+			remove_filter( 'hcap_is_disposable_email', $email_capture, PHP_INT_MAX );
+		}
+		self::assertSame( $blocked ? 'Please use a permanent email address.' : null, $api_result );
+		self::assertSame( [ $email ], $policy_emails );
+	}
+
+	/**
+	 * Native HTML insertion normalization and ordinary address controls.
+	 *
+	 * @return array
+	 */
+	public function dp_sec063_native_email_normalization(): array {
+		return [
+			'disposable with HTML insertion' => [ 'person@sec063-disposab<l>e.test', 'person@sec063-disposable.test', true ],
+			'permanent with HTML insertion'  => [ 'reader@examp<l>e.com', 'reader@example.com', false ],
+			'ordinary disposable'            => [ 'person@sec063-disposable.test', 'person@sec063-disposable.test', true ],
+			'ordinary permanent'             => [ 'reader@example.com', 'reader@example.com', false ],
+		];
+	}
+	/**
+	 * Apply email policy in native reusable, widget and active-theme template locations.
+	 *
+	 * @param string $location Native form location.
+	 * @param bool   $blocked Whether the submitted address is disposable.
+	 * @dataProvider dp_sec063_native_locations
+	 */
+	public function test_sec063_native_location_policy( string $location, bool $blocked ): void {
+		$this->prepare_verify_request( 'sec063-challenge' );
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		set_transient( 'hcaptcha_disposable_email_blocklist', [ 'sec063-disposable.test' => true ] );
+		$content = '<!-- wp:uagb/forms {"block_id":"sec063-location"} --><!-- wp:uagb/forms-email {"block_id":"one"} --><div class="uagb-forms-email-label" id="one">Адрес</div><input type="email" name="one" /><!-- /wp:uagb/forms-email --><!-- wp:uagb/forms-name {"block_id":"two"} --><div class="uagb-forms-name-label" id="two">email</div><input type="text" name="two" /><!-- /wp:uagb/forms-name --><!-- /wp:uagb/forms -->';
+		$post_id = $this->factory()->post->create();
+		if ( in_array( $location, [ 'reusable', 'reusable-cycle' ], true ) ) {
+			$reference = $this->factory()->post->create(
+				[
+					'post_type'    => 'wp_block',
+					'post_content' => $content,
+				]
+			);
+
+			if ( 'reusable-cycle' === $location ) {
+				wp_update_post(
+					[
+						'ID'           => $reference,
+						'post_content' => '<!-- wp:block {"ref":' . $reference . '} /-->' . $content,
+					]
+				);
+			}
+			wp_update_post(
+				[
+					'ID'           => $post_id,
+					'post_content' => '<!-- wp:block {"ref":' . $reference . '} /-->',
+				]
+			);
+		} elseif ( 'widget' === $location ) {
+			update_option( 'widget_block', [ 5 => [ 'content' => $content ] ] );
+		} elseif ( 'nested' === $location ) {
+			$content = str_replace(
+				[ '<!-- wp:uagb/forms-email', '<!-- /wp:uagb/forms -->' ],
+				[ '<!-- wp:group --><!-- wp:uagb/forms-email', '<!-- /wp:group --><!-- /wp:uagb/forms -->' ],
+				$content
+			);
+			wp_update_post(
+				[
+					'ID'           => $post_id,
+					'post_content' => $content,
+				]
+			);
+		} elseif ( 'template-part' === $location ) {
+			switch_theme( 'twentytwentyfive' );
+			$template_id = $this->factory()->post->create(
+				[
+					'post_type'    => 'wp_template_part',
+					'post_name'    => 'sec063-part',
+					'post_status'  => 'publish',
+					'post_content' => $content,
+				]
+			);
+			wp_set_object_terms( $template_id, get_stylesheet(), 'wp_theme' );
+			wp_update_post(
+				[
+					'ID'           => $post_id,
+					'post_content' => '<!-- wp:template-part {"slug":"sec063-part"} /-->',
+				]
+			);
+			$subject = new Form();
+			$form    = $this->set_method_accessibility( $subject, 'get_form' )->invoke(
+				$subject,
+				parse_blocks( '<!-- wp:template-part {"slug":"sec063-part"} /-->' ),
+				'sec063-location'
+			);
+			self::assertSame( 'uagb/forms', $form['blockName'] ?? '' );
+		} else {
+			switch_theme( 'twentytwentyfive' );
+			self::assertTrue( wp_is_block_theme() );
+			$template_id = $this->factory()->post->create(
+				[
+					'post_type'    => 'wp_template',
+					'post_name'    => 'sec063-email',
+					'post_status'  => 'publish',
+					'post_content' => $content,
+				]
+			);
+			wp_set_object_terms( $template_id, get_stylesheet(), 'wp_theme' );
+			// The native handler gives a matching active-theme template precedence over page content.
+			wp_update_post(
+				[
+					'ID'           => $post_id,
+					'post_content' => str_replace( 'uagb/forms-email', 'uagb/forms-name', $content ),
+				]
+			);
+		}
+		$_POST['post_id']                      = $post_id;
+		$_POST['block_id']                     = 'sec063-location';
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = $this->get_widget_id( 'sec063-location' );
+		$subject                               = new Form();
+		$entry                                 = $this->set_method_accessibility( $subject, 'get_entry' )->invoke(
+			$subject,
+			[
+				'Адрес' => $blocked ? 'person@sec063-disposable.test' : 'reader@example.com',
+				'email' => 'spoof@sec063-disposable.test',
+			]
+		);
+		self::assertSame( $blocked ? 'Please use a permanent email address.' : null, API::verify_request( null, $entry ) );
+	}
+
+	/**
+	 * Supported native form locations and block/allow controls.
+	 *
+	 * @return array
+	 */
+	public function dp_sec063_native_locations(): array {
+		return [
+			'reusable blocked'       => [ 'reusable', true ],
+			'reusable allowed'       => [ 'reusable', false ],
+			'reusable cycle blocked' => [ 'reusable-cycle', true ],
+			'reusable cycle allowed' => [ 'reusable-cycle', false ],
+			'nested blocked'         => [ 'nested', true ],
+			'nested allowed'         => [ 'nested', false ],
+			'template part blocked'  => [ 'template-part', true ],
+			'template part allowed'  => [ 'template-part', false ],
+			'widget blocked'         => [ 'widget', true ],
+			'widget allowed'         => [ 'widget', false ],
+			'template blocked'       => [ 'template', true ],
+			'template allowed'       => [ 'template', false ],
+		];
+	}
+
+	/**
+	 * Apply email policy to a stored post returned by native advanced hook rules.
+	 *
+	 * @param bool $blocked Whether the accepted address is disposable.
+	 * @dataProvider dp_sec063_email_policy
+	 */
+	public function test_sec063_advanced_hook_email_policy( bool $blocked ): void {
+		$this->prepare_verify_request( 'sec063-challenge' );
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		set_transient( 'hcaptcha_disposable_email_blocklist', [ 'sec063-disposable.test' => true ] );
+		$hook_post                             = $this->factory()->post->create(
+			[ 'post_content' => '<!-- wp:uagb/forms {"block_id":"sec063-hook"} --><!-- wp:uagb/forms-email {"block_id":"one"} --><div class="uagb-forms-email-label" id="one">Адрес</div><input type="email" name="one" /><!-- /wp:uagb/forms-email --><!-- /wp:uagb/forms -->' ]
+		);
+		$_POST['post_id']                      = $this->factory()->post->create();
+		$_POST['block_id']                     = 'sec063-hook';
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = $this->get_widget_id( 'sec063-hook' );
+		$subject                               = Mockery::mock( Form::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'get_astra_post_ids' )->once()->andReturn( [ -1, $hook_post ] );
+		$method = new ReflectionMethod( Form::class, 'get_entry' );
+		$method->setAccessible( true );
+		$entry = $method->invoke(
+			$subject,
+			[
+				'Адрес' => $blocked ? 'person@sec063-disposable.test' : 'reader@example.com',
+				'email' => 'spoof@sec063-disposable.test',
+			]
+		);
+
+		self::assertSame( $blocked ? 'Please use a permanent email address.' : null, API::verify_request( null, $entry ) );
+	}
+
+	/**
+	 * Nested forms and non-content controls cannot become submitted fields.
+	 */
+	public function test_collect_fields_skips_nested_form_and_submit_control(): void {
+		$subject = new Form();
+		$method  = $this->set_method_accessibility( $subject, 'collect_fields' );
+		$blocks  = [
+			[
+				'blockName'   => 'uagb/forms',
+				'innerBlocks' => [ [ 'blockName' => 'uagb/forms-email' ] ],
+			],
+			[ 'blockName' => 'uagb/forms-submit' ],
+		];
+
+		self::assertSame( [], $method->invoke( $subject, $blocks ) );
+	}
+
+	/**
+	 * A template outside the active theme cannot supply submitted form fields.
+	 */
+	public function test_theme_form_ignores_unassigned_template(): void {
+		switch_theme( 'twentytwentyfive' );
+		$this->factory()->post->create(
+			[
+				'post_type'    => 'wp_template',
+				'post_status'  => 'publish',
+				'post_name'    => 'hcap-other-theme',
+				'post_content' => '<!-- wp:uagb/forms {"block_id":"hcap-other-theme"} /-->',
+			]
+		);
+
+		$subject = new Form();
+		$method  = $this->set_method_accessibility( $subject, 'get_theme_form' );
+
+		self::assertSame( [], $method->invoke( $subject, 'hcap-other-theme', '' ) );
+	}
+
+	/**
+	 * A template part reference already visited does not recurse forever.
+	 */
+	public function test_template_form_skips_visited_reference(): void {
+		switch_theme( 'twentytwentyfive' );
+		$post_id = $this->factory()->post->create(
+			[
+				'post_type'    => 'wp_template_part',
+				'post_status'  => 'publish',
+				'post_name'    => 'hcap-visited-part',
+				'post_content' => '<!-- wp:uagb/forms {"block_id":"hcap-visited"} /-->',
+			]
+		);
+		wp_set_object_terms( $post_id, get_stylesheet(), 'wp_theme' );
+
+		$subject = new Form();
+		$method  = $this->set_method_accessibility( $subject, 'get_template_form' );
+
+		self::assertSame( [], $method->invoke( $subject, 'hcap-visited-part', 'hcap-visited', [ $post_id ] ) );
+	}
+
+	/**
+	 * Astra's selected hook posts are reduced to their post IDs.
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 * @group process-isolation-php74
+	 */
+	public function test_astra_post_ids_from_native_target_rules(): void {
+		if ( class_exists( 'Astra_Target_Rules_Fields' ) ) {
+			self::markTestSkipped( 'The installed Astra target rules are not replaced by a test double.' );
+		}
+
+		define( 'ASTRA_ADVANCED_HOOKS_POST_TYPE', 'astra-advanced-hook' );
+		$rules = Mockery::mock();
+		$rules->shouldReceive( 'get_posts_by_conditions' )
+			->with(
+				'astra-advanced-hook',
+				[
+					'location'  => 'ast-advanced-hook-location',
+					'exclusion' => 'ast-advanced-hook-exclusion',
+					'users'     => 'ast-advanced-hook-users',
+				]
+			)
+			->twice()
+			->andReturn( [ 42 => true ], null );
+		Mockery::mock( 'alias:Astra_Target_Rules_Fields' )
+			->shouldReceive( 'get_instance' )
+			->twice()
+			->andReturn( $rules );
+
+		$subject = new Form();
+		$method  = $this->set_method_accessibility( $subject, 'get_astra_post_ids' );
+		self::assertSame( [ 42 ], $method->invoke( $subject ) );
+		self::assertSame( [], $method->invoke( $subject ) );
 	}
 }

@@ -8,6 +8,7 @@
 namespace HCaptcha\SimpleMembership;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -62,10 +63,7 @@ class Register {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'register',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		$hcaptcha = HCaptcha::form( $args );
@@ -83,7 +81,16 @@ class Register {
 	 * @return string
 	 */
 	public function verify(): string {
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		// Match the native scalar registration email from the HTTP form.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$email = isset( $_POST['email'] ) && is_scalar( $_POST['email'] ) ? sanitize_email( wp_unslash( (string) $_POST['email'] ) ) : '';
+
+		$error_message = API::verify_post(
+			self::NONCE,
+			self::ACTION,
+			$this->get_expected_id(),
+			EntryData::with_emails( [], [ $email ] )
+		);
 
 		return (string) $error_message;
 	}
@@ -103,5 +110,17 @@ class Register {
 ';
 
 		HCaptcha::css_display( $css );
+	}
+
+	/**
+	 * Get the expected form identity.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => 'register',
+		];
 	}
 }

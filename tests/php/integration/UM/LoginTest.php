@@ -136,6 +136,29 @@ class LoginTest extends HCaptchaPluginWPTestCase {
 			10,
 			has_action( 'login_errors', [ $subject, 'mute_login_hcaptcha_notice' ] )
 		);
+		self::assertSame( 10, has_action( 'wp_login', [ $subject, 'login' ] ) );
+		self::assertSame( 10, has_action( 'wp_login_failed', [ $subject, 'login_failed' ] ) );
+	}
+
+	/**
+	 * A native failed login activates adaptive protection for UM alone.
+	 *
+	 * @return void
+	 */
+	public function test_failed_login_activates_adaptive_challenge(): void {
+		hcaptcha()->settings()->set( 'login_limit', 1 );
+		hcaptcha()->settings()->set( 'login_interval', 15 );
+
+		$subject = new Login();
+		$this->set_protected_property( $subject, 'ip', '198.51.100.222' );
+		$exceeded = $this->set_method_accessibility( $subject, 'is_login_limit_exceeded' );
+
+		self::assertFalse( $exceeded->invoke( $subject ) );
+		self::assertSame( 10, has_action( 'wp_login_failed', [ $subject, 'login_failed' ] ) );
+
+		$subject->login_failed( 'sec022-invalid-user' );
+
+		self::assertTrue( $exceeded->invoke( $subject ) );
 	}
 
 	/**

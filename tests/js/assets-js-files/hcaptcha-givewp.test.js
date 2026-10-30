@@ -1,4 +1,4 @@
-// noinspection JSUnresolvedFunction,JSUnresolvedVariable
+// noinspection JSUnresolvedFunction,JSUnresolvedVariable,HttpUrlsUsage
 
 describe( 'hCaptcha GiveWP', () => {
 	let helperMock;
@@ -119,6 +119,33 @@ describe( 'hCaptcha GiveWP', () => {
 		expect( event.detail.args[ 1 ].body ).toBe( body );
 	} );
 
+	test( 'adds hCaptcha fields to same-origin PayPal createOrder without a honeypot input', () => {
+		document.body.innerHTML = `
+			<div id="root-givewp-donation-form">
+				<input name="h-captcha-response" value="paypal-response">
+				<input name="hcaptcha-widget-id" value="paypal-widget">
+				<input name="hcaptcha_give_wp_form_nonce" value="paypal-nonce">
+				<input name="hcap_fst_token" value="paypal-fst">
+				<input name="hcap_hp_sig" value="paypal-hp-sig">
+			</div>
+		`;
+		const body = new FormData();
+		const event = fetchEvent( 'hCaptchaFetch:before', '/wp-admin/admin-ajax.php?action=give_paypal_commerce_create_order', body );
+
+		window.hCaptchaGiveWP.fetchBefore( event );
+
+		expect( body.get( 'h-captcha-response' ) ).toBe( 'paypal-response' );
+		expect( body.get( 'hcaptcha-widget-id' ) ).toBe( 'paypal-widget' );
+		expect( body.get( 'hcaptcha_give_wp_form_nonce' ) ).toBe( 'paypal-nonce' );
+		expect( body.get( 'hcap_fst_token' ) ).toBe( 'paypal-fst' );
+		expect( body.get( 'hcap_hp_sig' ) ).toBe( 'paypal-hp-sig' );
+		expect( event.detail.args[ 1 ].body ).toBe( body );
+
+		const foreignBody = new FormData();
+		window.hCaptchaGiveWP.fetchBefore( fetchEvent( 'hCaptchaFetch:before', 'https://other.example/wp-admin/admin-ajax.php?action=give_paypal_commerce_create_order', foreignBody ) );
+		expect( foreignBody.has( 'h-captcha-response' ) ).toBe( false );
+	} );
+
 	test( 'uses fetch body fallbacks when optional GiveWP inputs are missing values', () => {
 		const fakeForm = {
 			querySelector: jest.fn( ( selector ) => {
@@ -135,7 +162,7 @@ describe( 'hCaptcha GiveWP', () => {
 		window.hCaptchaGiveWP.fetchBefore( fetchEvent( 'hCaptchaFetch:before', { url: '/wp-json/givewp/v3?givewp-route=donate' }, body ) );
 
 		expect( getElementByIdSpy ).toHaveBeenCalledWith( 'root-givewp-donation-form' );
-		expect( body.get( 'h-captcha-response' ) ).toBe( 'undefined' );
+		expect( body.get( 'h-captcha-response' ) ).toBe( '' );
 		expect( body.get( 'hcap_hp_empty' ) ).toBe( '' );
 	} );
 

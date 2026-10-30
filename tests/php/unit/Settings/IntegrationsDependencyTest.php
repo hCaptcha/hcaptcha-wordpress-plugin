@@ -23,23 +23,12 @@ use WP_Mock;
  */
 class IntegrationsDependencyTest extends HCaptchaTestCase {
 	/**
-	 * Test command palette exposes only the anti-spam overview control.
+	 * Test command palette excludes the retired anti-spam overview control.
 	 */
 	public function test_command_palette_form_fields(): void {
 		$subject = Mockery::mock( Integrations::class )->makePartial();
-		$subject->shouldAllowMockingProtectedMethods();
-		$field = [
-			'type'  => 'checkbox',
-			'label' => 'Coverage',
-		];
-		$subject->shouldReceive( 'form_fields' )->once()->andReturn(
-			[
-				'show_antispam_coverage' => $field,
-				'other'                  => [ 'type' => 'text' ],
-			]
-		);
 
-		self::assertSame( [ 'show_antispam_coverage' => $field ], $subject->command_palette_form_fields() );
+		self::assertSame( [], $subject->command_palette_form_fields() );
 	}
 
 	/**

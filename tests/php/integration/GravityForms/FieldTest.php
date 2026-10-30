@@ -14,6 +14,7 @@ namespace HCaptcha\Tests\Integration\GravityForms;
 
 use GF_Field;
 use GFAPI;
+use GFForms;
 use HCaptcha\GravityForms\Field;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 
@@ -49,13 +50,15 @@ class FieldTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Set up the live Gravity Forms database schema.
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function setUp(): void {
 		parent::setUp();
 
 		// The WP test transaction rolls these options back after every test.
-		update_option( 'gf_db_version', \GFForms::$version, false );
-		update_option( 'rg_form_version', \GFForms::$version, false );
+		update_option( 'gf_db_version', GFForms::$version, false );
+		update_option( 'rg_form_version', GFForms::$version, false );
 
 		if ( ! self::$schema_ready ) {
 			gf_upgrade()->upgrade_schema();
@@ -274,6 +277,7 @@ class FieldTest extends HCaptchaPluginWPTestCase {
 	 * Test disable_duplication().
 	 *
 	 * @return void
+	 * @noinspection PhpDynamicFieldDeclarationInspection
 	 */
 	public function test_disable_duplication(): void {
 		$duplicate_field_link = '#some-link';
@@ -288,6 +292,10 @@ class FieldTest extends HCaptchaPluginWPTestCase {
 		$_POST['action'] = 'rg_add_field';
 		$_POST['field']  = '{}';
 
+		self::assertSame( $duplicate_field_link, $subject->disable_duplication( $duplicate_field_link ) );
+
+		// Invalid field JSON is treated as a field without a type.
+		$_POST['field'] = '{invalid';
 		self::assertSame( $duplicate_field_link, $subject->disable_duplication( $duplicate_field_link ) );
 
 		// Action is rg_add_field, field type is hcaptcha.
@@ -343,6 +351,7 @@ class FieldTest extends HCaptchaPluginWPTestCase {
 	 * Test enqueue_admin_script().
 	 *
 	 * @return void
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_enqueue_admin_script(): void {
 		$params = [

@@ -8,6 +8,7 @@
 namespace HCaptcha\EssentialBlocks;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use HCaptcha\Helpers\Utils;
@@ -149,14 +150,59 @@ class Form {
 	 * @return array
 	 */
 	private function get_entry( array $form_data, string $form_id ): array {
-		return [
-			'nonce_name'         => self::NONCE,
-			'nonce_action'       => self::ACTION,
-			'h-captcha-response' => $form_data['h-captcha-response'] ?? '',
-			'post_data'          => $form_data,
-			'data'               => $this->get_data( $form_data ),
-			'expected_id'        => $this->get_expected_id( $form_id ),
-		];
+		$emails = [];
+
+		foreach ( $this->get_email_fields( $form_id ) as $field_name ) {
+			$value = $form_data[ $field_name ] ?? '';
+
+			if ( is_string( $value ) ) {
+				$emails[] = sanitize_email( sanitize_text_field( $value ) );
+			}
+		}
+
+		return EntryData::with_emails(
+			[
+				'nonce_name'         => self::NONCE,
+				'nonce_action'       => self::ACTION,
+				'h-captcha-response' => $form_data['h-captcha-response'] ?? '',
+				'post_data'          => $form_data,
+				'data'               => $this->get_data( $form_data ),
+				'expected_id'        => $this->get_expected_id( $form_id ),
+			],
+			$emails
+		);
+	}
+
+	/**
+	 * Resolve email input names from native stored form settings.
+	 *
+	 * @param string $form_id Form id.
+	 *
+	 * @return string[]
+	 */
+	private function get_email_fields( string $form_id ): array {
+		if ( ! class_exists( '\EssentialBlocks\Integrations\Form' ) ) {
+			return [];
+		}
+
+		$settings = \EssentialBlocks\Integrations\Form::get_form_settings( sanitize_key( $form_id ) );
+
+		if ( ! is_object( $settings ) || ! is_serialized( $settings->fields ?? null ) ) {
+			return [];
+		}
+
+		// Native field settings contain plain objects; no other classes need instantiation.
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize
+		$fields = unserialize( $settings->fields, [ 'allowed_classes' => [ 'stdClass' ] ] );
+		$emails = [];
+
+		foreach ( (array) $fields as $name => $field ) {
+			if ( is_object( $field ) && 'email' === ( $field->type ?? '' ) ) {
+				$emails[] = (string) $name;
+			}
+		}
+
+		return $emails;
 	}
 
 	/**

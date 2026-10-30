@@ -11,6 +11,10 @@ namespace HCaptcha\WPDiscuz;
  * Class Base.
  */
 abstract class Base {
+	/**
+	 * Native reCAPTCHA options replaced by this integration.
+	 */
+	protected const RECAPTCHA_OPTIONS = [];
 
 	/**
 	 * Script handle.
@@ -52,28 +56,21 @@ abstract class Base {
 		}
 
 		$wpd_recaptcha = (array) ( $wpd_options->recaptcha ?? [] );
-		$wpd_recaptcha = array_merge(
-			$wpd_recaptcha,
-			[
-				'siteKey'       => '',
-				'showForGuests' => 0,
-				'showForUsers'  => 0,
-			]
-		);
 
-		// Block output of reCaptcha by wpDiscuz.
+		foreach ( static::RECAPTCHA_OPTIONS as $option ) {
+			$wpd_recaptcha[ $option ] = 0;
+		}
+
+		// Keep the shared site key for native surfaces not replaced by hCaptcha.
 		$wpd_options->recaptcha = $wpd_recaptcha;
 	}
 
 	/**
-	 * Dequeue reCaptcha script and enqueue the integration script.
+	 * Enqueue the integration script.
 	 *
 	 * @return void
 	 */
 	public function enqueue_scripts(): void {
-		wp_dequeue_script( 'wpdiscuz-google-recaptcha' );
-		wp_deregister_script( 'wpdiscuz-google-recaptcha' );
-
 		$min = hcap_min_suffix();
 
 		wp_enqueue_script(

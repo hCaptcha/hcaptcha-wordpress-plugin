@@ -393,6 +393,9 @@ class DisposableEmailTest extends HCaptchaTestCase {
 			'no domain'            => [ 'user@', $blocklist, false ],
 			'uppercase disposable' => [ 'TEST@MAILINATOR.COM', $blocklist, true ],
 			'mixed case'           => [ 'Test@Mailinator.Com', $blocklist, true ],
+			'quoted local at'      => [ '"local@part"@mailinator.com', $blocklist, true ],
+			'quoted subdomain'     => [ '"local@part"@sub.mailinator.com', $blocklist, true ],
+			'quoted permanent'     => [ '"local@mailinator.com"@gmail.com', $blocklist, false ],
 		];
 	}
 

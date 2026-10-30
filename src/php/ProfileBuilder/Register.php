@@ -8,6 +8,7 @@
 namespace HCaptcha\ProfileBuilder;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 
@@ -62,10 +63,7 @@ class Register {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'register',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		// Do not close this tag.
@@ -83,14 +81,18 @@ class Register {
 	 * @param string         $form_type           Form type.
 	 *
 	 * @return WP_Error|mixed
-	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $output_field_errors, array $form_fields, array $global_request, string $form_type ) {
 		if ( 'register' !== $form_type ) {
 			return $output_field_errors;
 		}
 
-		$this->error_message = API::verify_post( self::NONCE, self::ACTION );
+		$this->error_message = API::verify_post(
+			self::NONCE,
+			self::ACTION,
+			$this->get_expected_id(),
+			EntryData::with_emails( [ 'data' => EntryData::from_array( wp_unslash( $global_request ), [] ) ], [ $this->get_native_email( $form_fields, $global_request ) ] )
+		);
 
 		if ( null === $this->error_message ) {
 			return $output_field_errors;
@@ -115,5 +117,39 @@ class Register {
 		}
 
 		return $top_error_message . '<p class="wppb-error">' . $this->error_message . '</p>';
+	}
+
+	/**
+	 * Get the expected form identity.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => 'register',
+		];
+	}
+
+	/**
+	 * Get the address accepted by the native default email field.
+	 *
+	 * @param array $form_fields    Native form fields.
+	 * @param array $global_request Native request data.
+	 *
+	 * @return string
+	 */
+	private function get_native_email( array $form_fields, array $global_request ): string {
+		if (
+			! isset( $global_request['email'] ) ||
+			! is_scalar( $global_request['email'] ) ||
+			! in_array( 'Default - E-mail', array_column( $form_fields, 'field' ), true )
+		) {
+			return '';
+		}
+
+		$email = apply_filters( 'wppb_before_processing_email_from_forms', wp_unslash( (string) $global_request['email'] ) );
+
+		return is_scalar( $email ) ? sanitize_text_field( trim( (string) $email ) ) : '';
 	}
 }

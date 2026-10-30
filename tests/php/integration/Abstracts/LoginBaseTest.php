@@ -26,6 +26,24 @@ use HCaptcha\FluentForm\Form;
  * Test LoginBase class.
  */
 class LoginBaseTest extends HCaptchaWPTestCase {
+	/**
+	 * An interval beyond the bounded store lifetime disables the adaptive limit.
+	 */
+	public function test_excessive_login_interval_disables_limit(): void {
+		update_option(
+			'hcaptcha_settings',
+			[
+				'login_limit'    => 2,
+				'login_interval' => intdiv( LoginAttempts::MAX_TTL, MINUTE_IN_SECONDS ) + 1,
+			]
+		);
+		hcaptcha()->init_hooks();
+
+		$method = new ReflectionMethod( LoginBase::class, 'get_login_limit' );
+		$method->setAccessible( true );
+
+		self::assertSame( 0, $method->invoke( new WPLogin() ) );
+	}
 
 	/**
 	 * Clear the shared login state after each case.

@@ -13,6 +13,7 @@ assets/js/**/*.min.js.map
 build/
 CLAUDE-SECURITY-*/
 coverage/
+docs/security/
 docs/tasks/
 node_modules/
 vendor/

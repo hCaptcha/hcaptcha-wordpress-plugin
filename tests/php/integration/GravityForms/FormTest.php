@@ -14,6 +14,9 @@ namespace HCaptcha\Tests\Integration\GravityForms;
 
 use GF_Field;
 use GFAPI;
+use GFForms;
+use GFFormsModel;
+use GP_Field_Nested_Form;
 use HCaptcha\GravityForms\Base;
 use HCaptcha\GravityForms\Form;
 use HCaptcha\Helpers\HCaptcha;
@@ -53,13 +56,15 @@ class FormTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Set up the live Gravity Forms database schema.
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function setUp(): void {
 		parent::setUp();
 
 		// The WP test transaction rolls these options back after every test.
-		update_option( 'gf_db_version', \GFForms::$version, false );
-		update_option( 'rg_form_version', \GFForms::$version, false );
+		update_option( 'gf_db_version', GFForms::$version, false );
+		update_option( 'rg_form_version', GFForms::$version, false );
 
 		if ( ! self::$schema_ready ) {
 			gf_upgrade()->upgrade_schema();
@@ -69,7 +74,8 @@ class FormTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test rendering through the live Gravity Forms API and frontend renderer.
-	 */
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection*/
 	public function test_live_form_render(): void {
 		$api_file = wp_normalize_path( ( new ReflectionClass( GFAPI::class ) )->getFileName() );
 
@@ -345,6 +351,73 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
+	 * A later optional email cannot mask a blocked native email field.
+	 *
+	 * @param string $first   First email value.
+	 * @param string $second  Optional second email value.
+	 * @param bool   $blocked Whether the form is rejected.
+	 * @dataProvider dp_sec060_email_policy
+	 */
+	public function test_sec060_email_policy( string $first, string $second, bool $blocked ): void {
+		$form             = $this->create_verification_form();
+		$form_id          = (int) $form['id'];
+		$form['fields'][] = $this->get_gf_field(
+			[
+				'id'         => 5,
+				'type'       => 'email',
+				'label'      => 'Optional email',
+				'isRequired' => false,
+			]
+		);
+		GFAPI::update_form( $form );
+		$form                  = GFAPI::get_form( $form_id );
+		$_POST['input_3_3']    = 'John';
+		$_POST['input_3_6']    = 'Doe';
+		$_POST['input_4']      = $first;
+		$_POST['input_5']      = $second;
+		$_POST['gform_submit'] = $form_id;
+		$_POST[ "gform_target_page_number_$form_id" ] = 0;
+		$_POST[ "gform_source_page_number_$form_id" ] = 0;
+		$this->prepare_verify_post( Base::NONCE, Base::ACTION );
+		$this->prepare_widget_id( $form_id );
+		hcaptcha()->init_hooks();
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		hcaptcha()->settings()->set( 'gravity_status', [ 'form' ] );
+		self::assertTrue( hcaptcha()->settings()->is( 'gravity_status', 'form' ) );
+		set_transient( 'hcaptcha_disposable_email_blocklist', [ 'sec060-disposable.test' => true ] );
+
+		$subject = new Form();
+		self::assertTrue( $this->get_protected_property( $subject, 'mode_auto' ) );
+		self::assertTrue( $this->set_method_accessibility( $subject, 'should_verify' )->invoke( $subject ) );
+		$entry = $this->set_method_accessibility( $subject, 'get_entry' )->invoke( $subject, $form['fields'], $form_id );
+		self::assertSame( $first, $entry['data']['email'] );
+		self::assertTrue( HCaptcha::is_protection_enabled( $entry['expected_id'] ) );
+
+		$result = $subject->verify(
+			[
+				'is_valid'               => true,
+				'form'                   => $form,
+				'failed_validation_page' => 0,
+			],
+			'form-submit'
+		);
+		self::assertSame( ! $blocked, $result['is_valid'] );
+	}
+
+	/**
+	 * First, later and empty-email controls.
+	 *
+	 * @return array
+	 */
+	public function dp_sec060_email_policy(): array {
+		return [
+			'blocked first, allowed later' => [ 'reader@sec060-disposable.test', 'reader@example.com', true ],
+			'blocked first, empty later'   => [ 'reader@sec060-disposable.test', '', true ],
+			'permanent first'              => [ 'reader@example.com', '', false ],
+		];
+	}
+
+	/**
 	 * Test verify() when not verified.
 	 *
 	 * @param string $mode Mode.
@@ -519,6 +592,87 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		unset( $_POST[ $target_page_name ] );
 
 		self::assertSame( $validation_result, $subject->verify( $validation_result, $context ) );
+	}
+
+	/**
+	 * Embed mode leaves a form without a CAPTCHA field unverified.
+	 */
+	public function test_should_verify_returns_false_without_captcha_field(): void {
+		$form = $this->create_gravity_form(
+			[
+				[
+					'type'  => 'text',
+					'label' => 'Name',
+				],
+			]
+		);
+		update_option( 'hcaptcha_settings', [ 'gravity_status' => [ 'embed' ] ] );
+		hcaptcha()->init_hooks();
+		$_POST['gform_submit'] = (int) $form['id'];
+
+		$subject = new Form();
+		$method  = $this->set_method_accessibility( $subject, 'should_verify' );
+		self::assertFalse( $method->invoke( $subject ) );
+	}
+
+	/**
+	 * A missing native form has no embedded hCaptcha field.
+	 */
+	public function test_has_hcaptcha_field_returns_false_for_missing_form(): void {
+		$subject = new Form();
+		$method  = $this->set_method_accessibility( $subject, 'has_hcaptcha_field' );
+		self::assertFalse( $method->invoke( $subject, 9999999 ) );
+	}
+
+	/**
+	 * A nested form is verified by its parent and must not be checked twice.
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 * @group process-isolation-php74
+	 * @noinspection PhpMissingFieldTypeInspection
+	 * @noinspection PhpUnused
+	 */
+	public function test_should_verify_skips_nested_form(): void {
+		if ( ! class_exists( 'GP_Field_Nested_Form', false ) ) {
+			$native_field = new class() {
+				// phpcs:disable WordPress.NamingConventions.ValidVariableName.PropertyNotSnakeCase -- Native nested form property.
+				/**
+				 * Child form ID.
+				 *
+				 * @var int
+				 */
+				public $gpnfForm;
+				// phpcs:enable WordPress.NamingConventions.ValidVariableName.PropertyNotSnakeCase
+			};
+			class_alias( get_class( $native_field ), 'GP_Field_Nested_Form' );
+		}
+
+		$parent = $this->create_gravity_form( [] );
+		$child  = $this->create_gravity_form( [] );
+		$field  = new GP_Field_Nested_Form();
+		// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- Native nested form property.
+		$field->gpnfForm = (int) $child['id'];
+		$parent_id       = (int) $parent['id'];
+		$filter          = static function ( array $form ) use ( $field, $parent_id ): array {
+			if ( (int) $form['id'] === $parent_id ) {
+				$form['fields'][] = $field;
+			}
+
+			return $form;
+		};
+		add_filter( 'gform_form_post_get_meta', $filter, PHP_INT_MAX );
+		GFFormsModel::flush_current_forms();
+		$_POST['gform_submit']        = (int) $child['id'];
+		$_POST['gpnf_parent_form_id'] = $parent_id;
+
+		try {
+			$subject = new Form();
+			$method  = $this->set_method_accessibility( $subject, 'should_verify' );
+			self::assertFalse( $method->invoke( $subject ) );
+		} finally {
+			remove_filter( 'gform_form_post_get_meta', $filter, PHP_INT_MAX );
+		}
 	}
 
 	/**

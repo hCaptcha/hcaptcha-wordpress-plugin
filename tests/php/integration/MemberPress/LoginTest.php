@@ -79,4 +79,25 @@ class LoginTest extends HCaptchaWPTestCase {
 			$result->get_error_message()
 		);
 	}
+
+	/**
+	 * Skip verification outside MemberPress and before the login limit.
+	 */
+	public function test_verify_skips_other_logins_and_unlimited_attempts(): void {
+		$user    = new WP_User( 1 );
+		$subject = new Login();
+
+		self::assertSame( $user, $subject->verify( $user, 'password' ) );
+
+		hcaptcha()->settings()->set( 'login_limit', 1 );
+		add_filter( 'hcap_login_limit_exceeded', '__return_false' );
+		// phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+		apply_filters( 'mepr-validate-login', [] );
+
+		try {
+			self::assertSame( $user, $subject->verify( $user, 'password' ) );
+		} finally {
+			remove_filter( 'hcap_login_limit_exceeded', '__return_false' );
+		}
+	}
 }

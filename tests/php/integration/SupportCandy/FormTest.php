@@ -71,7 +71,11 @@ class FormTest extends HCaptchaWPTestCase {
 			'Anti-spam check failed.',
 			API::verify_post(
 				'hcaptcha_support_candy_new_topic_nonce',
-				'hcaptcha_support_candy_new_topic'
+				'hcaptcha_support_candy_new_topic',
+				[
+					'source'  => [ 'supportcandy/supportcandy.php' ],
+					'form_id' => 'form',
+				]
 			)
 		);
 	}

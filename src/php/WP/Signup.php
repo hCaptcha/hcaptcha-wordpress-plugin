@@ -8,6 +8,7 @@
 namespace HCaptcha\WP;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Helpers\Request;
 use WP_Error;
@@ -39,6 +40,13 @@ class Signup {
 	 * @var string|null
 	 */
 	private ?string $error_message = null;
+
+	/**
+	 * Validated user details carried into the native combined site signup.
+	 *
+	 * @var array
+	 */
+	private array $user_data = [];
 
 	/**
 	 * Constructor.
@@ -108,18 +116,40 @@ class Signup {
 
 		$stage = Request::filter_input( INPUT_POST, 'stage' );
 
-		if ( strpos( current_filter(), str_replace( '-', '_', $stage ) ) === false ) {
+		if ( 'wpmu_validate_user_signup' === current_filter() ) {
+			$this->user_data = $result;
+		}
+
+		$stage_filters = [
+			'validate-user-signup' => 'wpmu_validate_user_signup',
+			'validate-blog-signup' => 'wpmu_validate_blog_signup',
+			'gimmeanotherblog'     => 'wpmu_validate_blog_signup',
+		];
+
+		if ( ! is_string( $stage ) || ( $stage_filters[ $stage ] ?? '' ) !== current_filter() ) {
 			return $result;
 		}
 
 		$result['errors'] = is_wp_error( $result['errors'] ) ? $result['errors'] : new WP_Error();
 
+		$user  = 'gimmeanotherblog' === $stage ? (array) wp_get_current_user()->data : $this->user_data;
+		$email = $user['user_email'] ?? '';
+		$data  = EntryData::from_post( [] );
+
+		if ( isset( $user['user_name'] ) && is_string( $user['user_name'] ) ) {
+			$data['username'] = $user['user_name'];
+		}
+
 		$this->error_message = API::verify(
-			[
-				'nonce_name'   => self::NONCE,
-				'nonce_action' => self::ACTION,
-				'expected_id'  => $this->get_expected_id(),
-			]
+			EntryData::with_emails(
+				[
+					'nonce_name'   => self::NONCE,
+					'nonce_action' => self::ACTION,
+					'data'         => $data,
+					'expected_id'  => $this->get_expected_id(),
+				],
+				[ $email ]
+			)
 		);
 
 		if ( null === $this->error_message ) {

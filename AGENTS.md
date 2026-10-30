@@ -60,4 +60,5 @@ $subject->shouldAllowMockingProtectedMethods();
 
 ## Changelog
 - When adding release notes about completed work, update the current version under `== Changelog ==` in `readme.txt`.
-- Do not edit `changelog.txt` manually. CI generates and updates it from the changelog in `readme.txt`.
+- Do not edit `changelog.txt` manually. The pre-commit Git hook generates and stages it from the staged changelog in `readme.txt`. Composer install/update enables the hooks; run `composer hooks:install` when using an existing checkout or a new worktree without installing dependencies.
+- Before testing uncommitted release-note changes, run `composer changelog`. CI checks that `changelog.txt` is current without changing or pushing it.

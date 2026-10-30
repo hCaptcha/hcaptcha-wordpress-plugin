@@ -734,7 +734,27 @@ class HCaptcha {
 			return;
 		}
 
-		const { formElement, submitButtonElement } = this.currentForm;
+		const currentForm = this.currentForm;
+		const { formElement, submitButtonElement } = currentForm;
+
+		if ( window.hCaptchaFST && formElement.querySelector( '[name="hcap_fst_token"]' ) ) {
+			return window.hCaptchaFST.runWhenReady(
+				formElement,
+				() => this.submitForm( currentForm ),
+				submitButtonElement,
+			);
+		}
+
+		this.submitForm( currentForm );
+	}
+
+	/**
+	 * Resume submission with the form selected before waiting for its timing token.
+	 *
+	 * @param {Object} currentForm Form being submitted.
+	 */
+	submitForm( currentForm ) {
+		const { formElement, submitButtonElement } = currentForm;
 
 		if (
 			'form' !== formElement.tagName.toLowerCase() ||

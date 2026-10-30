@@ -34,7 +34,7 @@ class FormTest extends HCaptchaWPTestCase {
 
 		hcaptcha()->settings()->set( 'honeypot', 'on' );
 		hcaptcha()->settings()->set( 'set_min_submit_time', 'on' );
-		hcaptcha()->settings()->set( 'wp_job_openings_status', 'form' );
+		hcaptcha()->settings()->set( 'wp_job_openings_status', [ 'form' ] );
 		$this->set_protected_property( hcaptcha(), 'supported_forms', null );
 	}
 
@@ -70,7 +70,7 @@ class FormTest extends HCaptchaWPTestCase {
 	public function test_add_captcha(): void {
 		$form_id    = 5;
 		$form_attrs = [
-			'job_id' => $form_id,
+			'job_id' => '0005',
 		];
 		$html       = '<div class="awsm-job-form-group">' . "\n" . '<input type="submit">';
 		$args       = [
@@ -112,6 +112,7 @@ class FormTest extends HCaptchaWPTestCase {
 		$awsm_response = [];
 
 		$this->prepare_verify_post( Form::NONCE, Form::ACTION );
+		$this->prepare_job_identity();
 
 		$subject = new Form();
 
@@ -131,6 +132,7 @@ class FormTest extends HCaptchaWPTestCase {
 		$awsm_response = [];
 
 		$this->prepare_verify_post( Form::NONCE, Form::ACTION, false );
+		$this->prepare_job_identity();
 
 		$subject = new Form();
 
@@ -150,6 +152,7 @@ class FormTest extends HCaptchaWPTestCase {
 		$awsm_response = [];
 
 		$this->prepare_verify_post( Form::NONCE, Form::ACTION );
+		$this->prepare_job_identity();
 
 		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
 			[
@@ -162,5 +165,89 @@ class FormTest extends HCaptchaWPTestCase {
 		( new Form() )->verify();
 
 		self::assertSame( [ 'error' => [ 'Anti-spam check failed.' ] ], $awsm_response );
+	}
+
+	/**
+	 * A missing native job ID cannot disable widget identity verification.
+	 */
+	public function test_missing_job_id_rejects_foreign_widget(): void {
+		global $awsm_response;
+
+		$awsm_response = [];
+		$this->prepare_verify_post( Form::NONCE, Form::ACTION );
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'wp-job-openings/wp-job-openings.php' ],
+				'form_id' => 5,
+			]
+		);
+
+		( new Form() )->verify();
+
+		self::assertSame( [ 'error' => [ hcap_get_error_messages()['bad-signature'] ] ], $awsm_response );
+	}
+
+	/**
+	 * Prepare the native job selector and matching rendered widget.
+	 */
+	private function prepare_job_identity(): void {
+		$_POST['awsm_job_id']                  = '0005';
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'wp-job-openings/wp-job-openings.php' ],
+				'form_id' => 5,
+			]
+		);
+	}
+
+	/**
+	 * Check the authoritative native email through the production API.
+	 *
+	 * @dataProvider dp_test_native_email_policy
+	 *
+	 * @param string $email   Native address.
+	 * @param bool   $blocked Whether disposal policy rejects it.
+	 */
+	public function test_native_email_policy( string $email, bool $blocked ): void {
+		add_filter(
+			'hcap_disposable_email_domains',
+			static function (): array {
+				return [ 'disposable.example' => true ];
+			}
+		);
+		global $awsm_response;
+
+		$awsm_response                 = [ 'error' => [] ];
+		$_POST['awsm_job_id']          = '5';
+		$_POST['awsm_applicant_email'] = $email;
+		$_POST['email']                = 'safe@example.com';
+		$this->prepare_verify_post( 'hcaptcha_wp_job_openings_nonce', 'hcaptcha_wp_job_openings' );
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		hcaptcha()->settings()->set( 'wp_job_openings_status', [ 'form' ] );
+		$this->set_protected_property( hcaptcha(), 'supported_forms', null );
+		self::assertTrue( hcaptcha()->settings()->is_on( 'disposable_email' ) );
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'wp-job-openings/wp-job-openings.php' ],
+				'form_id' => 5,
+			]
+		);
+
+		( new Form() )->verify();
+
+		self::assertSame( $blocked ? [ hcap_get_error_messages()['disposable-email'] ] : [], $awsm_response['error'] );
+	}
+
+	/**
+	 * Native email policy controls.
+	 *
+	 * @return array
+	 */
+	public function dp_test_native_email_policy(): array {
+		return [
+			'disposable email' => [ 'user@disposable.example', true ],
+			'permanent email'  => [ 'safe@example.com', false ],
+			'email-free data'  => [ '', false ],
+		];
 	}
 }

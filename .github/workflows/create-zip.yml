@@ -11,7 +11,7 @@ permissions:
 jobs:
   build-zip:
     name: New zip file
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     # Security: 1. Check for [zip] tag. 2. Check if user is authorized.
     if: |

@@ -66,13 +66,10 @@ const general = function( $ ) {
 	const $themeEditorPreviewNote = $themeEditor.find( '[data-theme-editor-preview-note]' );
 	const $themeEditorPreviewDefaultContent = $themeEditorPreviewNote.contents().clone();
 	const $themeEditorOpen = $themeEditorLauncher.find( '[data-theme-editor-open]' );
-	const $enterpriseInputs = $( '.hcaptcha-section-enterprise + table input' );
-	const $recaptchaCompatOff = $( '[name="hcaptcha_settings[recaptcha_compat_off][]"]' );
 	const $submit = $form.find( '#submit' );
 	const modes = {};
 	let siteKeyInitVal = $siteKey.val();
 	let secretKeyInitVal = $secretKey.val();
-	let enterpriseInitValues = getEnterpriseValues();
 	let defaultTheme = {};
 	let lastValidConfigParams = {};
 	let initialNormalizedConfigParams = null;
@@ -87,7 +84,6 @@ const general = function( $ ) {
 	modes[ HCaptchaGeneralObject.modeTestEnterpriseBotDetected ] = HCaptchaGeneralObject.modeTestEnterpriseBotDetectedSiteKey;
 
 	let credentialsChanged = false;
-	let enterpriseSettingsChanged = false;
 
 	let consoleLogs = [];
 
@@ -167,22 +163,6 @@ const general = function( $ ) {
 		consoleLogs = [];
 
 		return logs.join( '\n' );
-	}
-
-	function getValues( $inputs ) {
-		const values = {};
-
-		$inputs.each( function() {
-			const $input = $( this );
-			const name = $input.attr( 'name' ).replace( /hcaptcha_settings\[(.+)]/, '$1' );
-			values[ name ] = $input.val();
-		} );
-
-		return values;
-	}
-
-	function getEnterpriseValues() {
-		return getValues( $enterpriseInputs );
 	}
 
 	function clearMessage() {
@@ -956,9 +936,6 @@ const general = function( $ ) {
 				secretKeyInitVal = $secretKey.val();
 				credentialsChanged = false;
 
-				enterpriseInitValues = getValues( $enterpriseInputs );
-				enterpriseSettingsChanged = false;
-
 				showSuccessMessage( response.data );
 				$submit.attr( 'disabled', false );
 			} )
@@ -985,16 +962,6 @@ const general = function( $ ) {
 		}
 	}
 
-	function checkChangeEnterpriseSettings() {
-		if ( JSON.stringify( getEnterpriseValues() ) === JSON.stringify( enterpriseInitValues ) ) {
-			enterpriseSettingsChanged = false;
-			clearMessage();
-		} else if ( ! enterpriseSettingsChanged ) {
-			enterpriseSettingsChanged = true;
-			showErrorMessage( HCaptchaGeneralObject.checkConfigNotice );
-		}
-	}
-
 	/**
 	 * Set readonly and blocked state for key inputs.
 	 *
@@ -1008,7 +975,7 @@ const general = function( $ ) {
 				.attr( 'aria-disabled', 'true' )
 				.on( 'keydown.hcaptchaHelper paste.hcaptchaHelper drop.hcaptchaHelper', ( e ) => e.preventDefault() );
 		} else {
-			$el.removeAttr( 'readonly' )
+			$el.prop( 'readOnly', false )
 				.removeAttr( 'aria-disabled' )
 				.off( 'keydown.hcaptchaHelper paste.hcaptchaHelper drop.hcaptchaHelper' );
 		}
@@ -1139,7 +1106,7 @@ const general = function( $ ) {
 	} );
 
 	$submit.on( 'click', function( event ) {
-		if ( ! ( credentialsChanged || enterpriseSettingsChanged ) ) {
+		if ( ! credentialsChanged ) {
 			return;
 		}
 
@@ -1527,84 +1494,6 @@ const general = function( $ ) {
 
 	$themeEditor.on( 'click', '[data-theme-preview-view]', function() {
 		setThemePreviewView( $( this ).attr( 'data-theme-preview-view' ) );
-	} );
-
-	function forceHttps( host ) {
-		host = host.replace( /(http|https):\/\//, '' );
-
-		const url = new URL( 'https://' + host );
-
-		return 'https://' + url.host;
-	}
-
-	function scriptUpdate() {
-		const params = {
-			onload: 'hCaptchaOnLoad',
-			render: 'explicit',
-		};
-
-		if ( $recaptchaCompatOff.prop( 'checked' ) ) {
-			params.recaptchacompat = 'off';
-		}
-
-		if ( $customThemes.prop( 'checked' ) ) {
-			params.custom = 'true';
-		}
-
-		const enterpriseParams = {
-			asset_host: 'assethost',
-			endpoint: 'endpoint',
-			host: 'host',
-			image_host: 'imghost',
-			report_api: 'reportapi',
-			sentry: 'sentry',
-		};
-
-		const enterpriseValues = getEnterpriseValues();
-
-		for ( const enterpriseParam in enterpriseParams ) {
-			const value = enterpriseValues[ enterpriseParam ].trim();
-
-			if ( value ) {
-				params[ enterpriseParams[ enterpriseParam ] ] = encodeURIComponent( forceHttps( value ) );
-			}
-		}
-
-		/**
-		 * @param enterpriseValues.api_host
-		 */
-		let apiHost = enterpriseValues.api_host.trim();
-		apiHost = apiHost ? apiHost : 'js.hcaptcha.com';
-		apiHost = forceHttps( apiHost ) + '/1/api.js';
-
-		const url = new URL( apiHost );
-
-		for ( const name in params ) {
-			url.searchParams.append( name, params[ name ] );
-		}
-
-		// Remove the existing API script.
-		document.getElementById( 'hcaptcha-api' ).remove();
-		// noinspection JSUnresolvedReference
-		delete global.hcaptcha;
-
-		// Remove sample hCaptcha.
-		$sampleHCaptcha.html( '' );
-
-		// Re-create the API script.
-		const t = document.getElementsByTagName( 'head' )[ 0 ];
-		const s = document.createElement( 'script' );
-
-		s.type = 'text/javascript';
-		s.id = 'hcaptcha-api';
-		s.src = url.href;
-
-		t.appendChild( s );
-	}
-
-	$enterpriseInputs.on( 'change', function() {
-		scriptUpdate();
-		checkChangeEnterpriseSettings();
 	} );
 
 	// Prevent saving values of some form elements.

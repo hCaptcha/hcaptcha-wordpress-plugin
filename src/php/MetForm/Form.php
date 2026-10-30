@@ -18,6 +18,7 @@ use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use MetForm\Core\Entries\Action as EntriesAction;
+use WP_Error;
 use WP_REST_Request;
 
 /**
@@ -31,9 +32,9 @@ class Form {
 	private const WIDGET_NAME = 'mf-button';
 
 	/**
-	 * MetForm REST route prefix.
+	 * MetForm REST route.
 	 */
-	private const REST_ROUTE = '/metform/v1/entries/insert/';
+	private const REST_ROUTE = '#^/metform/v1/entries/(\w+)/(\w+)/?$#i';
 
 	/**
 	 * Nonce action.
@@ -120,11 +121,34 @@ class Form {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function capture_form_id( $response, array $handler, WP_REST_Request $request ) {
-		$route = $request->get_route();
-
-		if ( preg_match( '#^' . preg_quote( self::REST_ROUTE, '#' ) . '(\d+)/?$#', $route, $matches ) ) {
-			$this->form_id = (int) $matches[1];
+		if ( is_wp_error( $response ) || 'POST' !== $request->get_method() ||
+			! preg_match( self::REST_ROUTE, $request->get_route(), $matches ) ) {
+			return $response;
 		}
+
+		$action = $request['action'];
+
+		if ( ! is_string( $action ) || 0 !== strcasecmp( $action, 'insert' ) ) {
+			return $response;
+		}
+
+		$route_id   = filter_var( $matches[2], FILTER_VALIDATE_INT, [ 'options' => [ 'min_range' => 1 ] ] );
+		$request_id = $request['id'];
+		$request_id = is_string( $request_id ) || is_int( $request_id )
+			? filter_var( $request_id, FILTER_VALIDATE_INT, [ 'options' => [ 'min_range' => 1 ] ] )
+			: false;
+
+		if ( $route_id !== $request_id || false === $route_id || 0 !== strcasecmp( $matches[1], 'insert' ) ) {
+			$this->form_id = 0;
+
+			return new WP_Error(
+				'hcaptcha_metform_invalid_form_id',
+				__( 'Invalid MetForm form ID.', 'hcaptcha-for-forms-and-more' ),
+				[ 'status' => 400 ]
+			);
+		}
+
+		$this->form_id = $request_id;
 
 		return $response;
 	}
@@ -162,37 +186,51 @@ class Form {
 	 * @return array
 	 */
 	private function get_entry( array $form_data ): array {
-		$form = get_post( $this->form_id );
+		$form   = get_post( $this->form_id );
+		$emails = [];
 
-		return [
+		$entry = [
 			'nonce_name'         => self::NONCE,
 			'nonce_action'       => self::ACTION,
 			'h-captcha-response' => $form_data['h-captcha-response'] ?? '',
 			'form_date_gmt'      => $form->post_modified_gmt ?? null,
 			'post_data'          => $form_data,
-			'data'               => $this->get_data( $form_data ),
+			'data'               => $this->get_data( $form_data, $emails ),
 			'expected_id'        => [
 				'source'  => HCaptcha::get_class_source( __CLASS__ ),
 				'form_id' => $this->form_id,
 			],
 		];
+
+		return EntryData::with_emails( $entry, $emails );
 	}
 
 	/**
 	 * Get data for anti-spam checks.
 	 *
 	 * @param array $form_data Form data.
+	 * @param array $emails    Native email values.
 	 *
 	 * @return array
 	 */
-	private function get_data( array $form_data ): array {
+	private function get_data( array $form_data, array &$emails ): array {
 		$data = [];
 		$name = [];
 
 		foreach ( $this->get_fields() as $field_name => $field ) {
 			$field_name = (string) $field_name;
 			$field      = (array) $field;
-			$value      = $this->get_field_value( $form_data, $field_name, $field );
+			$type       = (string) ( $field['widgetType'] ?? '' );
+
+			if ( 'mf-email' === $type && array_key_exists( $field_name, $form_data ) ) {
+				$email = EntryData::sanitize_value( $form_data[ $field_name ] );
+
+				if ( is_string( $email ) && '' !== $email ) {
+					$emails[] = $email;
+				}
+			}
+
+			$value = $this->get_field_value( $form_data, $field_name, $field );
 
 			if ( null === $value ) {
 				continue;
@@ -200,13 +238,8 @@ class Form {
 
 			$label      = (string) ( $field['mf_input_label'] ?? '' );
 			$input_name = (string) ( $field['mf_input_name'] ?? $field_name );
-			$type       = (string) ( $field['widgetType'] ?? '' );
 
 			$key = $label ?: $input_name;
-
-			if ( 'mf-email' === $type && is_scalar( $value ) ) {
-				$data['email'] = $value;
-			}
 
 			if ( is_scalar( $value ) && $this->is_name_field( $type, $input_name, $label ) ) {
 				$name[] = $value;

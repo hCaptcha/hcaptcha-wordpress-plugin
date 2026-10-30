@@ -8,6 +8,7 @@
 namespace HCaptcha\WPForo;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -54,10 +55,7 @@ abstract class Base {
 		$args = [
 			'action' => static::ACTION,
 			'name'   => static::NAME,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( static::class ),
-				'form_id' => $form_id,
-			],
+			'id'     => $this->get_id( $form_id ),
 		];
 
 		HCaptcha::form_display( $args );
@@ -72,7 +70,22 @@ abstract class Base {
 	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function verify( $data ) {
-		$error_message = API::verify_post( static::NAME, static::ACTION );
+		$form_id = 0;
+
+		if ( NewTopic::ADD_CAPTCHA_HOOK === static::ADD_CAPTCHA_HOOK ) {
+			$form_id = 'new_topic';
+		} elseif ( isset( $data['topicid'] ) && is_scalar( $data['topicid'] ) && (int) $data['topicid'] > 0 ) {
+			$form_id = (int) $data['topicid'];
+		}
+
+		$expected_id = $this->get_id( $form_id );
+
+		$error_message = API::verify_post(
+			static::NAME,
+			static::ACTION,
+			$expected_id,
+			EntryData::with_emails( [ 'data' => EntryData::from_array( is_array( $data ) ? $data : [], [] ) ], [ $data['email'] ?? '' ] )
+		);
 
 		if ( null !== $error_message ) {
 			WPF()->notice->add( $error_message, 'error' );
@@ -81,6 +94,20 @@ abstract class Base {
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Get the widget identity for a topic form.
+	 *
+	 * @param int|string $form_id Form ID.
+	 *
+	 * @return array
+	 */
+	private function get_id( $form_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( static::class ),
+			'form_id' => $form_id,
+		];
 	}
 
 	/**

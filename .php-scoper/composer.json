@@ -2,9 +2,6 @@
     "require": {
         "humbug/php-scoper": "0.17.5 - 0.18.18"
     },
-    "require-dev": {
-        "roave/security-advisories": "dev-latest"
-    },
     "minimum-stability": "dev",
     "prefer-stable": true,
     "config": {

@@ -50,6 +50,7 @@ class Comment extends CommentBase {
 		add_filter( 'comment_form_submit_field', [ $this, 'add_captcha' ], 10, 2 );
 
 		parent::init_hooks();
+		add_filter( 'rest_preprocess_comment', [ $this, 'verify_rest_comment' ], 10, 2 );
 	}
 
 	/**

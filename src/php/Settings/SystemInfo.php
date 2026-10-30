@@ -228,16 +228,13 @@ class SystemInfo extends PluginSettingsBase {
 	public function integration_info(): string {
 		[ $integration_fields, $integration_settings ] = $this->get_integrations();
 
-		$header   = true;
 		$disabled = false;
 
-		$data = $this->header( '--- Integrations header info ---' );
+		$data = $this->header( '--- Active plugins and themes ---' );
 
 		foreach ( $integration_fields as $field_key => $field ) {
-			if ( $header && 'header' !== ( $field['section'] ?? '' ) ) {
-				$header = false;
-
-				$data .= $this->header( '--- Active plugins and themes ---' );
+			if ( Integrations::SECTION_HEADER === ( $field['section'] ?? '' ) ) {
+				continue;
 			}
 
 			if ( $field['disabled'] !== $disabled ) {

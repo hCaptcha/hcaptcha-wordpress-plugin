@@ -5,9 +5,15 @@
  * @package HCaptcha\Tests
  */
 
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedNamespaceInspection */
+/** @noinspection PhpUndefinedClassInspection */
+// phpcs:enable Generic.Commenting.DocComment.MissingShort
+
 namespace HCaptcha\Tests\Integration\EssentialBlocks;
 
 use HCaptcha\EssentialBlocks\Form;
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
@@ -23,6 +29,16 @@ use WP_Block_Type_Registry;
  * @group essential-blocks-form
  */
 class FormTest extends HCaptchaPluginWPTestCase {
+	/**
+	 * Fall back to the form element ID when the submit button has no native ID.
+	 */
+	public function test_get_form_id_without_native_submit_button(): void {
+		$subject = new Form();
+		$method  = $this->set_method_accessibility( $subject, 'get_form_id_from_block_content' );
+
+		self::assertSame( 'fallback', $method->invoke( $subject, '<form id="fallback"></form>' ) );
+		self::assertSame( '0', $method->invoke( $subject, '<div>no form</div>' ) );
+	}
 
 	/**
 	 * Plugin relative path.
@@ -278,13 +294,13 @@ class FormTest extends HCaptchaPluginWPTestCase {
 					'first-name' => 'Melany',
 					'last-name'  => 'Doe',
 					'subject'    => 'Subject',
-					'email'      => 'your.email+fakedata80629@gmail.com',
 					'message'    => 'Message',
 				],
 				'expected_id'        => [
 					'source'  => [ 'essential-blocks/essential-blocks.php' ],
 					'form_id' => 'eb-form-xmouf',
 				],
+				'email_addresses'    => [],
 			],
 			$actual
 		);
@@ -354,5 +370,72 @@ class FormTest extends HCaptchaPluginWPTestCase {
 				'form_id' => $form_id,
 			]
 		);
+	}
+	/**
+	 * Apply email policy to trusted stored Essential Blocks fields.
+	 *
+	 * @param bool $blocked Whether the trusted email is disposable.
+	 *
+	 * @dataProvider dp_sec063_email_policy
+	 * @noinspection PhpUndefinedConstantInspection
+	 */
+	public function test_sec063_typed_email_policy( bool $blocked ): void {
+		global $wpdb;
+		$this->prepare_verify_request( 'sec063-challenge' );
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		set_transient( 'hcaptcha_disposable_email_blocklist', [ 'sec063-disposable.test' => true ] );
+		// The fixture uses the native plugin settings table.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+		$wpdb->insert(
+			ESSENTIAL_BLOCKS_FORM_SETTINGS_TABLE,
+			[
+				'block_id'     => 'sec063',
+				'title'        => 'Email policy',
+				'fields'       => maybe_serialize(
+					[
+						'billing_address' => (object) [
+							'type'  => 'email',
+							'label' => 'Payment contact',
+						],
+						'contact_address' => (object) [
+							'type'  => 'email',
+							'label' => 'Другой адрес',
+						],
+						'email'           => (object) [
+							'type'  => 'text',
+							'label' => 'Other',
+						],
+					]
+				),
+				'form_options' => '',
+				'settings'     => '',
+				'created_by'   => 0,
+				'updated_at'   => current_time( 'mysql' ),
+			]
+		);
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = $this->get_widget_id( 'sec063' );
+		$subject                               = new Form();
+		$entry                                 = $this->set_method_accessibility( $subject, 'get_entry' )->invoke(
+			$subject,
+			[
+				'billing_address' => $blocked ? 'person@sec063-disposable.test' : 'person@example.com',
+				'contact_address' => 'reader@example.com',
+				'email'           => 'spoof@sec063-disposable.test',
+			],
+			'sec063'
+		);
+
+		self::assertSame( $blocked ? 'Please use a permanent email address.' : null, API::verify_request( null, $entry ) );
+	}
+	/**
+	 * Exercise both policy rejection and permanent address acceptance.
+	 *
+	 * @return array
+	 */
+	public function dp_sec063_email_policy(): array {
+		return [
+			'disposable' => [ true ],
+			'permanent'  => [ false ],
+		];
 	}
 }

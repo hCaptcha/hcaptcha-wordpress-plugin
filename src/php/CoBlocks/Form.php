@@ -52,6 +52,13 @@ class Form {
 	private $form_id = 0;
 
 	/**
+	 * Email field selected by the native CoBlocks handler.
+	 *
+	 * @var string
+	 */
+	private string $email_field_id = 'field-email';
+
+	/**
 	 * Form constructor.
 	 */
 	public function __construct() {
@@ -160,6 +167,8 @@ class Form {
 	 */
 	public function before_form_submit( array $post, array $atts ): void {
 		$this->form_id = $atts['formHash'] ?? $atts['form-hash'] ?? $post['form-hash'] ?? 0;
+		// CoBlocks removes this selector before its reCAPTCHA request reaches verify().
+		$this->email_field_id = isset( $post['email-field-id'] ) ? sanitize_text_field( $post['email-field-id'] ) : 'field-email';
 
 		add_filter( 'pre_option_coblocks_google_recaptcha_site_key', '__return_true' );
 		add_filter( 'pre_option_coblocks_google_recaptcha_secret_key', '__return_true' );
@@ -299,15 +308,24 @@ class Form {
 				$name[] = $value;
 			}
 
-			if ( 'email' === $type ) {
-				$entry['data']['email'] = $value;
-			}
-
 			EntryData::add_field( $entry['data'], (string) $label, $value, (string) $key );
 		}
 
 		EntryData::add_name( $entry['data'], $name );
 
-		return $entry;
+		return EntryData::with_emails( $entry, [ $this->get_sender_email( $form_data ) ] );
+	}
+
+	/**
+	 * Read the same submitted field that CoBlocks uses for Reply-To.
+	 *
+	 * @param array $form_data Submitted form data.
+	 *
+	 * @return string Native sender email, if present.
+	 */
+	private function get_sender_email( array $form_data ): string {
+		$sender_field = $form_data[ $this->email_field_id ] ?? [];
+
+		return is_array( $sender_field ) ? sanitize_text_field( $sender_field['value'] ?? '' ) : '';
 	}
 }

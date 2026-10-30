@@ -16,6 +16,42 @@ use stdClass;
  */
 class EntryDataTest extends HCaptchaWPTestCase {
 	/**
+	 * Native addresses stay independent of labels, secrets and malformed values.
+	 */
+	public function test_authoritative_email_projection(): void {
+		$emails = [ 'one@example.com', 'два@пример.рф' ];
+		$entry  = EntryData::with_emails(
+			[
+				'data' => [
+					'email'         => 'spoof@example.org',
+					'user_password' => 'secret',
+				],
+			],
+			[ $emails[0], [], new stdClass(), false, '', 'invalid', $emails[1], $emails[0] ]
+		);
+		self::assertSame( $emails, EntryData::get_emails( $entry ) );
+		self::assertSame( $emails[0], $entry['data']['email'] );
+		self::assertSame( [ 'data' => [ 'email' => $emails[0] ] ], EntryData::for_antispam( $entry ) );
+		self::assertSame( [], EntryData::get_emails( [ 'data' => [ 'email' => [ $emails[0] ] ] ] ) );
+		self::assertSame(
+			[],
+			EntryData::get_emails(
+				[
+					'data'            => [ 'email' => $emails[0] ],
+					'email_addresses' => 'invalid',
+				]
+			)
+		);
+		self::assertSame(
+			[
+				'data'            => [],
+				'email_addresses' => [],
+			],
+			EntryData::with_emails( [ 'data' => [ 'email' => $emails[0] ] ], [] )
+		);
+	}
+
+	/**
 	 * Test removal of credentials, verification tokens, and payment data.
 	 *
 	 * @return void
@@ -94,6 +130,28 @@ class EntryDataTest extends HCaptchaWPTestCase {
 					'access_token' => 'secret',
 				]
 			)
+		);
+	}
+
+	/**
+	 * Skip unnamed fields and preserve every value when stable IDs collide.
+	 */
+	public function test_add_field_with_empty_and_duplicate_keys(): void {
+		$data = [
+			'Name'      => 'First',
+			'Name [42]' => 'Second',
+		];
+
+		EntryData::add_field( $data, '', 'Ignored' );
+		EntryData::add_field( $data, 'Name', 'Third', '42' );
+
+		self::assertSame(
+			[
+				'Name'          => 'First',
+				'Name [42]'     => 'Second',
+				'Name [42] [2]' => 'Third',
+			],
+			$data
 		);
 	}
 

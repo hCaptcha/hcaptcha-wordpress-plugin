@@ -13,7 +13,7 @@
 namespace HCaptcha\Tests\Integration\Blocksy;
 
 use HCaptcha\Blocksy\ProductReview;
-use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use HCaptcha\Tests\Integration\WC\WooCommerceTestCase;
 use ReflectionClass;
 
 /**
@@ -21,14 +21,7 @@ use ReflectionClass;
  *
  * @group blocksy
  */
-class ProductReviewTest extends HCaptchaPluginWPTestCase {
-
-	/**
-	 * WooCommerce plugin entry file.
-	 *
-	 * @var string
-	 */
-	protected static $plugin = 'woocommerce/woocommerce.php';
+class ProductReviewTest extends WooCommerceTestCase {
 
 	/**
 	 * Blocksy theme stylesheet.
@@ -38,19 +31,17 @@ class ProductReviewTest extends HCaptchaPluginWPTestCase {
 	protected static string $theme = 'blocksy';
 
 	/**
-	 * Hooks to replay after loading WooCommerce.
+	 * Optional incorrect usage notice raised by the live theme.
 	 *
 	 * @var string[]
 	 */
-	protected static array $plugin_load_hooks = [
-		'plugins_loaded',
-		'init',
-	];
+	protected static array $plugin_optional_incorrect_usage = [ "add_theme_support( 'title-tag' )" ];
 
 	/**
 	 * Test that the live Blocksy screen manager and WooCommerce are loaded.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_live_blocksy_and_woocommerce_are_loaded(): void {
 		$theme_file = wp_normalize_path( ( new ReflectionClass( 'Blocksy_Screen_Manager' ) )->getFileName() );
@@ -89,6 +80,7 @@ class ProductReviewTest extends HCaptchaPluginWPTestCase {
 	 * Test add_hcaptcha() when not a product page.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_add_hcaptcha_not_product(): void {
 		$page_id = wp_insert_post(
@@ -116,6 +108,7 @@ class ProductReviewTest extends HCaptchaPluginWPTestCase {
 	 * Test add_hcaptcha() when on a product page.
 	 *
 	 * @return void
+	 * @noinspection PhpUndefinedFunctionInspection
 	 */
 	public function test_add_hcaptcha_product(): void {
 		$product_id = wp_insert_post(

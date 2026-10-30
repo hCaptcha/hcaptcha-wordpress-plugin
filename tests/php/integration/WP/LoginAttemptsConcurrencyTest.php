@@ -11,6 +11,7 @@ use FilesystemIterator;
 use HCaptcha\Helpers\LoginAttempts;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WP\Login;
+use JsonException;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
@@ -522,8 +523,7 @@ class LoginAttemptsConcurrencyTest extends HCaptchaWPTestCase {
 			$ready = [];
 
 			foreach ( array_keys( $processes ) as $id ) {
-				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Isolated worker marker.
-				$ready[ $id ] = json_decode( (string) file_get_contents( $temp_dir . '/ready-' . $id ), true );
+				$ready[ $id ] = $this->read_worker_marker( $temp_dir . '/ready-' . $id );
 			}
 
 			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Deterministic release barrier.
@@ -539,8 +539,7 @@ class LoginAttemptsConcurrencyTest extends HCaptchaWPTestCase {
 					$exit_code,
 					'Worker ' . $id . " failed:\n" . $process->getErrorOutput() . $process->getOutput()
 				);
-				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Isolated worker result.
-				$results[ $id ] = json_decode( (string) file_get_contents( $temp_dir . '/result-' . $id ), true );
+				$results[ $id ] = $this->read_worker_marker( $temp_dir . '/result-' . $id );
 			}
 
 			$deletions_file  = $cache_dir . '/deletions.log';
@@ -565,6 +564,31 @@ class LoginAttemptsConcurrencyTest extends HCaptchaWPTestCase {
 		}
 	}
 	// phpcs:enable Generic.Metrics.CyclomaticComplexity.TooHigh
+
+	/**
+	 * Read a complete worker marker with diagnostics for invalid payloads.
+	 *
+	 * @param string $file Marker file.
+	 *
+	 * @return array
+	 * @throws RuntimeException When the marker does not contain a JSON array.
+	 */
+	private function read_worker_marker( string $file ): array {
+		try {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Isolated worker marker.
+			$data = json_decode( (string) file_get_contents( $file ), true, 512, JSON_THROW_ON_ERROR );
+		} catch ( JsonException $exception ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- CLI test diagnostics retain the marker path and original exception.
+			throw new RuntimeException( 'Invalid JSON in concurrency marker: ' . $file, 0, $exception );
+		}
+
+		if ( ! is_array( $data ) ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Internal marker path for CLI test diagnostics.
+			throw new RuntimeException( 'Concurrency marker must contain an array: ' . $file );
+		}
+
+		return $data;
+	}
 
 	/**
 	 * Wait for every worker to reach the same release barrier.

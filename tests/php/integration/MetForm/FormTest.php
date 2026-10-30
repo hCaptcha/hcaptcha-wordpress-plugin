@@ -26,7 +26,9 @@ use MetForm\Widgets\Manifest as WidgetsManifest;
 use Mockery;
 use ReflectionClass;
 use ReflectionException;
+use WP_Error;
 use WP_REST_Request;
+use WP_REST_Response;
 
 /**
  * Test Form class.
@@ -256,9 +258,226 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		self::assertSame( 0, $this->get_protected_property( $subject, 'form_id' ) );
 
 		$request = new WP_REST_Request( 'POST', '/metform/v1/entries/insert/456' );
+		$request->set_url_params(
+			[
+				'action' => 'insert',
+				'id'     => '456',
+			]
+		);
 
 		self::assertSame( $response, $subject->capture_form_id( $response, [], $request ) );
 		self::assertSame( 456, $this->get_protected_property( $subject, 'form_id' ) );
+	}
+
+	/**
+	 * Ignore other actions and reject a non-scalar native form ID.
+	 */
+	public function test_capture_form_id_with_invalid_action_and_id_type(): void {
+		$subject = new Form();
+		$request = new WP_REST_Request( 'POST', '/metform/v1/entries/insert/456' );
+		$request->set_url_params(
+			[
+				'action' => 'other',
+				'id'     => '456',
+			]
+		);
+
+		self::assertSame( 'response', $subject->capture_form_id( 'response', [], $request ) );
+
+		$request->set_url_params(
+			[
+				'action' => 'insert',
+				'id'     => [],
+			]
+		);
+		self::assertSame(
+			'hcaptcha_metform_invalid_form_id',
+			$subject->capture_form_id( 'response', [], $request )->get_error_code()
+		);
+	}
+
+	/**
+	 * Omit values that are absent from the native submission.
+	 */
+	public function test_get_field_value_without_submission_key(): void {
+		$subject = new Form();
+		$method  = $this->set_method_accessibility( $subject, 'get_field_value' );
+
+		self::assertNull( $method->invoke( $subject, [], 'missing', [] ) );
+	}
+
+	/**
+	 * A document is unavailable before Elementor initializes its document manager.
+	 */
+	public function test_get_form_id_without_document_manager(): void {
+		$elementor = ElementorPlugin::instance();
+		$documents = $elementor->documents;
+		$subject   = new Form();
+		$method    = $this->set_method_accessibility( $subject, 'get_form_id' );
+
+		$elementor->documents = null;
+
+		try {
+			self::assertSame( 0, $method->invoke( $subject ) );
+		} finally {
+			$elementor->documents = $documents;
+		}
+	}
+
+	/**
+	 * Test matching body and query IDs used by MetForm.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_capture_form_id_with_matching_overrides(): void {
+		$subject = new Form();
+		$request = new WP_REST_Request( 'POST', '/metform/v1/entries/insert/456' );
+		$request->set_url_params(
+			[
+				'action' => 'insert',
+				'id'     => '456',
+			]
+		);
+		$request->set_query_params( [ 'id' => '456' ] );
+		$request->set_body_params( [ 'id' => '456' ] );
+
+		self::assertNull( $subject->capture_form_id( null, [], $request ) );
+		self::assertSame( 456, $this->get_protected_property( $subject, 'form_id' ) );
+
+		$request = new WP_REST_Request( 'POST', '/METFORM/v1/entries/INSERT/456' );
+		$request->set_url_params(
+			[
+				'action' => 'INSERT',
+				'id'     => '456',
+			]
+		);
+
+		self::assertNull( $subject->capture_form_id( null, [], $request ) );
+		self::assertSame( 456, $this->get_protected_property( $subject, 'form_id' ) );
+	}
+
+	/**
+	 * Test rejecting IDs and actions that would make MetForm submit another form.
+	 *
+	 * @throws ReflectionException Reflection exception.
+	 */
+	public function test_capture_form_id_rejects_overrides(): void {
+		$requests = [
+			'body ID'      => [
+				'/metform/v1/entries/insert/456',
+				[
+					'action' => 'insert',
+					'id'     => '456',
+				],
+				[],
+				[ 'id' => '789' ],
+			],
+			'query ID'     => [
+				'/metform/v1/entries/insert/456',
+				[
+					'action' => 'insert',
+					'id'     => '456',
+				],
+				[ 'id' => '789' ],
+				[],
+			],
+			'action alias' => [
+				'/metform/v1/entries/other/456',
+				[
+					'action' => 'other',
+					'id'     => '456',
+				],
+				[],
+				[ 'action' => 'insert' ],
+			],
+			'ID alias'     => [
+				'/metform/v1/entries/insert/other',
+				[
+					'action' => 'insert',
+					'id'     => 'other',
+				],
+				[],
+				[ 'id' => '456' ],
+			],
+			'invalid ID'   => [
+				'/metform/v1/entries/insert/456',
+				[
+					'action' => 'insert',
+					'id'     => '456',
+				],
+				[],
+				[ 'id' => '456suffix' ],
+			],
+			'cased alias'  => [
+				'/METFORM/v1/entries/other/456',
+				[
+					'action' => 'other',
+					'id'     => '456',
+				],
+				[],
+				[ 'action' => 'INSERT' ],
+			],
+		];
+
+		foreach ( $requests as $case => [ $route, $url_params, $query_params, $body_params ] ) {
+			$subject = new Form();
+			$request = new WP_REST_Request( 'POST', $route );
+			$request->set_url_params( $url_params );
+			$request->set_query_params( $query_params );
+			$request->set_body_params( $body_params );
+
+			$response = $subject->capture_form_id( null, [], $request );
+
+			self::assertInstanceOf( WP_Error::class, $response, $case );
+			self::assertSame( 'hcaptcha_metform_invalid_form_id', $response->get_error_code(), $case );
+			self::assertSame( 400, $response->get_error_data()['status'], $case );
+			self::assertSame( 0, $this->get_protected_property( $subject, 'form_id' ), $case );
+		}
+	}
+
+	/**
+	 * Test form ID and action binding through the live MetForm REST route.
+	 */
+	public function test_rest_route_rejects_overridden_form_id(): void {
+		$subject    = new Form();
+		$dispatched = 0;
+		$intercept  = static function () use ( &$dispatched ): WP_REST_Response {
+			++$dispatched;
+
+			return new WP_REST_Response( [ 'dispatched' => true ], 202 );
+		};
+		add_filter( 'rest_dispatch_request', $intercept );
+
+		try {
+			$requests = [
+				'body ID'      => new WP_REST_Request( 'POST', '/metform/v1/entries/insert/456' ),
+				'query ID'     => new WP_REST_Request( 'POST', '/metform/v1/entries/insert/456' ),
+				'JSON ID'      => new WP_REST_Request( 'POST', '/metform/v1/entries/insert/456' ),
+				'action alias' => new WP_REST_Request( 'POST', '/metform/v1/entries/other/456' ),
+			];
+			$requests['body ID']->set_body_params( [ 'id' => '789' ] );
+			$requests['query ID']->set_query_params( [ 'id' => '789' ] );
+			$requests['JSON ID']->set_header( 'Content-Type', 'application/json' );
+			$requests['JSON ID']->set_body( wp_json_encode( [ 'id' => 789 ] ) );
+			$requests['action alias']->set_body_params( [ 'action' => 'insert' ] );
+
+			foreach ( $requests as $case => $request ) {
+				$response = rest_do_request( $request );
+
+				self::assertSame( 400, $response->get_status(), $case );
+				self::assertSame( 'hcaptcha_metform_invalid_form_id', $response->get_data()['code'], $case );
+				self::assertSame( 0, $dispatched, $case );
+			}
+
+			$response = rest_do_request( new WP_REST_Request( 'POST', '/metform/v1/entries/insert/456' ) );
+
+			self::assertSame( 202, $response->get_status() );
+			self::assertSame( [ 'dispatched' => true ], $response->get_data() );
+			self::assertSame( 1, $dispatched );
+		} finally {
+			remove_filter( 'rest_request_before_callbacks', [ $subject, 'capture_form_id' ] );
+			remove_filter( 'rest_dispatch_request', $intercept );
+		}
 	}
 
 	/**
@@ -292,6 +511,12 @@ class FormTest extends HCaptchaPluginWPTestCase {
 			'file_data' => [],
 		];
 		$request           = new WP_REST_Request( 'POST', '/metform/v1/entries/insert/' . $form_id );
+		$request->set_url_params(
+			[
+				'action' => 'insert',
+				'id'     => (string) $form_id,
+			]
+		);
 
 		$this->prepare_verify_request( $hcaptcha_response );
 
@@ -333,7 +558,13 @@ class FormTest extends HCaptchaPluginWPTestCase {
 			'form_data' => $form_data,
 		];
 		$request    = new WP_REST_Request( 'POST', '/metform/v1/entries/insert/' . $form_id );
-		$subject    = Mockery::mock( Form::class )->makePartial();
+		$request->set_url_params(
+			[
+				'action' => 'insert',
+				'id'     => (string) $form_id,
+			]
+		);
+		$subject = Mockery::mock( Form::class )->makePartial();
 
 		$subject->shouldAllowMockingProtectedMethods();
 		$subject->shouldReceive( 'get_fields' )->once()->andReturn( [] );
@@ -375,32 +606,42 @@ class FormTest extends HCaptchaPluginWPTestCase {
 			]
 		);
 		$fields    = [
-			'first-name' => (object) [
+			'first-name'       => (object) [
 				'mf_input_label' => 'First name',
 				'mf_input_name'  => 'first-name',
 				'widgetType'     => 'mf-listing-fname',
 			],
-			'last-name'  => (object) [
+			'last-name'        => (object) [
 				'mf_input_label' => 'Last name',
 				'mf_input_name'  => 'last-name',
 				'widgetType'     => 'mf-listing-lname',
 			],
-			'email'      => (object) [
+			'email'            => (object) [
 				'mf_input_label' => 'Email address',
 				'mf_input_name'  => 'email',
 				'widgetType'     => 'mf-email',
 			],
-			'message'    => (object) [
+			'other-email'      => (object) [
+				'mf_input_label' => 'Secondary email',
+				'mf_input_name'  => 'other-email',
+				'widgetType'     => 'mf-email',
+			],
+			'safe-label-email' => (object) [
+				'mf_input_label' => 'Security email',
+				'mf_input_name'  => 'safe-label-email',
+				'widgetType'     => 'mf-email',
+			],
+			'message'          => (object) [
 				'mf_input_label' => 'Message',
 				'mf_input_name'  => 'message',
 				'widgetType'     => 'mf-textarea',
 			],
-			'choice'     => (object) [
+			'choice'           => (object) [
 				'mf_input_label' => '',
 				'mf_input_name'  => 'choice',
 				'widgetType'     => 'mf-checkbox',
 			],
-			'empty'      => (object) [
+			'empty'            => (object) [
 				'mf_input_label' => 'Empty',
 				'mf_input_name'  => 'empty',
 				'widgetType'     => 'mf-text',
@@ -409,7 +650,9 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		$form_data = [
 			'first-name'             => 'John',
 			'last-name'              => 'Doe',
-			'email'                  => 'john@example.com',
+			'email'                  => 'john@sec060-disposable.test',
+			'other-email'            => 'john@example.com',
+			'safe-label-email'       => 'extra@sec060-disposable.test',
 			'message'                => 'Hello world',
 			'choice'                 => [ 'One', 'Two' ],
 			'empty'                  => '',
@@ -454,6 +697,12 @@ class FormTest extends HCaptchaPluginWPTestCase {
 
 		$subject = new Form();
 		$request = new WP_REST_Request( 'POST', '/metform/v1/entries/insert/' . $form_id );
+		$request->set_url_params(
+			[
+				'action' => 'insert',
+				'id'     => (string) $form_id,
+			]
+		);
 
 		$subject->capture_form_id( null, [], $request );
 
@@ -467,16 +716,19 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		self::assertSame( $form_data, $entry['post_data'] );
 		self::assertSame(
 			[
-				'First name'    => 'John',
-				'Last name'     => 'Doe',
-				'email'         => 'john@example.com',
-				'Email address' => 'john@example.com',
-				'Message'       => 'Hello world',
-				'choice'        => [ 'One', 'Two' ],
-				'name'          => 'John Doe',
+				'First name'      => 'John',
+				'Last name'       => 'Doe',
+				'Email address'   => 'john@sec060-disposable.test',
+				'Secondary email' => 'john@example.com',
+				'Message'         => 'Hello world',
+				'choice'          => [ 'One', 'Two' ],
+				'name'            => 'John Doe',
+				'email'           => 'john@sec060-disposable.test',
 			],
 			$entry['data']
 		);
+		self::assertSame( [ 'john@sec060-disposable.test', 'john@example.com', 'extra@sec060-disposable.test' ], $entry['email_addresses'] );
+		self::assertArrayNotHasKey( 'Security email', $entry['data'] );
 		self::assertSame(
 			[
 				'source'  => [ 'metform/metform.php' ],

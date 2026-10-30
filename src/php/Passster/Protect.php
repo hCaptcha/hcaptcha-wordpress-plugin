@@ -8,6 +8,7 @@
 namespace HCaptcha\Passster;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -68,15 +69,20 @@ class Protect {
 		if (
 			null !== $result ||
 			'POST' !== $request->get_method() ||
-			'/passster/v1/unlock' !== $request->get_route()
+			1 !== preg_match( '@^/passster/v1/unlock$@i', $request->get_route() )
 		) {
 			return $result;
 		}
 
+		$post_data     = $request->get_json_params();
+		$post_data     = is_array( $post_data ) ? $post_data : [];
+		$expected_id   = $this->get_id( $this->get_area_id( $post_data, 'area_id' ) );
 		$error_message = API::verify_post_data(
 			self::NONCE,
 			self::ACTION,
-			$request->get_json_params()
+			$post_data,
+			$expected_id,
+			$this->get_entry( $post_data )
 		);
 
 		if ( null === $error_message ) {
@@ -107,20 +113,18 @@ class Protect {
 			return $output;
 		}
 
-		$form_id = 0;
+		$area_id = 0;
 
-		if ( preg_match( '/data-area="(.+)"/i', $output, $m ) ) {
-			$form_id = $m[1];
+		if ( preg_match( '/data-area="([^"]*)"/i', $output, $m ) ) {
+			$area_id = absint( $m[1] );
 		}
 
 		$args = [
-			'action' => self::ACTION,
-			'name'   => self::NONCE,
-			'auto'   => true,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => $form_id,
-			],
+			'mandatory' => true,
+			'action'    => self::ACTION,
+			'name'      => self::NONCE,
+			'auto'      => true,
+			'id'        => $this->get_id( $area_id ),
 		];
 
 		$search  = '<button name="submit"';
@@ -147,7 +151,11 @@ class Protect {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( string $input ): void {
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- The API verifies the nonce below.
+		$entry       = $this->get_entry( wp_unslash( $_POST ) );
+		$expected_id = $this->get_id( $this->get_area_id( $_POST, 'area' ) );
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+		$error_message = API::verify_post( self::NONCE, self::ACTION, $expected_id, $entry );
 
 		if ( null === $error_message ) {
 			return;
@@ -155,6 +163,50 @@ class Protect {
 
 		echo wp_json_encode( [ 'error' => $error_message ] );
 		exit;
+	}
+
+	/**
+	 * Keep password and unlock input out of the anti-spam entry.
+	 *
+	 * @param array $submission Native unlock request.
+	 *
+	 * @return array
+	 */
+	private function get_entry( array $submission ): array {
+		$context = array_intersect_key( $submission, array_flip( [ 'post_id', 'area', 'type' ] ) );
+
+		return [
+			'data' => array_replace( [ 'form' => 'protect' ], EntryData::from_array( $context, [] ) ),
+		];
+	}
+
+	/**
+	 * Get a native Passster area ID from a submitted field.
+	 *
+	 * @param array  $submission Submitted data.
+	 * @param string $key        Native area field.
+	 *
+	 * @return int
+	 */
+	private function get_area_id( array $submission, string $key ): int {
+		$value = $submission[ $key ] ?? 0;
+
+		return is_scalar( $value ) ? absint( $value ) : 0;
+	}
+
+	/**
+	 * Get the widget identity for a Passster area.
+	 *
+	 * @param int $area_id Area ID.
+	 *
+	 * @return array
+	 */
+	private function get_id( int $area_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			// Existing Passster pages sign positive area IDs as strings.
+			'form_id' => $area_id > 0 ? (string) $area_id : 0,
+		];
 	}
 
 	/**

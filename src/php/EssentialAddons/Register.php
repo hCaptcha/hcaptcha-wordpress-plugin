@@ -46,6 +46,7 @@ class Register {
 	protected function init_hooks(): void {
 		add_action( 'eael/login-register/after-password-field', [ $this, 'add_register_hcaptcha' ] );
 		add_action( 'eael/login-register/before-register', [ $this, 'verify' ] );
+		add_filter( 'eael/login-register/register-form-allowed-html', [ $this, 'allow_hcaptcha_html' ] );
 
 		add_action( 'wp_head', [ $this, 'print_inline_styles' ] );
 
@@ -70,6 +71,42 @@ class Register {
 		];
 
 		HCaptcha::form_display( $args );
+	}
+
+	/**
+	 * Preserve the hCaptcha widget when Essential Addons sanitizes register markup.
+	 *
+	 * @param array $allowed_html Allowed HTML tags and attributes.
+	 *
+	 * @return array
+	 */
+	public function allow_hcaptcha_html( array $allowed_html ): array {
+		$allowed_html['h-captcha'] = array_merge(
+			$allowed_html['h-captcha'] ?? [],
+			array_fill_keys(
+				[
+					'class',
+					'data-sitekey',
+					'data-theme',
+					'data-size',
+					'data-auto',
+					'data-ajax',
+					'data-force',
+					'data-hl',
+					'data-tabindex',
+					'data-callback',
+					'data-expired-callback',
+					'data-chalexpired-callback',
+					'data-open-callback',
+					'data-close-callback',
+					'data-error-callback',
+					'data-orientation',
+				],
+				true
+			)
+		);
+
+		return $allowed_html;
 	}
 
 	/**

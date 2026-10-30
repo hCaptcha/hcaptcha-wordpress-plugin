@@ -16,7 +16,7 @@ use HCaptcha\Helpers\Minify\CSS;
 use HCaptcha\Helpers\Minify\JS;
 use HCaptcha\Settings\General;
 use HCaptcha\Settings\Integrations;
-use HCaptcha\Settings\PluginSettingsBase;
+use HCaptcha\Settings\SettingsStorage;
 use WP_Error;
 
 /**
@@ -132,6 +132,7 @@ class HCaptcha {
 				 */
 				'id'            => [],
 				'protect'       => true, // Protection status. When true, hCaptcha should be added.
+				'mandatory'     => false, // Render the challenge when the verifier cannot bind a per-form exemption.
 			]
 		);
 
@@ -159,17 +160,7 @@ class HCaptcha {
 
 		hcaptcha()->form_shown = true;
 
-		/**
-		 * Filters the protection status of a form.
-		 *
-		 * @param bool       $value   The protection status of a form.
-		 * @param string[]   $source  The source of the form (plugin, theme, WordPress Core).
-		 * @param int|string $form_id Form id.
-		 */
-		if (
-			! $args['protect'] ||
-			! apply_filters( 'hcap_protect_form', true, $args['id']['source'], $args['id']['form_id'] )
-		) {
+		if ( ! self::should_render_challenge( $args ) ) {
 			return;
 		}
 
@@ -195,6 +186,30 @@ class HCaptcha {
 		}
 
 		self::honeypot_display( self::get_honeypot_override( $args ) );
+	}
+
+	/**
+	 * Match rendering to whether the verifier can honor a per-form exemption.
+	 *
+	 * @param array $args Validated form arguments.
+	 *
+	 * @return bool
+	 */
+	private static function should_render_challenge( array $args ): bool {
+		if ( ! $args['protect'] && ! $args['mandatory'] ) {
+			return false;
+		}
+
+		/**
+		 * Filters the protection status of a form.
+		 *
+		 * @param bool       $value   The protection status of a form.
+		 * @param string[]   $source  The source of the form (plugin, theme, WordPress Core).
+		 * @param int|string $form_id Form id.
+		 */
+		$protect = apply_filters( 'hcap_protect_form', true, $args['id']['source'], $args['id']['form_id'] );
+
+		return $args['mandatory'] || $protect;
 	}
 
 	/**
@@ -287,7 +302,8 @@ class HCaptcha {
 			unset( $args['honeypot'] );
 		}
 
-		$args['protect'] = filter_var( $args['protect'], FILTER_VALIDATE_BOOLEAN );
+		$args['protect']   = filter_var( $args['protect'], FILTER_VALIDATE_BOOLEAN );
+		$args['mandatory'] = filter_var( $args['mandatory'], FILTER_VALIDATE_BOOLEAN );
 
 		return $args;
 	}
@@ -618,21 +634,40 @@ class HCaptcha {
 	 * Whether form protection is enabled/disabled via hCaptcha widget id.
 	 *
 	 * Return false (protection disabled) in only one case:
-	 * when $_POST['hcaptcha-widget-id'] contains encoded id with proper hash,
-	 * and hcap_protect_form filter confirms that the form referenced in widget id is not protected.
+	 * when the signed submitted identity matches the server-selected form,
+	 * and hcap_protect_form confirms that this form is not protected.
+	 * Callers without an expected identity always require protection.
+	 *
+	 * @param array $expected_id Server-selected form identity.
 	 *
 	 * @return bool
 	 */
-	public static function is_protection_enabled(): bool {
+	public static function is_protection_enabled( array $expected_id = [] ): bool {
 		$info = self::decode_id_info();
 
 		$id = $info['id'];
 
-		return ! (
-			$info['valid'] &&
-			/** This filter is documented above. */
-			! apply_filters( 'hcap_protect_form', true, $id['source'], $id['form_id'] )
-		);
+		if ( ! $info['valid'] ) {
+			return true;
+		}
+
+		// Preserve the filter's form-specific honeypot and timing side effects.
+		/** This filter is documented above. */
+		$protect = (bool) apply_filters( 'hcap_protect_form', true, $id['source'], $id['form_id'] );
+		unset( $id['honeypot'] );
+
+		// The default decoded identity is not evidence of a submitted signed widget.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( ! $expected_id || empty( $_POST[ self::HCAPTCHA_WIDGET_ID ] ) ) {
+			return true;
+		}
+
+		$expected_id = [
+			'source'  => (array) ( $expected_id['source'] ?? [] ),
+			'form_id' => $expected_id['form_id'] ?? 0,
+		];
+
+		return $expected_id !== $id || $protect;
 	}
 
 	/**
@@ -1390,7 +1425,8 @@ class HCaptcha {
 		$live_mode = static function () {
 			return General::MODE_LIVE;
 		};
-		$option    = (array) get_option( PluginSettingsBase::OPTION_NAME, [] );
+		$network   = SettingsStorage::is_network_wide();
+		$option    = SettingsStorage::get( $network );
 
 		// The saved license belongs to the stored Live credentials, regardless of the active test mode.
 		add_filter( 'hcap_mode', $live_mode, PHP_INT_MAX );
@@ -1399,9 +1435,7 @@ class HCaptcha {
 			$settings = hcaptcha()->settings();
 
 			if ( '' === $settings->get_site_key() || '' === $settings->get_secret_key() ) {
-				$option['license'] = 'free';
-
-				update_option( PluginSettingsBase::OPTION_NAME, $option );
+				SettingsStorage::update( [ 'license' => 'free' ], [], $network );
 
 				return;
 			}
@@ -1424,12 +1458,7 @@ class HCaptcha {
 			$license = 'enterprise';
 		}
 
-		$option['license'] = $license;
-
-		// Save license level in settings.
-		// We cannot use hcaptcha->settings()->update(...) here, as it cannot update non-existing key.
-		// The 'license' key does not exist initially.
-		// The update_options() works properly on multisite due to our pre_update_option hook.
-		update_option( PluginSettingsBase::OPTION_NAME, $option );
+		// The derived license belongs to the same active credentials, without a scope transition.
+		SettingsStorage::update( [ 'license' => $license ], [], $network );
 	}
 }

@@ -8,12 +8,17 @@
 namespace HCaptcha\WPDiscuz;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
  * Class Subscribe.
  */
 class Subscribe extends Base {
+	/**
+	 * Native subscription reCAPTCHA flag.
+	 */
+	protected const RECAPTCHA_OPTIONS = [ 'isShowOnSubscribeForm' ];
 
 	/**
 	 * Add hooks.
@@ -38,10 +43,7 @@ class Subscribe extends Base {
 		global $post;
 
 		$args = [
-			'id' => [
-				'source'  => HCaptcha::get_class_source( static::class ),
-				'form_id' => $post->ID ?? 0,
-			],
+			'id' => $this->get_id( $post->ID ?? 0 ),
 		];
 
 		HCaptcha::form_display( $args );
@@ -60,7 +62,27 @@ class Subscribe extends Base {
 			filter_var( wp_unslash( $_POST['h-captcha-response'] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS ) :
 			'';
 
-		$result = API::verify_request( $hcaptcha_response );
+		$post_id     = isset( $_POST['postId'] ) && is_scalar( $_POST['postId'] ) ?
+			(int) filter_var( wp_unslash( $_POST['postId'] ), FILTER_SANITIZE_NUMBER_INT ) : 0;
+		$expected_id = $this->get_id( $post_id );
+		$user        = wp_get_current_user();
+		$email       = $user->ID ? $user->user_email : '';
+
+		if ( ! $user->ID && isset( $_POST['wpdiscuzSubscriptionEmail'] ) && is_string( $_POST['wpdiscuzSubscriptionEmail'] ) ) {
+			// wpDiscuz sanitizes first and then unslashes the subscription address.
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash
+			$email = wp_unslash( sanitize_text_field( $_POST['wpdiscuzSubscriptionEmail'] ) );
+		}
+
+		$entry  = EntryData::with_emails(
+			[
+				'expected_id'        => $expected_id,
+				'h-captcha-response' => $hcaptcha_response,
+				'data'               => EntryData::from_post( [] ),
+			],
+			[ $email ]
+		);
+		$result = API::verify( $entry );
 
 		unset( $_POST['h-captcha-response'], $_POST['g-recaptcha-response'] );
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
@@ -70,6 +92,20 @@ class Subscribe extends Base {
 		}
 
 		wp_send_json_error( $result );
+	}
+
+	/**
+	 * Get the widget identity for a post.
+	 *
+	 * @param int $post_id Post ID.
+	 *
+	 * @return array
+	 */
+	private function get_id( int $post_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( static::class ),
+			'form_id' => $post_id,
+		];
 	}
 
 	/**

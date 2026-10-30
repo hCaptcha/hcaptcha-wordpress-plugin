@@ -36,7 +36,7 @@ describe( 'admin-wordfence', () => {
 		require( '../../../assets/js/admin-wordfence.js' );
 	} );
 
-	test( 'replaces native hCaptcha settings with the plugin notice', () => {
+	test( 'shows a notice while preserving native Wordfence CAPTCHA settings', () => {
 		window.hCaptchaWordfence.getLocationHref = () => 'https://test.test/wp-admin/admin.php?page=WFLS#top#settings';
 
 		window.hCaptchaWordfence.ready();
@@ -45,9 +45,9 @@ describe( 'admin-wordfence', () => {
 
 		expect( $notice.find( 'strong' ).html() ).toBe( global.HCaptchaWordfenceObject.noticeLabel );
 		expect( $notice.find( 'p' ).html() ).toBe( global.HCaptchaWordfenceObject.noticeDescription );
-		expect( $( '#wfls-option-enable-hcaptcha' ).length ).toBe( 0 );
-		expect( $( '#input-hcaptchaSiteKey' ).length ).toBe( 0 );
-		expect( $( '#input-hcaptchaSecret' ).length ).toBe( 0 );
+		expect( $( '#wfls-option-enable-hcaptcha' ).length ).toBe( 1 );
+		expect( $( '#input-hcaptchaSiteKey' ).length ).toBe( 1 );
+		expect( $( '#input-hcaptchaSecret' ).length ).toBe( 1 );
 	} );
 
 	test( 'does not modify another admin page', () => {

@@ -89,6 +89,7 @@ class Quform {
 	 * @param array        $m      Regular expression match array.
 	 *
 	 * @return string|mixed
+	 * @noinspection UnnecessaryCastingInspection
 	 */
 	public function add_hcaptcha( $output, string $tag, $attr, array $m ) {
 		if ( 'quform' !== $tag ) {
@@ -142,6 +143,7 @@ class Quform {
 	 *
 	 * @return string
 	 * @noinspection HtmlUnknownAttribute
+	 * @noinspection UnnecessaryCastingInspection
 	 */
 	private function replace_hcaptcha( string $output, int $form_id ): string {
 		return (string) preg_replace(
@@ -348,13 +350,24 @@ class Quform {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( static::class ),
-				'form_id' => $form_id,
-			],
+			'id'     => $this->get_id( $form_id ),
 		];
 
 		return HCaptcha::form( $args );
+	}
+
+	/**
+	 * Get the widget identity for a Quform form.
+	 *
+	 * @param int $form_id Form ID.
+	 *
+	 * @return array
+	 */
+	private function get_id( int $form_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( static::class ),
+			'form_id' => $form_id,
+		];
 	}
 
 	/**
@@ -370,7 +383,8 @@ class Quform {
 		$form_id     = $form->getId();
 		$values      = $form->getValues();
 		$this->entry = [
-			'data' => [],
+			'data'        => [],
+			'expected_id' => $this->get_id( $form_id ),
 		];
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching

@@ -54,7 +54,7 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 	 * @return void
 	 */
 	public function tearDown(): void {
-		unset( $_POST['widget_id'], $_SERVER['HTTP_REFERER'] );
+		unset( $_POST['page_id'], $_POST['widget_id'], $_SERVER['HTTP_REFERER'] );
 
 		parent::tearDown();
 	}
@@ -72,6 +72,7 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 			has_action( 'eael/login-register/after-password-field', [ $subject, 'add_register_hcaptcha' ] )
 		);
 		self::assertSame( 10, has_action( 'eael/login-register/before-register', [ $subject, 'verify' ] ) );
+		self::assertSame( 10, has_filter( 'eael/login-register/register-form-allowed-html', [ $subject, 'allow_hcaptcha_html' ] ) );
 
 		self::assertSame( 10, has_action( 'wp_head', [ $subject, 'print_inline_styles' ] ) );
 
@@ -136,6 +137,29 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 		}
 
 		self::assertStringContainsString( 'class="h-captcha hcaptcha-api-delayed"', $actual );
+	}
+
+	/**
+	 * Test that Essential Addons preserves the widget and strips unapproved attributes.
+	 *
+	 * @return void
+	 */
+	public function test_allow_hcaptcha_html(): void {
+		$subject      = new Register();
+		$allowed_html = [
+			'div'       => [ 'class' => true ],
+			'h-captcha' => [ 'title' => true ],
+		];
+		$actual       = $subject->allow_hcaptcha_html( $allowed_html );
+		$markup       = '<h-captcha class="h-captcha" data-sitekey="test-key" data-theme="light" data-size="normal" data-auto="false" data-ajax="false" data-force="false" title="test" onclick="alert(1)"></h-captcha>';
+		$filtered     = wp_kses( $markup, $actual );
+
+		self::assertSame( $allowed_html['div'], $actual['div'] );
+		self::assertTrue( $actual['h-captcha']['title'] );
+		self::assertStringContainsString( '<h-captcha class="h-captcha"', $filtered );
+		self::assertStringContainsString( 'data-sitekey="test-key"', $filtered );
+		self::assertStringContainsString( 'data-auto="false"', $filtered );
+		self::assertStringNotContainsString( 'onclick=', $filtered );
 	}
 
 	/**
@@ -221,7 +245,7 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 
 		$subject = Mockery::mock( Register::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();
-		$subject->shouldReceive( 'exit' )->with()->times( (int) $has_referer );
+		$subject->shouldReceive( 'exit' )->with()->once();
 
 		ob_start();
 		$subject->verify();
@@ -231,7 +255,7 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 		self::assertSame( '{"success":false,"data":"' . $error_message . '"}', $json );
 		self::assertSame( 'eael_login_error_' . $widget_id, $setcookie[0] );
 		self::assertSame( $error_message, $setcookie[1] );
-		self::assertSame( $redirect, $has_referer );
+		self::assertTrue( $redirect );
 	}
 
 	/**
@@ -243,6 +267,85 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 		return [
 			[ false ],
 			[ true ],
+		];
+	}
+
+	/**
+	 * Test that a non-AJAX CAPTCHA rejection stops native registration processing.
+	 *
+	 * @param bool $has_referer Whether the request has a Referer header.
+	 * @param bool $has_page    Whether the native form page is supplied.
+	 *
+	 * @return void
+	 * @dataProvider dp_test_verify_not_verified_without_ajax
+	 */
+	public function test_verify_not_verified_without_ajax( bool $has_referer, bool $has_page ): void {
+		$page_id       = $this->factory()->post->create( [ 'post_type' => 'page' ] );
+		$page_url      = get_permalink( $page_id );
+		$widget_id     = 'some_id';
+		$error_message = 'The hCaptcha is invalid.';
+		$setcookie     = [];
+		$redirect_url  = '';
+
+		$_POST['widget_id'] = $widget_id;
+
+		if ( $has_page ) {
+			$_POST['page_id'] = $page_id;
+		}
+
+		if ( $has_referer ) {
+			$_SERVER['HTTP_REFERER'] = $page_url;
+		}
+
+		$this->prepare_verify_post(
+			'hcaptcha_essential_addons_register_nonce',
+			'hcaptcha_essential_addons_register',
+			false
+		);
+		$this->prepare_widget_id(
+			[
+				'source'  => [],
+				'form_id' => 'register',
+			]
+		);
+
+		add_filter( 'wp_doing_ajax', '__return_false' );
+		add_filter(
+			'wp_redirect',
+			static function ( $location ) use ( &$redirect_url ) {
+				$redirect_url = $location;
+
+				return false;
+			}
+		);
+
+		FunctionMocker::replace(
+			'setcookie',
+			static function ( $name, $value ) use ( &$setcookie ) {
+				$setcookie = [ $name, $value ];
+			}
+		);
+
+		$subject = Mockery::mock( Register::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'exit' )->with()->once();
+
+		$subject->verify();
+
+		self::assertSame( [ 'eael_login_error_' . $widget_id, $error_message ], $setcookie );
+		self::assertSame( $has_referer || $has_page ? $page_url : home_url( '/' ), $redirect_url );
+	}
+
+	/**
+	 * Data provider for non-AJAX CAPTCHA rejections.
+	 *
+	 * @return array
+	 */
+	public function dp_test_verify_not_verified_without_ajax(): array {
+		return [
+			'headerless form page'     => [ false, true ],
+			'headerless home fallback' => [ false, false ],
+			'referer'                  => [ true, true ],
 		];
 	}
 
@@ -292,7 +395,9 @@ class RegisterTest extends HCaptchaPluginWPTestCase {
 			}
 		);
 
-		$subject = new Register();
+		$subject = Mockery::mock( Register::class )->makePartial();
+		$subject->shouldAllowMockingProtectedMethods();
+		$subject->shouldReceive( 'exit' )->with()->once();
 
 		ob_start();
 		$subject->verify();

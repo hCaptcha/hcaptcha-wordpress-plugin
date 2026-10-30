@@ -10,13 +10,16 @@
 
 namespace HCaptcha\Tests\Integration\Kadence;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Kadence\BlockParser;
 use HCaptcha\Kadence\AdvancedForm;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
+use KB_Ajax_Advanced_Form;
 use Mockery;
 use ReflectionException;
 use ReflectionMethod;
+use ReflectionProperty;
 
 /**
  * Test Kadence AdvancedForm.
@@ -203,7 +206,7 @@ class AdvancedFormTest extends HCaptchaPluginWPTestCase {
 	public function test_render_nested_forms_with_different_ids(): void {
 		$form_ids = [];
 
-		foreach ( [ 'first', 'second' ] as $index => $slug ) {
+		foreach ( [ 'first', 'second' ] as $slug ) {
 			$form_ids[] = wp_insert_post(
 				[
 					'post_type'    => 'kadence_form',
@@ -254,13 +257,12 @@ class AdvancedFormTest extends HCaptchaPluginWPTestCase {
 			[
 				'post_content' => 'temp',
 				'post_status'  => 'publish',
+				'post_type'    => 'kadence_form',
 			]
 		);
 
 		// phpcs:disable Generic.WhiteSpace.ScopeIndent.IncorrectExact, Generic.Strings.UnnecessaryHeredoc.Found
 		$post_content = <<<HTML
-<!-- wp:group -->
-<div class="wp-block-group">
 <!-- wp:kadence/advanced-form {"uniqueID":"{$post_id}_abc123"} -->
 	<!-- wp:core/paragraph -->
 	<p>Some intro text</p>
@@ -288,8 +290,6 @@ class AdvancedFormTest extends HCaptchaPluginWPTestCase {
 	<div class="kb-adv-form-field">Message</div>
 	<!-- /wp:kadence/advanced-form-textarea -->
 <!-- /wp:kadence/advanced-form -->
-</div>
-<!-- /wp:group -->
 HTML;
 		// phpcs:enable Generic.WhiteSpace.ScopeIndent.IncorrectExact
 
@@ -329,12 +329,31 @@ HTML;
 	}
 
 	/**
+	 * Ignore unrelated blocks and non-content advanced form fields.
+	 */
+	public function test_add_form_field_ignores_non_content_blocks(): void {
+		$subject   = new AdvancedForm();
+		$method    = new ReflectionMethod( $subject, 'add_form_field' );
+		$data      = [];
+		$emails    = [];
+		$form_data = [];
+		$method->setAccessible( true );
+
+		$method->invokeArgs( $subject, [ &$data, [ 'blockName' => 'core/paragraph' ], &$emails, $form_data ] );
+		$method->invokeArgs( $subject, [ &$data, [ 'blockName' => 'kadence/advanced-form-hidden' ], &$emails, $form_data ] );
+
+		self::assertSame( [], $data );
+		self::assertSame( [], $emails );
+	}
+
+	/**
 	 * Test process_ajax() when not success.
 	 *
 	 * @param bool|null $result Result of \HCaptcha\Helpers\API::verify_request().
 	 *
 	 * @return void
 	 * @dataProvider dp_test_process_ajax_when_not_success
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_process_ajax_when_not_success( ?bool $result ): void {
 		$hcaptcha_response = 'some response';
@@ -379,6 +398,7 @@ HTML;
 	 * Test process_ajax() when widget id is missing.
 	 *
 	 * @return void
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_process_ajax_missing_widget_id(): void {
 		$hcaptcha_response = 'some response';
@@ -546,5 +566,191 @@ HTML;
 
 		self::assertSame( $site_key, apply_filters( 'pre_option_kadence_blocks_hcaptcha_site_key', 'some' ) );
 		self::assertSame( $secret_key, apply_filters( 'pre_option_kadence_blocks_hcaptcha_secret_key', 'some' ) );
+	}
+	/**
+	 * Apply email policy to every trusted advanced email field.
+	 *
+	 * @param bool $blocked Whether the trusted email is disposable.
+	 * @dataProvider dp_sec063_email_policy
+	 */
+	public function test_sec063_typed_email_policy( bool $blocked ): void {
+		$this->prepare_verify_request( 'sec063-challenge' );
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		set_transient( 'hcaptcha_disposable_email_blocklist', [ 'sec063-disposable.test' => true ] );
+		$post_id = $this->factory()->post->create();
+		wp_update_post(
+			[
+				'ID'           => $post_id,
+				'post_content' => '<!-- wp:kadence/advanced-form {"uniqueID":"' . $post_id . '_sec063"} --><!-- wp:kadence/advanced-form-email {"label":"Payment contact","uniqueID":"one","inputName":"billing_email"} /--><!-- wp:kadence/advanced-form-email {"label":"Другой адрес","uniqueID":"two"} /--><!-- wp:kadence/advanced-form-text {"label":"email","uniqueID":"three"} /--><!-- /wp:kadence/advanced-form -->',
+			]
+		);
+		$_POST['_kb_adv_form_post_id'] = $post_id;
+		$_POST['billing_email']        = $blocked ? ' person@sec063-disposable.test ' : ' person@example.com ';
+		$_POST['fieldone']             = 'spoof@sec063-disposable.test';
+		$_POST['fieldtwo']             = 'reader@example.com';
+		$_POST['fieldthree']           = 'spoof@sec063-disposable.test';
+		$this->prepare_widget_id( $post_id );
+		$subject = new AdvancedForm();
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$entry = $this->set_method_accessibility( $subject, 'get_entry' )->invoke( $subject, $_POST );
+
+		self::assertSame( $blocked ? 'Please use a permanent email address.' : null, API::verify_request( null, $entry ) );
+	}
+	/**
+	 * Exercise both policy rejection and permanent address acceptance.
+	 *
+	 * @return array
+	 */
+	public function dp_sec063_email_policy(): array {
+		return [
+			'disposable' => [ true ],
+			'permanent'  => [ false ],
+		];
+	}
+
+	/**
+	 * Match the native accepted email before enforcing disposable-address policy.
+	 *
+	 * @param string $raw_email Posted native email input.
+	 * @param string $email     Native normalized address.
+	 * @param bool   $blocked   Whether native address is disposable.
+	 * @dataProvider dp_sec063_native_email_normalization
+	 * @return void
+	 */
+	public function test_sec063_native_email_normalization( string $raw_email, string $email, bool $blocked ): void {
+		$this->prepare_verify_request( 'sec063-challenge' );
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		self::assertTrue( hcaptcha()->settings()->is_on( 'disposable_email' ) );
+		set_transient( 'hcaptcha_disposable_email_blocklist', [ 'sec063-disposable.test' => true ] );
+		$post_id = $this->factory()->post->create(
+			[
+				'post_type'   => 'kadence_form',
+				'post_status' => 'publish',
+			]
+		);
+		wp_update_post(
+			[
+				'ID'           => $post_id,
+				'post_content' => '<!-- wp:kadence/advanced-form {"uniqueID":"' . $post_id . '_sec063"} --><!-- wp:kadence/advanced-form-email {"label":"Payment contact","uniqueID":"one","inputName":"billing_email","required":true} /--><!-- wp:kadence/advanced-form-text {"label":"email","uniqueID":"two","inputName":"email"} /--><!-- /wp:kadence/advanced-form -->',
+			]
+		);
+		$_POST['_kb_adv_form_post_id'] = $post_id;
+		$_POST['billing_email']        = wp_slash( $raw_email );
+		$_POST['email']                = 'spoof@example.com';
+		$this->prepare_widget_id( $post_id );
+
+		$native = KB_Ajax_Advanced_Form::get_instance();
+		$fields = new ReflectionProperty( KB_Ajax_Advanced_Form::class, 'fields' );
+		$fields->setAccessible( true );
+		$stored_fields = $fields->getValue();
+		$fields->setValue( null, [] );
+		try {
+			$form      = $this->set_method_accessibility( $native, 'get_form' )->invoke( $native, $post_id );
+			$processed = $native->process_fields( $form['fields'] );
+		} finally {
+			$fields->setValue( null, $stored_fields );
+		}
+		self::assertSame( $email, $processed[0]['value'] );
+		self::assertSame( 'email', $processed[0]['type'] );
+		self::assertSame( 'billing_email', $processed[0]['name'] );
+
+		$subject = new AdvancedForm();
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Native pipeline owns its nonce check.
+		$entry = $this->set_method_accessibility( $subject, 'get_entry' )->invoke( $subject, $_POST );
+		self::assertSame( [ $processed[0]['value'] ], $entry['email_addresses'] );
+		self::assertSame( $processed[0]['value'], $entry['data']['email'] );
+		self::assertArrayNotHasKey( 'Payment contact', $entry['data'] );
+		self::assertSame( $blocked ? 'Please use a permanent email address.' : null, API::verify_request( null, $entry ) );
+	}
+
+	/**
+	 * Native HTML insertion normalization and ordinary address controls.
+	 *
+	 * @return array
+	 */
+	public function dp_sec063_native_email_normalization(): array {
+		return [
+			'disposable with HTML insertion' => [ ' person@sec063-disposab<l>e.test ', 'person@sec063-disposable.test', true ],
+			'permanent with HTML insertion'  => [ ' reader@examp<l>e.com ', 'reader@example.com', false ],
+			'ordinary disposable'            => [ ' person@sec063-disposable.test ', 'person@sec063-disposable.test', true ],
+			'ordinary permanent'             => [ ' reader@example.com ', 'reader@example.com', false ],
+		];
+	}
+
+	/**
+	 * Project email fields from the same post selected by native Kadence.
+	 *
+	 * @param string $id_format    Posted ID representation.
+	 * @param string $email        Submitted email address.
+	 * @param bool   $blocked      Whether the disposable policy must reject it.
+	 * @param bool   $imported_id  Whether the block uses an imported unique ID.
+	 * @param bool   $nested       Whether the email leaf is inside another Kadence block.
+	 * @dataProvider dp_sec061_form_id_spelling
+	 * @return void
+	 */
+	public function test_sec061_form_id_spelling( string $id_format, string $email, bool $blocked, bool $imported_id, bool $nested ): void {
+		$this->prepare_verify_request( 'sec061-challenge' );
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		set_transient( 'hcaptcha_disposable_email_blocklist', [ 'sec061-disposable.test' => true ] );
+		$post_id     = $this->factory()->post->create(
+			[
+				'post_type'   => 'kadence_form',
+				'post_status' => 'publish',
+			]
+		);
+		$unique_id   = $imported_id ? 'imported_sec061' : $post_id . '_sec061';
+		$email_block = '<!-- wp:kadence/advanced-form-email {"label":"Contact","uniqueID":"email","inputName":"contact_email","required":true} /-->';
+
+		if ( $nested ) {
+			$email_block = '<!-- wp:kadence/advanced-form-group -->' . $email_block . '<!-- /wp:kadence/advanced-form-group -->';
+		}
+
+		wp_update_post(
+			[
+				'ID'           => $post_id,
+				'post_content' => '<!-- wp:kadence/advanced-form {"uniqueID":"' . $unique_id . '"} -->' . $email_block . '<!-- /wp:kadence/advanced-form -->',
+			]
+		);
+		$posted_id                     = sprintf( $id_format, $post_id );
+		$_POST['_kb_adv_form_post_id'] = $posted_id;
+		$_POST['contact_email']        = $email;
+		$this->prepare_widget_id( $post_id );
+
+		$native = KB_Ajax_Advanced_Form::get_instance();
+		$fields = new ReflectionProperty( KB_Ajax_Advanced_Form::class, 'fields' );
+		$fields->setAccessible( true );
+		$stored_fields = $fields->getValue();
+		$fields->setValue( null, [] );
+		try {
+			$form      = $this->set_method_accessibility( $native, 'get_form' )->invoke( $native, $posted_id );
+			$processed = $native->process_fields( $form['fields'] );
+		} finally {
+			$fields->setValue( null, $stored_fields );
+		}
+		self::assertSame( $email, $processed[0]['value'] );
+		self::assertSame( 'contact_email', $processed[0]['name'] );
+
+		$subject = new AdvancedForm();
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Native pipeline owns its nonce check.
+		$entry = $this->set_method_accessibility( $subject, 'get_entry' )->invoke( $subject, $_POST );
+		self::assertSame( $post_id, $entry['expected_id']['form_id'] );
+		self::assertSame( [ $processed[0]['value'] ], $entry['email_addresses'] );
+		self::assertSame( $blocked ? 'Please use a permanent email address.' : null, API::verify_request( null, $entry ) );
+	}
+
+	/**
+	 * ID spellings and disposable-email controls for SEC-061.
+	 *
+	 * @return array
+	 */
+	public function dp_sec061_form_id_spelling(): array {
+		return [
+			'canonical blocked'      => [ '%s', 'person@sec061-disposable.test', true, false, false ],
+			'leading zero blocked'   => [ '00%s', 'person@sec061-disposable.test', true, false, false ],
+			'decimal suffix blocked' => [ '%s.0', 'person@sec061-disposable.test', true, false, false ],
+			'leading zero allowed'   => [ '00%s', 'reader@example.com', false, false, false ],
+			'imported block ID'      => [ '%s', 'person@sec061-disposable.test', true, true, false ],
+			'nested email field'     => [ '%s', 'person@sec061-disposable.test', true, false, true ],
+		];
 	}
 }

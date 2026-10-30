@@ -9,6 +9,7 @@ namespace HCaptcha\LoginSignupPopup;
 
 use HCaptcha\Abstracts\LoginBase;
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 
@@ -99,7 +100,8 @@ class Login extends LoginBase {
 			return $error;
 		}
 
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		$entry         = EntryData::with_emails( [ 'data' => EntryData::from_array( $credentials, [ 'username' => 'user_login' ] ) ], [] );
+		$error_message = API::verify_post( self::NONCE, self::ACTION, $this->get_expected_id(), $entry );
 
 		if ( null === $error_message ) {
 			return $error;

@@ -8,6 +8,7 @@
 namespace HCaptcha\ClassifiedListing;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 
@@ -55,17 +56,14 @@ class Register {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'register',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		HCaptcha::form_display( $args );
 	}
 
 	/**
-	 * Verify login form.
+	 * Verify an account registration form.
 	 *
 	 * @param WP_Error|mixed $validation_error Validation error.
 	 * @param string         $email            Email.
@@ -77,17 +75,18 @@ class Register {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $validation_error, string $email, string $username, string $password, array $post ) {
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$rtcl_register = isset( $_POST['rtcl-register'] ) ?
-			sanitize_text_field( wp_unslash( $_POST['rtcl-register'] ) ) :
-			'';
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
-
-		if ( 'Register' !== $rtcl_register ) {
+		// The shared filter also runs while a guest submits a listing. Only the
+		// native account registration routes render this hCaptcha widget.
+		if ( empty( $post['rtcl-register'] ) && ! doing_action( 'wp_ajax_nopriv_rtcl_registration_request' ) ) {
 			return $validation_error;
 		}
 
-		$error_message = API::verify_post( self::NONCE, self::ACTION );
+		$error_message = API::verify_post(
+			self::NONCE,
+			self::ACTION,
+			$this->get_expected_id(),
+			EntryData::with_emails( [], [ sanitize_email( $email ) ] )
+		);
 
 		if ( null === $error_message ) {
 			return $validation_error;
@@ -96,5 +95,17 @@ class Register {
 		$code = array_search( $error_message, hcap_get_error_messages(), true ) ?: 'fail';
 
 		return new WP_Error( $code, $error_message, 400 );
+	}
+
+	/**
+	 * Get the expected form identity.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => 'register',
+		];
 	}
 }

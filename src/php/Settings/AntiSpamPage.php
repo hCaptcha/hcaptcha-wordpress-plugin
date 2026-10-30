@@ -8,6 +8,7 @@
 namespace HCaptcha\Settings;
 
 use HCaptcha\Admin\MaxMindDb;
+use HCaptcha\Admin\OnboardingWizard;
 use HCaptcha\AntiSpam\AntiSpam;
 use HCaptcha\AntiSpam\DisposableEmail;
 use HCaptcha\Helpers\CloudflareDetector;
@@ -97,6 +98,8 @@ class AntiSpamPage extends PluginSettingsBase {
 	 */
 	protected function init_hooks(): void {
 		parent::init_hooks();
+
+		new OnboardingWizard( $this );
 
 		add_action( 'wp_ajax_' . self::CHECK_IPS_ACTION, [ $this, 'check_ips' ] );
 		add_action( 'wp_ajax_' . self::DETECT_CLOUDFLARE_ACTION, [ $this, 'detect_cloudflare' ] );
@@ -385,6 +388,7 @@ class AntiSpamPage extends PluginSettingsBase {
 	 * Ajax action to check IPs.
 	 *
 	 * @return void
+	 * @noinspection PhpUnreachableStatementInspection
 	 */
 	public function check_ips(): void {
 		$this->run_checks( self::CHECK_IPS_ACTION );
@@ -501,7 +505,12 @@ class AntiSpamPage extends PluginSettingsBase {
 	 * @return mixed
 	 */
 	public function clear_trusted_address_headers_review_notice( $value, $old_value ) {
-		if ( ! is_array( $value ) || ! $this->is_anti_spam_settings_save() ) {
+		if (
+			! is_array( $value ) ||
+			! $this->is_anti_spam_settings_save() ||
+			SettingsStorage::is_internal_write( $this->option_name(), $value ) ||
+			( ! Request::is_cli() && ! $this->can_manage_settings() )
+		) {
 			return $value;
 		}
 
@@ -557,11 +566,7 @@ class AntiSpamPage extends PluginSettingsBase {
 	 * @return void
 	 */
 	private function save_cloudflare_detection_status( array $cloudflare_status ): void {
-		$settings = $this->get_stored_settings();
-
-		$settings[ self::CLOUDFLARE_DETECTION_STATUS_OPTION ] = $cloudflare_status;
-
-		$this->update_stored_settings( $settings );
+		SettingsStorage::update( [ self::CLOUDFLARE_DETECTION_STATUS_OPTION => $cloudflare_status ] );
 	}
 
 	/**
@@ -577,23 +582,6 @@ class AntiSpamPage extends PluginSettingsBase {
 		}
 
 		return is_array( $settings ) ? $settings : [];
-	}
-
-	/**
-	 * Update stored settings.
-	 *
-	 * @param array $settings Settings.
-	 *
-	 * @return void
-	 */
-	private function update_stored_settings( array $settings ): void {
-		if ( is_multisite() && $this->is_network_wide() ) {
-			update_site_option( $this->option_name(), $settings );
-
-			return;
-		}
-
-		update_option( $this->option_name(), $settings );
 	}
 
 	/**

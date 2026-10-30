@@ -34,6 +34,15 @@ yarn
 yarn dev
 ```
 
+Composer install/update enables the repository's Git hooks in local checkouts and
+worktrees. For an existing checkout, or a cloud environment that reuses installed
+dependencies, run `composer hooks:install` during environment setup.
+
+The pre-commit hook generates and stages `changelog.txt` from the staged release notes
+in `readme.txt`, so both files are included in the same commit. Before running tests
+with uncommitted release-note changes, run `composer changelog`. CI verifies the
+generated file with `composer changelog:check`.
+
 1. Sign up at [hCaptcha.com](https://www.hcaptcha.com/) to get a site key and secret.
 2. Activate the plugin through the 'Plugins' menu in WordPress
 3. Enter your Site Key and SECRET in the Settings -> hCaptcha menu in WordPress

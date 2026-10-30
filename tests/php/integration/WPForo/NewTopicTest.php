@@ -101,6 +101,7 @@ class NewTopicTest extends HCaptchaPluginWPTestCase {
 		$subject = new NewTopic();
 
 		$this->prepare_verify_post( 'hcaptcha_wpforo_new_topic_nonce', 'hcaptcha_wpforo_new_topic' );
+		$this->prepare_new_topic_identity();
 
 		WPF()->session_token = '23';
 
@@ -117,6 +118,7 @@ class NewTopicTest extends HCaptchaPluginWPTestCase {
 		$subject  = new NewTopic();
 
 		$this->prepare_verify_post( 'hcaptcha_wpforo_new_topic_nonce', 'hcaptcha_wpforo_new_topic', false );
+		$this->prepare_new_topic_identity();
 
 		FunctionMocker::replace( 'wpforo_is_ajax', true );
 
@@ -158,6 +160,18 @@ class NewTopicTest extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
+	 * Prepare the fixed identity rendered by the new topic form.
+	 */
+	private function prepare_new_topic_identity(): void {
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'wpforo/wpforo.php' ],
+				'form_id' => 'new_topic',
+			]
+		);
+	}
+
+	/**
 	 * Test print_hcaptcha_scripts().
 	 *
 	 * @return void
@@ -193,7 +207,6 @@ class NewTopicTest extends HCaptchaPluginWPTestCase {
 	 * Test print_inline_styles().
 	 *
 	 * @return void
-	 * @noinspection UnusedFunctionResultInspection
 	 * @noinspection CssUnusedSymbol
 	 */
 	public function test_print_inline_styles(): void {
@@ -241,5 +254,51 @@ CSS;
 		$subject->print_inline_styles();
 
 		self::assertSame( '', ob_get_clean() );
+	}
+
+	/**
+	 * Check normalized native guest email through the production API.
+	 *
+	 * @dataProvider dp_test_native_email_policy
+	 *
+	 * @param string $email   Native guest address.
+	 * @param bool   $blocked Whether disposal policy rejects it.
+	 */
+	public function test_native_email_policy( string $email, bool $blocked ): void {
+		add_filter(
+			'hcap_disposable_email_domains',
+			static function (): array {
+				return [ 'disposable.example' => true ];
+			}
+		);
+		$_POST['email'] = 'safe@example.com';
+		$this->prepare_verify_post( 'hcaptcha_wpforo_new_topic_nonce', 'hcaptcha_wpforo_new_topic' );
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		hcaptcha()->settings()->set( 'wpforo_status', [ 'new_topic', 'reply' ] );
+		$this->set_protected_property( hcaptcha(), 'supported_forms', null );
+		self::assertTrue( hcaptcha()->settings()->is_on( 'disposable_email' ) );
+		$this->prepare_new_topic_identity();
+		FunctionMocker::replace( 'wpforo_is_ajax', true );
+		$data                = [ 'email' => $email ];
+		WPF()->session_token = 'sec063-native-email';
+
+		$result              = ( new NewTopic() )->verify( $data );
+		WPF()->session_token = '';
+
+		self::assertSame( $blocked ? false : $data, $result );
+		self::assertSame( $blocked ? '<p class="error">' . hcap_get_error_messages()['disposable-email'] . '</p>' : '', WPF()->notice->get_notices() );
+	}
+
+	/**
+	 * Native guest address controls.
+	 *
+	 * @return array
+	 */
+	public function dp_test_native_email_policy(): array {
+		return [
+			'disposable guest' => [ 'user@disposable.example', true ],
+			'permanent guest'  => [ 'safe@example.com', false ],
+			'email-free data'  => [ '', false ],
+		];
 	}
 }

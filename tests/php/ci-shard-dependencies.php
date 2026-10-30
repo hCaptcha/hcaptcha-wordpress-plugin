@@ -20,7 +20,7 @@ require_once __DIR__ . '/run-parallel.php';
  */
 function hcaptcha_ci_shard_dependencies( array $units ): array {
 	$public_plugins  = array_fill_keys(
-		explode( ' ', 'acf-extended bbpress blocksy-companion buddypress coblocks contact-form-7 download-manager elementor essential-addons-for-elementor-lite essential-blocks events-manager fluentform formidable forminator give jetpack kadence-blocks learnpress mailchimp-for-wp mailin mailpoet maintenance metform ninja-forms otter-blocks password-protected theme-my-login tutor ultimate-addons-for-gutenberg ultimate-member woocommerce wordfence wpforms-lite wpforo' ),
+		explode( ' ', 'acf-extended bbpress blocksy-companion buddypress coblocks contact-form-7 download-manager easy-digital-downloads elementor essential-addons-for-elementor-lite essential-blocks events-manager fluentform formidable forminator give html-forms jetpack kadence-blocks learnpress mailchimp-for-wp mailin mailpoet maintenance metform ninja-forms otter-blocks password-protected simple-membership supportcandy theme-my-login tutor ultimate-addons-for-gutenberg ultimate-member woocommerce wordfence wpforms-lite wpforo' ),
 		true
 	);
 	$private_plugins = array_fill_keys(

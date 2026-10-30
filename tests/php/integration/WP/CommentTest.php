@@ -12,6 +12,7 @@
 
 namespace HCaptcha\Tests\Integration\WP;
 
+use HCaptcha\Blocksy\ProductReview;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WP\Comment;
@@ -19,6 +20,7 @@ use Mockery;
 use ReflectionException;
 use tad\FunctionMocker\FunctionMocker;
 use WP_Error;
+use WP_REST_Request;
 
 /**
  * Test the comment form.
@@ -57,6 +59,125 @@ class CommentTest extends HCaptchaWPTestCase {
 		self::assertSame( 10, has_filter( 'comment_form_submit_field', [ $subject, 'add_captcha' ] ) );
 		self::assertSame( -PHP_INT_MAX, has_filter( 'preprocess_comment', [ $subject, 'verify' ] ) );
 		self::assertSame( 20, has_filter( 'pre_comment_approved', [ $subject, 'pre_comment_approved' ] ) );
+		self::assertSame( 10, has_filter( 'rest_preprocess_comment', [ $subject, 'verify_rest_comment' ] ) );
+		$blocksy = new ProductReview();
+		self::assertFalse( has_filter( 'rest_preprocess_comment', [ $blocksy, 'verify_rest_comment' ] ) );
+	}
+
+	/**
+	 * REST comments require a challenge bound to the target post.
+	 *
+	 * @return void
+	 */
+	public function test_rest_comment_requires_post_bound_captcha(): void {
+		new Comment();
+		wp_set_current_user( $this->factory()->user->create( [ 'role' => 'subscriber' ] ) );
+
+		$first_post  = $this->factory()->post->create( [ 'comment_status' => 'open' ] );
+		$second_post = $this->factory()->post->create( [ 'comment_status' => 'open' ] );
+		$request     = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+
+		$request->set_body_params(
+			[
+				'post'    => $second_post,
+				'content' => 'REST comment without hCaptcha.',
+			]
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		self::assertSame( 400, $response->get_status(), wp_json_encode( $response->get_data() ) );
+		self::assertSame( 'invalid_hcaptcha', $response->get_data()['code'] );
+
+		$this->prepare_verify_post( 'hcaptcha_comment_nonce', 'hcaptcha_comment' );
+		$request->set_body_params(
+			[
+				'post'                   => $second_post,
+				'content'                => 'REST comment with a wrong post hCaptcha.',
+				'hcaptcha_comment_nonce' => wp_create_nonce( 'hcaptcha_comment' ),
+				'h-captcha-response'     => 'some response',
+				'hcaptcha-widget-id'     => HCaptcha::widget_id_value(
+					[
+						'source'  => [ 'WordPress' ],
+						'form_id' => $first_post,
+					]
+				),
+			]
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		self::assertSame( 400, $response->get_status(), wp_json_encode( $response->get_data() ) );
+		self::assertSame( 'invalid_hcaptcha', $response->get_data()['code'] );
+
+		$request->set_body_params(
+			[
+				'post'    => $second_post,
+				'content' => 'REST comment without proof from this request.',
+			]
+		);
+		$response = rest_get_server()->dispatch( $request );
+
+		self::assertSame( 400, $response->get_status() );
+		self::assertSame( 'invalid_hcaptcha', $response->get_data()['code'] );
+	}
+
+	/**
+	 * Native REST note creation and unrelated REST routes are left alone.
+	 *
+	 * @return void
+	 */
+	public function test_rest_comment_verifier_skips_other_rest_workflows(): void {
+		$subject = new Comment();
+		$comment = [ 'comment_post_ID' => 0 ];
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->set_param( 'type', 'note' );
+
+		self::assertSame( $comment, $subject->verify_rest_comment( $comment, $request ) );
+
+		$request = new WP_REST_Request( 'POST', '/activitypub/1.0/inbox' );
+
+		self::assertSame( $comment, $subject->verify_rest_comment( $comment, $request ) );
+	}
+
+	/**
+	 * A matching REST challenge permits comment creation from JSON input.
+	 *
+	 * @return void
+	 */
+	public function test_rest_comment_accepts_matching_json_captcha(): void {
+		new Comment();
+		wp_set_current_user( $this->factory()->user->create( [ 'role' => 'subscriber' ] ) );
+		$post_id = $this->factory()->post->create( [ 'comment_status' => 'open' ] );
+
+		$this->prepare_verify_post( 'hcaptcha_comment_nonce', 'hcaptcha_comment' );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				[
+					'post'                   => $post_id,
+					'content'                => 'REST comment with hCaptcha.',
+					'hcaptcha_comment_nonce' => wp_create_nonce( 'hcaptcha_comment' ),
+					'h-captcha-response'     => 'some response',
+					'hcap_hp_test'           => '',
+					'hcap_hp_sig'            => wp_create_nonce( 'hcap_hp_test' ),
+					'hcap_fst_token'         => 'test_token',
+					'hcaptcha-widget-id'     => HCaptcha::widget_id_value(
+						[
+							'source'  => [ 'WordPress' ],
+							'form_id' => $post_id,
+						]
+					),
+				]
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		self::assertSame( 201, $response->get_status(), wp_json_encode( $response->get_data() ) );
+		self::assertSame( $post_id, (int) get_comment( $response->get_data()['id'] )->comment_post_ID );
 	}
 
 	/**
@@ -305,6 +426,50 @@ class CommentTest extends HCaptchaWPTestCase {
 
 		self::assertSame( $comment_data, $subject->verify( $comment_data ) );
 		self::assertNull( $this->get_protected_property( $subject, 'result' ) );
+	}
+
+	/**
+	 * A query-derived AJAX flag must not exempt the core comment handler.
+	 *
+	 * @return void
+	 * @throws ReflectionException ReflectionException.
+	 */
+	public function test_verify_native_comment_script_with_ajax_flag(): void {
+		$comment_data = [ 'comment_post_ID' => 5 ];
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Preserve the test server's filesystem path.
+		$old_script = $_SERVER['SCRIPT_FILENAME'] ?? null;
+		$calls      = 0;
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		FunctionMocker::replace(
+			'\\HCaptcha\\Helpers\\HCaptcha::check_signature',
+			static function () use ( &$calls ): bool {
+				++$calls;
+
+				return false;
+			}
+		);
+
+		try {
+			$_SERVER['SCRIPT_FILENAME'] = ABSPATH . 'wp-comments-post.php';
+			$native                     = new Comment();
+			self::assertSame( $comment_data, $native->verify( $comment_data ) );
+			self::assertSame( hcap_get_error_messages()['bad-signature'], $this->get_protected_property( $native, 'result' ) );
+			self::assertSame( 1, $calls );
+
+			$_SERVER['SCRIPT_FILENAME'] = ABSPATH . 'wp-admin/admin-ajax.php';
+			$ajax                       = new Comment();
+			self::assertSame( $comment_data, $ajax->verify( $comment_data ) );
+			self::assertNull( $this->get_protected_property( $ajax, 'result' ) );
+			self::assertSame( 1, $calls );
+		} finally {
+			remove_filter( 'wp_doing_ajax', '__return_true' );
+			if ( null === $old_script ) {
+				unset( $_SERVER['SCRIPT_FILENAME'] );
+			} else {
+				$_SERVER['SCRIPT_FILENAME'] = $old_script;
+			}
+		}
 	}
 
 	/**

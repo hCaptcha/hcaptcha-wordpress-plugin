@@ -50,15 +50,13 @@ abstract class Base {
 			return $output;
 		}
 
-		$form_id = isset( $attr['id'] ) ? (int) $attr['id'] : 0;
+		$form_id = $this->get_form_id();
 		$search  = '<div class="editor-row editor-row-submit">';
 		$args    = [
-			'action' => static::ACTION,
-			'name'   => static::NAME,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( static::class ),
-				'form_id' => $form_id,
-			],
+			'mandatory' => true,
+			'action'    => static::ACTION,
+			'name'      => static::NAME,
+			'id'        => $this->get_id( $form_id ),
 		];
 
 		return str_replace(
@@ -83,7 +81,7 @@ abstract class Base {
 	public function verify( $verified ) {
 		global $asgarosforum;
 
-		$error_message = API::verify_post( static::NAME, static::ACTION );
+		$error_message = API::verify_post( static::NAME, static::ACTION, $this->get_id( $this->get_form_id() ) );
 
 		if ( null !== $error_message ) {
 			$asgarosforum->add_notice( $error_message );
@@ -92,6 +90,33 @@ abstract class Base {
 		}
 
 		return $verified;
+	}
+
+	/**
+	 * Get the forum selected by the native request.
+	 *
+	 * @return int
+	 */
+	private function get_form_id(): int {
+		global $asgarosforum;
+
+		$forum_id = $asgarosforum->current_forum ?? 0;
+
+		return is_scalar( $forum_id ) ? absint( $forum_id ) : 0;
+	}
+
+	/**
+	 * Get the widget identity for an Asgaros forum.
+	 *
+	 * @param int $forum_id Forum ID.
+	 *
+	 * @return array
+	 */
+	private function get_id( int $forum_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( static::class ),
+			'form_id' => $forum_id,
+		];
 	}
 
 	/**

@@ -8,6 +8,7 @@
 namespace HCaptcha\BackInStockNotifier;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 
 /**
@@ -87,12 +88,10 @@ class Form {
 		$output = ob_get_clean();
 
 		$args = [
-			'action' => self::ACTION,
-			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => $this->form_id,
-			],
+			'mandatory' => $this->form_id <= 0,
+			'action'    => self::ACTION,
+			'name'      => self::NONCE,
+			'id'        => $this->get_id( $this->form_id ),
 		];
 
 		$search  = '<div class="form-group';
@@ -112,7 +111,11 @@ class Form {
 	 * @return void
 	 */
 	public function verify( array $post_data, bool $rest_api ): void {
-		$result = API::verify_post_data( self::NONCE, self::ACTION, $post_data );
+		$product_id  = isset( $post_data['product_id'] ) && is_scalar( $post_data['product_id'] ) ? (int) $post_data['product_id'] : 0;
+		$expected_id = $this->get_id( $product_id );
+		$email       = isset( $post_data['user_email'] ) && is_string( $post_data['user_email'] ) ? $post_data['user_email'] : '';
+		$entry       = EntryData::with_emails( [ 'data' => EntryData::from_array( $post_data, [] ) ], [ $email ] );
+		$result      = API::verify_post_data( self::NONCE, self::ACTION, $post_data, $expected_id, $entry );
 
 		if ( null === $result ) {
 			return;
@@ -126,6 +129,20 @@ class Form {
 			echo wp_json_encode( $error_msg );
 			$this->exit();
 		}
+	}
+
+	/**
+	 * Get the widget identity for a product.
+	 *
+	 * @param int $product_id Product ID.
+	 *
+	 * @return array
+	 */
+	private function get_id( int $product_id ): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => $product_id,
+		];
 	}
 
 	/**

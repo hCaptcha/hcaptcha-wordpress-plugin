@@ -5,13 +5,19 @@
  * @package HCaptcha\Tests
  */
 
+// phpcs:ignore Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+
 namespace HCaptcha\Tests\Integration\Divi;
 
+use ET\Builder\FrontEnd\BlockParser\BlockParserStore;
+use ET_Builder_Module_Contact_Form;
 use HCaptcha\Divi\Contact;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use Mockery;
 use ReflectionException;
+use tad\FunctionMocker\FunctionMocker;
 use WP_Block;
 
 /**
@@ -267,6 +273,137 @@ class ContactTest extends HCaptchaPluginWPTestCase {
 	}
 
 	/**
+	 * Divi 5 skips requests outside its contact form submission route.
+	 */
+	public function test_verify_5_ignores_other_requests(): void {
+		$subject                   = new Contact();
+		$attrs                     = [ 'unchanged' => true ];
+		$_SERVER['REQUEST_METHOD'] = 'GET';
+		self::assertSame( $attrs, $subject->verify_5( $attrs, [ 'name' => 'divi/contact-form' ] ) );
+
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		self::assertSame( $attrs, $subject->verify_5( $attrs, [ 'name' => 'divi/other' ] ) );
+	}
+
+	/**
+	 * A missing Divi 5 block leaves module attributes unchanged.
+	 */
+	public function test_verify_5_ignores_missing_block(): void {
+		if ( ! class_exists( BlockParserStore::class ) ) {
+			require_once dirname( __DIR__ ) . '/Stubs/ET/Builder/FrontEnd/BlockParser/BlockParserStore.php';
+		}
+		$_SERVER['REQUEST_METHOD'] = 'POST';
+		$attrs                     = [ 'unchanged' => true ];
+		$subject                   = new Contact();
+
+		self::assertSame(
+			$attrs,
+			$subject->verify_5(
+				$attrs,
+				[
+					'name'          => 'divi/contact-form',
+					'id'            => 'missing',
+					'storeInstance' => null,
+				]
+			)
+		);
+	}
+
+	/**
+	 * Divi form fields contribute only ordinary name and email data to the entry.
+	 */
+	public function test_entry_collects_native_contact_fields(): void {
+		$subject                           = new Contact();
+		$method                            = $this->set_method_accessibility( $subject, 'get_entry' );
+		$_POST['et_pb_contact_name_0']     = 'Jane Doe';
+		$_POST['et_pb_contact_email_0']    = 'person@example.com';
+		$_POST['et_pb_contact_password_0'] = 'secret';
+		$fields                            = [
+			[
+				'field_type'  => 'input',
+				'field_id'    => 'et_pb_contact_name_0',
+				'original_id' => 'name',
+				'field_label' => 'Name',
+			],
+			[
+				'field_type'  => 'email',
+				'field_id'    => 'et_pb_contact_email_0',
+				'original_id' => 'email',
+				'field_label' => 'Email',
+			],
+			[
+				'field_type'  => 'input',
+				'field_id'    => 'et_pb_contact_password_0',
+				'original_id' => 'password',
+				'field_label' => 'Password',
+			],
+		];
+
+		$entry = $method->invoke( $subject, $fields );
+		self::assertSame( 'Jane Doe', $entry['name'] );
+		self::assertSame( 'person@example.com', $entry['email'] );
+		self::assertArrayNotHasKey( 'Password', $entry['data'] );
+	}
+
+	/**
+	 * Divi 5 field values follow its own text and checkbox normalization.
+	 */
+	public function test_block_field_value_normalization(): void {
+		$subject          = new Contact();
+		$method           = $this->set_method_accessibility( $subject, 'get_block_field_value' );
+		$_POST['message'] = "First line\nSecond line";
+		$_POST['choices'] = '';
+		self::assertSame( "First line\nSecond line", $method->invoke( $subject, 'message', 'text' ) );
+		self::assertSame( [], $method->invoke( $subject, 'choices', 'checkbox' ) );
+	}
+
+	/**
+	 * Divi 4 removes hCaptcha metadata before comparing submitted form fields.
+	 *
+	 * @noinspection JsonEncodingApiUsageInspection
+	 */
+	public function test_verify_4_filters_submitted_field_metadata(): void {
+		$this->prepare_verify_post( 'hcaptcha_divi_cf_nonce', 'hcaptcha_divi_cf' );
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'Divi' ],
+				'form_id' => 'contact',
+			]
+		);
+		$_POST['et_pb_contactform_submit_0']   = 'et_contact_proccess';
+		$_POST['et_pb_contact_et_number_0']    = '';
+		$_POST['et_pb_contact_name_0']         = 'Jane';
+		$fields                                = [
+			[
+				'field_type'  => 'input',
+				'field_id'    => 'et_pb_contact_name_0',
+				'original_id' => 'name',
+				'field_label' => 'Name',
+			],
+			[
+				'field_type'  => 'text',
+				'field_id'    => 'h-captcha-response',
+				'original_id' => 'captcha',
+				'field_label' => '',
+			],
+		];
+		$encoded                               = wp_json_encode( $fields );
+		FunctionMocker::replace(
+			'filter_input',
+			static function ( $type, $name ) use ( $encoded ) {
+				return 'et_pb_contact_email_fields_0' === $name ? $encoded : FunctionMocker::callOriginal();
+			}
+		);
+
+		$subject = new Contact();
+		$subject->verify_4( false, 'et_pb_contact_form', [], [] );
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Assert the raw POST value written by the filter under test.
+		$filtered = json_decode( wp_unslash( $_POST['et_pb_contact_email_fields_0'] ), true );
+		self::assertCount( 1, $filtered );
+		self::assertSame( 'et_pb_contact_name_0', $filtered[0]['field_id'] );
+	}
+
+	/**
 	 * Test verify_4() with the wrong shortcode tag.
 	 *
 	 * @return void
@@ -275,6 +412,65 @@ class ContactTest extends HCaptchaPluginWPTestCase {
 		$subject = new Contact();
 
 		self::assertSame( 'some html', $subject->verify_4( 'some html', 'wrong-tag', [], [] ) );
+	}
+
+	/**
+	 * A forged earlier counter cannot select a filled honeypot instead of the active form.
+	 *
+	 * @return void
+	 */
+	public function test_sec050_forged_earlier_submit_counter(): void {
+		$_POST['et_pb_contactform_submit_999'] = 'et_contact_proccess';
+		$_POST['et_pb_contact_et_number_999']  = 'bot';
+		$_POST['et_pb_contactform_submit_0']   = 'et_contact_proccess';
+		$_POST['et_pb_contact_et_number_0']    = '';
+
+		$subject = new Contact();
+		$subject->verify_4( false, 'et_pb_contact_form', [], [] );
+
+		self::assertSame( 'on', $this->get_protected_property( $subject, 'captcha' ) );
+		self::assertSame(
+			[
+				'captcha'          => 'on',
+				'use_spam_service' => 'on',
+			],
+			$subject->shortcode_attributes( [], [], 'et_pb_contact_form', '', '' )
+		);
+	}
+
+	/**
+	 * The rendered form counter remains authoritative after an earlier form.
+	 *
+	 * @return void
+	 */
+	public function test_sec050_later_rendered_form_counter(): void {
+		$_POST['et_pb_contactform_submit_0'] = 'et_contact_proccess';
+		$_POST['et_pb_contact_et_number_0']  = 'bot';
+		$_POST['et_pb_contactform_submit_1'] = 'et_contact_proccess';
+		$_POST['et_pb_contact_et_number_1']  = '';
+
+		$subject = new Contact();
+		$this->set_protected_property( $subject, 'render_count', 1 );
+		$subject->verify_4( false, 'et_pb_contact_form', [], [] );
+
+		self::assertSame( 'on', $this->get_protected_property( $subject, 'captcha' ) );
+	}
+
+	/**
+	 * A real filled Divi 4 honeypot remains native-rejected without hCaptcha verification.
+	 *
+	 * @return void
+	 */
+	public function test_sec050_actual_honeypot_control(): void {
+		$_POST['et_pb_contactform_submit_999'] = 'et_contact_proccess';
+		$_POST['et_pb_contact_et_number_999']  = '';
+		$_POST['et_pb_contactform_submit_0']   = 'et_contact_proccess';
+		$_POST['et_pb_contact_et_number_0']    = 'bot';
+
+		$subject = new Contact();
+		$subject->verify_4( false, 'et_pb_contact_form', [], [] );
+
+		self::assertSame( 'off', $this->get_protected_property( $subject, 'captcha' ) );
 	}
 
 	/**
@@ -389,5 +585,91 @@ class ContactTest extends HCaptchaPluginWPTestCase {
 
 		self::assertTrue( wp_script_is( 'et-core-api-spam-recaptcha' ) );
 		self::assertFalse( wp_script_is( 'hcaptcha-divi' ) );
+	}
+	/**
+	 * Apply email policy using the server shortcode fields rather than client type claims.
+	 *
+	 * @param bool $blocked Whether the trusted email is disposable.
+	 * @dataProvider dp_sec063_email_policy
+	 */
+	public function test_sec063_typed_email_policy( bool $blocked ): void {
+		$this->prepare_verify_post( 'hcaptcha_divi_cf_nonce', 'hcaptcha_divi_cf' );
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		set_transient( 'hcaptcha_disposable_email_blocklist', [ 'sec063-disposable.test' => true ] );
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ]    = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'Divi' ],
+				'form_id' => 'contact',
+			]
+		);
+		$_POST['et_pb_contactform_submit_0']      = 'et_contact_proccess';
+		$_POST['et_pb_contact_billing_address_0'] = $blocked ? 'person@sec063-disposable.test' : 'person@example.com';
+		$_POST['et_pb_contact_contact_address_0'] = 'reader@example.com';
+		$_POST['et_pb_contact_email_0']           = 'spoof@example.com';
+		$subject                                  = new Contact();
+		$subject->verify_4(
+			false,
+			'et_pb_contact_form',
+			[],
+			[ 5 => '[et_pb_contact_field field_type="email" field_id="billing_address" field_title="Payment contact" /][et_pb_contact_field field_type="email" field_id="contact_address" field_title="Другой адрес" /][et_pb_contact_field field_type="input" field_id="email" /]' ]
+		);
+
+		self::assertSame( $blocked ? 'on' : 'off', $this->get_protected_property( $subject, 'captcha' ) );
+	}
+	/**
+	 * Exercise both policy rejection and permanent address acceptance.
+	 *
+	 * @return array
+	 */
+	public function dp_sec063_email_policy(): array {
+		return [
+			'disposable' => [ true ],
+			'permanent'  => [ false ],
+		];
+	}
+
+	/**
+	 * Exclude stale conditional emails only when native stored fields permit hiding.
+	 *
+	 * @param string $conditional Native conditional field status.
+	 * @param bool   $blocked     Whether the address remains effective.
+	 *
+	 * @dataProvider dp_sec063_hidden_email_policy
+	 * @return void
+	 */
+	public function test_sec063_hidden_email_policy( string $conditional, bool $blocked ): void {
+		$this->prepare_verify_post( 'hcaptcha_divi_cf_nonce', 'hcaptcha_divi_cf' );
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		set_transient( 'hcaptcha_disposable_email_blocklist', [ 'sec063-disposable.test' => true ] );
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ]        = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'Divi' ],
+				'form_id' => 'contact',
+			]
+		);
+		$_POST['et_pb_contactform_submit_0']          = 'et_contact_proccess';
+		$_POST['et_pb_contact_billing_address_0']     = 'person@sec063-disposable.test';
+		$_POST['et_pb_contact_contact_address_0']     = 'reader@example.com';
+		$_POST['et_pb_contact_email_hidden_fields_0'] = wp_slash( wp_json_encode( [ 'billing_address', 'contact_address' ] ) );
+		$content                                      = '[et_pb_contact_field field_type="email" field_id="billing_address" conditional_logic="' . $conditional . '" /][et_pb_contact_field field_type="email" field_id="contact_address" conditional_logic="off" /]';
+		$native                                       = new ET_Builder_Module_Contact_Form();
+		$map = $native->get_form_map( $content, 0, [ 'billing_address', 'contact_address' ] );
+		self::assertCount( $blocked ? 2 : 1, $map['fields'] );
+		$subject = new Contact();
+		$subject->verify_4( false, 'et_pb_contact_form', [], [ 5 => $content ] );
+
+		self::assertSame( $blocked ? 'on' : 'off', $this->get_protected_property( $subject, 'captcha' ) );
+	}
+
+	/**
+	 * Native conditional and nonconditional hidden-address controls.
+	 *
+	 * @return array
+	 */
+	public function dp_sec063_hidden_email_policy(): array {
+		return [
+			'conditional stale address allowed' => [ 'on', false ],
+			'nonconditional address blocked'    => [ 'off', true ],
+		];
 	}
 }

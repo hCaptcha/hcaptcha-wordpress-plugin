@@ -78,9 +78,10 @@ class FormTest extends HCaptchaWPTestCase {
 		);
 		self::assertSame(
 			[
-				'action' => 'hcaptcha_back_in_stock_notifier',
-				'name'   => 'hcaptcha_back_in_stock_notifier_nonce',
-				'id'     => [
+				'mandatory' => false,
+				'action'    => 'hcaptcha_back_in_stock_notifier',
+				'name'      => 'hcaptcha_back_in_stock_notifier_nonce',
+				'id'        => [
 					'source'  => [ 'source' ],
 					'form_id' => $product_id,
 				],
@@ -93,17 +94,25 @@ class FormTest extends HCaptchaWPTestCase {
 	 * Test that submitted fields are passed to verification.
 	 */
 	public function test_verify(): void {
+		$id        = [
+			'source'  => [ 'back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php' ],
+			'form_id' => 123,
+		];
 		$post_data = [
+			'product_id'                            => 123,
+			'user_email'                            => 'person@example.com',
+			'product_note'                          => 'Please notify me',
+			'payment_card'                          => 'private-payment-data',
 			'h-captcha-response'                    => 'response-token',
-			'hcaptcha-widget-id'                    => 'widget-id',
+			'hcaptcha-widget-id'                    => HCaptcha::widget_id_value( $id ),
 			'hcaptcha_back_in_stock_notifier_nonce' => 'nonce',
 		];
 		$actual    = [];
 
 		FunctionMocker::replace(
 			'\\HCaptcha\\Helpers\\API::verify_post_data',
-			static function ( string $name, string $action, array $data ) use ( &$actual ): ?string {
-				$actual = [ $name, $action, $data ];
+			static function ( string $name, string $action, array $data, array $expected_id, array $entry ) use ( &$actual ): ?string {
+				$actual = [ $name, $action, $data, $expected_id, $entry ];
 
 				return null;
 			}
@@ -112,8 +121,47 @@ class FormTest extends HCaptchaWPTestCase {
 		( new Form() )->verify( $post_data, false );
 
 		self::assertSame(
-			[ 'hcaptcha_back_in_stock_notifier_nonce', 'hcaptcha_back_in_stock_notifier', $post_data ],
+			[
+				'hcaptcha_back_in_stock_notifier_nonce',
+				'hcaptcha_back_in_stock_notifier',
+				$post_data,
+				$id,
+				[
+					'data'            => [
+						'product_id'   => '123',
+						'user_email'   => 'person@example.com',
+						'product_note' => 'Please notify me',
+						'email'        => 'person@example.com',
+					],
+					'email_addresses' => [ 'person@example.com' ],
+				],
+			],
 			$actual
+		);
+	}
+
+	/**
+	 * Missing product IDs still carry a nonempty expected widget identity.
+	 */
+	public function test_verify_without_product_id_checks_widget_identity(): void {
+		$expected_id = [];
+		FunctionMocker::replace(
+			'\HCaptcha\Helpers\API::verify_post_data',
+			static function ( string $name, string $action, array $data, array $id ) use ( &$expected_id ): ?string {
+				$expected_id = $id;
+
+				return null;
+			}
+		);
+
+		( new Form() )->verify( [], false );
+
+		self::assertSame(
+			[
+				'source'  => [ 'back-in-stock-notifier-for-woocommerce/cwginstocknotifier.php' ],
+				'form_id' => 0,
+			],
+			$expected_id
 		);
 	}
 
@@ -262,6 +310,7 @@ class FormTest extends HCaptchaWPTestCase {
 			]
 		);
 		$_POST['hcap_hp_test']                 = 'bot';
+		$_POST['product_id']                   = 123;
 
 		$subject = Mockery::mock( Form::class )->makePartial();
 		$subject->shouldAllowMockingProtectedMethods();

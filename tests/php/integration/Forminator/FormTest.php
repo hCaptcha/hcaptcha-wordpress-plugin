@@ -47,7 +47,8 @@ class FormTest extends HCaptchaPluginWPTestCase {
 
 	/**
 	 * Test rendering through the live Forminator API and frontend renderer.
-	 */
+	 *
+	 * @noinspection PhpUndefinedFunctionInspection*/
 	public function test_live_form_render(): void {
 		$api_file = wp_normalize_path( ( new ReflectionClass( Forminator_API::class ) )->getFileName() );
 
@@ -160,18 +161,17 @@ class FormTest extends HCaptchaPluginWPTestCase {
 			]
 		);
 		$html      = '<form>Some content<button>Submit</button></form>';
-		$button    = 'Some button';
 		$expected  = str_replace( '<button ', $hcap_form . '<button ', $html );
 
 		$subject = new Form();
 
 		$this->set_protected_property( $subject, 'form_id', $form_id );
 
-		self::assertSame( $html, $subject->add_hcaptcha( $html, $button ) );
+		self::assertSame( $html, $subject->add_hcaptcha( $html ) );
 
 		$this->set_protected_property( $subject, 'has_hcaptcha_field', true );
 
-		self::assertSame( $expected, $subject->add_hcaptcha( $html, $button ) );
+		self::assertSame( $expected, $subject->add_hcaptcha( $html ) );
 	}
 
 	/**
@@ -245,6 +245,13 @@ class FormTest extends HCaptchaPluginWPTestCase {
 				],
 				(object) [
 					'raw' => [
+						'element_id'  => 'hidden-1',
+						'type'        => 'hidden',
+						'field_label' => 'Hidden',
+					],
+				],
+				(object) [
+					'raw' => [
 						'element_id'       => 'captcha-1',
 						'type'             => 'captcha',
 						'captcha_provider' => 'hcaptcha',
@@ -269,6 +276,74 @@ class FormTest extends HCaptchaPluginWPTestCase {
 
 		self::assertTrue( $subject->verify( true, $id, $form_settings ) );
 		self::assertEquals( (object) [ 'fields' => $expected_fields ], $module_object );
+	}
+
+	/**
+	 * Print the spacing rule for paginated forms.
+	 */
+	public function test_print_inline_styles(): void {
+		ob_start();
+		( new Form() )->print_inline_styles();
+
+		self::assertStringContainsString( '.forminator-pagination--content~h-captcha', ob_get_clean() );
+	}
+
+	/**
+	 * Every accepted native email must pass the disposable-email policy.
+	 *
+	 * @param string $first   First email value.
+	 * @param string $second  Second email value.
+	 * @param bool   $blocked Whether the submission is rejected.
+	 * @dataProvider dp_sec060_email_policy
+	 */
+	public function test_sec060_email_policy( string $first, string $second, bool $blocked ): void {
+		$form_id                                = 5;
+		Forminator_Front_Action::$module_object = (object) [
+			'fields' => [
+				(object) [
+					'raw' => [
+						'element_id'  => 'email-1',
+						'type'        => 'email',
+						'field_label' => 'Registration email',
+					],
+				],
+				(object) [
+					'raw' => [
+						'element_id'  => 'email-2',
+						'type'        => 'email',
+						'field_label' => 'Alternate email',
+					],
+				],
+			],
+		];
+		$_POST['email-1']                       = $first;
+		$_POST['email-2']                       = $second;
+		$this->prepare_verify_post( 'hcaptcha_forminator_nonce', 'hcaptcha_forminator' );
+		$this->prepare_widget_id( $form_id );
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		set_transient( 'hcaptcha_disposable_email_blocklist', [ 'sec060-disposable.test' => true ] );
+
+		$expected = $blocked
+			? [
+				'can_submit' => false,
+				'error'      => 'Please use a permanent email address.',
+			]
+			: true;
+
+		self::assertSame( $expected, ( new Form() )->verify( true, $form_id, [] ) );
+	}
+
+	/**
+	 * Native registration and secondary email controls.
+	 *
+	 * @return array
+	 */
+	public function dp_sec060_email_policy(): array {
+		return [
+			'blocked registration email' => [ 'reader@sec060-disposable.test', 'reader@example.com', true ],
+			'blocked secondary email'    => [ 'reader@example.com', 'reader@sec060-disposable.test', true ],
+			'permanent emails'           => [ 'reader@example.com', 'other@example.com', false ],
+		];
 	}
 
 	/**
@@ -365,6 +440,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 * Test admin_enqueue_scripts().
 	 *
 	 * @return void
+	 * @noinspection JsonEncodingApiUsageInspection
 	 */
 	public function test_admin_enqueue_scripts(): void {
 		$admin_handle   = 'admin-forminator';
@@ -473,6 +549,7 @@ class FormTest extends HCaptchaPluginWPTestCase {
 	 * @param array $id      Widget id.
 	 *
 	 * @return void
+	 * @noinspection PhpSameParameterValueInspection
 	 */
 	private function prepare_widget_id( int $form_id, array $id = [] ): void {
 		$id = $id ?: [

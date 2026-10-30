@@ -57,7 +57,7 @@ class Login extends LoginBase {
 			return $user;
 		}
 
-		$error_message = API::verify_post_html( self::NONCE, self::ACTION );
+		$error_message = API::verify_post_html( self::NONCE, self::ACTION, $this->get_expected_id() );
 
 		if ( null === $error_message ) {
 			return $user;

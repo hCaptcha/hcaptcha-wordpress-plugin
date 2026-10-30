@@ -1,4 +1,5 @@
 /* global acf, jQuery */
+// noinspection JSUnusedGlobalSymbols
 
 const hCaptchaACFE = window.hCaptchaACFE || ( function( window, $ ) {
 	const app = {
@@ -67,7 +68,7 @@ const hCaptchaACFE = window.hCaptchaACFE || ( function( window, $ ) {
 			document.querySelectorAll( '.acfe-field-recaptcha iframe' ).forEach( ( el ) => {
 				const src = el.getAttribute( 'src' ) || '';
 				const title = el.getAttribute( 'title' ) || '';
-				const isRecaptcha = ( src + title ).toLowerCase().includes( 'recaptcha' );
+				const isRecaptcha = app.isRecaptchaUrl( src ) || title.toLowerCase().includes( 'recaptcha' );
 
 				if ( ! isRecaptcha ) {
 					return;
@@ -127,7 +128,15 @@ const hCaptchaACFE = window.hCaptchaACFE || ( function( window, $ ) {
 			window.hCaptchaOnLoad();
 		},
 
-		ajaxCompleteHandler() {
+		ajaxCompleteHandler( event, xhr, settings ) {
+			const data = settings?.data;
+			const action = typeof data === 'string' ? new URLSearchParams( data ).get( 'action' ) : data?.action;
+
+			// Keep verified tokens until ACF completes the final submission.
+			if ( action === 'acf/validate_save_post' && xhr?.responseJSON?.success && xhr.responseJSON.data?.valid === 1 ) {
+				return;
+			}
+
 			// ACFE may perform AJAX validation; simply re-bind safely after requests.
 			if ( typeof window.hCaptchaBindEvents === 'function' ) {
 				window.hCaptchaBindEvents();

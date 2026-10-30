@@ -493,24 +493,26 @@ class Form extends Base {
 			'expected_id'        => $this->get_expected_id( $form_id ),
 		];
 
-		$name = [];
+		$name   = [];
+		$emails = [];
 
 		foreach ( $fields as $field ) {
 			$type  = $field->type;
 			$label = $field->label;
+			$email = 'email' === $type ? $this->get_value( $field ) : null;
+
+			if ( null !== $email ) {
+				$emails[] = $email;
+			}
 
 			if ( ! EntryData::is_content_field_type( (string) $type ) || EntryData::has_sensitive_field( (string) $label ) ) {
 				continue;
 			}
 
-			$value = $this->get_value( $field );
+			$value = $email ?? $this->get_value( $field );
 
 			if ( 'name' === $type ) {
 				$name[] = $value;
-			}
-
-			if ( 'email' === $type ) {
-				$entry['data']['email'] = $value;
 			}
 
 			EntryData::add_field( $entry['data'], (string) $label, $value, (string) $field->id );
@@ -518,7 +520,7 @@ class Form extends Base {
 
 		EntryData::add_name( $entry['data'], $name );
 
-		return $entry;
+		return EntryData::with_emails( $entry, $emails );
 	}
 
 	/**

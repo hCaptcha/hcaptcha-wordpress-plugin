@@ -5,11 +5,20 @@
  * @package HCaptcha\Tests
  */
 
+// phpcs:disable Generic.Commenting.DocComment.MissingShort
+/** @noinspection PhpUndefinedClassInspection */
+
 namespace HCaptcha\Tests\Integration\Sendinblue;
 
+use HCaptcha\AutoVerify\AutoVerify;
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Sendinblue\Sendinblue;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
 use ReflectionMethod;
+use SIB_Forms;
+use SIB_Manager;
+use SIB_Widget_Subscribe;
+use WP_Widget;
 
 /**
  * Test Sendinblue class.
@@ -130,18 +139,18 @@ class SendinblueTest extends HCaptchaPluginWPTestCase {
 	 * @return void
 	 */
 	public function test_live_form_shortcode(): void {
-		\SIB_Forms::createTable();
+		SIB_Forms::createTable();
 
-		$forms = \SIB_Forms::getForms();
+		$forms = SIB_Forms::getForms();
 
 		if ( ! $forms ) {
-			\SIB_Forms::createDefaultForm();
-			$forms = \SIB_Forms::getForms();
+			SIB_Forms::createDefaultForm();
+			$forms = SIB_Forms::getForms();
 		}
 
 		$form_id = (int) $forms[0]['id'];
 		$subject = new Sendinblue();
-		$method  = new ReflectionMethod( \SIB_Manager::class, 'sibwp_form_shortcode' );
+		$method  = new ReflectionMethod( SIB_Manager::class, 'sibwp_form_shortcode' );
 		$html    = do_shortcode( '[sibwp_form id="' . $form_id . '"]' );
 
 		self::assertTrue( is_plugin_active( static::$plugin ) );
@@ -154,6 +163,269 @@ class SendinblueTest extends HCaptchaPluginWPTestCase {
 		self::assertStringContainsString( 'name="sib_form_action"', $html );
 		self::assertStringContainsString( 'name="hcaptcha_sendinblue_nonce"', $html );
 		self::assertSame( 10, has_filter( 'do_shortcode_tag', [ $subject, 'add_hcaptcha' ] ) );
+	}
+
+	/**
+	 * Omitted and legacy shortcode attributes must sign the form actually rendered by Brevo.
+	 *
+	 * @dataProvider dp_test_legacy_shortcode_identity
+	 *
+	 * @param string $shortcode Native shortcode spelling.
+	 */
+	public function test_legacy_shortcode_identity( string $shortcode ): void {
+		SIB_Forms::createTable();
+		$forms   = SIB_Forms::getForms();
+		$form_id = (int) $forms[0]['id'];
+		update_option( 'sib_old_form_id', $form_id );
+		new Sendinblue();
+		$html = do_shortcode( $shortcode );
+
+		self::assertStringContainsString( 'name="sib_form_id" value="' . $form_id . '"', $html );
+		self::assertStringContainsString(
+			'value="' . esc_attr(
+				HCaptcha::widget_id_value(
+					[
+						'source'  => [ static::$plugin ],
+						'form_id' => $form_id,
+					]
+				)
+			) . '"',
+			$html
+		);
+		self::assertSame( 1, substr_count( $html, 'name="hcaptcha_sendinblue_nonce"' ) );
+	}
+
+	/**
+	 * Native default shortcode selectors.
+	 *
+	 * @return array
+	 */
+	public function dp_test_legacy_shortcode_identity(): array {
+		return [
+			'omitted ID'  => [ '[sibwp_form]' ],
+			'legacy name' => [ '[sibwp_form id="oldForm"]' ],
+		];
+	}
+
+	/**
+	 * Native sidebar widgets need the same challenge and canonical identity as shortcodes.
+	 */
+	public function test_native_widget_renders_protected_form(): void {
+		SIB_Forms::createTable();
+		$forms   = SIB_Forms::getForms();
+		$form_id = (int) $forms[0]['id'];
+		new Sendinblue();
+		$widget = new SIB_Widget_Subscribe();
+		update_option(
+			$widget->option_name,
+			[
+				2              => [
+					'sib_form_list' => (string) $form_id,
+					'widget_title'  => 'SEC006 newsletter',
+				],
+				'_multiwidget' => 1,
+			]
+		);
+		$args = [
+			'before_widget' => '<section>',
+			'after_widget'  => '</section>',
+			'before_title'  => '<h2>',
+			'after_title'   => '</h2>',
+		];
+		ob_start();
+		$widget->display_callback( $args, 2 );
+		$html = (string) ob_get_clean();
+
+		self::assertStringContainsString( '<h2>SEC006 newsletter</h2>', $html );
+		self::assertStringContainsString( 'name="sib_form_id" value="' . $form_id . '"', $html );
+		self::assertStringContainsString(
+			'value="' . esc_attr(
+				HCaptcha::widget_id_value(
+					[
+						'source'  => [ static::$plugin ],
+						'form_id' => $form_id,
+					]
+				)
+			) . '"',
+			$html
+		);
+		self::assertSame( 1, substr_count( $html, 'name="hcaptcha_sendinblue_nonce"' ) );
+	}
+
+	/**
+	 * Preview rendering restores WordPress's cache insertion state.
+	 *
+	 * @noinspection PhpParamsInspection
+	 */
+	public function test_preview_widget_restores_cache_state(): void {
+		$widget   = new class() extends SIB_Widget_Subscribe {
+			/**
+			 * Simulate a Customizer preview.
+			 *
+			 * @return bool
+			 */
+			public function is_preview(): bool {
+				return true;
+			}
+
+			/**
+			 * Render the native form shape without a remote list lookup.
+			 *
+			 * @param array $args     Widget arguments.
+			 * @param array $instance Widget instance.
+			 *
+			 * @noinspection PhpMissingParamTypeInspection
+			 * @noinspection PhpUnusedParameterInspection
+			 */
+			public function widget( $args, $instance ): void {
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Test fixture.
+				echo '<form><button type="submit">Subscribe</button></form>';
+			}
+		};
+		$previous = wp_suspend_cache_addition();
+		wp_suspend_cache_addition( false );
+
+		try {
+			ob_start();
+			self::assertFalse( ( new Sendinblue() )->add_hcaptcha_widget( [], $widget, [] ) );
+			$output = (string) ob_get_clean();
+
+			self::assertStringContainsString( 'name="hcaptcha_sendinblue_nonce"', $output );
+			self::assertFalse( wp_suspend_cache_addition() );
+		} finally {
+			wp_suspend_cache_addition( $previous );
+		}
+	}
+
+	/**
+	 * Invalid native selectors stay unmatched, while Brevo's new selector uses ID zero.
+	 */
+	public function test_native_selector_boundaries(): void {
+		$subject = new Sendinblue();
+
+		self::assertNull( $subject->adapt_unmatched_form( 'invalid' ) );
+		$_POST['sib_form_action'] = 'subscribe_form_submit';
+		$_POST['sib_security']    = wp_create_nonce( 'sib_front_ajax_nonce' );
+		$_POST['sib_form_id']     = [];
+		$_POST['email']           = 'subscriber@example.com';
+		self::assertSame( [ 'other' => true ], $subject->adapt_auto_entry( [ 'other' => true ] ) );
+
+		$_POST['sib_form_id'] = 'new';
+		$entry                = $subject->adapt_auto_entry( [] );
+
+		self::assertSame( 0, $entry['expected_id']['form_id'] );
+		self::assertSame( [ 'subscriber@example.com' ], $entry['email_addresses'] );
+	}
+
+	/**
+	 * Later native widget suppression must prevent both HTML and automatic form registration.
+	 */
+	public function test_native_widget_respects_later_suppression(): void {
+		SIB_Forms::createTable();
+		$forms   = SIB_Forms::getForms();
+		$form_id = (int) $forms[0]['id'];
+		AutoVerify::delete_all();
+		( new AutoVerify() )->init();
+		new Sendinblue();
+		$_SERVER['REQUEST_URI'] = '/sec006-suppressed-widget/';
+		add_filter(
+			'widget_display_callback',
+			static function ( $instance, WP_Widget $widget ) {
+				return $widget instanceof SIB_Widget_Subscribe ? false : $instance;
+			},
+			20,
+			2
+		);
+
+		try {
+			$html = $this->render_native_widget( $form_id );
+
+			self::assertSame( '', $html );
+			self::assertFalse( get_option( 'hcaptcha_auto_verify_form_' . hash( 'sha256', '/sec006-suppressed-widget' ) ) );
+		} finally {
+			AutoVerify::delete_all();
+		}
+	}
+
+	/**
+	 * Later instance changes must determine the native title, form, and signed challenge identity.
+	 */
+	public function test_native_widget_respects_later_instance_changes(): void {
+		global $wpdb;
+
+		SIB_Forms::createTable();
+		$forms             = SIB_Forms::getForms();
+		$form_id           = (int) $forms[0]['id'];
+		$changed_id        = $form_id + 1000;
+		$changed           = SIB_Forms::getForm( $form_id );
+		$changed['id']     = $changed_id;
+		$changed['listID'] = maybe_serialize( $changed['listID'] );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Populate another real native form row.
+		$wpdb->replace( $wpdb->prefix . SIB_Forms::TABLE_NAME, $changed );
+		new Sendinblue();
+		add_filter(
+			'widget_display_callback',
+			static function ( $instance, WP_Widget $widget ) use ( $changed_id ) {
+				if ( ! $widget instanceof SIB_Widget_Subscribe ) {
+					return $instance;
+				}
+
+				return [
+					'sib_form_list' => (string) $changed_id,
+					'widget_title'  => 'Later native title',
+				];
+			},
+			20,
+			2
+		);
+		$html = $this->render_native_widget( $form_id );
+
+		self::assertSame( 1, substr_count( $html, 'name="sib_form_id"' ) );
+		self::assertStringContainsString( '<h2>Later native title</h2>', $html );
+		self::assertStringContainsString( 'name="sib_form_id" value="' . $changed_id . '"', $html );
+		self::assertStringContainsString(
+			'value="' . esc_attr(
+				HCaptcha::widget_id_value(
+					[
+						'source'  => [ static::$plugin ],
+						'form_id' => $changed_id,
+					]
+				)
+			) . '"',
+			$html
+		);
+		self::assertSame( 1, substr_count( $html, 'name="hcaptcha_sendinblue_nonce"' ) );
+	}
+
+	/**
+	 * Render through WordPress's actual native widget display lifecycle.
+	 *
+	 * @param int $form_id Original native form selector.
+	 *
+	 * @return string
+	 */
+	private function render_native_widget( int $form_id ): string {
+		$widget = new SIB_Widget_Subscribe();
+		update_option(
+			$widget->option_name,
+			[
+				2              => [
+					'sib_form_list' => (string) $form_id,
+					'widget_title'  => 'Original native title',
+				],
+				'_multiwidget' => 1,
+			]
+		);
+		$args = [
+			'before_widget' => '<section>',
+			'after_widget'  => '</section>',
+			'before_title'  => '<h2>',
+			'after_title'   => '</h2>',
+		];
+		ob_start();
+		$widget->display_callback( $args, 2 );
+
+		return (string) ob_get_clean();
 	}
 
 	/**

@@ -9,6 +9,7 @@ namespace HCaptcha\LearnDash;
 
 use HCaptcha\Abstracts\RegisterBase;
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 
@@ -75,9 +76,7 @@ class Register extends RegisterBase {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( $errors, string $sanitized_user_login, string $user_email ) {
-		// Nonce is checked in LearnDash.
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		if ( ! isset( $_POST['learndash-registration-form'] ) ) {
+		if ( ! $this->can_handle_request() ) {
 			return $errors;
 		}
 
@@ -92,14 +91,28 @@ class Register extends RegisterBase {
 		}
 
 		$error_message = API::verify(
-			[
-				'nonce_name'   => self::NONCE,
-				'nonce_action' => self::ACTION,
-				'expected_id'  => $this->get_expected_id(),
-			]
+			EntryData::with_emails(
+				[
+					'nonce_name'   => self::NONCE,
+					'nonce_action' => self::ACTION,
+					'expected_id'  => $this->get_expected_id(),
+				],
+				[ $user_email ]
+			)
 		);
 
 		return HCaptcha::add_error_message( $errors, $error_message );
+	}
+
+	/**
+	 * Whether LearnDash registration can handle this request.
+	 *
+	 * @return bool
+	 */
+	protected function can_handle_request(): bool {
+		// Nonce is checked in LearnDash.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		return isset( $_POST['learndash-registration-form'] );
 	}
 
 	/**

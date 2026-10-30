@@ -310,10 +310,10 @@ class SettingsTransferTest extends HCaptchaTestCase {
 		$settings = Mockery::mock( Settings::class );
 		$main     = Mockery::mock( Main::class );
 
-		$general->shouldReceive( 'get_network_wide' )->withNoArgs()->times( 3 )->andReturn( [ 'on' ] );
-		$general->shouldReceive( 'form_fields' )->withNoArgs()->once()->andReturn( [] );
+		$general->shouldReceive( 'get_network_wide' )->withNoArgs()->andReturn( [ 'on' ] );
+		$general->shouldReceive( 'form_fields' )->withNoArgs()->twice()->andReturn( [] );
 		$general->shouldReceive( 'option_name' )
-			->withNoArgs()->times( 5 )->andReturn( PluginSettingsBase::OPTION_NAME );
+			->withNoArgs()->andReturn( PluginSettingsBase::OPTION_NAME );
 		$settings->shouldReceive( 'get_plugin_name' )->withNoArgs()->once()->andReturn( 'hCaptcha for WP' );
 		$settings->shouldReceive( 'get_tab' )->with( General::class )->once()->andReturn( $general );
 		$settings->shouldReceive( 'get_raw_settings' )->withNoArgs()->once()->andReturn( $old_settings );
@@ -329,11 +329,23 @@ class SettingsTransferTest extends HCaptchaTestCase {
 			->with( PluginSettingsBase::OPTION_NAME, [] )->twice()->andReturn( $old_settings );
 		WP_Mock::userFunction( 'update_site_option' )
 			->with( PluginSettingsBase::OPTION_NAME . '_network_wide', [ 'on' ] )->once();
-		WP_Mock::userFunction( 'remove_filter' )
+		WP_Mock::userFunction( 'has_filter' )
 			->with(
 				'pre_update_site_option_' . PluginSettingsBase::OPTION_NAME,
 				[ $general, 'pre_update_option_filter' ]
+			)->once()->andReturn( 23 );
+		WP_Mock::userFunction( 'remove_filter' )
+			->with(
+				'pre_update_site_option_' . PluginSettingsBase::OPTION_NAME,
+				[ $general, 'pre_update_option_filter' ],
+				23
 			)->once();
+		WP_Mock::expectFilterAdded(
+			'pre_update_site_option_' . PluginSettingsBase::OPTION_NAME,
+			[ $general, 'pre_update_option_filter' ],
+			23,
+			2
+		);
 		WP_Mock::userFunction( 'update_site_option' )
 			->with( PluginSettingsBase::OPTION_NAME, $new_settings )->once();
 		WP_Mock::userFunction( 'update_option' )->never();

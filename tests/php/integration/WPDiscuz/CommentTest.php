@@ -10,6 +10,7 @@
 
 namespace HCaptcha\Tests\Integration\WPDiscuz;
 
+use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Tests\Integration\HCaptchaWPTestCase;
 use HCaptcha\WPDiscuz\Comment;
 use Mockery;
@@ -40,14 +41,15 @@ class CommentTest extends HCaptchaWPTestCase {
 
 		hcaptcha()->settings()->set( 'honeypot', 'on' );
 		hcaptcha()->settings()->set( 'set_min_submit_time', 'on' );
-		hcaptcha()->settings()->set( 'wpdiscuz_status', 'comment_form' );
+		hcaptcha()->settings()->set( 'wpdiscuz_status', [ 'comment_form' ] );
 		$this->set_protected_property( hcaptcha(), 'supported_forms', null );
 
 		$options                  = Mockery::mock( 'WpdiscuzOptions' );
 		$options->recaptcha       = [
-			'siteKey'       => 'some site key',
-			'showForGuests' => 1,
-			'showForUsers'  => 1,
+			'siteKey'               => 'some site key',
+			'showForGuests'         => 1,
+			'showForUsers'          => 1,
+			'isShowOnSubscribeForm' => 1,
 		];
 		$this->wp_discuz          = Mockery::mock( 'WpdiscuzCore' );
 		$this->wp_discuz->options = $options;
@@ -67,7 +69,7 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function tearDown(): void {
-		unset( $_POST['action'], $_POST['h-captcha-response'], $_POST['g-recaptcha-response'] );
+		unset( $_GET['action'], $_POST['action'], $_POST['h-captcha-response'], $_POST['g-recaptcha-response'], $_REQUEST['action'] );
 
 		parent::tearDown();
 	}
@@ -124,9 +126,10 @@ class CommentTest extends HCaptchaWPTestCase {
 
 		$wpd_recaptcha = (array) $this->wp_discuz->options->recaptcha;
 
-		self::assertSame( '', $wpd_recaptcha['siteKey'] );
+		self::assertSame( 'some site key', $wpd_recaptcha['siteKey'] );
 		self::assertSame( 0, $wpd_recaptcha['showForGuests'] );
 		self::assertSame( 0, $wpd_recaptcha['showForUsers'] );
+		self::assertSame( 1, $wpd_recaptcha['isShowOnSubscribeForm'] );
 	}
 
 	/**
@@ -183,8 +186,8 @@ class CommentTest extends HCaptchaWPTestCase {
 
 		$subject->enqueue_scripts();
 
-		self::assertFalse( wp_script_is( 'wpdiscuz-google-recaptcha', 'registered' ) );
-		self::assertFalse( wp_script_is( 'wpdiscuz-google-recaptcha' ) );
+		self::assertTrue( wp_script_is( 'wpdiscuz-google-recaptcha', 'registered' ) );
+		self::assertTrue( wp_script_is( 'wpdiscuz-google-recaptcha' ) );
 		self::assertTrue( wp_script_is( 'hcaptcha-wpdiscuz-comment' ) );
 	}
 
@@ -224,15 +227,17 @@ class CommentTest extends HCaptchaWPTestCase {
 	 * @return void
 	 */
 	public function test_verify(): void {
-		$comment_data      = [ 'some comment data' ];
+		$comment_data      = [ 'comment_post_ID' => 5 ];
 		$hcaptcha_response = 'some response';
 
-		$_POST['action'] = 'wpdAddComment';
+		$_POST['action']    = 'wpdAddComment';
+		$_REQUEST['action'] = 'wpdAddComment';
 
 		add_filter( 'wp_doing_ajax', '__return_true' );
 		add_filter( 'preprocess_comment', [ $this->wp_discuz, 'validateRecaptcha' ] );
 
 		$this->prepare_verify_request( $hcaptcha_response );
+		$this->prepare_comment_identity();
 
 		$subject = new Comment();
 
@@ -253,7 +258,8 @@ class CommentTest extends HCaptchaWPTestCase {
 
 		self::assertSame( $comment_data, $subject->verify( $comment_data ) );
 
-		$_POST['action'] = 'some-action';
+		$_POST['action']    = 'wpdAddComment';
+		$_REQUEST['action'] = 'some-action';
 
 		add_filter( 'wp_doing_ajax', '__return_true' );
 
@@ -263,13 +269,15 @@ class CommentTest extends HCaptchaWPTestCase {
 	}
 
 	/**
-	 * Test verify() when not verified.
+	 * Test verify() rejects a missing CAPTCHA for each native AJAX action carrier.
 	 *
-	 * @return void
+	 * @dataProvider dp_test_verify_not_verified
+	 *
+	 * @param string $carrier Action carrier.
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function test_verify_not_verified(): void {
-		$comment_data      = [ 'some comment data' ];
+	public function test_verify_not_verified( string $carrier ): void {
+		$comment_data      = [ 'comment_post_ID' => 5 ];
 		$hcaptcha_response = 'some response';
 		$die_arr           = [];
 		$expected          = [
@@ -278,12 +286,20 @@ class CommentTest extends HCaptchaWPTestCase {
 			[],
 		];
 
-		$_POST['action'] = 'wpdAddComment';
+		unset( $_POST['action'], $_GET['action'] );
+		$_REQUEST['action'] = 'wpdAddComment';
+
+		if ( 'post' === $carrier ) {
+			$_POST['action'] = 'wpdAddComment';
+		} elseif ( 'get' === $carrier ) {
+			$_GET['action'] = 'wpdAddComment';
+		}
 
 		add_filter( 'wp_doing_ajax', '__return_true' );
 		add_filter( 'preprocess_comment', [ $this->wp_discuz, 'validateRecaptcha' ] );
 
 		$this->prepare_verify_request( $hcaptcha_response, false );
+		$this->prepare_comment_identity();
 
 		unset( $_POST['h-captcha-response'], $_POST['g-recaptcha-response'] );
 
@@ -307,19 +323,65 @@ class CommentTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Native action carriers supported by WordPress AJAX dispatch.
+	 *
+	 * @return array
+	 */
+	public function dp_test_verify_not_verified(): array {
+		return [
+			'POST action'    => [ 'post' ],
+			'query action'   => [ 'get' ],
+			'REQUEST action' => [ 'request' ],
+		];
+	}
+
+	/**
+	 * Test malformed AJAX actions are not treated as wpDiscuz submissions.
+	 *
+	 * @dataProvider dp_test_malformed_action
+	 *
+	 * @param mixed $action Malformed action.
+	 */
+	public function test_verify_with_malformed_action( $action ): void {
+		$comment_data       = [ 'comment_post_ID' => 5 ];
+		$_POST['action']    = 'wpdAddComment';
+		$_REQUEST['action'] = $action;
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		add_filter( 'preprocess_comment', [ $this->wp_discuz, 'validateRecaptcha' ] );
+
+		self::assertSame( $comment_data, ( new Comment() )->verify( $comment_data ) );
+		self::assertNotFalse( has_filter( 'preprocess_comment', [ $this->wp_discuz, 'validateRecaptcha' ] ) );
+	}
+
+	/**
+	 * Malformed WordPress AJAX action selectors.
+	 *
+	 * @return array
+	 */
+	public function dp_test_malformed_action(): array {
+		return [
+			'array'  => [ [ 'wpdAddComment' ] ],
+			'object' => [ (object) [ 'action' => 'wpdAddComment' ] ],
+		];
+	}
+
+	/**
 	 * Test a filled honeypot blocks comment processing.
 	 *
 	 * @return void
 	 */
 	public function test_filled_honeypot_is_rejected(): void {
-		$comment_data      = [ 'some comment data' ];
+		$comment_data      = [ 'comment_post_ID' => 5 ];
 		$hcaptcha_response = 'some response';
 		$die_arr           = [];
 
-		$_POST['action'] = 'wpdAddComment';
+		$_POST['action']    = 'wpdAddComment';
+		$_REQUEST['action'] = 'wpdAddComment';
 
 		add_filter( 'wp_doing_ajax', '__return_true' );
 		$this->prepare_verify_request( $hcaptcha_response );
+		$this->prepare_comment_identity();
 		$_POST['hcap_hp_test'] = 'bot';
 
 		add_filter(
@@ -334,6 +396,43 @@ class CommentTest extends HCaptchaWPTestCase {
 		( new Comment() )->verify( $comment_data );
 
 		self::assertSame( [ 'Anti-spam check failed.', '', [] ], $die_arr );
+	}
+
+	/**
+	 * Comments without a native post ID still reject another post's widget.
+	 */
+	public function test_missing_post_id_rejects_foreign_widget(): void {
+		$die_arr            = [];
+		$_POST['action']    = 'wpdAddComment';
+		$_REQUEST['action'] = 'wpdAddComment';
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		$this->prepare_verify_request( 'some response' );
+		$this->prepare_comment_identity();
+		add_filter(
+			'wp_die_ajax_handler',
+			static function () use ( &$die_arr ) {
+				return static function ( $message, $title, $args ) use ( &$die_arr ) {
+					$die_arr = [ $message, $title, $args ];
+				};
+			}
+		);
+
+		( new Comment() )->verify( [ 'comment_post_ID' => 0 ] );
+
+		self::assertSame( [ hcap_get_error_messages()['bad-signature'], '', [] ], $die_arr );
+	}
+
+	/**
+	 * Prepare the widget rendered for the comment's native post target.
+	 */
+	private function prepare_comment_identity(): void {
+		$_POST[ HCaptcha::HCAPTCHA_WIDGET_ID ] = HCaptcha::widget_id_value(
+			[
+				'source'  => [ 'wpdiscuz/class.WpdiscuzCore.php' ],
+				'form_id' => 5,
+			]
+		);
 	}
 
 	/**
@@ -352,5 +451,65 @@ class CommentTest extends HCaptchaWPTestCase {
 		$subject->print_inline_styles();
 
 		self::assertSame( $expected, ob_get_clean() );
+	}
+
+	/**
+	 * Check native comment email rather than an arbitrary submitted alias.
+	 *
+	 * @dataProvider dp_test_native_email_policy
+	 *
+	 * @param string $email   Native comment author email.
+	 * @param bool   $blocked Whether disposal policy rejects it.
+	 */
+	public function test_native_email_policy( string $email, bool $blocked ): void {
+		add_filter(
+			'hcap_disposable_email_domains',
+			static function (): array {
+				return [ 'disposable.example' => true ];
+			}
+		);
+		$_POST['action']    = 'wpdAddComment';
+		$_REQUEST['action'] = 'wpdAddComment';
+		$_POST['email']     = 'safe@example.com';
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		$this->prepare_verify_post( 'unused_nonce', 'unused_action' );
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		hcaptcha()->settings()->set( 'wpdiscuz_status', [ 'comment_form' ] );
+		$this->set_protected_property( hcaptcha(), 'supported_forms', null );
+		self::assertTrue( hcaptcha()->settings()->is_on( 'disposable_email' ) );
+		$this->prepare_comment_identity();
+		$die_message = '';
+		add_filter(
+			'wp_die_ajax_handler',
+			static function () use ( &$die_message ) {
+				return static function ( $message ) use ( &$die_message ): void {
+					$die_message = $message;
+				};
+			}
+		);
+		$data = [
+			'comment_post_ID'      => 5,
+			'comment_author_email' => $email,
+		];
+
+		$result = ( new Comment() )->verify( $data );
+
+		self::assertSame( $blocked ? hcap_get_error_messages()['disposable-email'] : '', $die_message );
+		if ( ! $blocked ) {
+			self::assertSame( $data, $result );
+		}
+	}
+
+	/**
+	 * Native comment email controls.
+	 *
+	 * @return array
+	 */
+	public function dp_test_native_email_policy(): array {
+		return [
+			'disposable author' => [ 'user@disposable.example', true ],
+			'permanent author'  => [ 'safe@example.com', false ],
+			'email-free data'   => [ '', false ],
+		];
 	}
 }

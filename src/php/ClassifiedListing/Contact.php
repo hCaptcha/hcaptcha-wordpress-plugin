@@ -8,6 +8,7 @@
 namespace HCaptcha\ClassifiedListing;
 
 use HCaptcha\Helpers\API;
+use HCaptcha\Helpers\EntryData;
 use HCaptcha\Helpers\HCaptcha;
 use WP_Error;
 
@@ -85,10 +86,7 @@ class Contact {
 		$args = [
 			'action' => self::ACTION,
 			'name'   => self::NONCE,
-			'id'     => [
-				'source'  => HCaptcha::get_class_source( __CLASS__ ),
-				'form_id' => 'contact',
-			],
+			'id'     => $this->get_expected_id(),
 		];
 
 		$search   = '<button type="submit"';
@@ -109,8 +107,25 @@ class Contact {
 	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function verify( WP_Error $error, array $data ): void {
-		$error_message = API::verify_post( static::NONCE, static::ACTION );
+		$error_message = API::verify_post(
+			static::NONCE,
+			static::ACTION,
+			$this->get_expected_id(),
+			EntryData::with_emails( [ 'data' => EntryData::from_array( $data, [] ) ], [ $data['email'] ?? '' ] )
+		);
 
 		HCaptcha::add_error_message( $error, $error_message );
+	}
+
+	/**
+	 * Get the expected form identity.
+	 *
+	 * @return array
+	 */
+	private function get_expected_id(): array {
+		return [
+			'source'  => HCaptcha::get_class_source( __CLASS__ ),
+			'form_id' => 'contact',
+		];
 	}
 }

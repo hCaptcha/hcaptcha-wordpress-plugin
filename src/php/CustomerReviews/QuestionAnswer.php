@@ -15,6 +15,11 @@ use HCaptcha\Helpers\HCaptcha;
 class QuestionAnswer extends Base {
 
 	/**
+	 * Question and answer form identity.
+	 */
+	protected const FORM_ID = 'q&a';
+
+	/**
 	 * Template name.
 	 */
 	protected const WC_TEMPLATE_NAME = 'single-product/tabs/tabs.php';
@@ -106,10 +111,7 @@ class QuestionAnswer extends Base {
 			$args = [
 				'action' => self::ACTION,
 				'name'   => self::NONCE,
-				'id'     => [
-					'source'  => HCaptcha::get_class_source( __CLASS__ ),
-					'form_id' => 'q&a',
-				],
+				'id'     => $this->get_expected_id(),
 			];
 
 			// Find the $search string and insert hCaptcha before it.

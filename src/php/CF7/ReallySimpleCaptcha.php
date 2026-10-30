@@ -61,7 +61,7 @@ class ReallySimpleCaptcha extends Base {
 	public function wpcf7_shortcode( $output, string $tag, $attr, array $m ): string {
 		$output = (string) $output;
 
-		if ( 'contact-form-7' !== $tag ) {
+		if ( ! in_array( $tag, [ 'contact-form-7', 'contact-form' ], true ) ) {
 			return $output;
 		}
 

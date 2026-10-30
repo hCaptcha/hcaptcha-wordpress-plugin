@@ -103,6 +103,7 @@ body.settings_page_hcaptcha {
 	justify-content: flex-end;
 	gap: 10px;
 	flex-wrap: wrap;
+	transform: translateY(-1px);
 }
 
 .hcaptcha-help-button {
@@ -298,20 +299,18 @@ body.settings_page_hcaptcha {
 }
 
 #hcaptcha-message {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
+	display: block;
+	position: relative;
+	box-sizing: border-box;
 	padding: 8px 12px;
+	padding-inline-end: 40px;
 }
 
 #hcaptcha-message .notice-dismiss {
-	position: relative;
-	top: unset;
-	right: unset;
-}
-
-#hcaptcha-message {
-	box-sizing: border-box;
+	position: absolute;
+	top: 50%;
+	right: 1px;
+	transform: translateY(-50%);
 }
 
 #hcaptcha-message > p {

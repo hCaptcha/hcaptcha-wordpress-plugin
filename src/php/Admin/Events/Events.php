@@ -12,7 +12,7 @@ use HCaptcha\Helpers\DB;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Migrations\Migrations;
 use HCaptcha\Settings\General;
-use HCaptcha\Settings\PluginSettingsBase;
+use HCaptcha\Settings\SettingsStorage;
 use Throwable;
 
 /**
@@ -95,11 +95,11 @@ class Events {
 	];
 
 	/**
-	 * Saved flag.
+	 * Whether this request has already attempted event collection.
 	 *
 	 * @var bool
 	 */
-	private bool $saved = false;
+	private bool $save_attempted = false;
 
 	/**
 	 * Class constructor.
@@ -140,11 +140,11 @@ class Events {
 	public function save_event( $result, array $deprecated, object $error_info ) {
 		global $wpdb;
 
-		if ( $this->saved ) {
+		if ( $this->save_attempted ) {
 			return $result;
 		}
 
-		$this->saved = true;
+		$this->save_attempted = true;
 
 		if ( ! ( is_string( $result ) || is_null( $result ) ) ) {
 			return $result;
@@ -162,9 +162,9 @@ class Events {
 			return $result;
 		}
 
-		$event = self::prepare_event( $event_id, $error_info, $settings );
-
 		try {
+			$event = self::prepare_event( $event_id, $error_info, $settings );
+
 			if ( ! self::acquire_write_lock() ) {
 				return $result;
 			}
@@ -177,7 +177,9 @@ class Events {
 				}
 
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-				$wpdb->insert( $wpdb->prefix . self::TABLE_NAME, $event );
+				if ( false === $wpdb->insert( $wpdb->prefix . self::TABLE_NAME, $event ) ) {
+					return $result;
+				}
 			} finally {
 				self::release_write_lock();
 			}
@@ -199,6 +201,8 @@ class Events {
 	 * @return array
 	 */
 	private static function prepare_event( array $event_id, object $error_info, object $settings ): array {
+		global $wpdb;
+
 		$ip         = '';
 		$user_agent = '';
 
@@ -209,6 +213,10 @@ class Events {
 			if ( $settings->is_on( 'anonymous' ) ) {
 				$user_agent = wp_hash( $user_agent );
 			}
+
+			// Normalize after hashing, using the actual column's charset and character limit.
+			$user_agent = $wpdb->strip_invalid_text_for_column( $wpdb->prefix . self::TABLE_NAME, 'user_agent', $user_agent );
+			$user_agent = is_wp_error( $user_agent ) ? '' : $user_agent;
 		}
 
 		if ( $settings->is_on( 'collect_ip' ) ) {
@@ -529,9 +537,8 @@ class Events {
 	 * @return bool
 	 */
 	public static function table_exists(): bool {
-		$settings = hcaptcha()->settings();
-		$raw      = $settings ? $settings->get_raw_settings() : get_option( PluginSettingsBase::OPTION_NAME, [] );
-		$raw      = is_array( $raw ) ? $raw : [];
+		// The table marker belongs to the current blog's database prefix.
+		$raw = SettingsStorage::get( false );
 
 		return 'on' === ( $raw[ self::TABLE_CREATED_OPTION_NAME ] ?? '' );
 	}
@@ -562,12 +569,7 @@ class Events {
 	 * @return void
 	 */
 	private static function mark_table_created(): void {
-		$option = get_option( PluginSettingsBase::OPTION_NAME, [] );
-		$option = is_array( $option ) ? $option : [];
-
-		$option[ self::TABLE_CREATED_OPTION_NAME ] = 'on';
-
-		update_option( PluginSettingsBase::OPTION_NAME, $option );
+		SettingsStorage::update( [ self::TABLE_CREATED_OPTION_NAME => 'on' ], [], false );
 	}
 
 	/**
@@ -576,15 +578,13 @@ class Events {
 	 * @return void
 	 */
 	private static function unmark_table_created(): void {
-		$option = get_option( PluginSettingsBase::OPTION_NAME, [] );
+		$option = SettingsStorage::get( false );
 
-		if ( ! is_array( $option ) || ! array_key_exists( self::TABLE_CREATED_OPTION_NAME, $option ) ) {
+		if ( ! array_key_exists( self::TABLE_CREATED_OPTION_NAME, $option ) ) {
 			return;
 		}
 
-		unset( $option[ self::TABLE_CREATED_OPTION_NAME ] );
-
-		update_option( PluginSettingsBase::OPTION_NAME, $option );
+		SettingsStorage::update( [], [ self::TABLE_CREATED_OPTION_NAME ], false );
 	}
 
 	/**
@@ -651,6 +651,7 @@ class Events {
 	 * Whether the Events table has the retention schema.
 	 *
 	 * @return bool
+	 * @noinspection PhpCastIsUnnecessaryInspection
 	 */
 	public static function is_retention_schema_ready(): bool {
 		global $wpdb;
@@ -708,6 +709,7 @@ class Events {
 	 * @param int    $days        Retention in days.
 	 *
 	 * @return void
+	 * @noinspection PhpCastIsUnnecessaryInspection
 	 */
 	private static function delete_expired_rows( string $status, string $date_column, string $index, int $days ): void {
 		global $wpdb;
@@ -791,7 +793,7 @@ class Events {
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$result = $wpdb->query(
 			$wpdb->prepare(
-				"SELECT id FROM $table_name FORCE INDEX (PRIMARY) ORDER BY id LIMIT %d, 1",
+				"SELECT id FROM $table_name FORCE INDEX (`PRIMARY`) ORDER BY id LIMIT %d, 1",
 				$max_rows - 1
 			)
 		);

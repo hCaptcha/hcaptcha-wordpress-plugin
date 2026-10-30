@@ -28,6 +28,18 @@ use Mockery;
 class JSTest extends HCaptchaWPTestCase {
 
 	/**
+	 * Test the scoped parent constructor with JavaScript passed as an argument.
+	 *
+	 * @noinspection PhpMethodParametersCountMismatchInspection
+	 * @noinspection PhpUndefinedMethodInspection
+	 */
+	public function test_minify(): void {
+		$subject = new JS( 'const answer = 42;' );
+
+		self::assertSame( 'const answer=42', $subject->minify() );
+	}
+
+	/**
 	 * Test canImportFile().
 	 *
 	 * @return void

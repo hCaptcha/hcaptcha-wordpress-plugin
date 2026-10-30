@@ -31,5 +31,5 @@ class Form extends Base {
 	/**
 	 * Verify hook.
 	 */
-	protected const VERIFY_HOOK = 'give_checkout_error_checks';
+	protected const VERIFY_HOOK = 'give_pre_process_donation';
 }

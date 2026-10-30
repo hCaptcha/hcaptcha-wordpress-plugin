@@ -229,7 +229,7 @@ class General extends PluginSettingsBase {
 
 		$this->auto_migration();
 
-		$this->update_option( OnboardingWizard::OPTION_NAME, 'step 8' );
+		$this->update_option( OnboardingWizard::OPTION_NAME, 'step 9' );
 
 		$url = $this->tab_url( $this );
 
@@ -350,7 +350,30 @@ class General extends PluginSettingsBase {
 	 * @return void
 	 */
 	public function init_form_fields(): void {
-		$this->form_fields = [
+		$this->form_fields = array_filter(
+			self::get_all_form_fields(),
+			static function ( array $field ): bool {
+				return ! in_array(
+					$field['section'],
+					[
+						self::SECTION_ENTERPRISE,
+						self::SECTION_CONTENT,
+						self::SECTION_OTHER,
+						self::SECTION_STATISTICS,
+					],
+					true
+				);
+			}
+		);
+	}
+
+	/**
+	 * Get the field definitions shared by General and Advanced.
+	 *
+	 * @return array
+	 */
+	public static function get_all_form_fields(): array {
+		$form_fields = [
 			'site_key'             => [
 				'label'        => __( 'Site Key', 'hcaptcha-for-forms-and-more' ),
 				'type'         => 'text',
@@ -372,16 +395,30 @@ class General extends PluginSettingsBase {
 				'type'    => 'hcaptcha',
 				'section' => self::SECTION_KEYS,
 			],
+			'mode'                 => [
+				'label'   => __( 'Mode', 'hcaptcha-for-forms-and-more' ),
+				'type'    => 'select',
+				'section' => self::SECTION_KEYS,
+				// phpcs:disable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned, WordPress.Arrays.MultipleStatementAlignment.LongIndexSpaceBeforeDoubleArrow
+				'options' => [
+					self::MODE_LIVE                          => __( 'Live', 'hcaptcha-for-forms-and-more' ),
+					self::MODE_TEST_PUBLISHER                => __( 'Test: Publisher Account', 'hcaptcha-for-forms-and-more' ),
+					self::MODE_TEST_ENTERPRISE_SAFE_END_USER => __( 'Test: Enterprise Account (Safe End User)', 'hcaptcha-for-forms-and-more' ),
+					self::MODE_TEST_ENTERPRISE_BOT_DETECTED  => __( 'Test: Enterprise Account (Bot Detected)', 'hcaptcha-for-forms-and-more' ),
+				],
+				// phpcs:enable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned, WordPress.Arrays.MultipleStatementAlignment.LongIndexSpaceBeforeDoubleArrow
+				'default' => self::MODE_TEST_PUBLISHER,
+				'helper'  => __( 'Select live or test mode. In test mode, predefined keys are used.', 'hcaptcha-for-forms-and-more' ),
+			],
 			'check_config'         => [
-				'label'   => __( 'Check Site Config', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'button',
-				'text'    => __( 'Check', 'hcaptcha-for-forms-and-more' ),
+				'text'    => __( 'Check Site Config', 'hcaptcha-for-forms-and-more' ),
 				'section' => self::SECTION_KEYS,
 			],
 			'reset_notifications'  => [
-				'label'   => __( 'Reset Notifications', 'hcaptcha-for-forms-and-more' ),
+				'label'   => '',
 				'type'    => 'button',
-				'text'    => __( 'Reset', 'hcaptcha-for-forms-and-more' ),
+				'text'    => __( 'Reset Notifications', 'hcaptcha-for-forms-and-more' ),
 				'section' => self::SECTION_KEYS,
 			],
 			'theme'                => [
@@ -530,24 +567,6 @@ class General extends PluginSettingsBase {
 					'hcaptcha-for-forms-and-more'
 				),
 			],
-			'mode'                 => [
-				'label'   => __( 'Mode', 'hcaptcha-for-forms-and-more' ),
-				'type'    => 'select',
-				'section' => self::SECTION_APPEARANCE,
-				// phpcs:disable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned, WordPress.Arrays.MultipleStatementAlignment.LongIndexSpaceBeforeDoubleArrow
-				'options' => [
-					self::MODE_LIVE                          => __( 'Live', 'hcaptcha-for-forms-and-more' ),
-					self::MODE_TEST_PUBLISHER                => __( 'Test: Publisher Account', 'hcaptcha-for-forms-and-more' ),
-					self::MODE_TEST_ENTERPRISE_SAFE_END_USER => __( 'Test: Enterprise Account (Safe End User)', 'hcaptcha-for-forms-and-more' ),
-					self::MODE_TEST_ENTERPRISE_BOT_DETECTED  => __( 'Test: Enterprise Account (Bot Detected)', 'hcaptcha-for-forms-and-more' ),
-				],
-				// phpcs:enable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned, WordPress.Arrays.MultipleStatementAlignment.LongIndexSpaceBeforeDoubleArrow
-				'default' => self::MODE_TEST_PUBLISHER,
-				'helper'  => __(
-					'Select live or test mode. In test mode, predefined keys are used.',
-					'hcaptcha-for-forms-and-more'
-				),
-			],
 			'force'                => [
 				'label'   => __( 'Force hCaptcha', 'hcaptcha-for-forms-and-more' ),
 				'type'    => 'checkbox',
@@ -651,10 +670,11 @@ class General extends PluginSettingsBase {
 				'helper'  => __( 'Protect site content from bots with hCaptcha.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'protected_urls'       => [
-				'label'   => __( 'Protected URLs', 'hcaptcha-for-forms-and-more' ),
-				'type'    => 'textarea',
-				'section' => self::SECTION_CONTENT,
-				'helper'  => __( 'Protect content of listed URLs. Please specify one URL per line. You may use regular expressions.', 'hcaptcha-for-forms-and-more' ),
+				'label'         => __( 'Protected URLs', 'hcaptcha-for-forms-and-more' ),
+				'type'          => 'textarea',
+				'preserve_text' => true,
+				'section'       => self::SECTION_CONTENT,
+				'helper'        => __( 'Protect content of listed URLs. Please specify one URL per line. You may use regular expressions without delimiters. Expressions match the full URL, including the scheme and host. Invalid expressions are treated as literal URLs.', 'hcaptcha-for-forms-and-more' ),
 			],
 			'delay'                => [
 				'label'   => __( 'Delay Showing hCaptcha, ms', 'hcaptcha-for-forms-and-more' ),
@@ -744,8 +764,10 @@ class General extends PluginSettingsBase {
 		];
 
 		if ( ! is_multisite() ) {
-			unset( $this->form_fields[ self::NETWORK_WIDE ] );
+			unset( $form_fields[ self::NETWORK_WIDE ] );
 		}
+
+		return $form_fields;
 	}
 
 	/**
@@ -772,13 +794,9 @@ class General extends PluginSettingsBase {
 			$this->form_fields['custom_themes']['disabled'] = true;
 		}
 
-		if ( 'enterprise' !== $license ) {
-			foreach ( $this->form_fields as $field_name => $field ) {
-				if ( self::SECTION_ENTERPRISE === ( $field['section'] ?? '' ) ) {
-					$this->form_fields[ $field_name ]['disabled'] = true;
-				}
-			}
-		}
+		$show_reset = $this->has_saved_live_keys() && ( $this->notifications ?? new Notifications() )->has_dismissed_notifications();
+
+		$this->form_fields['reset_notifications']['class'] = 'hcaptcha-general-reset-notifications' . ( $show_reset ? '' : ' hidden' );
 
 		parent::setup_fields();
 	}
@@ -793,7 +811,12 @@ class General extends PluginSettingsBase {
 			case self::SECTION_KEYS:
 				$this->print_header();
 
-				$this->notifications->show();
+				if ( $this->has_saved_live_keys() ) {
+					$this->notifications->show();
+				} else {
+					$this->notifications->show( true );
+				}
+
 				$this->print_section_header( $arguments['id'], __( 'Keys', 'hcaptcha-for-forms-and-more' ) );
 				break;
 			case self::SECTION_APPEARANCE:
@@ -802,21 +825,18 @@ class General extends PluginSettingsBase {
 			case self::SECTION_CUSTOM:
 				$this->print_section_header( $arguments['id'], __( 'Custom', 'hcaptcha-for-forms-and-more' ) );
 				break;
-			case self::SECTION_ENTERPRISE:
-				$this->print_section_header( $arguments['id'], __( 'Enterprise', 'hcaptcha-for-forms-and-more' ) );
-				break;
-			case self::SECTION_CONTENT:
-				$this->print_section_header( $arguments['id'], __( 'Content', 'hcaptcha-for-forms-and-more' ) );
-				break;
-			case self::SECTION_OTHER:
-				$this->print_section_header( $arguments['id'], __( 'Other', 'hcaptcha-for-forms-and-more' ) );
-				break;
-			case self::SECTION_STATISTICS:
-				$this->print_section_header( $arguments['id'], __( 'Statistics', 'hcaptcha-for-forms-and-more' ) );
-				break;
 			default:
 				break;
 		}
+	}
+
+	/**
+	 * Whether both live keys have been saved.
+	 *
+	 * @return bool
+	 */
+	private function has_saved_live_keys(): bool {
+		return $this->get( 'site_key' ) && $this->get( 'secret_key' );
 	}
 
 	/**
@@ -833,25 +853,15 @@ class General extends PluginSettingsBase {
 		$settings = hcaptcha()->settings();
 		$license  = $settings ? $settings->get_license() : 'free';
 
-		switch ( $id ) {
-			case self::SECTION_CUSTOM:
-				if ( 'free' === $license ) {
-					$open     = false;
-					$disabled = true;
+		if ( self::SECTION_KEYS === $id && ! $this->has_saved_live_keys() ) {
+			$open = true;
+		}
 
-					$title .= ' - ' . __( 'hCaptcha Pro Required', 'hcaptcha-for-forms-and-more' );
-				}
-				break;
-			case self::SECTION_ENTERPRISE:
-				if ( 'enterprise' !== $license ) {
-					$open     = false;
-					$disabled = true;
+		if ( self::SECTION_CUSTOM === $id && 'free' === $license ) {
+			$open     = false;
+			$disabled = true;
 
-					$title .= ' - ' . __( 'hCaptcha Enterprise Required', 'hcaptcha-for-forms-and-more' );
-				}
-				break;
-			default:
-				break;
+			$title .= ' - ' . __( 'hCaptcha Pro Required', 'hcaptcha-for-forms-and-more' );
 		}
 
 		$class = $open ? '' : ' closed';
@@ -1276,10 +1286,7 @@ class General extends PluginSettingsBase {
 	 */
 	public function print_hcaptcha_field(): void {
 		$args = [
-			'id' => [
-				'source'  => [ __CLASS__ ],
-				'form_id' => self::CHECK_CONFIG_FORM_ID,
-			],
+			'id' => $this->get_check_config_id(),
 		];
 
 		HCaptcha::form_display( $args );
@@ -1359,7 +1366,7 @@ class General extends PluginSettingsBase {
 		add_filter( 'hcap_check_honeypot_field', '__return_true' );
 		add_filter( 'hcap_verify_fst_token', '__return_true' );
 
-		$result = API::verify_request( $hcaptcha_response );
+		$result = API::verify_request( $hcaptcha_response, [ 'expected_id' => $this->get_check_config_id() ] );
 
 		if ( null !== $result ) {
 			$this->send_check_config_error( $result, true );
@@ -1376,6 +1383,18 @@ class General extends PluginSettingsBase {
 		wp_send_json_success(
 			esc_html__( 'Site config is valid. Save your changes.', 'hcaptcha-for-forms-and-more' )
 		);
+	}
+
+	/**
+	 * Get the configuration check form identity.
+	 *
+	 * @return array
+	 */
+	private function get_check_config_id(): array {
+		return [
+			'source'  => [ __CLASS__ ],
+			'form_id' => self::CHECK_CONFIG_FORM_ID,
+		];
 	}
 
 	/**

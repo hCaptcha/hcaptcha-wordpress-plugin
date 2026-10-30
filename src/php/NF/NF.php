@@ -60,6 +60,13 @@ class NF implements Base {
 	private bool $form_shown = false;
 
 	/**
+	 * Whether a native Ninja Forms hCaptcha field was shown.
+	 *
+	 * @var boolean
+	 */
+	private bool $native_form_shown = false;
+
+	/**
 	 * NF constructor.
 	 */
 	public function __construct() {
@@ -83,6 +90,8 @@ class NF implements Base {
 		add_action( 'nf_get_form_id', [ $this, 'set_form_id' ] );
 		add_filter( "ninja_forms_localize_field_$name", [ $this, 'localize_field' ] );
 		add_filter( "ninja_forms_localize_field_{$name}_preview", [ $this, 'localize_field' ] );
+		add_filter( 'ninja_forms_localize_field_hcaptcha', [ $this, 'mark_native_field' ] );
+		add_filter( 'ninja_forms_localize_field_hcaptcha_preview', [ $this, 'mark_native_field' ] );
 		add_action( 'wp_print_footer_scripts', [ $this, 'nf_captcha_script' ], 9 );
 
 		// Block native hCaptcha settings in the Ninja Forms plugin.
@@ -103,18 +112,10 @@ class NF implements Base {
 		}
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		$template = file_get_contents( $this->templates_dir . 'fields-hcaptcha.html' );
-
-		// Fix bug in Ninja forms.
-		// For template script id, they expect field->_name in admin, but field->_type on the frontend.
-		// It works for NF fields as all fields have _name === _type.
+		$template = file_get_contents( $this->templates_dir . 'fields-' . Base::NAME . '.html' );
 
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		echo str_replace(
-			'tmpl-nf-field-' . Base::TYPE,
-			'tmpl-nf-field-' . Base::NAME,
-			$template
-		);
+		echo $template;
 	}
 
 	/**
@@ -136,7 +137,6 @@ class NF implements Base {
 		$found = false;
 
 		foreach ( $vars['preloadedFormData']['fields'] as & $field ) {
-			// See comment in admin_template().
 			if ( Base::NAME === $field['type'] ) {
 				$found             = true;
 				$field['hcaptcha'] = preg_replace(
@@ -203,9 +203,6 @@ class NF implements Base {
 	public function register_fields( $fields ): array {
 		$fields = (array) $fields;
 
-		// Deactivate the native hCaptcha field by Ninja Forms plugin.
-		unset( $fields['hcaptcha'] );
-
 		$index = array_search( 'recaptcha', array_keys( $fields ), true );
 		$index = false === $index ? count( $fields ) : $index;
 
@@ -261,6 +258,19 @@ class NF implements Base {
 	}
 
 	/**
+	 * Track native hCaptcha fields so their frontend script remains available.
+	 *
+	 * @param array|mixed $field Field.
+	 *
+	 * @return mixed
+	 */
+	public function mark_native_field( $field ) {
+		$this->native_form_shown = true;
+
+		return $field;
+	}
+
+	/**
 	 * Get hCaptcha.
 	 *
 	 * @param int|string $field_id Field id.
@@ -309,8 +319,10 @@ class NF implements Base {
 
 		DelayedScript::enqueue( self::HANDLE );
 
-		// Dequeue hCaptcha script by Ninja Forms plugin.
-		wp_dequeue_script( 'nf-hcaptcha' );
+		if ( ! $this->native_form_shown ) {
+			// Ninja Forms enqueues its hCaptcha script on preview pages without a native field.
+			wp_dequeue_script( 'nf-hcaptcha' );
+		}
 	}
 
 	/**

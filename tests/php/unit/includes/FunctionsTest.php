@@ -128,6 +128,20 @@ class FunctionsTest extends HCaptchaTestCase {
 					'protect' => true,
 				],
 			],
+			'ajax auto'      => [
+				[ 'ajax' => 'true' ],
+				[
+					'action'  => HCAPTCHA_ACTION,
+					'name'    => HCAPTCHA_NONCE,
+					'auto'    => true,
+					'ajax'    => 'true',
+					'force'   => false,
+					'theme'   => 'light',
+					'size'    => 'normal',
+					'id'      => [],
+					'protect' => true,
+				],
+			],
 			'force truly'    => [
 				[
 					'force' => true,

@@ -228,6 +228,79 @@ class RequestTest extends HCaptchaTestCase {
 	}
 
 	/**
+	 * Test REST request detection across permalink formats and route values.
+	 *
+	 * @dataProvider dp_test_is_rest_routes
+	 *
+	 * @param string            $request_uri  Current request URI.
+	 * @param string            $rest_url     REST API base URL.
+	 * @param array|string|null $rest_route   Route query parameter.
+	 * @param bool              $rest_request Whether REST_REQUEST is true.
+	 * @param bool              $expected     Expected result.
+	 *
+	 * @return void
+	 */
+	public function test_is_rest_routes( string $request_uri, string $rest_url, $rest_route, bool $rest_request, bool $expected ): void {
+		$_SERVER['REQUEST_URI'] = $request_uri;
+		$_SERVER['SCRIPT_NAME'] = '/index.php';
+
+		if ( null !== $rest_route ) {
+			$_GET['rest_route'] = $rest_route;
+		}
+
+		FunctionMocker::replace(
+			'defined',
+			static function ( $constant_name ) {
+				return 'REST_REQUEST' === $constant_name;
+			}
+		);
+		FunctionMocker::replace(
+			'constant',
+			static function ( $constant_name ) use ( $rest_request ) {
+				return 'REST_REQUEST' === $constant_name && $rest_request;
+			}
+		);
+
+		WP_Mock::passthruFunction( 'wp_unslash' );
+		WP_Mock::passthruFunction( 'sanitize_text_field' );
+		WP_Mock::passthruFunction( 'trailingslashit' );
+		WP_Mock::userFunction( 'add_query_arg' )->with( [] )->andReturn( $request_uri );
+		WP_Mock::userFunction( 'rest_url' )->with()->andReturn( $rest_url );
+		WP_Mock::userFunction( 'wp_parse_url' )->andReturnUsing(
+			static function ( $url, $component = -1 ) {
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
+				return parse_url( $url, $component );
+			}
+		);
+
+		Mockery::mock( 'WP_Rewrite' );
+
+		self::assertSame( $expected, Request::is_rest() );
+	}
+
+	/**
+	 * Data provider for test_is_rest_routes().
+	 *
+	 * @return array[]
+	 */
+	public function dp_test_is_rest_routes(): array {
+		return [
+			'plain index without route'        => [ '/index.php', 'https://test.test/index.php?rest_route=/', null, false, false ],
+			'plain index with other query'     => [ '/index.php?foo=bar', 'https://test.test/index.php?rest_route=/', null, false, false ],
+			'plain index prefix lookalike'     => [ '/index.php-extra', 'https://test.test/index.php?rest_route=/', null, false, false ],
+			'plain index with REST route'      => [ '/index.php?rest_route=/wp/v2/posts', 'https://test.test/index.php?rest_route=/', '/wp/v2/posts', false, true ],
+			'REST_REQUEST constant'            => [ '/some-page/', 'https://test.test/wp-json/', null, true, true ],
+			'pretty REST base'                 => [ '/wp-json/', 'https://test.test/wp-json/', null, false, true ],
+			'pretty REST child'                => [ '/wp-json/wp/v2/posts', 'https://test.test/wp-json/', null, false, true ],
+			'pretty REST URL with query'       => [ '/wp-json/wp/v2/posts', 'https://test.test/wp-json/?lang=en', null, false, true ],
+			'index permalink REST child'       => [ '/index.php/wp-json/wp/v2/posts', 'https://test.test/index.php/wp-json/', null, false, true ],
+			'pretty prefix lookalike'          => [ '/wp-jsonified/', 'https://test.test/wp-json/', null, false, false ],
+			'index permalink prefix lookalike' => [ '/index.php/wp-json-extra/', 'https://test.test/index.php/wp-json/', null, false, false ],
+			'array REST route'                 => [ '/index.php?rest_route[]=bad', 'https://test.test/index.php?rest_route=/', [ '/wp/v2/posts' ], false, false ],
+		];
+	}
+
+	/**
 	 * Test is_post().
 	 *
 	 * @return void
@@ -368,10 +441,37 @@ class RequestTest extends HCaptchaTestCase {
 			// Range (IPv4).
 			[ '192.168.1.10', '192.168.1.10-192.168.1.20', true ],
 			[ '192.168.1.21', '192.168.1.10-192.168.1.20', false ],
+			[ '192.168.1.20', '192.168.1.10-192.168.1.20', true ],
+			[ ' 192.168.1.10 ', ' 192.168.1.10 - 192.168.1.20 ', true ],
+			[ '192.168.1.15', '192.168.1.20-192.168.1.10', false ],
+			[ '0.0.0.0', '0.0.0.0-0.0.0.0', true ],
+
+			// Packed addresses must be compared as bytes, even when they look numeric.
+			[ '49.48.69.57', '49.101.49.48-49.101.49.48', false ],
+			[ '49.101.49.48', '49.101.49.48-49.101.49.48', true ],
+			[ '49.101.49.48', '49.48.69.57-49.101.49.48', true ],
+			[ '49.101.49.48', '49.101.49.48-49.48.69.57', false ],
+			[ '3130:4530:3030:3030:3030:3030:3030:3039', '3165:3030:3030:3030:3030:3030:3030:3130-3165:3030:3030:3030:3030:3030:3030:3130', false ],
 
 			// Range (IPv6).
 			[ '2001:db8::5', '2001:db8::1-2001:db8::f', true ],
 			[ '2001:db8::10', '2001:db8::1-2001:db8::f', false ],
+			[ '2001:0db8:0000:0000:0000:0000:0000:0005', '2001:db8::1-2001:db8::f', true ],
+			[ '::', '::-::', true ],
+			[ '::ffff:192.0.2.5', '::ffff:192.0.2.1-::ffff:192.0.2.10', true ],
+
+			// All range operands must be valid addresses in the same family.
+			[ '2600::1', '38.0.0.0-38.255.255.255', false ],
+			[ '38.1.1.1', '2600::-26ff:ffff:ffff:ffff:ffff:ffff:ffff:ffff', false ],
+			[ '38.1.1.1', '38.0.0.0-ffff::', false ],
+			[ '2600::1', '38.0.0.0-ffff::', false ],
+			[ 'not-an-ip', '192.168.1.10-192.168.1.20', false ],
+			[ '1.1.1.1', 'invalid-192.168.1.20', false ],
+			[ '192.168.1.15', '192.168.1.10-invalid', false ],
+			[ 'not-an-ip', 'invalid-invalid', false ],
+			[ '1.1.1.1', '-192.168.1.20', false ],
+			[ '192.168.1.15', '192.168.1.10-', false ],
+			[ '', '-', false ],
 
 			// Mixed types.
 			[ '192.168.1.1', '2001:db8::/64', false ], // IPv4 vs IPv6.

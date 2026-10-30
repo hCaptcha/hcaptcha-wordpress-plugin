@@ -56,4 +56,13 @@ class LostPasswordTest extends HCaptchaWPTestCase {
 		self::assertStringContainsString( 'name="hcap_hp_test"', $output );
 		self::assertStringContainsString( 'name="hcap_hp_sig"', $output );
 	}
+
+	/**
+	 * Leave other shortcodes unchanged.
+	 */
+	public function test_add_captcha_ignores_other_shortcodes(): void {
+		$output = '<form><input type="submit"></form>';
+
+		self::assertSame( $output, ( new LostPassword() )->add_captcha( $output, 'other', [], [] ) );
+	}
 }

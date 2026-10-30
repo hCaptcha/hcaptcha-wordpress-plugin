@@ -9,7 +9,6 @@ namespace HCaptcha\ClassifiedListing;
 
 use HCaptcha\Abstracts\LoginBase;
 use WP_Error;
-use WP_User;
 
 /**
  * Class Login.
@@ -26,7 +25,7 @@ class Login extends LoginBase {
 		parent::init_hooks();
 
 		add_action( 'rtcl_login_form', [ $this, 'add_captcha' ] );
-		add_filter( 'wp_authenticate_user', [ $this, 'verify' ], 10, 2 );
+		add_filter( 'rtcl_process_login_errors', [ $this, 'verify' ], 10, 3 );
 	}
 
 	/**
@@ -43,18 +42,14 @@ class Login extends LoginBase {
 	/**
 	 * Verify a login form.
 	 *
-	 * @param WP_User|WP_Error $user     WP_User or WP_Error object
-	 *                                   if a previous callback failed authentication.
-	 * @param string           $password Password to check against the user.
+	 * @param WP_Error $errors   Native Classified Listing validation errors.
+	 * @param string   $username Submitted username.
+	 * @param string   $password Submitted password.
 	 *
-	 * @return WP_User|WP_Error
+	 * @return WP_Error
+	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function verify( $user, string $password ) {
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		if ( ! isset( $_POST['rtcl-login-nonce'] ) ) {
-			return $user;
-		}
-
-		return $this->login_base_verify( $user, $password );
+	public function verify( WP_Error $errors, string $username, string $password ): WP_Error {
+		return $this->login_base_verify( $errors, $password );
 	}
 }

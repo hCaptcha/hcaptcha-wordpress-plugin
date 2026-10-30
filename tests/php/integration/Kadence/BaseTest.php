@@ -97,6 +97,7 @@ class BaseTest extends HCaptchaPluginWPTestCase {
 	 * @throws ReflectionException ReflectionException.
 	 */
 	public function test_dequeue_kadence_captcha_api_replaced(): void {
+		hcaptcha()->settings()->set( 'kadence_status', [ 'form', 'advanced_form' ] );
 		$subject = new Base();
 
 		$this->set_protected_property( $subject, 'has_captcha', true );

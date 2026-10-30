@@ -47,6 +47,16 @@ class PasswordProtectedTest extends HCaptchaWPTestCase {
 	}
 
 	/**
+	 * Preserve auth cookie decisions when WordPress passes session context.
+	 */
+	public function test_clear_proof_preserves_cookie_decision_with_session_context(): void {
+		$subject = new PasswordProtected();
+
+		self::assertTrue( $subject->clear_proof_if_allowed( true, 1 ) );
+		self::assertFalse( $subject->clear_proof_if_allowed( false, 0, 0, 1 ) );
+	}
+
+	/**
 	 * Test add_captcha().
 	 */
 	public function test_add_captcha(): void {

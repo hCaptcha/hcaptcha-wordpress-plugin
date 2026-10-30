@@ -12,6 +12,7 @@
 
 namespace HCaptcha\Tests\Integration\Kadence;
 
+use HCaptcha\Helpers\API;
 use HCaptcha\Helpers\HCaptcha;
 use HCaptcha\Kadence\Form;
 use HCaptcha\Tests\Integration\HCaptchaPluginWPTestCase;
@@ -27,6 +28,50 @@ use WP_Block_Type_Registry;
  * @group kadence-form
  */
 class FormTest extends HCaptchaPluginWPTestCase {
+	/**
+	 * Resolve native widget and nested block locations safely.
+	 */
+	public function test_form_block_lookup_fallbacks(): void {
+		$subject       = new Form();
+		$get_blocks    = $this->set_method_accessibility( $subject, 'get_form_blocks' );
+		$get_form      = $this->set_method_accessibility( $subject, 'get_form' );
+		$get_reference = $this->set_method_accessibility( $subject, 'get_referenced_form' );
+		$nested_form   = [
+			'blockName' => 'kadence/form',
+			'attrs'     => [ 'uniqueID' => 'target' ],
+		];
+
+		$_POST['_kb_form_id'] = [];
+		self::assertSame( [], $get_blocks->invoke( $subject, 'block-unknown' ) );
+
+		$_POST['_kb_form_id'] = 'missing';
+		self::assertSame( [], $get_blocks->invoke( $subject, 'block-unknown' ) );
+		self::assertSame(
+			$nested_form,
+			$get_form->invoke(
+				$subject,
+				[
+					[
+						'blockName'   => 'core/group',
+						'innerBlocks' => [ $nested_form ],
+					],
+				],
+				'target'
+			)
+		);
+		self::assertSame(
+			[],
+			$get_reference->invoke(
+				$subject,
+				[
+					'blockName' => 'core/block',
+					'attrs'     => [ 'ref' => 9999999 ],
+				],
+				'target',
+				[]
+			)
+		);
+	}
 
 	/**
 	 * Kadence Blocks plugin entry file.
@@ -342,5 +387,268 @@ class FormTest extends HCaptchaPluginWPTestCase {
 		$subject::enqueue_scripts();
 
 		self::assertTrue( wp_script_is( $handle ) );
+	}
+	/**
+	 * A malformed post selector cannot borrow another post's exemption.
+	 *
+	 * @param string $separator Text removed by Kadence's native sanitizer.
+	 *
+	 * @return void
+	 * @dataProvider dp_sec020_post_id_aliases
+	 */
+	public function test_sec020_malformed_post_id_uses_native_identity( string $separator ): void {
+		[ $exempt_id, $protected_id, $suffix ] = $this->create_sec020_forms();
+		$alias                                 = $exempt_id . $separator . $suffix;
+		self::assertSame( (string) $protected_id, sanitize_text_field( wp_unslash( $alias ) ) );
+
+		$exempt = $this->exempt_sec020_form( $exempt_id );
+
+		try {
+			$_POST['_kb_form_id'] = 'sec020-form';
+			$this->prepare_widget_id( $exempt_id );
+			$subject = new Form();
+			$entry   = $this->set_method_accessibility( $subject, 'get_entry' )->invoke(
+				$subject,
+				[
+					'_kb_form_post_id' => $alias,
+					'kb_field_0'       => 'reader@example.com',
+				]
+			);
+
+			self::assertSame( $protected_id, $entry['expected_id']['form_id'] );
+			self::assertSame( get_post( $protected_id )->post_modified_gmt, $entry['form_date_gmt'] );
+			self::assertSame( 'reader@example.com', $entry['data']['Protected contact'] ?? null );
+			self::assertArrayNotHasKey( 'Exempt contact', $entry['data'] );
+			self::assertSame( 'Bad hCaptcha signature!', API::verify_request( null, $entry ) );
+		} finally {
+			remove_filter( 'hcap_protect_form', $exempt );
+		}
+	}
+
+	/**
+	 * Encoded separators that Kadence removes before post lookup.
+	 *
+	 * @return array
+	 */
+	public function dp_sec020_post_id_aliases(): array {
+		return [
+			'HTML tag'       => [ '<br>' ],
+			'percent escape' => [ '%20' ],
+		];
+	}
+
+	/**
+	 * A canonical signed exemption remains valid for its own post.
+	 *
+	 * @return void
+	 */
+	public function test_sec020_own_exemption_remains_valid(): void {
+		[ $exempt_id ] = $this->create_sec020_forms();
+		$exempt        = $this->exempt_sec020_form( $exempt_id );
+
+		try {
+			$_POST['_kb_form_id'] = 'sec020-form';
+			$this->prepare_widget_id( $exempt_id );
+			$subject = new Form();
+			$entry   = $this->set_method_accessibility( $subject, 'get_entry' )->invoke(
+				$subject,
+				[ '_kb_form_post_id' => (string) $exempt_id ]
+			);
+
+			self::assertSame( $exempt_id, $entry['expected_id']['form_id'] );
+			self::assertNull( API::verify_request( null, $entry ) );
+		} finally {
+			remove_filter( 'hcap_protect_form', $exempt );
+		}
+	}
+
+	/**
+	 * A protected canonical post still accepts a verified challenge.
+	 *
+	 * @return void
+	 */
+	public function test_sec020_protected_post_accepts_valid_challenge(): void {
+		[ , $protected_id ] = $this->create_sec020_forms();
+		$response           = 'sec020-valid-response';
+		$this->prepare_verify_request( $response );
+		$_POST['_kb_form_id'] = 'sec020-form';
+		$this->prepare_widget_id( $protected_id );
+		$subject = new Form();
+		$entry   = $this->set_method_accessibility( $subject, 'get_entry' )->invoke(
+			$subject,
+			[
+				'_kb_form_post_id'   => (string) $protected_id,
+				'h-captcha-response' => $response,
+			]
+		);
+
+		self::assertSame( $protected_id, $entry['expected_id']['form_id'] );
+		self::assertNull( API::verify_request( $response, $entry ) );
+	}
+
+	/**
+	 * Create two real Kadence form posts whose ids share a numeric prefix.
+	 *
+	 * @return array{int, int, string}
+	 */
+	private function create_sec020_forms(): array {
+		$form_id      = 'sec020-form';
+		$exempt_id    = 0;
+		$protected_id = 0;
+		$suffix       = '';
+
+		// Use vacant low IDs so repeated tests do not grow AUTO_INCREMENT.
+		for ( $candidate = 100; $candidate < 1000 && ! $exempt_id; ++$candidate ) {
+			if ( get_post( $candidate ) ) {
+				continue;
+			}
+
+			for ( $digit = 1; $digit <= 9; ++$digit ) {
+				$target = (int) ( $candidate . $digit );
+
+				if ( ! get_post( $target ) ) {
+					$exempt_id    = $candidate;
+					$protected_id = $target;
+					$suffix       = (string) $digit;
+					break;
+				}
+			}
+		}
+
+		self::assertNotSame( 0, $exempt_id );
+		$created_id = $this->factory()->post->create(
+			[
+				'import_id'    => $exempt_id,
+				'post_content' => '<!-- wp:kadence/form {"uniqueID":"' . $form_id . '","fields":[{"type":"email","label":"Exempt contact"}]} /-->',
+			]
+		);
+		self::assertSame( $exempt_id, $created_id );
+		$created_id = $this->factory()->post->create(
+			[
+				'import_id'    => $protected_id,
+				'post_content' => '<!-- wp:kadence/form {"uniqueID":"' . $form_id . '","fields":[{"type":"email","label":"Protected contact"}]} /-->',
+			]
+		);
+		self::assertSame( $protected_id, $created_id );
+
+		return [ $exempt_id, $protected_id, $suffix ];
+	}
+
+	/**
+	 * Exempt only the specified Kadence form post.
+	 *
+	 * @param int $form_id Form post id.
+	 *
+	 * @return callable
+	 */
+	private function exempt_sec020_form( int $form_id ): callable {
+		$exempt = static function ( $protect, $source, $candidate ) use ( $form_id ) {
+			return [ 'kadence-blocks/kadence-blocks.php' ] === $source && $form_id === $candidate ? false : $protect;
+		};
+		add_filter( 'hcap_protect_form', $exempt, 10, 3 );
+
+		return $exempt;
+	}
+
+	/**
+	 * Apply email policy independently of labels and the last email field.
+	 *
+	 * @param bool $blocked Whether the trusted email is disposable.
+	 * @dataProvider dp_sec063_email_policy
+	 */
+	public function test_sec063_typed_email_policy( bool $blocked ): void {
+		$this->prepare_verify_request( 'sec063-challenge' );
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		set_transient( 'hcaptcha_disposable_email_blocklist', [ 'sec063-disposable.test' => true ] );
+		$post_id              = $this->factory()->post->create(
+			[ 'post_content' => '<!-- wp:kadence/form {"uniqueID":"sec063","fields":[{"type":"email","label":"Payment contact"},{"type":"email","label":"Другой адрес"},{"type":"text","label":"email"}]} /-->' ]
+		);
+		$_POST['_kb_form_id'] = 'sec063';
+		$this->prepare_widget_id( $post_id );
+		$data    = [
+			'_kb_form_post_id' => $post_id,
+			'kb_field_0'       => $blocked ? ' person@sec063-disposable.test ' : ' person@example.com ',
+			'kb_field_1'       => 'reader@example.com',
+			'kb_field_2'       => 'spoof@sec063-disposable.test',
+		];
+		$subject = new Form();
+		$entry   = $this->set_method_accessibility( $subject, 'get_entry' )->invoke( $subject, $data );
+
+		self::assertSame( $blocked ? 'Please use a permanent email address.' : null, API::verify_request( null, $entry ) );
+	}
+	/**
+	 * Exercise both policy rejection and permanent address acceptance.
+	 *
+	 * @return array
+	 */
+	public function dp_sec063_email_policy(): array {
+		return [
+			'disposable' => [ true ],
+			'permanent'  => [ false ],
+		];
+	}
+	/**
+	 * Apply native email policy in reusable blocks and supported block widgets.
+	 *
+	 * @param string $location Native form location.
+	 * @param bool   $blocked Whether the submitted address is disposable.
+	 * @dataProvider dp_sec063_native_locations
+	 */
+	public function test_sec063_native_location_policy( string $location, bool $blocked ): void {
+		$this->prepare_verify_request( 'sec063-challenge' );
+		hcaptcha()->settings()->set( 'disposable_email', [ 'on' ] );
+		set_transient( 'hcaptcha_disposable_email_blocklist', [ 'sec063-disposable.test' => true ] );
+		$content = '<!-- wp:kadence/form {"uniqueID":"sec063-location","fields":[{"type":"email","label":"Адрес"},{"type":"text","label":"email"}]} /-->';
+		$post_id = 0;
+		if ( in_array( $location, [ 'reusable', 'reusable-cycle' ], true ) ) {
+			$reference = $this->factory()->post->create(
+				[
+					'post_type'    => 'wp_block',
+					'post_content' => $content,
+				]
+			);
+
+			if ( 'reusable-cycle' === $location ) {
+				wp_update_post(
+					[
+						'ID'           => $reference,
+						'post_content' => '<!-- wp:block {"ref":' . $reference . '} /-->' . $content,
+					]
+				);
+			}
+			$post_id        = $this->factory()->post->create( [ 'post_content' => '<!-- wp:block {"ref":' . $reference . '} /-->' ] );
+			$native_post_id = $post_id;
+		} else {
+			update_option( 'widget_block', [ 5 => [ 'content' => $content ] ] );
+			$native_post_id = 'unknown-widget' === $location ? 'block-unknown' : 'block-5';
+		}
+		$_POST['_kb_form_id'] = 'sec063-location';
+		$this->prepare_widget_id( $post_id );
+		$data    = [
+			'_kb_form_post_id' => $native_post_id,
+			'kb_field_0'       => $blocked ? 'person@sec063-disposable.test' : 'reader@example.com',
+			'kb_field_1'       => 'spoof@sec063-disposable.test',
+		];
+		$subject = new Form();
+		$entry   = $this->set_method_accessibility( $subject, 'get_entry' )->invoke( $subject, $data );
+		self::assertSame( $blocked ? 'Please use a permanent email address.' : null, API::verify_request( null, $entry ) );
+	}
+
+	/**
+	 * Supported native form locations and block/allow controls.
+	 *
+	 * @return array
+	 */
+	public function dp_sec063_native_locations(): array {
+		return [
+			'reusable blocked'       => [ 'reusable', true ],
+			'reusable allowed'       => [ 'reusable', false ],
+			'reusable cycle blocked' => [ 'reusable-cycle', true ],
+			'reusable cycle allowed' => [ 'reusable-cycle', false ],
+			'widget blocked'         => [ 'widget', true ],
+			'widget allowed'         => [ 'widget', false ],
+			'unknown widget blocked' => [ 'unknown-widget', true ],
+			'unknown widget allowed' => [ 'unknown-widget', false ],
+		];
 	}
 }
